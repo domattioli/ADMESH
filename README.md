@@ -30,7 +30,7 @@ The port preserves the original 13-stage pipeline:
 7. `dominate_tide` — tidal wavelength size control
 8. `boundary` — boundary-condition enforcement + polygon structuring
 9. `mesh_size` — mesh-size iterative PDE solver (Numba-JIT port of `MeshSizeIterativeSolver.c`)
-10. `distmesh` — DistMesh 2D solver + quad conversion + constraints
+10. `distmesh` — DistMesh 2D triangulation (quad conversion is out of scope)
 11. `quality` — mesh quality metrics
 12. `in_polygon` — point-in-polygon tests
 13. `inpaint` — NaN in-painting for grid fields
