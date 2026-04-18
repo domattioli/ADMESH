@@ -1,0 +1,6 @@
+# Development dependencies for ADMESH: test, lint, and type-check tooling.
+-r requirements.txt
+pytest>=7
+pytest-cov
+ruff
+mypy
