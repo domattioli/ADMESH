@@ -6,17 +6,32 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
-## Where we are today (2026-04-18, session 0)
+## Where we are today (2026-04-18, post-session 0)
 
-**Shipped:**
-- Repo scaffolded (`domattioli/ADMESH`, private).
-- Governance docs (`CONSTITUTION.md`, `PROJECT_PLAN.md`, `CLAUDE.md`).
-- Package skeleton: `admesh/` with stage-module stubs.
-- `pyproject.toml`, `.gitignore`, MIT `LICENSE`.
+**Shipped (session 0, M.0–M.3 of the MVP):**
+- Repo live at `domattioli/ADMESH` (private, Apache-2.0).
+- Governance: `CONSTITUTION.md`, `PROJECT_PLAN.md`, `CLAUDE.md`,
+  `README.md`, `docs/session_0_plan.md` + `session_0_report.md` +
+  `session_0_state.md`.
+- Persistence skills: `.claude/skills/{log-issue,log-interrupt,
+  list-issues,session-handoff}/SKILL.md` + `docs/persistence_journal.md`.
+- **M.0** scaffold: 14-module `admesh/` package, `pyproject.toml`,
+  `requirements.txt` + `requirements-dev.txt`, smoke test.
+- **M.1** leaf utilities: `in_polygon.py`, `quality.py`,
+  `domains.py` (5 MVP SDFs).
+- **M.2** distance + mesh_size: `distance.py` (grid-eval +
+  4th-order `grad_sdf`), `mesh_size.py` (pure-Python + Numba
+  solver, parity to `atol=1e-10`).
+- **M.3** distmesh + driver: `distmesh.py` (canonical Persson
+  DistMesh2D + `fixmesh`), `routine.py::triangulate()`.
+- 49 pytest tests passing.
 - Local MATLAB reference clone at `/workspace/QuADMesh-MATLAB`.
 
-**Not shipped:** any stage implementations, reference fixtures, or an
-end-to-end pipeline.
+**Not shipped yet (MVP):**
+- **M.4** — end-to-end validation on all 5 test domains + PNG
+  artifacts. Single remaining MVP gate. Session 1 target.
+
+**Not shipped (post-MVP):** any of Phases P1–P5.
 
 ---
 
