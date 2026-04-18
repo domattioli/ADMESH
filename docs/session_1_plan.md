@@ -114,7 +114,7 @@ If session budget is tight, WS3 skips and ports over to session 2.
 3. Write `docs/session_1_report.md` (template: session 0's report).
 4. Write `docs/session_1_state.md` (overwrites if any).
 5. Draft `docs/session_2_plan.md` targeting Phase P1 kickoff
-   (`tri2quad.m` port).
+   (`04_Curvature_Function` + `05_Medial_Axis` → richer size fields).
 6. Roll up the persistence journal: any trigger class ≥ 3 this
    session → propose plan/constitution edit.
 7. Commit + push. Do NOT auto-open a PR.
@@ -123,9 +123,8 @@ If session budget is tight, WS3 skips and ports over to session 2.
 
 ## Out of scope for session 1
 
-- Phase P1 (quad conversion / `tri2quad`) — session 2 target.
-- Phase P2+ (curvature, medial-axis, bathymetry, tide, boundary,
-  inpaint).
+- Phase P1+ (curvature, medial-axis, bathymetry, tide, boundary,
+  inpaint) — session 2+.
 - Reference fixture round-trip from MATLAB (post-MVP P4).
 - PyPI publish / public repo flip — Phase P5.
 

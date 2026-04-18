@@ -142,18 +142,18 @@ library; any quadrangulation work happens in a separate project.
 - `05_Medial_Axis` → `medial_axis.py` (FMM + heap helper).
 - Integrate into `mesh_size.py` size-field composition.
 
-**Phase P3 — Physical-field sizing.**
+**Phase P2 — Physical-field sizing.**
 - `06_Bathymetry_Function` → `bathymetry.py`.
 - `07_Dominate_Tide` → `dominate_tide.py`.
 - `13_In_Paint_NaNs` → `inpaint.py` (prerequisite for sparse field
   interpolation).
 
-**Phase P4 — Boundary + full routine.**
+**Phase P3 — Boundary + full routine.**
 - `08_Enforce_Boundary_Conditions` → `boundary.py`.
 - `01_ADMESH_Routine/ADmeshRoutine.m` + `ADmeshSubMeshRoutine.m`
   → full `routine.py`.
 
-**Phase P5 — Polish & release.**
+**Phase P4 — Polish & release.**
 - Public API review, type hints, optional PyPI publish, flip repo to
   public.
 
