@@ -49,7 +49,7 @@ Requires Python ≥ 3.10, NumPy, SciPy, and Numba.
 
 ## License
 
-MIT — see `LICENSE`.
+Apache 2.0 — see `LICENSE`.
 
 ## Related work
 
