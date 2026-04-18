@@ -132,13 +132,12 @@ gate — we tighten once the port is validated against MATLAB).
 
 ## Post-MVP phases
 
-Once triangulation works, the remaining stages port in this order:
+Once triangulation works, the remaining stages port in this order.
+**Quad conversion (`tri2quad.m`, `distquadmesh2d.m`) is out of scope
+for ADMESH** (user decision, 2026-04-18). ADMESH is a triangulation
+library; any quadrangulation work happens in a separate project.
 
-**Phase P1 — Quad conversion.**
-- `10_Distmesh_2d/tri2quad.m` → `admesh/distmesh.py::tri2quad()`.
-- `distquadmesh2d.m`, `distADMESH.m`, `createMeshStruct*.m`.
-
-**Phase P2 — Sizing enrichments.**
+**Phase P1 — Sizing enrichments.**
 - `04_Curvature_Function` → `curvature.py`.
 - `05_Medial_Axis` → `medial_axis.py` (FMM + heap helper).
 - Integrate into `mesh_size.py` size-field composition.

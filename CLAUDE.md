@@ -57,7 +57,7 @@ admesh/
   dominate_tide.py     # 07 — DominateTideFunction
   boundary.py          # 08 — EnforceBoundaryConditions, create_polygon_structure
   mesh_size.py         # 09 — MeshSizeFunction + Numba-JIT iterative solver
-  distmesh.py          # 10 — distmesh2d family, tri2quad, constraints, fixmesh
+  distmesh.py          # 10 — distmesh2d + fixmesh (triangulation only; tri2quad is out of scope)
   quality.py           # 11 — MeshQuality
   in_polygon.py        # 12 — InPolygon
   inpaint.py           # 13 — inpaint_nans
