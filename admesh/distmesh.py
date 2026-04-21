@@ -198,6 +198,19 @@ def distmesh2d(
 
         p = p_new
 
+    # Final retriangulation on the converged node set. Without this,
+    # `t` is the Delaunay result from the *previous* retri trigger,
+    # so any post-trigger node motion (including final-iteration
+    # boundary projection) can leave stale triangles — including
+    # near-colinear slivers on straight boundaries. Re-Delaunay +
+    # re-filter by centroid SDF before handing off to fixmesh.
+    if len(p) >= 3:
+        tri = Delaunay(p)
+        t_all = tri.simplices
+        centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
+        keep = fd(centroids) < -geps
+        t = np.sort(t_all[keep], axis=1)
+
     return fixmesh(p, t)[:2]
 
 
