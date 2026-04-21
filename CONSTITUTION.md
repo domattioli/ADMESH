@@ -124,7 +124,39 @@ commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`, path
 
 ---
 
+## Article VII — Persistent-session cadence
+
+Operational rules for Claude sessions to prevent the pause-for-ack
+pattern observed in session 0 (four `UNCONFIRMED_PAUSE` interrupts).
+
+1. **Report-and-advance after every milestone.** When a milestone
+   ships, report the result and immediately start the next item on
+   the session plan. Do not end a turn with "ready to continue" or
+   any soft-ask phrasing that reads as a request for confirmation.
+2. **Zero `AskUserQuestion` outside destructive or ambiguous
+   actions.** Permitted uses: destructive git operations (force
+   push, hard reset on dirty trees), architecturally significant PR
+   review replies, or genuine ambiguity that no reading of the plan
+   resolves. Banned uses: default-pick questions, option lists in
+   prose, visibility / config picks, continue-prompts.
+3. **Session-start read order is fixed.** At every session start
+   read in order: `CONSTITUTION.md` → `PROJECT_PLAN.md` →
+   `CLAUDE.md` → the latest `docs/session_<N-1>_state.md` (if any)
+   → the active `docs/session_<N>_plan.md`. This is load-bearing;
+   skipping the previous-session state file is how context gets
+   lost at session boundaries.
+
+---
+
 ## Amendments log
+
+### 2026-04-21 — Article VII adopted
+
+Added Article VII — Persistent-session cadence. Codifies the
+report-and-advance discipline learned from session 0's four
+`UNCONFIRMED_PAUSE` interrupts (see `docs/persistence_journal.md`
+and `docs/session_0_report.md` § "Persistence retro"). Session
+reference: ADMESH session 1.
 
 ### 2026-04-18 — Constitution adopted
 

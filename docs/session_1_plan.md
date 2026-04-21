@@ -5,11 +5,30 @@ test domains end-to-end, committing a rendered PNG for each as
 reviewable evidence, and tightening the governance docs with the
 persistence-cadence lesson from session 0. When this session ships,
 the MVP acceptance gate in `PROJECT_PLAN.md` is met and the port
-pivots to Phase P1 (quad conversion).
+pivots to Phase P1 (sizing enrichments — curvature + medial-axis).
 
 **Session-start read order** (per `CLAUDE.md`):
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` →
 `docs/session_0_state.md` → `docs/session_0_report.md` → this plan.
+
+## Revision 2026-04-21 (mid-session)
+
+Baseline render on session-start revealed `unit_square` hits
+`min_q=0.000` — three boundary-projected nodes at `x=0.5±1e-10` form
+a zero-area sliver because `distmesh2d` never re-runs Delaunay after
+the final force-step before returning. Preview PNGs from commit
+`fb6d5b4` are already on disk but reproducing them fails the binding
+gate's `min_q ≥ 0.30` on `unit_square`.
+
+Plan revision:
+
+- **Prepend WS0 — fix stale-triangulation bug in `distmesh2d`.** Add
+  a final Delaunay + centroid-filter step after the iteration loop
+  exits (either via `niter` or `dptol`), before `fixmesh`. This is a
+  correctness fix, not a gate widener — per the plan's falsifier rule.
+- **Re-render PNGs in WS1 after WS0 ships** (the preview PNGs will
+  change under the bugfix).
+- Everything else in WS1/WS2/WS3/WS-final stands as written.
 
 ---
 

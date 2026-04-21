@@ -6,32 +6,43 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
-## Where we are today (2026-04-18, post-session 0)
+## Where we are today (2026-04-21, post-session 1)
 
-**Shipped (session 0, M.0–M.3 of the MVP):**
+**Shipped (session 0 + session 1 — MVP complete):**
 - Repo live at `domattioli/ADMESH` (private, Apache-2.0).
-- Governance: `CONSTITUTION.md`, `PROJECT_PLAN.md`, `CLAUDE.md`,
-  `README.md`, `docs/session_0_plan.md` + `session_0_report.md` +
-  `session_0_state.md`.
+- Governance: `CONSTITUTION.md` (now 7 articles — added Article VII,
+  persistent-session cadence), `PROJECT_PLAN.md`, `CLAUDE.md`,
+  `README.md`, full session 0 + session 1 artifact set under `docs/`.
 - Persistence skills: `.claude/skills/{log-issue,log-interrupt,
   list-issues,session-handoff}/SKILL.md` + `docs/persistence_journal.md`.
-- **M.0** scaffold: 14-module `admesh/` package, `pyproject.toml`,
+- **M.0** scaffold (S0): 14-module `admesh/` package, `pyproject.toml`,
   `requirements.txt` + `requirements-dev.txt`, smoke test.
-- **M.1** leaf utilities: `in_polygon.py`, `quality.py`,
+- **M.1** leaf utilities (S0): `in_polygon.py`, `quality.py`,
   `domains.py` (5 MVP SDFs).
-- **M.2** distance + mesh_size: `distance.py` (grid-eval +
+- **M.2** distance + mesh_size (S0): `distance.py` (grid-eval +
   4th-order `grad_sdf`), `mesh_size.py` (pure-Python + Numba
   solver, parity to `atol=1e-10`).
-- **M.3** distmesh + driver: `distmesh.py` (canonical Persson
+- **M.3** distmesh + driver (S0): `distmesh.py` (canonical Persson
   DistMesh2D + `fixmesh`), `routine.py::triangulate()`.
-- 49 pytest tests passing.
+- **M.4** end-to-end validation + PNGs (S1): `tests/test_mvp_domains.py`
+  parametrized over all 5 domains; `tests/conftest.py` with shared
+  `assert_valid_mesh` helper; PNGs committed at
+  `tests/output/mvp_<name>.png`; quality metrics
+  (`min_q ≥ 0.30, mean_q ≥ 0.60`) met on every domain.
+- **Correctness bugfix in `distmesh2d`** (S1): added a final Delaunay
+  + centroid-filter step after the iteration loop to eliminate
+  stale triangles from post-trigger node motion. Raised
+  `unit_square` min_q from `0.000 → 0.804`; see
+  `docs/PORTING_NOTES.md` 2026-04-21 entry.
+- **`docs/PORTING_NOTES.md` populated** (S1) with five retroactive
+  MATLAB→Python divergence entries.
+- 54 pytest tests passing (49 from S0 + 5 new MVP-domain cases).
 - Local MATLAB reference clone at `/workspace/QuADMesh-MATLAB`.
 
-**Not shipped yet (MVP):**
-- **M.4** — end-to-end validation on all 5 test domains + PNG
-  artifacts. Single remaining MVP gate. Session 1 target.
+**Next entry point:** Phase P1 — sizing enrichments
+(`04_Curvature_Function` + `05_Medial_Axis`), per session 2 plan.
 
-**Not shipped (post-MVP):** any of Phases P1–P5.
+**Not shipped (post-MVP):** any of Phases P1–P4.
 
 ---
 
