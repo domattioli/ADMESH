@@ -6,6 +6,29 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-22, post-session 2)
+
+**Shipped (session 2 — Phase P1 opened; faithful-port pass deferred):**
+- **Clean-room `admesh/curvature.py`** — 4th-order ``κ = ∇·(∇f/|∇f|)``
+  grid computation. 3 analytic-reference tests.
+- **Clean-room `admesh/medial_axis.py`** — scipy EDT + gradient
+  threshold + EDT for medial distance. 4 analytic-reference tests.
+- **`admesh.mesh_size.build_h` composer** — wires curvature +
+  medial optional contributions, gradient-limits via `solve_iter`,
+  returns `RegularGridInterpolator`-backed `fh`. Zero-enrichment
+  path preserves MVP uniform-size default. 4 new tests incl.
+  end-to-end `triangulate(..., fh=build_h(...))`.
+- **3 PORTING_NOTES entries** with explicit deferred-faithful-port
+  flags — MATLAB clone was not available in session-2 environment
+  (`SOURCE_UNAVAILABLE` trigger class added to persistence journal).
+- **65 pytest tests passing** (54 → 65 = +3 curvature + 4 medial
+  + 4 composer).
+
+**Next entry point:** `docs/session_3_plan.md` WS0 — if MATLAB
+clone is present, backfill faithful-port passes of session-2
+modules (Branch A); else continue clean-room with Phase P2
+(bathymetry + tide + inpaint, Branch B).
+
 ## Where we are today (2026-04-21, post-session 1)
 
 **Shipped (session 0 + session 1 — MVP complete):**
