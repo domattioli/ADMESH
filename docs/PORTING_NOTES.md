@@ -17,6 +17,73 @@ Template:
 
 ---
 
+## 2026-04-22 — mesh_size — `build_h` composer (new, not ported)
+
+**MATLAB**: size-field composition is distributed across
+`03_Distance_Function`, `04_Curvature_Function`, `05_Medial_Axis`,
+`06_Bathymetry_Function`, `07_Dominate_Tide`, and the solver entry
+in `09_Mesh_Size` — there is no single MATLAB function that wires
+them together; `ADmeshRoutine.m` does the orchestration.
+**Python**: `admesh.mesh_size.build_h`
+**Substitution**: New-in-Python composer that builds an
+``fh(p) -> np.ndarray`` callable from optional curvature + medial
+contributions, applies `solve_iter` (gradient limiting), and wraps
+the result in a `scipy.interpolate.RegularGridInterpolator`.
+**Behavior diff**: Zero-enrichment path (no `curvature_scale` /
+`medial_scale`) returns a uniform lambda with no grid work — keeps
+the MVP `triangulate(domain)` default path unchanged.
+**Impact**: `triangulate(domain, fh=build_h(domain, ...))` accepts
+enriched size fields; verified by `tests/test_mesh_size.py::
+test_triangulate_accepts_composed_fh`.
+
+## 2026-04-22 — medial_axis — clean-room (MATLAB source unavailable)
+
+**MATLAB**: `MedialAxisFunction.m`, `TriMedialAxisFunction.m`,
+`medial_distance_FMM.m`, heap helper in `05_Medial_Axis/`
+**Python**: `admesh.medial_axis.medial_distance_fmm`
+**Substitution**: The session-2 environment lacks the MATLAB clone
+(see `docs/persistence_journal.md` row dated 2026-04-22). Clean-room
+implementation: `scipy.ndimage.distance_transform_edt` computes the
+L2 distance transform (equivalent Eikonal with unit speed). Medial
+cells are detected as interior cells where ``|∇D_edt| < 0.85``,
+with a ``1.5·delta`` buffer against the boundary staircase (true
+distance functions satisfy ``|∇D| = 1`` a.e.; the skeleton is
+where that fails). Then EDT again from the medial mask yields
+``medial_dist``.
+**Behavior diff**: Validated against analytic references only
+(unit disk: medial = origin, medial_dist = r; annulus(0.4, 1.0):
+medial = circle r=0.7, medial_dist = |r - 0.7|) to
+``2.5..3.0·delta``. Faithful-port pass against the MATLAB heap-FMM
+is deferred to the first session with the MATLAB clone mounted.
+**Impact**: `build_h(..., medial_scale=...)` works. No test yet
+exercises domains with multi-branch medial skeletons like
+`notched_rectangle`; that's a fixture to add when the MATLAB
+reference is available.
+
+## 2026-04-22 — curvature — clean-room (MATLAB source unavailable)
+
+**MATLAB**: `CurvatureFunction.m` + helpers in
+`04_Curvature_Function/`
+**Python**: `admesh.curvature.curvature_function`,
+`admesh.curvature.curvature_grid`
+**Substitution**: The session-2 environment lacks the MATLAB clone
+(see `docs/persistence_journal.md` 2026-04-22). Clean-room
+implementation of the textbook formula
+``κ = ∇·(∇f / |∇f|)`` on a rectangular grid, using the existing
+``admesh.distance.grad_sdf`` 4th-order stencil twice (once for
+``∇f``, once for the divergence of the normalized gradient). Cells
+with ``|∇f| < 1e-3`` are masked ``NaN`` to avoid the medial-axis
+singularities. Reference: Osher & Fedkiw (2003) §1.4.
+**Behavior diff**: On `unit_disk` (analytic κ=1/r), coarse-grid
+L∞ error ≤ 5e-2 at `delta=0.05`; halving `delta` reduces the
+error (tests only a monotonic refinement — not a rate). On
+`annulus` the sign flip between inner and outer halves matches
+analytic to ≤ 1e-1. On `unit_square` (kinked SDF), flat-face
+regions yield κ ≈ 0; diagonals produce spurious large values —
+unavoidable for the 4th-order stencil across a C⁰ kink.
+**Impact**: `build_h(..., curvature_scale=...)` works. Faithful-port
+pass deferred.
+
 ## 2026-04-21 — distmesh — stale-`t` bug: final Delaunay added
 
 **MATLAB**: `distmesh2d.m` in `10_Distmesh_2d/`
