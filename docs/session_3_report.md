@@ -69,6 +69,72 @@ All three flagged for deferred faithful-port backfill.
 
 ---
 
+## Before/after visual assessment (post-WS-final addendum)
+
+After WS-final shipped, rendered demo PNGs via
+`scripts/render_p1p3_demos.py` to exercise P1/P3 functionality
+end-to-end on `tests/output/demo_*.png`. Results are in the
+README's "P1 + P3 enrichment preview" section. Headline:
+
+| Demo | N before → after | min q before → after | mean q before → after |
+|---|---|---|---|
+| `unit_disk` medial LFS | 1452 → 82 | 0.833 → 0.378 | 0.994 → 0.915 |
+| `annulus` PTS path | 1907 → 678 | 0.718 → **0.120** | 0.988 → 0.842 |
+| `notched_rect` medial LFS | 1453 → 547 | 0.694 → **0.188** | 0.992 → 0.895 |
+
+**What the demos actually showed:**
+
+1. **Medial LFS works visually.** `unit_disk` shows clean
+   concentration at the origin with graceful coarsening outward,
+   and `notched_rect` shows clean concentration at the pinch.
+   These are the intended "local feature size" patterns.
+2. **PTS path labels are correct.** The `annulus` panel shows
+   green outer / red inner nodes — `MeshOutput.node_bc` is
+   wired correctly end-to-end.
+3. **Quality regresses on 2 of 3 demos.** Both fall below the
+   MVP `min_q ≥ 0.30` gate. Visible as slivers where the `fh`
+   transitions from `medial_scale` / `boundary_scale` → `base`.
+   The MVP path itself is unaffected; the enriched-path tests
+   use looser `min_q ≥ 0.25` bounds, so the issue wasn't caught.
+4. **Parameter-choice sensitivity is high.** An initial render
+   with `h0 = base` (not the finest scale) produced meshes
+   *coarser* than uniform — DistMesh's rejection keeps points
+   with probability `(min(fh) / fh)²`, so `h0` must match the
+   finest scale. The script was retuned; docstring now explains.
+
+**What this reveals about the pipeline (and session 3's gate):**
+
+- The 6-item session-3 binding gate passed every item, but it
+  never stress-tested the composition of PTS + `build_h` +
+  `distmesh2d_admesh` together with realistic (4–5×) size
+  contrasts. That combination is where quality breaks.
+- `solve_iter`'s default `g = 0.2` is too loose for steep
+  transitions — it allows `|∇h| ≤ 0.2` which, at `h ≈ 0.04`,
+  means neighboring cells can differ by 20% of their value per
+  grid step. DistMesh reacts with slivers.
+- The enriched tests (`test_triangulate_accepts_composed_fh`,
+  `test_distmesh2d_admesh_annulus_has_two_rings`) use `fh=None`
+  or a low `curvature_scale`, so they don't exercise the sliver
+  regime.
+
+**Corrective actions rolled into session 4** (see
+`docs/session_4_plan.md` WS0.5):
+
+1. Add a quality-regression gate: a pytest parametrized over the
+   three demos that asserts `min_q ≥ 0.30` and `mean_q ≥ 0.80`
+   with the same parameter presets the README table advertises.
+   Failure means either the presets change OR the underlying
+   pipeline changes — not both silently.
+2. Tighten `solve_iter`'s default `g` or expose it more
+   prominently in `build_h` so the composer can auto-select
+   based on `min(fh)/max(fh)` ratio.
+3. Possibly broaden `_boundary_cleanup` to handle interior
+   slivers too, not just boundary-adjacent ones.
+4. Add a "parameter cheatsheet" docstring block on `build_h`
+   explaining the `h0`-must-match-finest-scale invariant.
+
+---
+
 ## Persistence retro
 
 | Class | Count | Notes |

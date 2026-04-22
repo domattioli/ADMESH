@@ -25,6 +25,47 @@ ls /workspace/QuADMesh-MATLAB/01_ADMESH_Library/ 2>/dev/null
 - **Present** → Article II.1 applies normally; capture MATLAB
   fixtures this session.
 
+## WS0.5 — Close the P1/P3 enrichment quality gap (added post-s3)
+
+**Motivation:** post-session-3 demo renders
+(`scripts/render_p1p3_demos.py`, committed at session-3 close)
+showed two of three enriched-path meshes falling below the MVP
+`min_q ≥ 0.30` gate — `annulus` PTS-path hit `min_q = 0.120` and
+`notched_rect` medial hit `min_q = 0.188`. The MVP gate itself is
+fine; the gap is that the P1/P3 composition produces slivers
+under steep `fh` gradients, and the session-3 test suite never
+combined PTS + boundary_scale + `distmesh2d_admesh` at realistic
+size contrasts. See `docs/session_3_report.md` "Before/after
+visual assessment" for the full diagnosis.
+
+**Deliverables:**
+
+1. **`tests/test_enriched_quality.py`** — parametrize over the
+   three demo presets (same `(base, scale, h0)` triples the README
+   table advertises) and assert `min_q ≥ 0.30, mean_q ≥ 0.80`.
+   This test is deliberately coupled to the README so drift is
+   caught.
+2. **`solve_iter` default tightened** or a size-aware `g`
+   auto-selector in `build_h`. Current `g=0.2` is too loose for
+   steep size transitions. Target: enriched meshes hit
+   `min_q ≥ 0.30` without manual `g` tuning.
+3. **`_boundary_cleanup` extended** (optional, if tests demand)
+   to cull *interior* slivers whose 3 nodes all come from the
+   transition band (low-`fh` → high-`fh`). Gate: must not remove
+   any triangle that currently passes
+   `tests/test_mvp_domains.py`. Follows the session-1 falsifier
+   rule.
+4. **`build_h` docstring addendum** explaining the
+   `h0 = min(fh) = finest scale` invariant that surprised the
+   session-3 demo script. A paragraph + a 5-line recipe.
+
+**Falsifier:** If tightening `g` fixes the three demos but breaks
+any of the 82 existing tests, revert — the regression is the
+signal that `g` is doing two jobs. Either split the kwarg into
+`g_smooth` (always on) vs `g_transition` (composition-specific),
+or keep the demos as "known-poor-quality corner cases" and document
+them.
+
 ---
 
 ## Binding gate
@@ -128,8 +169,14 @@ All of:
 ## Session budget
 
 - WS0: ≤ 3%.
-- WS1 (bathymetry): ~25%.
-- WS2 (dominate_tide): ~15%.
-- WS3 (inpaint): ~15%.
-- WS4 (build_h integration + end-to-end test): ~30%.
-- WS-final: ~12%.
+- WS0.5 (close P1/P3 quality gap): ~20%. Addresses a known defect
+  before adding more features on top of the same pipeline.
+- WS1 (bathymetry): ~20%.
+- WS2 (dominate_tide): ~12%.
+- WS3 (inpaint): ~12%.
+- WS4 (build_h integration + end-to-end test): ~23%.
+- WS-final: ~10%.
+
+If WS0.5 runs long and can't be resolved cleanly, defer WS4's
+end-to-end integration to session 5 rather than stacking new
+features on a known-broken pipeline.
