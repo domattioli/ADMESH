@@ -6,7 +6,37 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
-## Where we are today (2026-04-22, post-session 2)
+## Where we are today (2026-04-23, post-session 3)
+
+**Shipped (session 3 — P3 core-algorithm lift; still clean-room):**
+- **`admesh/boundary.py`** — clean-room `PTS` dataclass +
+  `BoundaryType` (OPEN/WALL) + `PTS.from_polygons` +
+  `PTS.from_domain` (marching-squares contour extractor with
+  fencepost-safe sampling) + `enforce_boundary_conditions`. 8
+  tests.
+- **`admesh.mesh_size.build_h` extended** with `pts=` +
+  `boundary_scale=` kwargs; composes elementwise with existing
+  `curvature_scale` / `medial_scale`. `boundary_scale` accepts
+  float or per-BC-type dict. 3 new tests (6 total + 7 solver).
+- **`admesh.distmesh.distmesh2d_admesh`** ADMESH-variant path:
+  PTS-seeded `pfix`, polygon-SDF synthesis from PTS,
+  `_boundary_cleanup` sliver pass, typed `MeshOutput` dataclass
+  with `node_bc` + `ring_id` labels.
+- **`admesh.routine.triangulate` dispatcher**: `Domain` → MVP
+  tuple path (unchanged); `PTS` → `MeshOutput` path. 6 new
+  tests in `tests/test_distmesh_admesh.py`.
+- **3 PORTING_NOTES entries** (boundary / build_h-PTS /
+  distmesh-admesh) with deferred-faithful-port flags.
+- **82 pytest tests passing** (65 → 82 = +8 boundary + 3 build_h
+  PTS + 6 distmesh-admesh). MVP M.4 gate regression-clean.
+- **2nd `SOURCE_UNAVAILABLE`** logged; one more recurrence
+  triggers a Constitution-amendment proposal.
+
+**Next entry point:** `docs/session_4_plan.md` — Phase P2
+(bathymetry + tide + inpaint) now that the PTS structure can
+carry per-segment physical data.
+
+## Where we are today (2026-04-23, post-session 2)
 
 **Shipped (session 2 — Phase P1 opened; faithful-port pass deferred):**
 - **Clean-room `admesh/curvature.py`** — 4th-order ``κ = ∇·(∇f/|∇f|)``
