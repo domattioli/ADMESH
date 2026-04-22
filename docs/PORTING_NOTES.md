@@ -17,7 +17,90 @@ Template:
 
 ---
 
-## 2026-04-22 — mesh_size — `build_h` composer (new, not ported)
+## 2026-04-23 — distmesh — ADMESH variant pathway (clean-room)
+
+**MATLAB**: `10_Distmesh_2d/{distmesh2d,createInitialPointList,
+rejectionMethod,GetMeshConstraints,projectBackToBoundary,
+BoundaryCleanUp,createMeshStruct}.m`
+**Python**: `admesh.distmesh.distmesh2d_admesh`,
+`admesh.distmesh._boundary_cleanup`,
+`admesh.distmesh.MeshOutput`,
+`admesh.routine.triangulate` (dispatcher)
+**Substitution**: Clean-room — MATLAB source still not available in
+this environment (2nd `SOURCE_UNAVAILABLE` row; see
+`docs/persistence_journal.md` 2026-04-23T(s3-start)). The new path
+layers on top of the canonical `distmesh2d`: seeds `pfix` with all
+PTS ring vertices; synthesizes an SDF from the PTS via inside-test
++ per-segment Euclidean distance when the caller doesn't supply
+`fd`; runs `_boundary_cleanup` to drop near-collinear slivers with
+2+ nodes on the same ring (same pattern that motivated session-1's
+stale-`t` bugfix); classifies every node by `(ring_id, BC)` via
+`admesh.boundary.enforce_boundary_conditions`. Returns a typed
+`MeshOutput` dataclass. The MVP `triangulate(Domain)` tuple path is
+preserved verbatim; a new `triangulate(PTS)` branch dispatches to
+the admesh path and returns `MeshOutput`.
+**Behavior diff**: The MVP binding gate
+(`tests/test_mvp_domains.py::test_mvp_domain`) passes unchanged —
+54 of 82 tests run along the pre-existing canonical path. The
+admesh path is exercised by 6 new `tests/test_distmesh_admesh.py`
+cases and produces annulus meshes labeled across both rings with
+`min_q ≥ 0.25, mean_q ≥ 0.55`. Faithful-port backfill against the
+MATLAB helper set is deferred.
+**Impact**: `admesh.routine.triangulate` now accepts a `PTS` for
+rich-boundary workflows; rings and BC tags flow through to the
+output without the caller managing the plumbing.
+
+## 2026-04-23 — mesh_size — `build_h` gains PTS boundary reduction
+
+**MATLAB**: boundary-distance contribution is folded into MATLAB's
+mesh-size pipeline inside `ADmeshRoutine.m`; there is no standalone
+function for it.
+**Python**: `admesh.mesh_size.build_h(..., pts=, boundary_scale=)`
++ `_pts_boundary_field` helper.
+**Substitution**: Adds two new kwargs to the existing composer.
+When set, the composer samples each PTS segment's distance to every
+grid cell, then composes `h_bnd[type] = max(scale[type], d)` per
+BC type and takes the elementwise min. Composes with existing
+`curvature_scale` / `medial_scale`. Zero-enrichment path is
+preserved — `build_h(domain, pts=pts, boundary_scale=None)` still
+returns the uniform-`base` lambda.
+**Behavior diff**: Accepts a dict keyed by
+`BoundaryType`-int so callers can refine OPEN vs. WALL asymmetrically.
+Unit-square near-boundary `fh ≤ 0.1` vs. interior `fh ≥ 2 × that`
+(for `boundary_scale=0.04, base=0.2`).
+**Impact**: `build_h` is now PTS-aware without breaking any
+existing callers. End-to-end `triangulate(pts, fh=build_h(...))`
+works by passing the returned `fh` through the new admesh path.
+
+## 2026-04-23 — boundary — PTS + BC enforcement (clean-room)
+
+**MATLAB**: `08_Enforce_Boundary_Conditions/{EnforceBoundaryConditions,
+create_polygon_structure}.m`
+**Python**: `admesh.boundary.PTS`, `admesh.boundary.BoundaryType`,
+`admesh.boundary.enforce_boundary_conditions`,
+`admesh.boundary.PTS.from_polygons`, `admesh.boundary.PTS.from_domain`
+**Substitution**: Clean-room — MATLAB source not accessible. The
+port defines a **minimum-viable** PTS: list of polygon rings
+(outer + holes), per-vertex BC tag (2-value `IntEnum`: `OPEN`,
+`WALL`; MATLAB has more subtypes), and an opaque `attributes` dict
+for passthrough data. `PTS.from_domain` uses a clean-room
+marching-squares contour extractor on the SDF grid, chains segments
+into closed rings, resamples each by arc-length. Orients outer CCW
+/ holes CW.
+**Behavior diff**: MATLAB's PTS has additional fields
+(hydraulic-constraint subtypes, per-node attributes) — expand in a
+faithful-port backfill when MATLAB source is available. The 2-BC
+subset handles the P3-lift requirements (enforce_boundary_conditions
+drives cleanup + per-type sizing). `from_domain` has a
+``3·delta`` pad on the sampled bbox so the zero-level set is
+strictly interior to the grid (avoids fencepost loss when ``delta``
+doesn't evenly divide the bbox extent).
+**Impact**: Unblocks PTS-driven `build_h` and
+`distmesh2d_admesh`. Round-trips on `unit_square`, `annulus`, and
+`unit_disk` with per-ring orientation correct and
+`|r_outer - 1| ≤ 2e-2` on the disk.
+
+## 2026-04-23 — mesh_size — `build_h` composer (new, not ported)
 
 **MATLAB**: size-field composition is distributed across
 `03_Distance_Function`, `04_Curvature_Function`, `05_Medial_Axis`,
@@ -36,13 +119,13 @@ the MVP `triangulate(domain)` default path unchanged.
 enriched size fields; verified by `tests/test_mesh_size.py::
 test_triangulate_accepts_composed_fh`.
 
-## 2026-04-22 — medial_axis — clean-room (MATLAB source unavailable)
+## 2026-04-23 — medial_axis — clean-room (MATLAB source unavailable)
 
 **MATLAB**: `MedialAxisFunction.m`, `TriMedialAxisFunction.m`,
 `medial_distance_FMM.m`, heap helper in `05_Medial_Axis/`
 **Python**: `admesh.medial_axis.medial_distance_fmm`
 **Substitution**: The session-2 environment lacks the MATLAB clone
-(see `docs/persistence_journal.md` row dated 2026-04-22). Clean-room
+(see `docs/persistence_journal.md` row dated 2026-04-23). Clean-room
 implementation: `scipy.ndimage.distance_transform_edt` computes the
 L2 distance transform (equivalent Eikonal with unit speed). Medial
 cells are detected as interior cells where ``|∇D_edt| < 0.85``,
@@ -60,14 +143,14 @@ exercises domains with multi-branch medial skeletons like
 `notched_rectangle`; that's a fixture to add when the MATLAB
 reference is available.
 
-## 2026-04-22 — curvature — clean-room (MATLAB source unavailable)
+## 2026-04-23 — curvature — clean-room (MATLAB source unavailable)
 
 **MATLAB**: `CurvatureFunction.m` + helpers in
 `04_Curvature_Function/`
 **Python**: `admesh.curvature.curvature_function`,
 `admesh.curvature.curvature_grid`
 **Substitution**: The session-2 environment lacks the MATLAB clone
-(see `docs/persistence_journal.md` 2026-04-22). Clean-room
+(see `docs/persistence_journal.md` 2026-04-23). Clean-room
 implementation of the textbook formula
 ``κ = ∇·(∇f / |∇f|)`` on a rectangular grid, using the existing
 ``admesh.distance.grad_sdf`` 4th-order stencil twice (once for
