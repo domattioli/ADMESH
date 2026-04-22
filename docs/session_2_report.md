@@ -20,7 +20,7 @@ faithful-port passes. 65 pytest tests pass (was 54).
 
 | Workstream | Summary |
 |---|---|
-| Plan revision | Session 2 plan amended in-file with a "Revision 2026-04-22 (session-start)" block. Scope narrowed to clean-room + analytic tests after the MATLAB clone was found missing. |
+| Plan revision | Session 2 plan amended in-file with a "Revision 2026-04-23 (session-start)" block. Scope narrowed to clean-room + analytic tests after the MATLAB clone was found missing. |
 | WS1 — curvature | `admesh/curvature.py` implements ``κ = ∇·(∇f / |∇f|)`` via the existing 4th-order stencil in `admesh.distance.grad_sdf`. `tests/test_curvature.py` (3 cases): unit disk κ=1/r with grid-refinement convergence; annulus sign flip between inner/outer halves; robustness on the kinked unit-square SDF. |
 | WS2 — medial axis | `admesh/medial_axis.py` uses `scipy.ndimage.distance_transform_edt` (Eikonal-equivalent) + skeleton detection via `|∇D_edt| < 0.85` with a 1.5·delta boundary buffer. `tests/test_medial_axis.py` (4 cases): unit disk (medial=origin, medial_dist=r); annulus (medial ring r=0.7, medial_dist=|r-0.7|); NaN outside; near-zero at detected medial. |
 | WS3 — composer | `admesh.mesh_size.build_h(domain, *, base, curvature_scale, medial_scale, ...)` returns an `fh` callable. Zero-enrichment path is uniform (no grid work — MVP default preserved). With scale kwargs set, samples domain SDF, composes h from curvature / medial terms, gradient-limits via `solve_iter`, wraps in `RegularGridInterpolator`. 4 new tests in `tests/test_mesh_size.py`, including an end-to-end `triangulate(domain, fh=build_h(...))` run that still passes the M.4 quality gate. |
@@ -104,7 +104,7 @@ See `docs/session_3_plan.md`. Headlines:
 
 ## Pointers
 
-- Session plan: `docs/session_2_plan.md` (with 2026-04-22 revision)
+- Session plan: `docs/session_2_plan.md` (with 2026-04-23 revision)
 - Session state (resume point): `docs/session_2_state.md`
 - Persistence journal: `docs/persistence_journal.md`
 - Governance: `CONSTITUTION.md` (v2 — Article VII),

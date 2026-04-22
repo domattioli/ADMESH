@@ -1,6 +1,6 @@
 # Session 2 — state snapshot
 
-**Last updated:** 2026-04-22T(end-of-session)
+**Last updated:** 2026-04-23T(end-of-session)
 **Session plan:** `docs/session_2_plan.md` (with mid-session revision)
 **Session report:** `docs/session_2_report.md`
 **Active milestone:** Phase P1 — sizing enrichments. Clean-room
@@ -56,4 +56,4 @@ Open `docs/session_3_plan.md`. WS0 is a short env check:
 
 | time | trigger | ws | was_doing | user_said | cost | lesson |
 |------|---------|----|-----------|-----------|------|--------|
-| 2026-04-22T(start) | SOURCE_UNAVAILABLE | WS1 | Trying to read CurvatureFunction.m | N/A (env lacks clone) | med | New trigger class. Pivoted to clean-room; flagged for faithful-port backfill. |
+| 2026-04-23T(start) | SOURCE_UNAVAILABLE | WS1 | Trying to read CurvatureFunction.m | N/A (env lacks clone) | med | New trigger class. Pivoted to clean-room; flagged for faithful-port backfill. |

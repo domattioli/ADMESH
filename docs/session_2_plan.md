@@ -12,7 +12,7 @@ MATLAB on the five MVP domains (analytic curvature reference), and
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` →
 `docs/session_1_state.md` → `docs/session_1_report.md` → this plan.
 
-## Revision 2026-04-22 (session-start)
+## Revision 2026-04-23 (session-start)
 
 **Blocker:** The MATLAB reference clone `/workspace/QuADMesh-MATLAB`
 (declared source-of-truth in `CONSTITUTION.md` Article I and
