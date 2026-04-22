@@ -3,7 +3,10 @@
 import numpy as np
 import pytest
 
-from admesh.mesh_size import _HAVE_NUMBA, solve_iter
+from admesh import domains
+from admesh.mesh_size import _HAVE_NUMBA, build_h, solve_iter
+from admesh.quality import mesh_quality
+from admesh.routine import triangulate
 
 
 def _make_inputs(n: int = 21, delta: float = 0.05) -> tuple[np.ndarray, np.ndarray]:
@@ -68,3 +71,52 @@ def test_solve_iter_gated_by_hmin() -> None:
     D = np.full_like(h0, 1.0)  # large D gates out all cells
     h = solve_iter(h0, D, hmax=0.3, hmin=0.02, g=0.1, delta=0.05, use_numba=False)
     np.testing.assert_array_equal(h, h0)
+
+
+# --------------------------- build_h composer --------------------------------
+
+
+def test_build_h_defaults_to_uniform() -> None:
+    """With no enrichment, build_h returns a uniform-``base`` callable."""
+    fh = build_h(domains.UNIT_DISK, base=0.12)
+    p = np.array([[0.0, 0.0], [0.5, 0.3], [-0.2, 0.4]])
+    np.testing.assert_allclose(fh(p), 0.12)
+
+
+def test_build_h_curvature_shrinks_with_curvature() -> None:
+    """On the unit disk ``κ = 1/r``: high-κ region (near origin) gets
+    smaller h than low-κ region (near boundary)."""
+    fh = build_h(
+        domains.UNIT_DISK, base=0.2, curvature_scale=0.05,
+        grid_delta=0.02,
+    )
+    hi_kappa = np.array([[0.15, 0.0]])   # r≈0.15 → κ≈6.7
+    lo_kappa = np.array([[0.9, 0.0]])    # r≈0.9  → κ≈1.1
+    assert fh(hi_kappa)[0] < fh(lo_kappa)[0]
+    # And both are bounded below by curvature_scale after smoothing.
+    assert fh(hi_kappa)[0] >= 0.05 - 1e-9
+
+
+def test_build_h_medial_refines_at_medial() -> None:
+    """``medial_scale`` enables LFS-style refinement: h is smallest
+    AT the medial axis (narrow-feature refinement) and grows toward
+    the boundary. On the annulus, medial is r=0.7."""
+    fh = build_h(
+        domains.ANNULUS, base=0.2, medial_scale=0.03,
+        grid_delta=0.02,
+    )
+    at_medial = np.array([[0.7, 0.0]])
+    off_medial = np.array([[0.95, 0.0]])
+    assert fh(at_medial)[0] < fh(off_medial)[0]
+
+
+def test_triangulate_accepts_composed_fh() -> None:
+    """End-to-end: triangulate(..., fh=build_h(...)) produces a valid
+    mesh whose min/mean quality still pass the M.4 gate."""
+    dom = domains.UNIT_DISK
+    fh = build_h(dom, base=0.15, curvature_scale=0.05, grid_delta=0.03)
+    p, t = triangulate(dom, h0=0.15, fh=fh, niter=150, seed=0)
+    assert len(p) >= 20 and len(t) >= 20
+    min_q, mean_q, _ = mesh_quality(p, t)
+    assert min_q >= 0.30
+    assert mean_q >= 0.55  # slightly looser — enriched fh makes meshes less uniform

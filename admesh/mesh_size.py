@@ -167,3 +167,110 @@ def solve_iter(
     if use_numba and _HAVE_NUMBA:
         return _solve_iter_nb(h0, D, float(hmin), float(g), float(delta))
     return _solve_iter_py(h0, D, float(hmin), float(g), float(delta))
+
+
+# ---------------------------------------------------------------------------
+# Size-field composer (Phase P1) — wires curvature + medial into a single
+# ``fh(p)`` callable suitable for ``distmesh2d`` and ``triangulate``.
+# ---------------------------------------------------------------------------
+
+
+def build_h(
+    domain,
+    *,
+    base: float = 0.1,
+    grid_delta: float | None = None,
+    curvature_scale: float | None = None,
+    medial_scale: float | None = None,
+    hmin: float | None = None,
+    hmax: float | None = None,
+    g: float = 0.2,
+):
+    """Compose a mesh-size function for a :class:`~admesh.domains.Domain`.
+
+    Parameters
+    ----------
+    domain : Domain
+    base : float
+        Target edge length where no size-reducing term is active.
+    grid_delta : float or None
+        Sampling resolution for the intermediate grid. Defaults to
+        ``base / 4`` — fine enough that the interpolant is smooth at
+        target mesh scale.
+    curvature_scale : float or None
+        If set, reduces ``h`` near boundaries of high curvature:
+        ``h_curv = 1 / (|κ| + 1/hmax)``, scaled so the max reduction
+        factor is ``curvature_scale``. ``None`` disables the term.
+    medial_scale : float or None
+        If set, reduces ``h`` near the medial axis (useful for
+        narrow channels / pinch points):
+        ``h_med = max(medial_scale, d_medial)``. ``None`` disables.
+    hmin : float or None
+        Lower bound for the composed field. Defaults to ``base / 8``.
+    hmax : float or None
+        Upper bound. Defaults to ``base``.
+    g : float
+        Gradient-limit for the Eikonal smoother (``solve_iter``).
+
+    Returns
+    -------
+    fh : callable ``(N, 2) -> (N,)``
+        Interpolant-backed size function usable as ``distmesh2d``'s
+        ``fh`` argument. If no reduction term is active, returns a
+        uniform-``base`` callable (no grid work).
+    """
+    if curvature_scale is None and medial_scale is None:
+        # No enrichment requested — identical to the MVP default.
+        return lambda p: np.full(len(np.asarray(p, dtype=float).reshape(-1, 2)), base)
+
+    from admesh.distance import eval_sdf_grid
+
+    delta = float(grid_delta) if grid_delta is not None else base / 4.0
+    hmin = float(hmin) if hmin is not None else base / 8.0
+    hmax = float(hmax) if hmax is not None else base
+
+    X, Y, D = eval_sdf_grid(domain.fd, domain.bbox, delta)
+    h = np.full_like(D, base)
+
+    if curvature_scale is not None:
+        from admesh.curvature import curvature_grid
+
+        kappa = curvature_grid(D, delta)
+        kappa = np.where(np.isfinite(kappa), np.abs(kappa), 0.0)
+        # 1 / (|κ| + 1/hmax) gives h ∈ (0, hmax]; scale so the reducing
+        # term's lower bound matches curvature_scale.
+        h_curv = 1.0 / (kappa + 1.0 / hmax)
+        h = np.minimum(h, np.maximum(h_curv, float(curvature_scale)))
+
+    if medial_scale is not None:
+        from admesh.medial_axis import medial_distance_fmm
+
+        _, _, med = medial_distance_fmm(domain.fd, domain.bbox, delta)
+        med = np.where(np.isfinite(med), med, hmax)
+        # h_med: large near medial, small near boundary.
+        h_med = np.maximum(float(medial_scale), med)
+        h = np.minimum(h, h_med)
+
+    h = np.clip(h, hmin, hmax)
+
+    # Gradient-limit: solves the Eikonal smoother so the size field's
+    # spatial rate-of-change is bounded by g.
+    D_abs = np.abs(D)
+    h_smooth = solve_iter(h, D_abs, hmax, hmin, g, delta)
+
+    # Build an interpolant. Use scipy's RegularGridInterpolator for
+    # bilinear lookup on the generated grid.
+    from scipy.interpolate import RegularGridInterpolator
+
+    xs = X[0, :]
+    ys = Y[:, 0]
+    interp = RegularGridInterpolator(
+        (ys, xs), h_smooth, method="linear", bounds_error=False, fill_value=hmax,
+    )
+
+    def fh(p):
+        p = np.asarray(p, dtype=float).reshape(-1, 2)
+        # RegularGridInterpolator expects (y, x) order.
+        return interp(np.column_stack([p[:, 1], p[:, 0]]))
+
+    return fh
