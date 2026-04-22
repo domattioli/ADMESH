@@ -120,3 +120,58 @@ def test_triangulate_accepts_composed_fh() -> None:
     min_q, mean_q, _ = mesh_quality(p, t)
     assert min_q >= 0.30
     assert mean_q >= 0.55  # slightly looser — enriched fh makes meshes less uniform
+
+
+# -------------------------- build_h with PTS --------------------------------
+
+
+def test_build_h_pts_shrinks_near_boundary() -> None:
+    """With ``pts`` + ``boundary_scale``, ``fh`` near a boundary
+    segment is close to boundary_scale, and grows with distance to
+    the boundary."""
+    from admesh.boundary import PTS, BoundaryType
+
+    dom = domains.UNIT_SQUARE
+    pts = PTS.from_domain(dom, n_bnd=40)
+    fh = build_h(
+        dom, base=0.2, pts=pts, boundary_scale=0.04, grid_delta=0.02,
+    )
+    at_boundary = np.array([[0.48, 0.0]])
+    interior = np.array([[0.0, 0.0]])
+    # Near-boundary should be close to the configured scale, interior
+    # should be larger — at least 2x the boundary value for this setup.
+    assert fh(at_boundary)[0] < 0.1
+    assert fh(interior)[0] > 2.0 * fh(at_boundary)[0]
+
+
+def test_build_h_pts_per_type_scale() -> None:
+    """Per-BC-type scale dict applies different values per ring."""
+    from admesh.boundary import PTS, BoundaryType
+
+    dom = domains.ANNULUS
+    # Outer ring = OPEN, inner ring = WALL; asymmetric refinement.
+    rings = PTS.from_domain(dom, n_bnd=48).rings
+    pts = PTS.from_polygons(
+        rings[0], holes=[rings[1]],
+        bc=[BoundaryType.OPEN, BoundaryType.WALL],
+    )
+    fh = build_h(
+        dom, base=0.2, pts=pts,
+        boundary_scale={int(BoundaryType.OPEN): 0.1,
+                        int(BoundaryType.WALL): 0.02},
+        grid_delta=0.02,
+    )
+    near_outer = np.array([[0.97, 0.0]])
+    near_inner = np.array([[0.43, 0.0]])
+    assert fh(near_inner)[0] < fh(near_outer)[0]
+
+
+def test_build_h_pts_preserves_mvp_default() -> None:
+    """When pts is given but boundary_scale is None, no enrichment."""
+    from admesh.boundary import PTS
+
+    dom = domains.UNIT_SQUARE
+    pts = PTS.from_domain(dom, n_bnd=16)
+    fh = build_h(dom, base=0.1, pts=pts, boundary_scale=None)
+    p = np.array([[0.0, 0.0], [0.4, 0.0]])
+    np.testing.assert_allclose(fh(p), 0.1)

@@ -182,6 +182,8 @@ def build_h(
     grid_delta: float | None = None,
     curvature_scale: float | None = None,
     medial_scale: float | None = None,
+    pts=None,
+    boundary_scale=None,
     hmin: float | None = None,
     hmax: float | None = None,
     g: float = 0.2,
@@ -205,6 +207,16 @@ def build_h(
         If set, reduces ``h`` near the medial axis (useful for
         narrow channels / pinch points):
         ``h_med = max(medial_scale, d_medial)``. ``None`` disables.
+    pts : PTS or None
+        If set, use the PTS's boundary segments to drive a
+        boundary-distance-based size reduction; composes with the
+        other terms.
+    boundary_scale : dict[int, float] or float or None
+        With ``pts`` set: target ``h`` at the nearest boundary of
+        each BC type. If a dict, keys are :class:`~admesh.boundary.
+        BoundaryType` int values; a ``float`` applies uniformly
+        across all BC types. Cells grow toward ``base`` with
+        distance to the nearest BC-typed segment. ``None`` disables.
     hmin : float or None
         Lower bound for the composed field. Defaults to ``base / 8``.
     hmax : float or None
@@ -219,7 +231,8 @@ def build_h(
         ``fh`` argument. If no reduction term is active, returns a
         uniform-``base`` callable (no grid work).
     """
-    if curvature_scale is None and medial_scale is None:
+    want_pts = pts is not None and boundary_scale is not None
+    if curvature_scale is None and medial_scale is None and not want_pts:
         # No enrichment requested — identical to the MVP default.
         return lambda p: np.full(len(np.asarray(p, dtype=float).reshape(-1, 2)), base)
 
@@ -251,6 +264,10 @@ def build_h(
         h_med = np.maximum(float(medial_scale), med)
         h = np.minimum(h, h_med)
 
+    if want_pts:
+        h_bnd = _pts_boundary_field(pts, X, Y, boundary_scale, hmax)
+        h = np.minimum(h, h_bnd)
+
     h = np.clip(h, hmin, hmax)
 
     # Gradient-limit: solves the Eikonal smoother so the size field's
@@ -274,3 +291,60 @@ def build_h(
         return interp(np.column_stack([p[:, 1], p[:, 0]]))
 
     return fh
+
+
+def _pts_boundary_field(pts, X, Y, boundary_scale, hmax):
+    """PTS-driven boundary-distance size field on a ``(LY, LX)`` grid.
+
+    For each grid cell, compute the distance to the nearest PTS
+    segment of each BC type, and return
+    ``h(type) = max(scale[type], d_to_nearest_type_segment)``.
+    The returned grid takes the elementwise minimum across types.
+
+    ``boundary_scale`` is either a float (applied to every BC type
+    present in ``pts``) or a dict keyed by :class:`BoundaryType`
+    int values.
+    """
+    grid_pts = np.column_stack([X.ravel(), Y.ravel()])
+    LY, LX = X.shape
+
+    # Collect segments per BC-type.
+    segments_by_type: dict[int, list[tuple[np.ndarray, np.ndarray]]] = {}
+    for ring, tags in zip(pts.rings, pts.bc_type):
+        M = len(ring)
+        for si in range(M):
+            a = ring[si]
+            b = ring[(si + 1) % M]
+            segments_by_type.setdefault(int(tags[si]), []).append((a, b))
+
+    if isinstance(boundary_scale, dict):
+        scale_lookup = {int(k): float(v) for k, v in boundary_scale.items()}
+    else:
+        scale_val = float(boundary_scale)
+        scale_lookup = {t: scale_val for t in segments_by_type}
+
+    result = np.full((LY, LX), hmax)
+    for bc_int, segs in segments_by_type.items():
+        if bc_int not in scale_lookup:
+            continue
+        d_min = np.full(len(grid_pts), np.inf)
+        for a, b in segs:
+            d, _ = _point_segment_distance(grid_pts, a, b)
+            d_min = np.minimum(d_min, d)
+        h_type = np.maximum(scale_lookup[bc_int], d_min).reshape(LY, LX)
+        result = np.minimum(result, h_type)
+    return result
+
+
+def _point_segment_distance(p, a, b):
+    """Vectorized perpendicular distance (reproduces admesh.boundary helper).
+
+    Kept local to avoid a circular import; small enough not to matter.
+    """
+    ab = b - a
+    denom = float(ab @ ab)
+    if denom < 1e-30:
+        return np.linalg.norm(p - a, axis=1), np.zeros(len(p))
+    t = np.clip(((p - a) @ ab) / denom, 0.0, 1.0)
+    proj = a + t[:, None] * ab
+    return np.linalg.norm(p - proj, axis=1), t

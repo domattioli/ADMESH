@@ -255,3 +255,176 @@ def fixmesh(
         t[flip, 0], t[flip, 1] = t[flip, 1].copy(), t[flip, 0].copy()
 
     return p, t, ix_stable[pix]
+
+
+# ---------------------------------------------------------------------------
+# ADMESH-variant distmesh pathway (Phase P3)
+# ---------------------------------------------------------------------------
+
+
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class MeshOutput:
+    """Triangulation result with per-node boundary labels.
+
+    Attributes
+    ----------
+    p : (N, 2) ndarray
+    t : (M, 3) ndarray
+    node_bc : (N,) int64
+        :class:`~admesh.boundary.BoundaryType` value for nodes on
+        a PTS boundary segment, or ``-1`` for interior nodes.
+    ring_id : (N,) int64
+        Ring index (``0`` outer, ``1+`` holes) for boundary nodes,
+        or ``-1`` for interior.
+    """
+
+    p: Points
+    t: NDArray[np.int64]
+    node_bc: NDArray[np.int64]
+    ring_id: NDArray[np.int64]
+
+
+def _boundary_cleanup(
+    p: Points,
+    t: NDArray[np.int64],
+    pts,
+    *,
+    min_altitude_factor: float = 0.05,
+) -> NDArray[np.int64]:
+    """Drop boundary slivers: tiny triangles with 2+ nodes on the same ring.
+
+    A "boundary sliver" is a triangle whose minimum altitude is less
+    than ``min_altitude_factor`` of its longest edge AND whose nodes
+    include two or more from the same PTS ring. This matches the
+    failure pattern that motivated the session-1 stale-``t`` bugfix:
+    degenerate triangles formed from boundary-projected nodes.
+
+    Returns the filtered ``t`` (reindexing is left to ``fixmesh``).
+    """
+    if t.size == 0:
+        return t
+    v0 = p[t[:, 0]]
+    v1 = p[t[:, 1]]
+    v2 = p[t[:, 2]]
+    e0 = np.linalg.norm(v1 - v2, axis=1)
+    e1 = np.linalg.norm(v2 - v0, axis=1)
+    e2 = np.linalg.norm(v0 - v1, axis=1)
+    d12 = v1 - v0
+    d13 = v2 - v0
+    area = 0.5 * np.abs(d12[:, 0] * d13[:, 1] - d12[:, 1] * d13[:, 0])
+    longest = np.maximum.reduce([e0, e1, e2])
+    # Min altitude = 2 * area / longest edge.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        min_alt = np.where(longest > 0, 2.0 * area / longest, 0.0)
+    thin = min_alt < min_altitude_factor * longest
+
+    from admesh.boundary import enforce_boundary_conditions
+
+    _, _ = pts, None  # alias to keep linters happy
+    ring_id, _ = enforce_boundary_conditions(pts, p, tol=1e-2)
+    r0 = ring_id[t[:, 0]]
+    r1 = ring_id[t[:, 1]]
+    r2 = ring_id[t[:, 2]]
+    # "Two or more on the same ring" — pairwise equality among the 3.
+    same_01 = (r0 == r1) & (r0 != -1)
+    same_02 = (r0 == r2) & (r0 != -1)
+    same_12 = (r1 == r2) & (r1 != -1)
+    shared_ring = same_01 | same_02 | same_12
+
+    sliver = thin & shared_ring
+    return t[~sliver]
+
+
+def distmesh2d_admesh(
+    pts,
+    fh: SizeFn | None,
+    h0: float,
+    *,
+    cleanup: bool = True,
+    **opts,
+) -> MeshOutput:
+    """ADMESH-variant distmesh: PTS-seeded, boundary-cleanup-aware.
+
+    Runs the canonical :func:`distmesh2d` with the PTS ring vertices
+    added as fixed points, then (optionally) applies
+    :func:`_boundary_cleanup` to drop boundary slivers, then
+    classifies every node by PTS ring / BC type.
+
+    Parameters
+    ----------
+    pts : admesh.boundary.PTS
+    fh, h0 : forwarded to ``distmesh2d``.
+    cleanup : bool
+        Run ``_boundary_cleanup`` post-loop.
+    **opts : forwarded to ``distmesh2d`` (``niter``, ``seed``, ...).
+
+    Returns
+    -------
+    MeshOutput
+    """
+    from admesh.boundary import enforce_boundary_conditions
+
+    # PTS rings as pfix (concatenated).
+    pfix = np.vstack(pts.rings) if pts.rings else None
+
+    # Derive bbox + SDF from PTS rings: use a polygon-based SDF via
+    # ``shapely``-free fallback — we already have the user's domain
+    # implicit in the PTS. Simpler: accept a user-supplied fd if given
+    # via opts['fd']; else build one from the PTS rings via shapely.
+    fd = opts.pop("fd", None)
+    if fd is None:
+        fd = _polygon_sdf_from_pts(pts)
+    # Bbox: bounding box of all rings with a small pad.
+    all_p = np.vstack(pts.rings)
+    xmin, ymin = all_p.min(axis=0)
+    xmax, ymax = all_p.max(axis=0)
+    pad = 0.02 * max(xmax - xmin, ymax - ymin)
+    bbox = (xmin - pad, ymin - pad, xmax + pad, ymax + pad)
+
+    p, t = distmesh2d(fd=fd, fh=fh, h0=h0, bbox=bbox, pfix=pfix, **opts)
+
+    if cleanup:
+        t = _boundary_cleanup(p, t, pts)
+        p, t, _ = fixmesh(p, t)
+
+    ring_id, bc = enforce_boundary_conditions(pts, p, tol=0.2 * h0)
+    return MeshOutput(p=p, t=t, node_bc=bc, ring_id=ring_id)
+
+
+def _polygon_sdf_from_pts(pts) -> SDF:
+    """SDF for the multiply-connected region described by ``pts``.
+
+    ``d(p) < 0`` iff ``p`` is inside the outer ring AND outside every
+    hole. Computed via a ray-cast inside test (from
+    :mod:`admesh.in_polygon`) plus per-segment Euclidean distance.
+    """
+    from admesh.in_polygon import in_polygon
+    from admesh.mesh_size import _point_segment_distance  # reuse
+
+    outer = pts.rings[0]
+    holes = pts.rings[1:]
+
+    def fd(p: Points) -> NDArray[np.float64]:
+        p = np.asarray(p, dtype=float).reshape(-1, 2)
+        in_outer, _ = in_polygon(p[:, 0], p[:, 1], outer[:, 0], outer[:, 1])
+        inside_any_hole = np.zeros(len(p), dtype=bool)
+        for h in holes:
+            in_h, _ = in_polygon(p[:, 0], p[:, 1], h[:, 0], h[:, 1])
+            inside_any_hole |= in_h
+        inside = in_outer & ~inside_any_hole
+
+        d_min = np.full(len(p), np.inf)
+        for ring in pts.rings:
+            M = len(ring)
+            for i in range(M):
+                a = ring[i]
+                b = ring[(i + 1) % M]
+                d, _ = _point_segment_distance(p, a, b)
+                d_min = np.minimum(d_min, d)
+
+        return np.where(inside, -d_min, d_min)
+
+    return fd
