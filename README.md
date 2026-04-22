@@ -39,20 +39,19 @@ The port preserves the original 13-stage pipeline:
 
 Under construction. See `PROJECT_PLAN.md` for phased roadmap.
 
-### MVP preview (post-session 0)
+### MVP preview (post-session 1, M.4 gate met)
 
 End-to-end triangulation via `admesh.triangulate(domain, h0=…)` on the
-5 MVP test domains. Formal M.4 gate (session 1) will add pytest
-assertions on quality + completion; these PNGs are a visual sanity
-check of the current pipeline.
+5 MVP test domains. These meshes pass the M.4 binding gate
+(`min_q ≥ 0.30, mean_q ≥ 0.60` — `tests/test_mvp_domains.py`).
 
-| Domain | Nodes | Triangles | mean q |
-|---|---:|---:|---:|
-| `unit_square` | 88 | 139 | 0.950 |
-| `l_shape` | 169 | 279 | 0.963 |
-| `unit_disk` | 162 | 281 | 0.972 |
-| `annulus` | 211 | 353 | 0.963 |
-| `notched_rectangle` | 383 | 680 | 0.981 |
+| Domain | Nodes | Triangles | min q | mean q |
+|---|---:|---:|---:|---:|
+| `unit_square` | 88 | 138 | 0.804 | 0.957 |
+| `l_shape` | 169 | 279 | 0.772 | 0.963 |
+| `unit_disk` | 162 | 281 | 0.772 | 0.972 |
+| `annulus` | 211 | 353 | 0.785 | 0.964 |
+| `notched_rectangle` | 383 | 680 | 0.693 | 0.981 |
 
 <p align="center">
   <img src="tests/output/mvp_unit_square.png" alt="unit_square" width="32%">
@@ -65,6 +64,53 @@ check of the current pipeline.
 </p>
 
 Regenerate: `PYTHONPATH=. python scripts/render_mvp_meshes.py`.
+
+### P1 + P3 enrichment preview (post-session 3)
+
+Sessions 2–3 added curvature / medial-axis size fields
+(`admesh.curvature`, `admesh.medial_axis`), a size-field composer
+(`admesh.mesh_size.build_h`), a PTS polygonal-domain structure with
+boundary-condition tags (`admesh.boundary`), and an ADMESH-variant
+distmesh path with per-node BC labels
+(`admesh.distmesh.distmesh2d_admesh`; dispatched by
+`admesh.triangulate(pts, …)`). These are **clean-room** ports —
+the MATLAB reference clone is not yet available in the
+development environment; a faithful-port backfill pass is flagged
+in `docs/PORTING_NOTES.md`.
+
+Before = uniform-size MVP path at the same `h0`. After = enriched
+path via `build_h(...)` or `triangulate(pts, ...)`.
+
+| Demo | h0 | Before (N, min q, mean q) | After (N, min q, mean q) |
+|---|---:|:---:|:---:|
+| `unit_disk` — medial LFS (fine at center) | 0.05 | 1452, 0.833, 0.994 | 82, 0.378, 0.915 |
+| `annulus` — PTS path, per-ring labels | 0.04 | 1907, 0.718, 0.988 | 678, 0.120 ⚠, 0.842 |
+| `notched_rectangle` — medial LFS (fine at pinch) | 0.04 | 1453, 0.694, 0.992 | 547, 0.188 ⚠, 0.895 |
+
+<p align="center">
+  <img src="tests/output/demo_unit_disk_medial.png" alt="unit_disk medial" width="98%">
+</p>
+<p align="center">
+  <img src="tests/output/demo_annulus_pts.png" alt="annulus PTS path" width="98%">
+</p>
+<p align="center">
+  <img src="tests/output/demo_notched_rectangle_medial.png" alt="notched_rect medial" width="98%">
+</p>
+
+In the **annulus** panel, green nodes are the outer ring tagged
+`OPEN`, red nodes the inner ring tagged `WALL` — labels emitted by
+`admesh.routine.triangulate(pts, ...)` as part of the `MeshOutput`
+return type.
+
+**⚠ Quality caveat.** The annulus and notched-rectangle demos drop
+below the MVP `min_q ≥ 0.30` gate. Root cause: DistMesh's point-
+rejection + truss relaxation produces slivers where the enriched
+`fh` has a steep gradient (base → fine-scale transitions). The
+MVP gate itself is uncompromised — `tests/test_mvp_domains.py`
+still passes, and the enriched-path tests use looser bounds on
+purpose. Tightening these is a session-4 item.
+
+Regenerate: `PYTHONPATH=. python scripts/render_p1p3_demos.py`.
 
 ## Install
 
