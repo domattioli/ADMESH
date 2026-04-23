@@ -1,12 +1,14 @@
-# Session 6 — Phase P2 (bathymetry + tide + inpaint) + boundary backfill
+# Session 6 — Boundary backfill + notched polish; bathymetry/tide last
 
-**Goal (plain English):** add the physical-field sizing modules
-(`06_Bathymetry_Function`, `07_Dominate_Tide`, `13_In_Paint_NaNs`)
-and retire the last clean-room module (`admesh/boundary.py`) by
-faithful-porting `08_Enforce_Boundary_Conditions/`. After this
-session all 13 ADMESH library stages have faithful Python ports;
-the port's north star (bit-for-bit MATLAB parity within FP
-tolerance) becomes directly testable.
+**Goal (plain English):** retire the last clean-room module
+(`admesh/boundary.py`) by faithful-porting
+`08_Enforce_Boundary_Conditions/`, polish the notched_rect demo,
+port `13_In_Paint_NaNs` (a utility bathymetry + tide will need),
+then land the physical-field modules (`06_Bathymetry_Function`,
+`07_Dominate_Tide`) on top of that foundation. After this session
+all 13 ADMESH library stages have faithful Python ports; the
+port's north star (bit-for-bit MATLAB parity within FP tolerance)
+becomes directly testable.
 
 **Session-start read order** (per `CLAUDE.md` + Article VII):
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` →
@@ -28,15 +30,15 @@ Must exist. Article II.1 is binding — no clean-room fallback.
 
 All of:
 
-1. `admesh/bathymetry.py` faithful port of
-   `06_Bathymetry_Function/BathymetryFunction.m` (+ helpers).
-2. `admesh/dominate_tide.py` faithful port of
-   `07_Dominate_Tide/Dominate_tide.m` (+ helpers).
-3. `admesh/inpaint.py` faithful port of
-   `13_In_Paint_NaNs/inpaint_nans.m`.
-4. `admesh/boundary.py` rewritten as faithful port of
+1. `admesh/boundary.py` rewritten as faithful port of
    `08_Enforce_Boundary_Conditions/{EnforceBoundaryConditions,
    create_polygon_structure}.m` (retires last session-3 clean-room).
+2. `admesh/inpaint.py` faithful port of
+   `13_In_Paint_NaNs/inpaint_nans.m`.
+3. `admesh/bathymetry.py` faithful port of
+   `06_Bathymetry_Function/BathymetryFunction.m` (+ helpers).
+4. `admesh/dominate_tide.py` faithful port of
+   `07_Dominate_Tide/Dominate_tide.m` (+ helpers).
 5. `build_h` extended to take `bathymetry` + `tide_scale` kwargs
    that route to the new ports.
 6. `tests/test_matlab_port.py` extended — port-correctness tests
@@ -47,45 +49,47 @@ All of:
    tests/ -q` green with ≥ 110 tests.
 9. **All 13 ADMESH library stages on faithful ports.** PROJECT_PLAN
    "Faithful-port backfill remaining" line is gone.
+10. notched_rect medial demo crosses the 0.30 min_q gate.
 
 ---
 
-## Workstreams
+## Workstreams (reordered: bathymetry + tide LAST)
 
-### WS1 — `06_Bathymetry_Function` port
+### WS1 — `08_Enforce_Boundary_Conditions` faithful backfill
 
-**Deliverables:** `admesh/bathymetry.py`, fixture emitter block,
-hand-derived + fixture tests.
-
-**Steps:**
-1. Read `BathymetryFunction.m` + helpers.
-2. Port faithfully — depth-driven size field.
-3. Wire into `build_h`.
-4. Fixture emitter + tests.
-
-### WS2 — `07_Dominate_Tide` port
-
-Similar scope. Long-wave `λ = sqrt(g·depth)·period`; tide-size
-contribution to the composed h.
-
-### WS3 — `13_In_Paint_NaNs` port
-
-Smaller. NaN-fill on a grid for sparse physical-field inputs. Used
-by bathymetry + tide when depth data has gaps.
-
-### WS4 — `08_Enforce_Boundary_Conditions` faithful backfill
+**Priority #1** — retires the last clean-room module; unblocks
+honest Article II.1 compliance across all ported stages.
 
 Rewrite `admesh/boundary.py` against
 `EnforceBoundaryConditions.m` + `create_polygon_structure.m`.
 PTS struct should grow any fields the MATLAB version has that the
 session-3 port skipped. `enforce_boundary_conditions` maps
-per-ring BC tags into h-field adjustments (MATLAB line 47:
-`h_ic(IB) = hmax` for open-ocean boundaries).
+per-ring BC tags into h-field adjustments (MATLAB line 37:
+`h_ic(D > hmin) = hmax`; line 47: `h_ic(IB) = hmax` for open-ocean
+boundaries).
 
-### WS5 — notched_rect demo polish (carry-over from S5)
+### WS2 — notched_rect demo polish
 
-Cheap: reroute `demo_notched_rect_medial` through the PTS path,
-same way annulus demo works. Should get min_q ≥ 0.30.
+**Priority #2 — cheap, high-visibility win.** Route
+`demo_notched_rect_medial` through the PTS path, same way the
+annulus demo works — `distmesh2d_admesh`'s density control +
+best-q tracking will clean up the transition-zone slivers.
+Target: min_q ≥ 0.30.
+
+### WS3 — `13_In_Paint_NaNs` port
+
+**Priority #3 — utility prerequisite for WS4/WS5.**
+NaN-fill on a grid for sparse physical-field inputs. Small module.
+Used by bathymetry + tide when depth data has gaps.
+
+### WS4 — `06_Bathymetry_Function` port
+
+**Priority #4.** Depth-driven size field. Wire into `build_h`.
+
+### WS5 — `07_Dominate_Tide` port
+
+**Priority #5.** Long-wave `λ = sqrt(g·depth)·period`; tide-size
+contribution to the composed h.
 
 ### WS-final — wrap-up
 
@@ -104,11 +108,20 @@ Phase P3 (full `ADmeshRoutine.m` orchestration — the final port).
 
 ## Session budget
 
-- WS1 (bathymetry): ~20%.
-- WS2 (tide): ~15%.
+- WS0: ≤ 1%.
+- WS1 (boundary backfill): ~30%.
+- WS2 (notched polish): ~5%.
 - WS3 (inpaint): ~10%.
-- WS4 (boundary backfill): ~30%.
-- WS5 (notched polish): ~5%.
+- WS4 (bathymetry): ~20%.
+- WS5 (tide): ~15%.
 - WS-final: ~20%.
 
-If WS4 overruns, drop WS5 to session 7.
+If WS1 overruns, drop WS5 to session 7 — bathymetry alone is still
+a meaningful P2 ship. If WS1+WS2 run clean and WS3/4/5 all land,
+session 6 completes the full 13-stage port.
+
+Reordering rationale (user call, post-S5): finishing the
+clean-room backfill and getting a visible demo win first gives
+session 6 a strong spine even if P2 physical-field work slips;
+bathymetry and tide are more speculative (caller hasn't driven
+them in any demo yet) and build on inpaint, so they belong last.
