@@ -110,7 +110,11 @@ def demo_annulus_pts():
                         int(BoundaryType.WALL): 0.04},
         grid_delta=0.02,
     )
-    out = triangulate(pts, h0=0.04, fh=fh, niter=250, seed=0)
+    # MATLAB-port default niter=1000; the best-quality tracker in the
+    # last 50 iters only works once the mesh has reached equilibrium.
+    # Pass the analytic SDF when the caller has one — avoids the
+    # polygon-SDF approximation artifacts.
+    out = triangulate(pts, h0=0.04, fh=fh, seed=0, fd=dom.fd)
     m_after = _metrics(out.p, out.t)
     m_after["bc_labeled"] = int((out.node_bc >= 0).sum())
 
