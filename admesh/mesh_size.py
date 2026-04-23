@@ -246,23 +246,25 @@ def build_h(
     h = np.full_like(D, base)
 
     if curvature_scale is not None:
-        from admesh.curvature import curvature_grid
+        # Route to the MATLAB-faithful port (CurvatureFunction.m).
+        # Mapping: `K = π / curvature_scale` — K is MATLAB's "elements
+        # per radian"; at unit curvature, the MATLAB formula yields
+        # h = π/K = curvature_scale near the boundary.
+        from admesh.curvature import apply_curvature
 
-        kappa = curvature_grid(D, delta)
-        kappa = np.where(np.isfinite(kappa), np.abs(kappa), 0.0)
-        # 1 / (|κ| + 1/hmax) gives h ∈ (0, hmax]; scale so the reducing
-        # term's lower bound matches curvature_scale.
-        h_curv = 1.0 / (kappa + 1.0 / hmax)
-        h = np.minimum(h, np.maximum(h_curv, float(curvature_scale)))
+        K = float(np.pi / float(curvature_scale))
+        h = apply_curvature(h, D, delta, K=K, g=g, hmax=hmax, hmin=hmin)
 
     if medial_scale is not None:
-        from admesh.medial_axis import medial_distance_fmm
+        # Route to the MATLAB-faithful port (MedialAxisFunction.m).
+        # Mapping: `R = 0.4 / medial_scale` — calibrated so that on a
+        # typical feature (LFS ≈ 0.4), ``h = LFS/R ≈ medial_scale``.
+        # MATLAB's R is "elements per LFS unit"; users more naturally
+        # think in target-h units.
+        from admesh.medial_axis import apply_medial_axis
 
-        _, _, med = medial_distance_fmm(domain.fd, domain.bbox, delta)
-        med = np.where(np.isfinite(med), med, hmax)
-        # h_med: large near medial, small near boundary.
-        h_med = np.maximum(float(medial_scale), med)
-        h = np.minimum(h, h_med)
+        R = float(0.4 / float(medial_scale))
+        h = apply_medial_axis(h, D, delta, R=R, hmax=hmax, hmin=hmin)
 
     if want_pts:
         h_bnd = _pts_boundary_field(pts, X, Y, boundary_scale, hmax, g)
