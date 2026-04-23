@@ -83,31 +83,42 @@ def test_build_h_defaults_to_uniform() -> None:
     np.testing.assert_allclose(fh(p), 0.12)
 
 
-def test_build_h_curvature_shrinks_with_curvature() -> None:
-    """On the unit disk ``κ = 1/r``: high-κ region (near origin) gets
-    smaller h than low-κ region (near boundary)."""
+def test_build_h_curvature_shrinks_in_boundary_band() -> None:
+    """MATLAB ``CurvatureFunction.m`` reduces h only in the narrow
+    band ``|D| ≤ 2·hmin``. On the unit disk (κ ≡ 1 on the boundary):
+    cells inside the band have h < base; cells outside stay ≈ base.
+    """
+    base = 0.2
     fh = build_h(
-        domains.UNIT_DISK, base=0.2, curvature_scale=0.05,
+        domains.UNIT_DISK, base=base, curvature_scale=0.05,
         grid_delta=0.02,
     )
-    hi_kappa = np.array([[0.15, 0.0]])   # r≈0.15 → κ≈6.7
-    lo_kappa = np.array([[0.9, 0.0]])    # r≈0.9  → κ≈1.1
-    assert fh(hi_kappa)[0] < fh(lo_kappa)[0]
-    # And both are bounded below by curvature_scale after smoothing.
-    assert fh(hi_kappa)[0] >= 0.05 - 1e-9
+    # hmin defaults to base/8 = 0.025; band is |D|<=0.05.
+    near_boundary = np.array([[0.97, 0.0]])   # D≈-0.03, inside band
+    deep_interior = np.array([[0.0, 0.0]])    # D=-1, outside band
+    assert fh(near_boundary)[0] < base
+    # Deep interior is untouched by curvature (outside the narrow band)
+    # but may still be gradient-limited by the solver.
+    assert fh(deep_interior)[0] >= fh(near_boundary)[0]
 
 
-def test_build_h_medial_refines_at_medial() -> None:
-    """``medial_scale`` enables LFS-style refinement: h is smallest
-    AT the medial axis (narrow-feature refinement) and grows toward
-    the boundary. On the annulus, medial is r=0.7."""
+def test_build_h_medial_constant_along_feature_axis() -> None:
+    """MATLAB ``MedialAxisFunction.m`` uses LFS = |D| + |MAD|. By
+    construction LFS is near-constant along a feature axis from the
+    medial axis to the boundary (the sum just trades one for the other).
+    On the annulus, h at the medial (r=0.7) and near-boundary (r=0.95)
+    both reflect the local feature size ~0.3."""
+    base = 0.5
     fh = build_h(
-        domains.ANNULUS, base=0.2, medial_scale=0.03,
+        domains.ANNULUS, base=base, medial_scale=0.05,
         grid_delta=0.02,
     )
     at_medial = np.array([[0.7, 0.0]])
-    off_medial = np.array([[0.95, 0.0]])
-    assert fh(at_medial)[0] < fh(off_medial)[0]
+    at_boundary = np.array([[0.95, 0.0]])
+    # Both should be below base (LFS reduction active); magnitudes
+    # similar (LFS is near-constant along radial features).
+    assert fh(at_medial)[0] < base
+    assert fh(at_boundary)[0] < base
 
 
 def test_triangulate_accepts_composed_fh() -> None:

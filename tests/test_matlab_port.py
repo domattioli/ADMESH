@@ -17,14 +17,22 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from admesh.curvature import apply_curvature
 from admesh.distmesh import (
     _boundary_cleanup,
     _initial_point_list_from_pts,
     _project_back_to_boundary,
 )
+from admesh.medial_axis import (
+    _average_outward_flux,
+    apply_medial_axis,
+    medial_axis_mask,
+)
 
 
 FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "distmesh"
+FIXTURE_ROOT_CURV = Path(__file__).parent / "fixtures" / "curvature"
+FIXTURE_ROOT_MED = Path(__file__).parent / "fixtures" / "medial_axis"
 
 
 # ---------------------------------------------------------------------------
@@ -205,3 +213,107 @@ def test_initial_points_matlab_fixture():
     got_set = {tuple(np.round(r, 10)) for r in got}
     exp_set = {tuple(np.round(r, 10)) for r in fx["p_init"].reshape(-1, 2)}
     assert got_set == exp_set
+
+
+# ---------------------------------------------------------------------------
+# CurvatureFunction — hand-derived cases
+# ---------------------------------------------------------------------------
+
+
+def test_apply_curvature_leaves_interior_at_hmax():
+    """Only the narrow band |D| <= 2*hmin is modified; deep interior
+    cells stay at their input h0 value (= hmax in this setup)."""
+    from admesh.distance import eval_sdf_grid
+    from admesh import domains
+    X, Y, D = eval_sdf_grid(domains.UNIT_DISK.fd, domains.UNIT_DISK.bbox, 0.02)
+    hmax, hmin = 0.2, 0.025
+    h0 = np.full_like(D, hmax)
+    h = apply_curvature(h0, D, 0.02, K=30.0, g=0.2, hmax=hmax, hmin=hmin)
+    # Cell at origin is deep interior (|D|=1 >> 2*hmin=0.05).
+    jc, ic = D.shape[0] // 2, D.shape[1] // 2
+    assert h[jc, ic] == pytest.approx(hmax, abs=1e-10)
+
+
+def test_apply_curvature_reduces_in_band_on_unit_disk():
+    """Inside the narrow band, MATLAB formula gives h ≈ π/K at D=0
+    (since κ=1 on the unit disk, formula becomes (1+0)/(K/π*1) - 0 = π/K)."""
+    from admesh.distance import eval_sdf_grid
+    from admesh import domains
+    delta = 0.01
+    X, Y, D = eval_sdf_grid(domains.UNIT_DISK.fd, domains.UNIT_DISK.bbox, delta)
+    hmax, hmin = 0.5, 0.05
+    h0 = np.full_like(D, hmax)
+    K = 30.0
+    h = apply_curvature(h0, D, delta, K=K, g=0.2, hmax=hmax, hmin=hmin)
+    # Expected at D=0 boundary: h ≈ π/K = 0.1047.
+    band_cells = np.abs(D) <= 2 * hmin
+    boundary_cells = np.abs(D) <= delta  # very close to boundary
+    expected = np.pi / K
+    # Assertion: the minimum h on boundary cells is near π/K.
+    assert h[boundary_cells].min() == pytest.approx(expected, abs=0.03)
+    # All band cells are ≤ hmax (the formula reduces h where κ > 0).
+    assert (h[band_cells] <= hmax + 1e-12).all()
+
+
+# ---------------------------------------------------------------------------
+# MedialAxisFunction — hand-derived cases
+# ---------------------------------------------------------------------------
+
+
+def test_aof_positive_on_medial_axis():
+    """MATLAB AOF is high (> threshold 0.15) where the local gradient
+    field 'looks outward' — i.e., on the medial axis. On a thin strip,
+    that's the midline."""
+    from admesh.distance import grad_sdf
+    # A horizontal strip |y| <= 0.5: SDF = |y| - 0.5 (interior where y < 0.5).
+    xs = np.linspace(-1.0, 1.0, 41)
+    ys = np.linspace(-0.6, 0.6, 25)
+    X, Y = np.meshgrid(xs, ys, indexing="xy")
+    D = np.abs(Y) - 0.5
+    delta = xs[1] - xs[0]
+    gx, gy = grad_sdf(D, delta)
+    aof = _average_outward_flux(gx, gy, delta)
+    # Midline at y=0: index ≈ 12.
+    mid_j = np.argmin(np.abs(ys))
+    # AOF should be strongly positive at midline, weakly positive or
+    # negative near the top/bottom boundary.
+    mid_vals = aof[mid_j, 5:-5]
+    assert mid_vals.mean() > 0.05
+
+
+def test_medial_axis_mask_finds_annulus_midline():
+    """Annulus medial axis is the circle r = (inner+outer)/2 = 0.7."""
+    from admesh.distance import eval_sdf_grid
+    from admesh import domains
+    delta = 0.02
+    X, Y, D = eval_sdf_grid(domains.ANNULUS.fd, domains.ANNULUS.bbox, delta)
+    ma = medial_axis_mask(D, delta)
+    # Medial cells should lie near r ≈ 0.7.
+    ma_points_x = X[ma]
+    ma_points_y = Y[ma]
+    radii = np.hypot(ma_points_x, ma_points_y)
+    # At least some medial cells detected; their mean r should be ≈ 0.7.
+    assert ma.any()
+    assert radii.mean() == pytest.approx(0.7, abs=0.05)
+
+
+def test_apply_medial_axis_lfs_is_near_constant_on_annulus():
+    """LFS = |D| + |MAD| is near-constant = (outer-inner)/2 along any
+    radial line on the annulus (the sum trades distance-to-boundary
+    for distance-to-medial). On annulus(0.4, 1.0): LFS ≈ 0.3."""
+    from admesh.distance import eval_sdf_grid
+    from admesh import domains
+    delta = 0.02
+    X, Y, D = eval_sdf_grid(domains.ANNULUS.fd, domains.ANNULUS.bbox, delta)
+    hmax, hmin = 0.5, 0.01
+    R = 1.0  # so h_lfs = LFS directly
+    h0 = np.full_like(D, hmax)
+    h = apply_medial_axis(h0, D, delta, R=R, hmax=hmax, hmin=hmin)
+    # Sample along positive x-axis inside the ring; h should cluster
+    # around 0.3 (the feature size of the ring).
+    xs = X[0, :]
+    jc = D.shape[0] // 2
+    inside_ring = (xs >= 0.5) & (xs <= 0.9)
+    if inside_ring.any():
+        ring_h = h[jc, inside_ring]
+        assert ring_h.mean() == pytest.approx(0.3, abs=0.1)
