@@ -17,7 +17,54 @@ Template:
 
 ---
 
-## 2026-04-23 — distmesh — ADMESH variant pathway (clean-room)
+## 2026-04-23 — distmesh — **faithful port** of MATLAB `distmesh2d.m` + helpers
+
+**MATLAB**: `01_ADMESH_Library/10_Distmesh_2d/{distmesh2d,
+BoundaryCleanUp,projectBackToBoundary,createInitialPointList}.m`
+**Python**: `admesh.distmesh.distmesh2d_admesh` (rewritten),
+`admesh.distmesh._boundary_cleanup` (rewritten),
+`admesh.distmesh._project_back_to_boundary` (new),
+`admesh.distmesh._initial_point_list_from_pts` (new)
+**Substitution**: Replaces the session-3 clean-room implementations
+with a faithful port from MATLAB source at `@ 19b2eb9` (now present
+at `/workspace/QuADMesh-MATLAB/` as declared in Constitution
+Article I). Algorithmic specifics:
+
+- **`distmesh2d_admesh`**: parameters `ttol=0.5, Fscale=1.15,
+  deltat=0.3, geps=1e-3*hmin, niter=1000` (MATLAB defaults). Density
+  control every 75 iterations drops points where `L0 > 2*L` (never
+  `pfix`). Best-quality tracking in the last 50 iterations — the
+  returned mesh is the argmax over those iterations of
+  `MeshQuality`-mean. Final output is `BoundaryCleanUp(P,T,C);
+  fixmesh(P,T)`.
+- **`_boundary_cleanup`**: uses free-boundary edge detection (edges
+  appearing in exactly one triangle), computes the MATLAB q-formula
+  on boundary-attached triangles, drops those with `q < 0.15`.
+  Preserves any triangle incident to a constrained edge.
+  **Signature change** (breaking): `(p, t, C)` where `C` is an
+  `(K, 2)` array of constrained edges (or `None`). Session-3
+  clean-room signature `(p, t, pts)` is retired.
+- **`_project_back_to_boundary`**: projects all points with
+  `d > -geps*100` (broader than Persson's `d > 0`) — pulls
+  boundary-adjacent interior nodes onto the boundary. This is the
+  main driver of the min_q improvement on PTS-path meshes.
+- **`_initial_point_list_from_pts`**: replaces `_initial_distribution`
+  on the ADMESH path. Bbox from PTS ring vertices; even rows
+  (MATLAB `2:2:end` = Python `1::2`) shifted by `hmin/2`; rejects
+  points with `fd >= geps` directly.
+
+**Behavior diff**: Canonical Persson `distmesh2d` (MVP path) is
+untouched — MVP M.4 gate green, byte-identical PNGs. Annulus
+PTS-path demo: `min_q` went `0.120 → 0.343` (2.9× improvement,
+crosses the `≥ 0.30` gate). MATLAB `distmesh2d.m` branches NOT yet
+ported (deferred follow-up): `BoundaryDensityControl.m` +
+`ConstraintDensityControl.m` (k > niter/2 density branch), full
+PTS-constraint integration via `GetMeshConstraints.m`.
+**Impact**: 3 clean-room entries below this one (session 3) are
+superseded for the distmesh stage. Curvature / medial_axis /
+boundary clean-room ports are the remaining backfill debt.
+
+---
 
 **MATLAB**: `10_Distmesh_2d/{distmesh2d,createInitialPointList,
 rejectionMethod,GetMeshConstraints,projectBackToBoundary,

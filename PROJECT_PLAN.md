@@ -6,6 +6,38 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-23, post-session 4)
+
+**Shipped (session 4 — faithful port of `10_Distmesh_2d/`):**
+- MATLAB reference clone at `/workspace/QuADMesh-MATLAB` @ `19b2eb9`
+  (Constitution Article I pin); unblocks Article II.1 faithful-port
+  rule for all subsequent work.
+- **`admesh.distmesh.distmesh2d_admesh`** rewritten as a faithful
+  port of MATLAB `distmesh2d.m` (params + density control + best-q
+  tracking). Clean-room session-3 version retired.
+- **`admesh.distmesh._boundary_cleanup`** rewritten as faithful port
+  of `BoundaryCleanUp.m` (free-boundary edge detection + q<0.15 +
+  constraint preservation). Signature changed `(p, t, pts)` →
+  `(p, t, C)` to match MATLAB.
+- **`admesh.distmesh._project_back_to_boundary`** new port of
+  `projectBackToBoundary.m` — projects all points with
+  `d > -geps*100`, not just outside points.
+- **`scripts/export_matlab_fixtures.m`** populated with emitter
+  blocks for the three ported functions + stubbed sections for
+  upcoming curvature/medial ports. `scripts/mat_to_npz.py` handles
+  `.mat → .npz` with 1-based → 0-based index fixup.
+- **`tests/test_matlab_port.py`** (11 tests): 7 hand-derived port-
+  correctness + 4 MATLAB-fixture parity tests (skip until the user
+  runs the MATLAB export).
+- **Quality payoff**: annulus PTS demo `min_q` 0.120 → 0.343
+  (crosses the ≥0.30 gate); mean_q 0.842 → 0.880.
+- **90 pytest tests passing, 4 skipped** (waiting on MATLAB
+  fixtures); MVP M.4 gate regression-clean.
+
+**Next entry point:** session 5 — port `04_Curvature_Function/` +
+`05_Medial_Axis/` faithfully, replacing the session-2 clean-room
+implementations.
+
 ## Where we are today (2026-04-23, post-session 3)
 
 **Shipped (session 3 — P3 core-algorithm lift; still clean-room):**
