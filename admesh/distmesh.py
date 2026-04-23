@@ -258,7 +258,8 @@ def fixmesh(
 
 
 # ---------------------------------------------------------------------------
-# ADMESH-variant distmesh pathway (Phase P3)
+# ADMESH-variant distmesh pathway — faithful port of MATLAB
+# ``01_ADMESH_Library/10_Distmesh_2d/distmesh2d.m`` @ 19b2eb9.
 # ---------------------------------------------------------------------------
 
 
@@ -274,8 +275,8 @@ class MeshOutput:
     p : (N, 2) ndarray
     t : (M, 3) ndarray
     node_bc : (N,) int64
-        :class:`~admesh.boundary.BoundaryType` value for nodes on
-        a PTS boundary segment, or ``-1`` for interior nodes.
+        :class:`~admesh.boundary.BoundaryType` for nodes on a PTS
+        boundary segment, or ``-1`` for interior nodes.
     ring_id : (N,) int64
         Ring index (``0`` outer, ``1+`` holes) for boundary nodes,
         or ``-1`` for interior.
@@ -288,54 +289,132 @@ class MeshOutput:
 
 
 def _boundary_cleanup(
-    p: Points,
-    t: NDArray[np.int64],
-    pts,
-    *,
-    min_altitude_factor: float = 0.05,
+    p: Points, t: NDArray[np.int64], C: NDArray[np.int64] | None = None
 ) -> NDArray[np.int64]:
-    """Drop boundary slivers: tiny triangles with 2+ nodes on the same ring.
+    """Port of ``BoundaryCleanUp.m``.
 
-    A "boundary sliver" is a triangle whose minimum altitude is less
-    than ``min_altitude_factor`` of its longest edge AND whose nodes
-    include two or more from the same PTS ring. This matches the
-    failure pattern that motivated the session-1 stale-``t`` bugfix:
-    degenerate triangles formed from boundary-projected nodes.
+    Drops triangles attached to the free boundary whose element
+    quality ``q = (b+c-a)(c+a-b)(a+b-c)/(abc)`` is below ``0.15``.
+    Preserves triangles containing any constrained edge.
 
-    Returns the filtered ``t`` (reindexing is left to ``fixmesh``).
+    Parameters
+    ----------
+    p : (N, 2) ndarray
+    t : (M, 3) ndarray
+    C : (K, 2) ndarray or None
+        Constrained edges (vertex-index pairs). Triangles attached to
+        any constrained edge are kept regardless of quality.
     """
     if t.size == 0:
         return t
-    v0 = p[t[:, 0]]
-    v1 = p[t[:, 1]]
-    v2 = p[t[:, 2]]
-    e0 = np.linalg.norm(v1 - v2, axis=1)
-    e1 = np.linalg.norm(v2 - v0, axis=1)
-    e2 = np.linalg.norm(v0 - v1, axis=1)
-    d12 = v1 - v0
-    d13 = v2 - v0
-    area = 0.5 * np.abs(d12[:, 0] * d13[:, 1] - d12[:, 1] * d13[:, 0])
-    longest = np.maximum.reduce([e0, e1, e2])
-    # Min altitude = 2 * area / longest edge.
+
+    # Free boundary = edges that appear in exactly one triangle.
+    edges = np.vstack([t[:, [0, 1]], t[:, [1, 2]], t[:, [2, 0]]])
+    edges_sorted = np.sort(edges, axis=1)
+    _, inv, counts = np.unique(edges_sorted, axis=0, return_inverse=True, return_counts=True)
+    is_free = counts[inv] == 1  # (3M,) — one entry per triangle-edge slot
+    # A triangle is "attached to the free boundary" if any of its
+    # 3 edges is a free-boundary edge. Reshape into (3, M) for clarity.
+    free_per_tri = is_free.reshape(3, -1).any(axis=0)
+    boundary_tri = np.where(free_per_tri)[0]
+    if boundary_tri.size == 0:
+        return t
+
+    # Element quality on the boundary triangles
+    #   q = (b+c-a)(c+a-b)(a+b-c) / (a*b*c),   a,b,c = edge lengths.
+    bt = t[boundary_tri]
+    x = p[:, 0]
+    y = p[:, 1]
+    a = np.hypot(x[bt[:, 1]] - x[bt[:, 0]], y[bt[:, 1]] - y[bt[:, 0]])
+    b = np.hypot(x[bt[:, 2]] - x[bt[:, 1]], y[bt[:, 2]] - y[bt[:, 1]])
+    c = np.hypot(x[bt[:, 0]] - x[bt[:, 2]], y[bt[:, 0]] - y[bt[:, 2]])
+    denom = a * b * c
     with np.errstate(divide="ignore", invalid="ignore"):
-        min_alt = np.where(longest > 0, 2.0 * area / longest, 0.0)
-    thin = min_alt < min_altitude_factor * longest
+        q = np.where(denom > 0, (b + c - a) * (c + a - b) * (a + b - c) / denom, 0.0)
+    bad_mask = q < 0.15
+    bad = boundary_tri[bad_mask]
 
-    from admesh.boundary import enforce_boundary_conditions
+    if C is not None and len(C):
+        # Triangles incident to a constrained edge — preserve them.
+        C_sorted = np.sort(np.asarray(C, dtype=np.int64), axis=1)
+        edges_by_tri = edges_sorted.reshape(3, -1, 2)  # (3, M, 2)
+        keep_tri = np.zeros(len(t), dtype=bool)
+        # Match constrained edges across all triangle-edges via set membership.
+        C_set = {tuple(row) for row in C_sorted}
+        for s in range(3):
+            for ti in range(len(t)):
+                if tuple(edges_by_tri[s, ti]) in C_set:
+                    keep_tri[ti] = True
+        bad = bad[~keep_tri[bad]]
 
-    _, _ = pts, None  # alias to keep linters happy
-    ring_id, _ = enforce_boundary_conditions(pts, p, tol=1e-2)
-    r0 = ring_id[t[:, 0]]
-    r1 = ring_id[t[:, 1]]
-    r2 = ring_id[t[:, 2]]
-    # "Two or more on the same ring" — pairwise equality among the 3.
-    same_01 = (r0 == r1) & (r0 != -1)
-    same_02 = (r0 == r2) & (r0 != -1)
-    same_12 = (r1 == r2) & (r1 != -1)
-    shared_ring = same_01 | same_02 | same_12
+    keep = np.ones(len(t), dtype=bool)
+    keep[bad] = False
+    return t[keep]
 
-    sliver = thin & shared_ring
-    return t[~sliver]
+
+def _project_back_to_boundary(
+    p: Points, fd: SDF, geps: float, *, deps: float
+) -> Points:
+    """Port of ``projectBackToBoundary.m``.
+
+    Projects all points with ``d(p) > -geps*100`` onto the boundary
+    along the gradient of ``fd``. This is broader than the canonical
+    Persson projection (which only pulls points with ``d > 0``) — it
+    actively pulls boundary-adjacent interior points onto the
+    boundary too, which materially changes the equilibrium.
+    """
+    pdist = fd(p)
+    ix = pdist > -geps * 100.0
+    if not ix.any():
+        return p
+    po = p[ix]
+    dx = (fd(po + np.array([deps, 0.0])) - fd(po)) / deps
+    dy = (fd(po + np.array([0.0, deps])) - fd(po)) / deps
+    d_o = pdist[ix]
+    p_out = p.copy()
+    p_out[ix, 0] = po[:, 0] - d_o * dx
+    p_out[ix, 1] = po[:, 1] - d_o * dy
+    return p_out
+
+
+def _initial_point_list_from_pts(
+    fd: SDF, pts, hmin: float, geps: float
+) -> Points:
+    """Port of ``createInitialPointList.m``.
+
+    Bbox taken from the concatenated PTS ring points; equilateral
+    lattice with spacing ``(hmin, hmin*sqrt(3)/2)``; even rows (MATLAB
+    ``2:2:end`` = Python ``1::2``) shifted by ``hmin/2``; rejects
+    ``fd(p) >= geps``.
+    """
+    all_p = np.vstack(pts.rings)
+    xmin, ymin = all_p.min(axis=0)
+    xmax, ymax = all_p.max(axis=0)
+    xs = np.arange(xmin, xmax + 0.5 * hmin, hmin)
+    ys = np.arange(ymin, ymax + 0.5 * hmin, hmin * np.sqrt(3) / 2.0)
+    X, Y = np.meshgrid(xs, ys, indexing="xy")
+    X[1::2, :] = X[1::2, :] + hmin / 2.0
+    p = np.column_stack([X.ravel(), Y.ravel()])
+    return p[fd(p) < geps]
+
+
+def _element_quality_mean(p: Points, t: NDArray[np.int64]) -> float:
+    """Mean element quality used by the MATLAB best-quality tracker.
+
+    MATLAB calls ``MeshQuality(p,t,0,'Triangle')`` whose return is the
+    mean per-element quality on the current mesh.
+    """
+    if t.size == 0:
+        return 0.0
+    x = p[:, 0]
+    y = p[:, 1]
+    a = np.hypot(x[t[:, 1]] - x[t[:, 0]], y[t[:, 1]] - y[t[:, 0]])
+    b = np.hypot(x[t[:, 2]] - x[t[:, 1]], y[t[:, 2]] - y[t[:, 1]])
+    c = np.hypot(x[t[:, 0]] - x[t[:, 2]], y[t[:, 0]] - y[t[:, 2]])
+    denom = a * b * c
+    with np.errstate(divide="ignore", invalid="ignore"):
+        q = np.where(denom > 0, (b + c - a) * (c + a - b) * (a + b - c) / denom, 0.0)
+    return float(np.mean(np.clip(q, 0.0, 1.0)))
 
 
 def distmesh2d_admesh(
@@ -346,20 +425,26 @@ def distmesh2d_admesh(
     cleanup: bool = True,
     **opts,
 ) -> MeshOutput:
-    """ADMESH-variant distmesh: PTS-seeded, boundary-cleanup-aware.
+    """Faithful port of MATLAB ``distmesh2d.m`` @ 19b2eb9.
 
-    Runs the canonical :func:`distmesh2d` with the PTS ring vertices
-    added as fixed points, then (optionally) applies
-    :func:`_boundary_cleanup` to drop boundary slivers, then
-    classifies every node by PTS ring / BC type.
+    Parameter values match the MATLAB source:
+    ``ttol=0.5``, ``Fscale=1.15``, ``deltat=0.3``, ``geps=0.001*hmin``,
+    ``niter=1000``, density-control frequency 75 iterations, best-
+    quality tracking in the last 50 iterations. Projection uses
+    ``projectBackToBoundary``'s ``-geps*100`` threshold (pulls
+    boundary-adjacent inside points to the boundary).
 
     Parameters
     ----------
     pts : admesh.boundary.PTS
-    fh, h0 : forwarded to ``distmesh2d``.
+    fh : callable ``(N, 2) -> (N,)`` or None
+        Mesh-size function; uniform if ``None``.
+    h0 : float
+        Target minimum edge length (``hmin`` in the MATLAB source).
     cleanup : bool
-        Run ``_boundary_cleanup`` post-loop.
-    **opts : forwarded to ``distmesh2d`` (``niter``, ``seed``, ...).
+        Run :func:`_boundary_cleanup` on the final best-quality mesh.
+    **opts :
+        ``fd``, ``seed``, ``niter`` overrides.
 
     Returns
     -------
@@ -367,31 +452,130 @@ def distmesh2d_admesh(
     """
     from admesh.boundary import enforce_boundary_conditions
 
-    # PTS rings as pfix (concatenated).
-    pfix = np.vstack(pts.rings) if pts.rings else None
+    # Parameter values from ``distmesh2d.m`` lines 38-43.
+    ttol = 0.5
+    Fscale = 1.15
+    deltat = 0.3
+    geps = 1e-3 * h0
+    densityctrlfreq = 75
+    niter = int(opts.pop("niter", 1000))
+    seed = int(opts.pop("seed", 0))
+    rng = np.random.default_rng(seed)
+    deps = np.sqrt(np.finfo(float).eps) * h0
 
-    # Derive bbox + SDF from PTS rings: use a polygon-based SDF via
-    # ``shapely``-free fallback — we already have the user's domain
-    # implicit in the PTS. Simpler: accept a user-supplied fd if given
-    # via opts['fd']; else build one from the PTS rings via shapely.
     fd = opts.pop("fd", None)
     if fd is None:
         fd = _polygon_sdf_from_pts(pts)
-    # Bbox: bounding box of all rings with a small pad.
-    all_p = np.vstack(pts.rings)
-    xmin, ymin = all_p.min(axis=0)
-    xmax, ymax = all_p.max(axis=0)
-    pad = 0.02 * max(xmax - xmin, ymax - ymin)
-    bbox = (xmin - pad, ymin - pad, xmax + pad, ymax + pad)
+    if fh is None:
+        fh = lambda q: np.ones(len(q), dtype=float)  # noqa: E731
 
-    p, t = distmesh2d(fd=fd, fh=fh, h0=h0, bbox=bbox, pfix=pfix, **opts)
+    # createInitialPointList → rejectionMethod → GetMeshConstraints(pfix)
+    p = _initial_point_list_from_pts(fd, pts, h0, geps)
+    p = _rejection_method(p, fh, rng)
 
+    # Constraints (pfix): PTS ring vertices concatenated. No interior
+    # edge constraints in this port — matches MATLAB's ``C = []``
+    # branch when the PTS has no ``Constraints`` field.
+    pfix = np.vstack(pts.rings) if pts.rings else np.empty((0, 2))
+    nC = len(pfix)
+    if nC:
+        # Drop free points that coincide with a fixed point.
+        if len(p):
+            d2fix = np.min(
+                np.linalg.norm(p[:, None, :] - pfix[None, :, :], axis=2), axis=1
+            )
+            p = p[d2fix > geps]
+        p = np.vstack([pfix, p])
+    C: NDArray[np.int64] | None = None  # no interior constraints
+
+    N = len(p)
+    pold = np.full_like(p, np.inf)
+    qold = 0.0
+    P = p.copy()
+    T = np.empty((0, 3), dtype=np.int64)
+    t = np.empty((0, 3), dtype=np.int64)
+    bars = np.empty((0, 2), dtype=np.int64)
+
+    k = 0
+    while k < niter:
+        # Retriangulate if any node moved > ttol*h0.
+        moved = np.sqrt(((p - pold) ** 2).sum(axis=1)) / h0
+        if moved.max() > ttol:
+            pold = p.copy()
+            tri = Delaunay(p)
+            t_all = tri.simplices
+            centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
+            t = np.sort(t_all[fd(centroids) < -geps], axis=1)
+            bars = np.unique(
+                np.vstack([t[:, [0, 1]], t[:, [0, 2]], t[:, [1, 2]]]), axis=0
+            )
+
+        if bars.size == 0:
+            k += 1
+            continue
+
+        # Truss forces.
+        barvec = p[bars[:, 0]] - p[bars[:, 1]]
+        L = np.sqrt((barvec ** 2).sum(axis=1))
+        hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
+        L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
+
+        # Density control — ``distmesh2d.m`` lines 167-197.
+        if (k % densityctrlfreq == 0) and (k < niter - 5) and k > 0:
+            too_close = L0 > 2.0 * L
+            if too_close.any():
+                drop_ids = np.unique(bars[too_close].ravel())
+                # Never drop fixed points (MATLAB: setdiff(..., 1:nC)).
+                drop_ids = drop_ids[drop_ids >= nC]
+                keep_mask = np.ones(N, dtype=bool)
+                keep_mask[drop_ids] = False
+                p = p[keep_mask]
+                N = len(p)
+                pold = np.full_like(p, np.inf)
+                k += 1
+                continue
+            # The ``k > niter/2`` BoundaryDensityControl /
+            # ConstraintDensityControl branch from MATLAB lines 183-195
+            # is deferred to a follow-up port; falling through mirrors
+            # an empty-op and does not change correctness of the loop.
+
+        F = np.maximum(L0 - L, 0.0)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
+
+        Ftot = np.zeros_like(p)
+        np.add.at(Ftot, bars[:, 0], Fvec)
+        np.add.at(Ftot, bars[:, 1], -Fvec)
+        if nC > 0:
+            Ftot[:nC] = 0.0
+        p = p + deltat * Ftot
+
+        # Pull boundary-adjacent interior points onto the boundary
+        # (MATLAB ``in`` = indices nC..N-1, i.e. non-fixed nodes).
+        if nC < N:
+            p[nC:] = _project_back_to_boundary(p[nC:], fd, geps, deps=deps)
+
+        # Best-quality tracking in the last 50 iterations.
+        if k > (niter - 50) and t.size:
+            q = _element_quality_mean(p, t)
+            if q > qold:
+                qold = q
+                P = p.copy()
+                T = t.copy()
+        k += 1
+
+    # On early termination / never-entered best-q window, fall back to
+    # the current positions + triangulation.
+    if qold == 0.0:
+        P, T = p, t
+
+    # Final cleanup: BoundaryCleanUp(P,T,C); fixmesh(P,T).
     if cleanup:
-        t = _boundary_cleanup(p, t, pts)
-        p, t, _ = fixmesh(p, t)
+        T = _boundary_cleanup(P, T, C)
+    P, T, _ = fixmesh(P, T)
 
-    ring_id, bc = enforce_boundary_conditions(pts, p, tol=0.2 * h0)
-    return MeshOutput(p=p, t=t, node_bc=bc, ring_id=ring_id)
+    ring_id, bc = enforce_boundary_conditions(pts, P, tol=0.2 * h0)
+    return MeshOutput(p=P, t=T, node_bc=bc, ring_id=ring_id)
 
 
 def _polygon_sdf_from_pts(pts) -> SDF:

@@ -72,20 +72,33 @@ def test_triangulate_domain_path_unchanged() -> None:
 
 
 def test_boundary_cleanup_removes_slivers() -> None:
-    """Construct a mesh where one triangle has 3 boundary nodes on the
-    same ring, near-collinear. Cleanup should drop it."""
-    pts = _analytic_pts_unit_square(n_side=8)
-    # 3 near-collinear points on the bottom edge.
+    """Faithful port of BoundaryCleanUp.m: drops triangles attached to
+    the free boundary whose quality is below 0.15. One near-collinear
+    sliver + one well-formed triangle; cleanup should drop the sliver."""
+    # 3 near-collinear points on the bottom edge + 1 interior.
     p = np.array([
         [-0.4, -0.5],
         [-0.2, -0.5],
         [0.0,  -0.5 + 1e-4],
-        [0.0, 0.0],  # interior node
+        [0.0, 0.0],
     ])
-    # 2 triangles: one is a sliver on the boundary; one is a regular
-    # interior triangle.
     t = np.array([[0, 1, 2], [0, 1, 3]])
-    cleaned = _boundary_cleanup(p, t, pts)
-    # Should drop the sliver (nodes 0,1,2 all on bottom edge ring 0).
+    cleaned = _boundary_cleanup(p, t, None)  # C=None: no constraints
     assert len(cleaned) == 1
     assert (cleaned[0] == [0, 1, 3]).all()
+
+
+def test_boundary_cleanup_preserves_constrained_edge() -> None:
+    """Port of BoundaryCleanUp.m constraint branch: a sliver attached
+    to a constrained edge is preserved."""
+    p = np.array([
+        [-0.4, -0.5],
+        [-0.2, -0.5],
+        [0.0,  -0.5 + 1e-4],
+        [0.0, 0.0],
+    ])
+    t = np.array([[0, 1, 2], [0, 1, 3]])
+    # Constrain the (0, 2) edge — the sliver must be kept.
+    C = np.array([[0, 2]])
+    cleaned = _boundary_cleanup(p, t, C)
+    assert len(cleaned) == 2
