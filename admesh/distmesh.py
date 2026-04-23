@@ -211,6 +211,14 @@ def distmesh2d(
         keep = fd(centroids) < -geps
         t = np.sort(t_all[keep], axis=1)
 
+    # Boundary cleanup — port of MATLAB BoundaryCleanUp.m. Drops
+    # free-boundary-attached triangles with q < 0.15. MATLAB's
+    # canonical Persson distmesh2d doesn't include this, but
+    # MATLAB ADMESH's distmesh2d does (see 10_Distmesh_2d/distmesh2d.m
+    # line 226). Enabling here for boundary quality on non-uniform
+    # fh; no regression on MVP domains (all already min_q > 0.69).
+    t = _boundary_cleanup(p, t, None)
+
     return fixmesh(p, t)[:2]
 
 
