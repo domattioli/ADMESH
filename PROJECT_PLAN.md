@@ -6,6 +6,46 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-23, post-session 5)
+
+**Shipped (session 5 — faithful port of `04_Curvature_Function/` +
+`05_Medial_Axis/`):**
+- **`admesh/curvature.py`** rewritten as faithful port of
+  `CurvatureFunction.m`. New ``apply_curvature`` uses MATLAB's
+  narrow-band formula ``h_curve = (1+κ|D|)/((K/π)κ) − g·D`` with
+  ``|D| ≤ 2·hmin`` band-gating.
+- **`admesh/medial_axis.py`** rewritten as faithful port of
+  `MedialAxisFunction.m`. New ``apply_medial_axis`` +
+  ``_average_outward_flux`` + ``_skeletonize_zhang_suen``
+  (vectorized) + ``_remove_isolated`` replace the session-2
+  scipy-EDT-only clean-room.
+- **`admesh.mesh_size.build_h`** routes ``curvature_scale`` /
+  ``medial_scale`` kwargs to the faithful ports; preserved
+  backward-compat for the zero-enrichment MVP path.
+- **`admesh.distmesh.distmesh2d`** (canonical MVP path) gains a
+  final ``_boundary_cleanup(p, t, None)`` call — MATLAB ADMESH's
+  ``distmesh2d.m`` does this; Persson's reference doesn't.
+  Pragmatic hybrid; MVP M.4 gate regression-clean.
+- **`scripts/export_matlab_fixtures.m`** gains curvature + medial
+  emitter blocks (previously ``[defer]`` stubs).
+- **`tests/test_matlab_port.py`** extended — 5 new port-correctness
+  tests (apply_curvature band-only + on-boundary formula; AOF
+  positivity; medial_axis_mask on annulus; LFS constancy).
+- **Quality payoff on Domain-path medial demo:**
+  unit_disk min_q 0.378 → **0.695**; notched_rect 0.020 → 0.162
+  (still below 0.30 gate — session 6 target: PTS-path retarget
+  + curvature composition).
+- **95 pytest tests passing, 4 skipped** (MATLAB fixtures); MVP
+  M.4 gate regression-clean.
+
+**Faithful-port backfill remaining:** `08_Enforce_Boundary_Conditions/`
+(still session-3 clean-room in ``admesh/boundary.py``). Session 6
+candidate alongside Phase P2.
+
+**Next entry point:** session 6 — Phase P2 (bathymetry + tide +
+inpaint). All sizing modules are now on faithful ports so P2 can
+extend the ADmeshRoutine composition without adding to clean-room debt.
+
 ## Where we are today (2026-04-23, post-session 4)
 
 **Shipped (session 4 — faithful port of `10_Distmesh_2d/`):**

@@ -17,6 +17,100 @@ Template:
 
 ---
 
+## 2026-04-23 — curvature — **faithful port** of MATLAB `CurvatureFunction.m`
+
+**MATLAB**: `01_ADMESH_Library/04_Curvature_Function/CurvatureFunction.m`
+**Python**: `admesh.curvature.apply_curvature` (MATLAB-faithful),
+`admesh.curvature.curvature_grid` (kept as thin κ computation),
+`admesh.curvature.curvature_function` (backward-compat wrapper)
+**Substitution**: Replaces the session-2 clean-room composition with
+MATLAB's narrow-band formula from line 64:
+
+    h_curve(I) = (1 + κ·|D|) / ((K/π)·κ) − g·D,   I = {|D| ≤ 2·hmin}
+
+outside the band ``h_curve = hmax``; clipped to ``[hmin, hmax]``;
+composed via ``min(h_curve, h0)``. ``K`` is MATLAB's "elements per
+radian" parameter; ``build_h`` maps the user-facing
+``curvature_scale`` via ``K = π / curvature_scale`` (the formula
+then yields ``h ≈ curvature_scale`` at unit curvature on the
+boundary).
+
+The κ computation (∇·(∇D/|∇D|)) uses our 4th-order ``grad_sdf``
+instead of MATLAB's 2nd-order ``divergence``; this is an allowed
+numerical optimization per Article II.1 (faithful algorithm,
+numerically-equivalent stencil upgrade).
+**Behavior diff**: Clean-room composition was
+``h_curv = 1/(|κ| + 1/hmax)`` applied everywhere; faithful port
+acts only in the narrow band ``|D| ≤ 2·hmin`` — cells outside the
+band are left at ``h0``. This changes behavior far from boundaries.
+**Impact**: Retires one session-2 clean-room entry. Two
+``test_mesh_size`` tests updated to reflect new semantics (band-only
+action; LFS is near-constant along feature axes). 5 new
+``test_matlab_port`` tests.
+
+## 2026-04-23 — medial_axis — **faithful port** of MATLAB `MedialAxisFunction.m`
+
+**MATLAB**: `01_ADMESH_Library/05_Medial_Axis/{MedialAxisFunction,
+medial_distance_FMM, heap, min_sort}.m`
+**Python**: `admesh.medial_axis.apply_medial_axis` (MATLAB-faithful),
+`admesh.medial_axis._average_outward_flux`,
+`admesh.medial_axis._skeletonize_zhang_suen`,
+`admesh.medial_axis._remove_isolated`,
+`admesh.medial_axis.medial_axis_mask`,
+`admesh.medial_axis.medial_distance_fmm` (backward-compat wrapper).
+**Substitution**: Full port of MATLAB lines 45-95:
+
+1. 8-neighbor Average Outward Flux (AOF); medial = ``AOF > 0.15``.
+2. Restrict to interior ``D ≤ 0``.
+3. Morphological skeletonize (MATLAB ``bwmorph(MA, 'skel', inf)``)
+   → substituted with vectorized Zhang-Suen iterative thinning.
+   Both produce 1-pixel skeletons; Zhang-Suen is marginally different
+   at endpoint symmetry but preserves 8-connected topology.
+4. Remove isolated pixels (MATLAB ``bwmorph(MA, 'clean', inf)``) →
+   8-connectivity count via ``scipy.signal.convolve2d``.
+5. ``MAD = distance_transform_edt(~MA) * delta`` (MATLAB ``bwdist``
+   × ``delta``).
+6. ``LFS = |D| + |MAD|``; ``h_lfs = LFS/R``; clip; ``h0 = min(h_lfs, h0)``.
+
+``MedialAxisFunction.m`` itself doesn't call the FMM file — it uses
+``bwdist``. The FMM subroutine (``medial_distance_FMM.m``) is
+unused in the reference pipeline; Python port retains a placeholder
+wrapper for backward compat but uses the same EDT approach.
+
+``build_h`` maps the user-facing ``medial_scale`` via
+``R = 0.4 / medial_scale``, calibrated so that on a typical feature
+(LFS ≈ 0.4) the formula yields ``h ≈ medial_scale``.
+**Behavior diff**: Clean-room implementation detected the medial
+axis via ``|∇D_edt| < 0.85`` (gradient-magnitude threshold);
+faithful port uses AOF threshold > 0.15 which is a different
+detection rule. Both produce a skeletal mask, but the faithful AOF
+approach is more robust on non-convex geometry (e.g. notched
+rectangle).
+**Impact**: Retires one session-2 clean-room entry. 3 new
+``test_matlab_port`` tests (AOF, medial mask on annulus, LFS
+constant-along-feature).
+
+## 2026-04-23 — distmesh — canonical `distmesh2d` adds BoundaryCleanUp
+
+**MATLAB**: `01_ADMESH_Library/10_Distmesh_2d/BoundaryCleanUp.m`
+(already ported in session 4 for ``distmesh2d_admesh``)
+**Python**: `admesh.distmesh.distmesh2d` now calls
+`_boundary_cleanup(p, t, None)` after the final retriangulation.
+**Rationale**: MATLAB's canonical Persson ``distmesh2d`` does not
+include BoundaryCleanUp (Persson's reference implementation). MATLAB
+ADMESH's ``distmesh2d.m`` (line 226) DOES. For Python's
+``distmesh2d`` (our MVP path) to produce ADMESH-quality output on
+non-uniform ``fh``, we call the same cleanup. Pure Persson doesn't
+have it, but the Python MVP path is a hybrid — Persson's core loop
+with ADMESH-style final cleanup. Documented deviation.
+**Behavior diff**: Drops triangles attached to the free boundary
+with ``q < 0.15`` (MATLAB's threshold). MVP domains unchanged (all
+already have min_q > 0.69); enriched-``fh`` Domain-path meshes
+(e.g. notched_rect with medial refinement) see large quality
+improvements (notched min_q: 0.020 → 0.162 in session 5).
+
+---
+
 ## 2026-04-23 — distmesh — **faithful port** of MATLAB `distmesh2d.m` + helpers
 
 **MATLAB**: `01_ADMESH_Library/10_Distmesh_2d/{distmesh2d,
