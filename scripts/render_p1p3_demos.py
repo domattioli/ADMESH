@@ -98,16 +98,22 @@ def demo_annulus_pts():
     m_before = _metrics(p0, t0)
     m_before["bc_labeled"] = 0
 
-    # After: PTS path with outer=OPEN, inner=WALL.
-    pts_auto = PTS.from_domain(dom, n_bnd=64)
+    # After: PTS path with outer=OPEN, inner=WALL. n_bnd ≈ perimeter /
+    # boundary_scale so the pfix ring vertices spacing matches the
+    # target h at the boundary (else distmesh forms slivers between
+    # finer interior points and coarser pfix).
+    boundary_scale = 0.04
+    outer_perimeter = 2 * np.pi * 1.0
+    n_bnd = int(round(outer_perimeter / boundary_scale))
+    pts_auto = PTS.from_domain(dom, n_bnd=n_bnd)
     pts = PTS.from_polygons(
         pts_auto.rings[0], holes=[pts_auto.rings[1]],
         bc=[BoundaryType.OPEN, BoundaryType.WALL],
     )
     fh = build_h(
         dom, base=0.15, pts=pts,
-        boundary_scale={int(BoundaryType.OPEN): 0.04,
-                        int(BoundaryType.WALL): 0.04},
+        boundary_scale={int(BoundaryType.OPEN): boundary_scale,
+                        int(BoundaryType.WALL): boundary_scale},
         grid_delta=0.02,
     )
     # MATLAB-port default niter=1000; the best-quality tracker in the
