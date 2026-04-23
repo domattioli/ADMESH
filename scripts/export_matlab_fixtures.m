@@ -84,13 +84,47 @@ fprintf('[skip] full distmesh2d fixture — GUI plumbing needs adapter.\n');
 
 
 %% 04_Curvature_Function ===================================================
-% Deferred: clean-room curvature.py is still in play; faithful-port
-% backfill lands next session. Emitter block here for when that's done.
-fprintf('[defer] curvature fixture — deferred to port-backfill session.\n');
+% Capture the MATLAB narrow-band curvature formula output on a unit
+% disk grid. Match Python default delta=0.02; hmax=0.5, hmin=0.05,
+% K=30 (elements per radian), g=0.2 to reproduce the hand-derived test.
+outdir = fullfile(FIXTURE_ROOT, 'curvature');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+% Grid
+xs = -1:0.02:1;
+ys = -1:0.02:1;
+[X, Y] = meshgrid(xs, ys);
+D = sqrt(X.^2 + Y.^2) - 1;
+% MATLAB's CurvatureFunction expects gradD struct + X, Y, K, g, hmax, hmin
+[gradD_x, gradD_y] = gradient(D, 0.02, 0.02);
+gradD = struct('x', gradD_x, 'y', gradD_y);
+hmax = 0.5; hmin = 0.05; g = 0.2; K = 30;
+h0 = ones(size(D)) * hmax;
+% NOTE: MATLAB CurvatureFunction takes Settings.K.Status = 'On'; stub:
+Settings = struct('K', struct('Status', 'On'));
+h0_out = CurvatureFunction(h0, D, gradD, X, Y, K, g, hmax, hmin, Settings, []);
+save(fullfile(outdir, 'unit_disk.mat'), ...
+     'X', 'Y', 'D', 'gradD_x', 'gradD_y', 'K', 'g', 'hmax', 'hmin', 'h0_out', '-v7');
 
 
 %% 05_Medial_Axis ==========================================================
-fprintf('[defer] medial_axis fixture — deferred to port-backfill session.\n');
+% Capture MedialAxisFunction output on the annulus (r=0.4 to r=1.0).
+outdir = fullfile(FIXTURE_ROOT, 'medial_axis');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+xs = -1:0.02:1;
+ys = -1:0.02:1;
+[X, Y] = meshgrid(xs, ys);
+r = sqrt(X.^2 + Y.^2);
+D = max(r - 1.0, 0.4 - r);          % annulus SDF
+[gradD_x, gradD_y] = gradient(D, 0.02, 0.02);
+gradD = struct('x', gradD_x, 'y', gradD_y);
+hmax = 0.5; hmin = 0.01; R = 3.0;
+h0 = ones(size(D)) * hmax;
+Settings = struct('R', struct('Status', 'On'));
+h0_out = MedialAxisFunction(h0, X, Y, D, gradD, R, hmin, hmax, Settings, []);
+save(fullfile(outdir, 'annulus.mat'), ...
+     'X', 'Y', 'D', 'R', 'hmax', 'hmin', 'h0_out', '-v7');
 
 
 fprintf('export_matlab_fixtures.m: done.\n');
