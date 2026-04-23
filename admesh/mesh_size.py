@@ -265,7 +265,7 @@ def build_h(
         h = np.minimum(h, h_med)
 
     if want_pts:
-        h_bnd = _pts_boundary_field(pts, X, Y, boundary_scale, hmax)
+        h_bnd = _pts_boundary_field(pts, X, Y, boundary_scale, hmax, g)
         h = np.minimum(h, h_bnd)
 
     h = np.clip(h, hmin, hmax)
@@ -293,17 +293,26 @@ def build_h(
     return fh
 
 
-def _pts_boundary_field(pts, X, Y, boundary_scale, hmax):
+def _pts_boundary_field(pts, X, Y, boundary_scale, hmax, g):
     """PTS-driven boundary-distance size field on a ``(LY, LX)`` grid.
 
     For each grid cell, compute the distance to the nearest PTS
-    segment of each BC type, and return
-    ``h(type) = max(scale[type], d_to_nearest_type_segment)``.
-    The returned grid takes the elementwise minimum across types.
+    segment of each BC type, and return a size field with
+    pre-embedded grading slope ``g``:
 
+        h(type) = min(scale[type] + g * d_to_nearest_segment, hmax)
+
+    This matches the MATLAB convention — see ``CurvatureFunction.m``
+    line 64, ``h_curve(I) = ... - g*D(I)`` — where the grading slope
+    is embedded in the h-field initial condition rather than relying
+    entirely on the post-hoc Eikonal solver. The solver
+    (``MeshSizeIterativeSolver.c``) only touches cells with
+    ``D <= 4*hmin``, so composition terms extending beyond that band
+    must already satisfy ``|grad h| <= g`` on their own.
+
+    The returned grid takes the elementwise minimum across BC types.
     ``boundary_scale`` is either a float (applied to every BC type
-    present in ``pts``) or a dict keyed by :class:`BoundaryType`
-    int values.
+    in ``pts``) or a dict keyed by :class:`BoundaryType` int values.
     """
     grid_pts = np.column_stack([X.ravel(), Y.ravel()])
     LY, LX = X.shape
@@ -331,7 +340,8 @@ def _pts_boundary_field(pts, X, Y, boundary_scale, hmax):
         for a, b in segs:
             d, _ = _point_segment_distance(grid_pts, a, b)
             d_min = np.minimum(d_min, d)
-        h_type = np.maximum(scale_lookup[bc_int], d_min).reshape(LY, LX)
+        # Grading slope g embedded directly — see MATLAB CurvatureFunction.m:64.
+        h_type = np.minimum(scale_lookup[bc_int] + g * d_min, hmax).reshape(LY, LX)
         result = np.minimum(result, h_type)
     return result
 
