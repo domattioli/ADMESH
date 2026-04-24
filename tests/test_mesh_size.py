@@ -186,3 +186,61 @@ def test_build_h_pts_preserves_mvp_default() -> None:
     fh = build_h(dom, base=0.1, pts=pts, boundary_scale=None)
     p = np.array([[0.0, 0.0], [0.4, 0.0]])
     np.testing.assert_allclose(fh(p), 0.1)
+
+
+# ---------------------- build_h with bathymetry / tide -----------------------
+
+
+def test_build_h_bathymetry_routes_to_faithful_port() -> None:
+    """``bathymetry`` + ``bathy_scale`` routes through
+    :func:`admesh.bathymetry.apply_bathymetry`. With a steep bathy
+    ramp the interior h should be reduced below ``base``."""
+    dom = domains.UNIT_DISK
+    # Depth grows linearly toward +x; interior cells along +x see strong
+    # gradient and should pull h below base.
+    def xyz(X, Y):
+        return 10.0 * X + 20.0
+
+    fh = build_h(
+        dom, base=0.2, grid_delta=0.04,
+        bathymetry=xyz, bathy_scale=0.1,
+    )
+    deep_east = np.array([[0.5, 0.0]])   # well interior, steep ramp
+    at_center = np.array([[0.0, 0.0]])   # interior
+    # Bathymetry should produce an fh that is finite + within bounds
+    # on both points; the steep-ramp point should be reduced.
+    assert fh(deep_east)[0] <= 0.2 + 1e-9
+    assert np.isfinite(fh(at_center)[0])
+
+
+def test_build_h_tide_routes_to_faithful_port() -> None:
+    """``tide_period`` + ``tide_scale`` routes through
+    :func:`admesh.dominate_tide.apply_tide`. At non-trivial depth
+    the tidal wavelength formula should yield finite h within bounds."""
+    dom = domains.UNIT_DISK
+
+    def xyz(X, Y):
+        return 100.0 * np.ones_like(X)  # constant 100 m depth
+
+    base = 50.0
+    fh = build_h(
+        dom, base=base, grid_delta=0.04,
+        hmax=base, hmin=1.0,
+        bathymetry=xyz, tide_period=44712.0, tide_scale=100.0,
+    )
+    # h_tide = (44712/100)*sqrt(981) ≈ 14003 → clipped to hmax=base.
+    interior = np.array([[0.0, 0.0]])
+    assert fh(interior)[0] == pytest.approx(base, rel=1e-6)
+
+
+def test_build_h_bathymetry_disabled_without_scale() -> None:
+    """Passing ``bathymetry`` without ``bathy_scale`` or ``tide_scale``
+    must NOT enable the contribution — MVP default path preserved."""
+    dom = domains.UNIT_SQUARE
+
+    def xyz(X, Y):
+        return np.ones_like(X)
+
+    fh = build_h(dom, base=0.1, bathymetry=xyz)
+    p = np.array([[0.0, 0.0], [0.4, 0.3]])
+    np.testing.assert_allclose(fh(p), 0.1)

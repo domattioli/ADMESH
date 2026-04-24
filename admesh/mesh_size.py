@@ -184,6 +184,10 @@ def build_h(
     medial_scale: float | None = None,
     pts=None,
     boundary_scale=None,
+    bathymetry=None,
+    bathy_scale: float | None = None,
+    tide_period: float | None = None,
+    tide_scale: float | None = None,
     hmin: float | None = None,
     hmax: float | None = None,
     g: float = 0.2,
@@ -217,6 +221,22 @@ def build_h(
         BoundaryType` int values; a ``float`` applies uniformly
         across all BC types. Cells grow toward ``base`` with
         distance to the nearest BC-typed segment. ``None`` disables.
+    bathymetry : callable ``(X, Y) -> Z`` or None
+        Bathymetric elevation sampler. Routed through
+        :func:`admesh.bathymetry.create_elevation_grid` (which
+        NaN-inpaints missing depth values) to produce the ``Z``
+        grid used by the bathymetry + tide terms.
+    bathy_scale : float or None
+        If set (with ``bathymetry``), routes to
+        :func:`admesh.bathymetry.apply_bathymetry`. This is MATLAB's
+        ``s`` parameter — elements per e-folding depth change.
+    tide_period : float or None
+        Dominant tidal period in seconds (MATLAB ``Tide_Period``).
+        Required with ``tide_scale``.
+    tide_scale : float or None
+        Elements per tidal wavelength (MATLAB ``tide_value`` =
+        ``sz``). Routes to :func:`admesh.dominate_tide.apply_tide`;
+        requires ``bathymetry`` + ``tide_period``.
     hmin : float or None
         Lower bound for the composed field. Defaults to ``base / 8``.
     hmax : float or None
@@ -232,7 +252,17 @@ def build_h(
         uniform-``base`` callable (no grid work).
     """
     want_pts = pts is not None and boundary_scale is not None
-    if curvature_scale is None and medial_scale is None and not want_pts:
+    want_bathy = bathymetry is not None and bathy_scale is not None
+    want_tide = (
+        bathymetry is not None and tide_scale is not None and tide_period is not None
+    )
+    if (
+        curvature_scale is None
+        and medial_scale is None
+        and not want_pts
+        and not want_bathy
+        and not want_tide
+    ):
         # No enrichment requested — identical to the MVP default.
         return lambda p: np.full(len(np.asarray(p, dtype=float).reshape(-1, 2)), base)
 
@@ -269,6 +299,30 @@ def build_h(
     if want_pts:
         h_bnd = _pts_boundary_field(pts, X, Y, boundary_scale, hmax, g)
         h = np.minimum(h, h_bnd)
+
+    if want_bathy or want_tide:
+        from admesh.bathymetry import create_elevation_grid
+        Z = create_elevation_grid(X, Y, bathymetry)
+
+        if want_bathy:
+            from admesh.bathymetry import apply_bathymetry
+            # With no curvature stage active, let bathymetry drive the
+            # boundary band too (MATLAB ``Settings.K = 'Off'``).
+            mask_band = curvature_scale is not None
+            h = apply_bathymetry(
+                h, D, Z, delta,
+                s=float(bathy_scale), hmin=hmin, hmax=hmax,
+                mask_boundary_band=mask_band,
+            )
+
+        if want_tide:
+            from admesh.dominate_tide import apply_tide
+            h = apply_tide(
+                h, Z,
+                tide_period=float(tide_period),
+                tide_value=float(tide_scale),
+                hmin=hmin, hmax=hmax,
+            )
 
     h = np.clip(h, hmin, hmax)
 

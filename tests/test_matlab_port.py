@@ -1,10 +1,11 @@
-"""Port-correctness tests for the faithful MATLAB port of
-``01_ADMESH_Library/10_Distmesh_2d/``.
+"""Port-correctness tests for the faithful MATLAB ports of
+``01_ADMESH_Library/{04_Curvature_Function, 05_Medial_Axis,
+08_Enforce_Boundary_Conditions, 10_Distmesh_2d}``.
 
 These tests exercise the Python implementations against reference
 values derived by hand-executing the MATLAB algorithm on small
 inputs. They are complementary to the full MATLAB-fixture parity
-suite (``tests/fixtures/distmesh/*.npz`` via
+suite (``tests/fixtures/<stage>/*.npz`` via
 ``scripts/export_matlab_fixtures.m`` + ``scripts/mat_to_npz.py``) —
 the hand-derived cases run in any environment; the full fixtures
 run only when a MATLAB-exported ``.npz`` is present.
@@ -17,6 +18,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from admesh.boundary import (
+    BCSegment,
+    PTS,
+    create_polygon_structure,
+    enforce_boundary_conditions,
+)
 from admesh.curvature import apply_curvature
 from admesh.distmesh import (
     _boundary_cleanup,
@@ -33,6 +40,7 @@ from admesh.medial_axis import (
 FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "distmesh"
 FIXTURE_ROOT_CURV = Path(__file__).parent / "fixtures" / "curvature"
 FIXTURE_ROOT_MED = Path(__file__).parent / "fixtures" / "medial_axis"
+FIXTURE_ROOT_BND = Path(__file__).parent / "fixtures" / "boundary"
 
 
 # ---------------------------------------------------------------------------
@@ -317,3 +325,131 @@ def test_apply_medial_axis_lfs_is_near_constant_on_annulus():
     if inside_ring.any():
         ring_h = h[jc, inside_ring]
         assert ring_h.mean() == pytest.approx(0.3, abs=0.1)
+
+
+# ---------------------------------------------------------------------------
+# EnforceBoundaryConditions + create_polygon_structure — hand-derived cases
+# ---------------------------------------------------------------------------
+
+
+def test_create_polygon_structure_L_matches_edge_lengths():
+    """MATLAB line 60: POLY.L = sqrt(dx^2 + dy^2) per edge."""
+    # 3-edge polyline: lengths sqrt(2), 2, 1.
+    pts = np.array([[0.0, 0.0], [1.0, 1.0], [3.0, 1.0], [3.0, 0.0]])
+    poly = create_polygon_structure(pts)
+    np.testing.assert_allclose(poly.L, [np.sqrt(2.0), 2.0, 1.0], atol=1e-12)
+
+
+def test_create_polygon_structure_normal_convention_matches_matlab():
+    """MATLAB lines 61-62: nx = dy/L, ny = -dx/L with dx=x1-x2, dy=y1-y2.
+
+    For edge [(0,0) -> (1,0)]: dx=-1, dy=0. L=1. nx=0, ny=-(-1)/1=1.
+    So corner 0 of the rectangle is (x1 + nx*d, y1 + ny*d) = (0, d).
+    """
+    pts = np.array([[0.0, 0.0], [1.0, 0.0]])
+    poly = create_polygon_structure(pts, delta=0.2)
+    d = np.sqrt(3.0) / 2.0 * 0.2
+    assert poly.x[0, 0] == pytest.approx(0.0, abs=1e-12)
+    assert poly.y[0, 0] == pytest.approx(d, abs=1e-12)
+    assert poly.x[0, 1] == pytest.approx(0.0, abs=1e-12)
+    assert poly.y[0, 1] == pytest.approx(-d, abs=1e-12)
+
+
+def test_enforce_bc_matches_matlab_line_37_far_exterior():
+    """MATLAB line 37: h_ic(D > hmin) = hmax."""
+    h0 = np.full((2, 3), 0.25)
+    X = np.zeros_like(h0); Y = np.zeros_like(h0)
+    D = np.array([[-0.3, 0.05, 0.5], [-1.0, 0.0, 0.2]])
+    pts = PTS.from_polygons(np.array([[0.0, 0], [1, 0], [1, 1], [0, 1]]))
+    h = enforce_boundary_conditions(h0, X, Y, D, None, pts, hmax=1.0, hmin=0.1)
+    # D > 0.1 → hmax=1; D <= 0.1 → clip of 0.25 is unchanged (still 0.25).
+    np.testing.assert_allclose(h, [[0.25, 0.25, 1.0], [0.25, 0.25, 1.0]])
+
+
+def test_enforce_bc_early_return_when_no_BC():
+    """MATLAB line 42: isempty(PTS.BC) → return. IB is NOT applied."""
+    h0 = np.full((2, 2), 0.3)
+    X = np.zeros_like(h0); Y = np.zeros_like(h0)
+    D = np.full_like(h0, -0.5)
+    pts = PTS.from_polygons(np.array([[0.0, 0], [1, 0], [1, 1], [0, 1]]))
+    IB = np.ones_like(h0, dtype=bool)  # would set everything to hmax
+    h = enforce_boundary_conditions(h0, X, Y, D, IB, pts, hmax=1.0, hmin=0.01)
+    # IB NOT applied because pts.BC is empty.
+    np.testing.assert_allclose(h, 0.3)
+
+
+def test_enforce_bc_open_ocean_applies_when_BC_nonempty():
+    """MATLAB line 47: h_ic(IB) = hmax; only fires when BC is non-empty."""
+    h0 = np.full((2, 2), 0.3)
+    X = np.zeros_like(h0); Y = np.zeros_like(h0)
+    D = np.full_like(h0, -0.5)
+    bc_seg = BCSegment(num=-1, points=np.array([[0.0, 0], [1, 0]]))
+    pts = PTS.from_polygons(
+        np.array([[0.0, 0], [1, 0], [1, 1], [0, 1]]), BC=[bc_seg]
+    )
+    IB = np.array([[True, False], [False, True]])
+    h = enforce_boundary_conditions(h0, X, Y, D, IB, pts, hmax=1.0, hmin=0.01)
+    assert h[0, 0] == 1.0 and h[1, 1] == 1.0
+    assert h[0, 1] == 0.3 and h[1, 0] == 0.3
+
+
+def test_enforce_bc_external_barrier_sets_h_to_L_in_band():
+    """MATLAB lines 94-136: external-barrier num=3 sets h=L on band cells
+    inside per-edge polygon. Horizontal barrier of length 2 at y=0.
+    L=2; d=sqrt(3)/2 * 2 ≈ 1.732; band |D|<=2 covers most cells.
+    """
+    xs = np.linspace(-3.0, 3.0, 13)
+    ys = np.linspace(-3.0, 3.0, 13)
+    X, Y = np.meshgrid(xs, ys, indexing="xy")
+    D = Y.copy()
+    h0 = np.full_like(D, 0.5)
+    bc_seg = BCSegment(num=3, points=np.array([[-1.0, 0.0], [1.0, 0.0]]))
+    pts = PTS.from_polygons(
+        np.array([[-3.0, -3], [3, -3], [3, 3], [-3, 3]]), BC=[bc_seg]
+    )
+    h = enforce_boundary_conditions(h0, X, Y, D, None, pts, hmax=5.0, hmin=0.01)
+    # On-barrier cell: abs(D)=0 <= L=2; x=0 is inside rect [x1-d,x2+d]×[-d,d].
+    jc = np.argmin(np.abs(ys))
+    ic = np.argmin(np.abs(xs))
+    assert h[jc, ic] == pytest.approx(2.0, abs=1e-10)
+
+
+def test_enforce_bc_internal_barrier_triaged_same_as_external():
+    """MATLAB lines 142-183 mirror lines 94-136; only the BC.num triage
+    differs. A num=4 internal barrier should behave just like num=3.
+    """
+    xs = np.linspace(-3.0, 3.0, 13)
+    ys = np.linspace(-3.0, 3.0, 13)
+    X, Y = np.meshgrid(xs, ys, indexing="xy")
+    D = Y.copy()
+    h0 = np.full_like(D, 0.5)
+    bc_seg_int = BCSegment(num=4, points=np.array([[-1.0, 0.0], [1.0, 0.0]]))
+    bc_seg_ext = BCSegment(num=3, points=np.array([[-1.0, 0.0], [1.0, 0.0]]))
+    pts_int = PTS.from_polygons(
+        np.array([[-3.0, -3], [3, -3], [3, 3], [-3, 3]]), BC=[bc_seg_int]
+    )
+    pts_ext = PTS.from_polygons(
+        np.array([[-3.0, -3], [3, -3], [3, 3], [-3, 3]]), BC=[bc_seg_ext]
+    )
+    h_int = enforce_boundary_conditions(h0, X, Y, D, None, pts_int, hmax=5.0, hmin=0.01)
+    h_ext = enforce_boundary_conditions(h0, X, Y, D, None, pts_ext, hmax=5.0, hmin=0.01)
+    np.testing.assert_allclose(h_int, h_ext)
+
+
+# --------------------- MATLAB-exported fixture parity ---------------------
+
+
+def test_enforce_bc_matlab_fixture():
+    path = FIXTURE_ROOT_BND / "enforce_bc_simple.npz"
+    if not path.exists():
+        pytest.skip("MATLAB fixture not available: boundary/enforce_bc_simple.npz")
+    fx = dict(np.load(path, allow_pickle=True))
+    pts_obj = fx.get("pts")
+    # Fixture format: arrays for h0, X, Y, D, hmax, hmin; PTS reconstructed
+    # from stored ring + BC points.
+    h0 = fx["h0"]; X = fx["X"]; Y = fx["Y"]; D = fx["D"]
+    hmax = float(fx["hmax"]); hmin = float(fx["hmin"])
+    ring = fx["ring"]
+    pts = PTS.from_polygons(ring)
+    got = enforce_boundary_conditions(h0, X, Y, D, None, pts, hmax=hmax, hmin=hmin)
+    np.testing.assert_allclose(got, fx["h_expected"], atol=1e-8)
