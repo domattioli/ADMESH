@@ -6,6 +6,59 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-24, post-session 6)
+
+**Shipped (session 6 — faithful-port completion across all 13 stages):**
+- **`admesh/boundary.py`** rewritten as faithful port of
+  `08_Enforce_Boundary_Conditions/{EnforceBoundaryConditions,
+  create_polygon_structure}.m`. New ``BCSegment`` dataclass +
+  ``PolygonStructure`` + ``create_polygon_structure`` + MATLAB-
+  faithful ``enforce_boundary_conditions(h_ic, X, Y, D, IB, pts,
+  hmax, hmin)``. Session-3 node-labelling function preserved as
+  ``classify_nodes_against_pts``; ``admesh/distmesh.py`` call sites
+  updated. **Retires the last clean-room stage.**
+- **`admesh/inpaint.py`** rewritten as faithful port of MATLAB
+  ``inpaint_nans.m`` method 0 (default). Column-major sparse del²
+  operator + lsqr solve. Methods 1-5 raise ``NotImplementedError``
+  (deferred polish).
+- **`admesh/bathymetry.py`** rewritten as faithful port of
+  ``06_Bathymetry_Function/{BathymetryFunction,CreateElevationGrid}.m``.
+  Formula ``h_bathy = s·|Z|/|∇Z|`` with 4th-order interior ∇Z
+  stencil; ``D ≥ -4·hmin`` band masked to ``hmax`` when curvature
+  stage active (MATLAB line 121).
+- **`admesh/dominate_tide.py`** rewritten as faithful port of
+  ``07_Dominate_Tide/Dominate_tide.m``. ``h_tide = (T/sz)·√(g·|Z|)``
+  with ``g = 9.81``; land cells (Z==0) pinned to hmax before clip.
+- **`admesh.mesh_size.build_h`** extended with ``bathymetry``,
+  ``bathy_scale``, ``tide_period``, ``tide_scale`` kwargs routing
+  to the faithful ports (additive — existing callers unaffected).
+- **4 new PORTING_NOTES entries** (boundary, inpaint, bathymetry,
+  tide).
+- **`scripts/export_matlab_fixtures.m`** gains emitter blocks for
+  inpaint, bathymetry, dominate_tide, boundary (4 new fixtures;
+  existing 5 unchanged).
+- **`tests/test_matlab_port.py`** extended — 8 new port-correctness
+  tests for boundary + 1 MATLAB-fixture parity skip;
+  ``tests/test_inpaint.py`` (7), ``tests/test_bathymetry.py`` (7),
+  ``tests/test_dominate_tide.py`` (6), ``tests/test_boundary.py``
+  gains 9 new cases — total test count **131 → 134 passing**
+  (adds bathymetry + tide routing via ``build_h``), 5 skipped
+  (MATLAB fixtures).
+- **All 13 ADMESH library stages now on faithful ports.**
+  Article II.1 compliance restored; the PROJECT_PLAN line
+  "Faithful-port backfill remaining" is retired.
+
+**Slipped to session 7:** WS2 notched_rect demo polish
+(``min_q`` still 0.162 on Domain-path — PTS-path reroute deferred
+to session 7 since P3 orchestration work will exercise the PTS
+path end-to-end anyway).
+
+**Next entry point:** session 7 — Phase P3, full
+``01_ADMESH_Routine/ADmeshRoutine.m`` + ``ADmeshSubMeshRoutine.m``
+orchestration. All individual stages are now directly callable on
+faithful ports; session 7 composes them into the top-level
+pipeline.
+
 ## Where we are today (2026-04-23, post-session 5)
 
 **Shipped (session 5 — faithful port of `04_Curvature_Function/` +
@@ -38,13 +91,12 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 - **95 pytest tests passing, 4 skipped** (MATLAB fixtures); MVP
   M.4 gate regression-clean.
 
-**Faithful-port backfill remaining:** `08_Enforce_Boundary_Conditions/`
-(still session-3 clean-room in ``admesh/boundary.py``). Session 6
-candidate alongside Phase P2.
+**Faithful-port backfill remaining (as of S5):**
+`08_Enforce_Boundary_Conditions/` (session-3 clean-room in
+``admesh/boundary.py``). **Retired in session 6.**
 
-**Next entry point:** session 6 — Phase P2 (bathymetry + tide +
-inpaint). All sizing modules are now on faithful ports so P2 can
-extend the ADmeshRoutine composition without adding to clean-room debt.
+**Next entry point (as of S5):** session 6 — Phase P2 (bathymetry
++ tide + inpaint) + boundary backfill.
 
 ## Where we are today (2026-04-23, post-session 4)
 
