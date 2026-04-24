@@ -178,3 +178,8 @@ this is a port, not a research project. Keep it simple.
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
 | `/workspace/MADMESHR` | Sibling RL-meshing project — **not related to ADMESH**, do not cross-contaminate |
 | `/workspace/ADMESH` | This repo |
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->
