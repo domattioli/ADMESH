@@ -69,3 +69,13 @@ def test_domain_dataclass_fixed_points_default() -> None:
     assert domains.UNIT_DISK.fixed_points.shape == (0, 2)
     assert domains.ANNULUS.fixed_points.shape == (0, 2)
     assert domains.UNIT_SQUARE.fixed_points.shape == (4, 2)
+
+
+@pytest.mark.parametrize("name", ["unit_square", "l_shape", "notched_rectangle"])
+def test_fixed_points_lie_on_boundary(name: str) -> None:
+    dom = domains.ALL[name]
+    if dom.fixed_points.size == 0:
+        return
+    d = dom.fd(dom.fixed_points)
+    np.testing.assert_allclose(d, 0.0, atol=1e-9,
+        err_msg=f"{name}: fixed_points not on boundary")
