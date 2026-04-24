@@ -458,7 +458,7 @@ def distmesh2d_admesh(
     -------
     MeshOutput
     """
-    from admesh.boundary import enforce_boundary_conditions
+    from admesh.boundary import classify_nodes_against_pts
 
     # Parameter values from ``distmesh2d.m`` lines 38-43.
     ttol = 0.5
@@ -582,7 +582,7 @@ def distmesh2d_admesh(
         T = _boundary_cleanup(P, T, C)
     P, T, _ = fixmesh(P, T)
 
-    ring_id, bc = enforce_boundary_conditions(pts, P, tol=0.2 * h0)
+    ring_id, bc = classify_nodes_against_pts(pts, P, tol=0.2 * h0)
     return MeshOutput(p=P, t=T, node_bc=bc, ring_id=ring_id)
 
 
