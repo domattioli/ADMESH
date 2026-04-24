@@ -17,6 +17,151 @@ Template:
 
 ---
 
+## 2026-04-24 — boundary — **faithful port** of MATLAB `EnforceBoundaryConditions.m`
+
+**MATLAB**: `01_ADMESH_Library/08_Enforce_Boundary_Conditions/
+{EnforceBoundaryConditions,create_polygon_structure}.m`
+**Python**: `admesh.boundary.enforce_boundary_conditions` (MATLAB-
+faithful), `admesh.boundary.create_polygon_structure`,
+`admesh.boundary.PolygonStructure`, `admesh.boundary.BCSegment`,
+`admesh.boundary.classify_nodes_against_pts` (session-3 clean-room
+renamed — the old name is now the MATLAB-faithful port).
+**Substitution**: Replaces the session-3 clean-room
+``enforce_boundary_conditions(pts, p, *, tol)`` with the MATLAB
+semantics: ``(h_ic, X, Y, D, IB, pts, hmax, hmin) -> h_bc``.
+Algorithmic specifics:
+
+- ``create_polygon_structure`` (MATLAB lines 1-80): flattens
+  ``pts.Points`` cell array into an ``L, x, y`` master list
+  separated by NaN row markers, plus per-ring
+  ``circ_x, circ_y`` circumscribing-box extents.
+- ``enforce_boundary_conditions`` (MATLAB lines 35-183):
+  - Line 35-37: clip ``h_ic`` to ``[hmin, hmax]``; force
+    ``D > hmin`` (far-exterior) to ``hmax``.
+  - Line 42: early return if no BC segments.
+  - Line 47: open-ocean ``IB`` indices → ``hmax``.
+  - Lines 94-136: per external-barrier (num ∈ {3, 13, 23}) —
+    build a sample rectangle from segment vertices and force the
+    segment's ``hmax`` setting on enclosed nodes.
+  - Lines 142-183: per internal-barrier (num ∈ {4, 5, 24, 25}) —
+    two-sided reach (front + back face) with point-in-band test.
+
+The ``BCSegment`` dataclass replaces MATLAB's ``PTS.Constraints``
+struct slots; ``num`` holds the ADCIRC IBTYPE code, ``points`` the
+per-vertex ``(x, y)`` array.
+**Behavior diff**: Session-3 clean-room used an SDF-plus-tol
+membership test (``|D(p_i)| ≤ tol``) to label each output node
+with ``(ring_id, BC)``. Faithful port acts in-place on the
+h-field grid (``h_bc``), not the point list — caller composes via
+``min(h_bc, h0)`` in the size-field solver. The clean-room
+node-labelling function is preserved as
+``classify_nodes_against_pts`` (same signature; ``distmesh.py``
+call sites updated).
+**Impact**: Retires the last session-3 clean-room stage. 9 new
+``test_boundary`` tests for ``create_polygon_structure`` +
+faithful enforce-bc; 8 new ``test_matlab_port`` tests (1 skips
+until MATLAB fixture emitted). Session-3 PTS dataclass +
+``BoundaryType`` enum preserved unchanged — they remain the API
+surface for ``build_h(..., pts=...)``.
+
+## 2026-04-24 — inpaint — **faithful port** of MATLAB `inpaint_nans.m` method 0
+
+**MATLAB**: `01_ADMESH_Library/13_In_Paint_NaNs/inpaint_nans.m`
+**Python**: `admesh.inpaint.inpaint_nans`
+**Substitution**: Replaces the session-1 placeholder stub with a
+faithful port of John D'Errico's method 0 (default):
+
+1. Column-major flatten (``A.flatten(order='F')``) — matches MATLAB
+   linear indexing (`A(k)` runs columns first). Return value is
+   reshaped with ``order='F'``.
+2. 4-neighbor ``talks_to`` stencil ``[(-1, 0), (0, -1), (1, 0), (0, 1)]``
+   (MATLAB lines 126-129).
+3. Sparse del² operator ``-4 * e_i + sum(e_{neighbors})`` built only
+   for NaN cells + their immediate (non-NaN) neighbors.
+4. Solve via ``scipy.sparse.linalg.lsqr(A, b)`` — MATLAB uses
+   ``A \ rhs`` but LSQR is a direct drop-in for the overdetermined
+   linear system method 0 constructs.
+5. Known cells pass through unchanged (MATLAB line 137).
+
+Methods 1-5 raise ``NotImplementedError`` — the MATLAB file
+implements them but MATLAB ADMESH never calls with a non-zero
+method (default is 0), so method 0 alone is enough for port
+parity. Full method coverage is a Phase P4 polish task.
+**Behavior diff**: On linear fields (Δ²f ≡ 0) inpaint recovers
+missing values exactly. On quadratic fields the reconstruction
+is smooth but not exact — matches MATLAB method 0 behavior. LSQR
+convergence tolerance is at default; tests verify `atol=1e-8`.
+**Impact**: Unblocks WS4 (bathymetry) which runs inpaint on
+NaN-ful depth samples (MATLAB ``CreateElevationGrid.m`` line
+19-21). 7 new ``test_inpaint`` tests.
+
+## 2026-04-24 — bathymetry — **faithful port** of MATLAB `BathymetryFunction.m`
+
+**MATLAB**: `01_ADMESH_Library/06_Bathymetry_Function/
+{BathymetryFunction,CreateElevationGrid}.m`
+**Python**: `admesh.bathymetry.apply_bathymetry`,
+`admesh.bathymetry.create_elevation_grid`
+**Substitution**: Replaces the session-1 stub. Two entry points:
+
+- ``create_elevation_grid(X, Y, xyz_fun)`` — port of
+  ``CreateElevationGrid.m``. Samples ``xyz_fun(X, Y) -> Z`` onto
+  the grid and, if any NaN entries are produced, fills them via
+  :func:`admesh.inpaint.inpaint_nans` (MATLAB line 19-21).
+  Returns ``None`` for ``xyz_fun=None`` (MATLAB
+  ``isempty(xyzFun) -> Z = []``).
+- ``apply_bathymetry(h0, D, Z, delta, *, s, hmin, hmax,
+  mask_boundary_band=True)`` — port of ``BathymetryFunction.m``.
+  Core formula (MATLAB line 112):
+
+      h_bathy = s * |Z| / |∇Z|
+
+  with ``∇Z`` computed by MATLAB's 4th-order central-difference
+  stencil on the interior ``[2:LY-2, 2:LX-2]`` window (MATLAB
+  lines 51-55; the border strip remains 0 under MATLAB's narrower
+  stencil support too). Where ``|∇Z| = 0`` the value is set to
+  ``hmax`` (division guard; also what MATLAB ``inf → hmax`` clip
+  produces). Clipped to ``[hmin, hmax]`` (lines 115-116); cells
+  with ``D ≥ -4·hmin`` pinned to ``hmax`` when
+  ``mask_boundary_band`` is on (MATLAB line 121, active when
+  ``Settings.K.Status == 'On'``); composed via ``min(h_bathy, h0)``
+  (line 129).
+
+**Behavior diff**: The boundary-band mask defaults to True — the
+curvature stage owns that band in the canonical MATLAB pipeline,
+so bathymetry yielding hmax there is the correct behavior when
+curvature is active. ``build_h`` passes ``mask_boundary_band =
+(curvature_scale is not None)``; callers using bathymetry alone
+get sizing everywhere.
+**Impact**: ``build_h`` gains ``bathymetry=`` +
+``bathy_scale=`` kwargs routing to the faithful port. 7 new
+``test_bathymetry`` tests; 1 new ``test_mesh_size`` test for
+the routing.
+
+## 2026-04-24 — dominate_tide — **faithful port** of MATLAB `Dominate_tide.m`
+
+**MATLAB**: `01_ADMESH_Library/07_Dominate_Tide/Dominate_tide.m`
+**Python**: `admesh.dominate_tide.apply_tide`
+**Substitution**: Replaces the session-1 stub. MATLAB line 35
+formula (shallow-water dispersion, resolving a tidal wavelength
+at ``sz`` elements):
+
+    h_tide = (T / sz) * sqrt(g * |Z|),  g = 9.81
+
+MATLAB line 37 promotes ``h_tide == 0`` (i.e. ``Z == 0``, land
+cells) to ``hmax`` — avoids zero-sizing on land. Clipped to
+``[hmin, hmax]`` (lines 40-41); composed via
+``min(h_tide, h0)`` (line 44).
+**Behavior diff**: None — direct translation of the closed-form
+formula plus the three post-processing steps. Uses ``np.abs(Z)``
+so the sign convention on ``Z`` (positive-down vs. positive-up)
+is irrelevant.
+**Impact**: ``build_h`` gains ``tide_period=`` + ``tide_scale=``
+kwargs (the latter is MATLAB's ``tide_value``, aka ``sz``).
+Requires ``bathymetry=`` to be set so ``Z`` is available. 6 new
+``test_dominate_tide`` tests; 1 new ``test_mesh_size`` test for
+the routing. **Completes the 13-stage faithful port** — zero
+clean-room modules remain.
+
 ## 2026-04-23 — curvature — **faithful port** of MATLAB `CurvatureFunction.m`
 
 **MATLAB**: `01_ADMESH_Library/04_Curvature_Function/CurvatureFunction.m`
