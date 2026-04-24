@@ -127,4 +127,73 @@ save(fullfile(outdir, 'annulus.mat'), ...
      'X', 'Y', 'D', 'R', 'hmax', 'hmin', 'h0_out', '-v7');
 
 
+%% 13_In_Paint_NaNs: inpaint_nans on a linear-ramp hole ====================
+outdir = fullfile(FIXTURE_ROOT, 'inpaint');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+% Linear ramp with a block hole — method 0 (default) recovers exactly.
+[X, Y] = meshgrid(linspace(0, 1, 10), linspace(0, 1, 10));
+A_true = X + 2.0 * Y;
+A = A_true;
+A(4:6, 4:6) = NaN;          % MATLAB 1-based; Python expects same block in 0-based
+B = inpaint_nans(A);        % method defaults to 0
+save(fullfile(outdir, 'linear_block.mat'), ...
+     'A', 'A_true', 'B', '-v7');
+
+
+%% 06_Bathymetry_Function: BathymetryFunction on a linear-ramp Z ===========
+% Unit-square grid, Z = 10*x, constant D=-1 interior; curvature stage off
+% so no boundary-band mask. Verifies h_bathy = s*|Z|/|∇Z| = s*|x|.
+outdir = fullfile(FIXTURE_ROOT, 'bathymetry');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+xs = linspace(0, 1, 15);
+[X, Y] = meshgrid(xs, xs);
+Z = 10.0 * X;
+D = -ones(size(X));
+delta = xs(2) - xs(1);
+s = 0.2; hmin = 0.01; hmax = 1.0;
+h0 = ones(size(X));
+Settings = struct('K', struct('Status', 'Off'));
+% NOTE: MATLAB BathymetryFunction signature varies by commit; this is
+% the 19b2eb9-pin signature. If the function expects a PTS arg, pass [].
+h0_out = BathymetryFunction(h0, D, Z, delta, s, hmin, hmax, Settings, []);
+save(fullfile(outdir, 'linear_ramp.mat'), ...
+     'X', 'Y', 'D', 'Z', 'delta', 's', 'hmin', 'hmax', 'h0_out', '-v7');
+
+
+%% 07_Dominate_Tide: Dominate_tide on a constant-depth grid ================
+outdir = fullfile(FIXTURE_ROOT, 'dominate_tide');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+% Z = 100 m constant depth; T = M2 semidiurnal (44712 s); sz = 100.
+[X, Y] = meshgrid(linspace(-1, 1, 21), linspace(-1, 1, 21));
+Z = 100.0 * ones(size(X));
+T = 44712.0; sz = 100.0;
+hmin = 1.0; hmax = 1e6;
+h0 = ones(size(X)) * 1e6;
+h0_out = Dominate_tide(h0, Z, T, sz, hmin, hmax);
+save(fullfile(outdir, 'constant_depth.mat'), ...
+     'X', 'Y', 'Z', 'T', 'sz', 'hmin', 'hmax', 'h0_out', '-v7');
+
+
+%% 08_Enforce_Boundary_Conditions: simple open-ocean IB pattern ============
+outdir = fullfile(FIXTURE_ROOT, 'boundary');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+% Minimum PTS with no BC segments (should exercise MATLAB line 42 early
+% return) — then a version with a single external-barrier segment.
+[X, Y] = meshgrid(linspace(-1, 1, 11), linspace(-1, 1, 11));
+D = sqrt(X.^2 + Y.^2) - 1;
+hmin = 0.05; hmax = 0.5;
+h_ic = ones(size(X)) * 0.2;
+% Populate IB: nodes with D < -0.8 — some deep interior that we mark
+% as open-ocean boundary indices, expecting them to be pinned to hmax.
+IB = find(D(:) < -0.8);          % MATLAB 1-based linear indices
+PTS_empty = struct('Poly', {{}}, 'Constraints', []);
+h_bc_noBC = EnforceBoundaryConditions(h_ic, X, Y, D, IB, PTS_empty, hmax, hmin);
+save(fullfile(outdir, 'enforce_bc_simple.mat'), ...
+     'X', 'Y', 'D', 'IB', 'hmax', 'hmin', 'h_ic', 'h_bc_noBC', '-v7');
+
+
 fprintf('export_matlab_fixtures.m: done.\n');
