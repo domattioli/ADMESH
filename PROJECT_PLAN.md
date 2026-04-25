@@ -6,6 +6,22 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-25, spec-002 planned — implementation pending)
+
+**Shipped this turn (spec 002 — default size-field stack, planning phase):**
+- Spec drafted, clarified (3 questions resolved: `Domain` carries bathymetry/tide; structural-validity is the release gate, not numeric quality; tide-without-bathymetry warns and runs with constant `default_depth=1.0`), planned (research.md + data-model.md + contracts/python-api-default-stack.md + contracts/fort14-paired-edge.md + quickstart.md), and tasked (41 tasks across 7 phases). MVP slice = T001-T019.
+- New Tier 1 acceptance fixture: `tests/fixtures/fort14/adcirc_examples/wetting_and_drying_test.14` (ADCIRC Example 10, 2716 nodes, IBTYPE 0/3/24). Surfaces 2 spec-001 fort.14 reader gaps (single-node IBTYPE 3 + crest data; paired-node IBTYPE 24 + supercritical-flow coefficients) — extension is in scope for spec-002.
+- Test ladder for the 0.1.0 release gate: Tier 0 (5 MVP polygons) → Tier 1 (`example10n`) → Tier 1.5 (Shinnecock — acquired during /speckit-implement) → Tier 2 (`wnat_test.14`).
+- README ADCIRC compatibility tagline (links `adcirc.org`).
+- GitHub issue #6 logged: "Investigate community-driven domain/mesh registry concept" — long-term research direction for fixture discovery/classification.
+- Branch `002-size-field-defaults` on origin with two commits (`5268026` spec + `4f79fe3` plan).
+
+**Implementation pending**: 41 tasks queued in `specs/002-size-field-defaults/tasks.md`. Next command after compaction is `/speckit-implement` starting at T001 (baseline verification), then Phase 2 entity extensions (T002-T006), then US1 MVP (T007-T019). 0.1.0 release tag is gated on T032's pre-tag verification script passing.
+
+**Spec 001 status (carry-over)**: shipped on `001-pythonize-and-fort14-integration` branch, head `f1ce987`. The 0.1.0 framing in spec-001's polish commit will be walked back as part of spec-002's US4 release-readiness rider (FR-017 / FR-018, tasks T023-T025).
+
+---
+
 ## Where we are today (2026-04-25, post-spec-001)
 
 **Shipped (spec 001 — Pythonic API + fort.14 I/O):**
