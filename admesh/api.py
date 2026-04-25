@@ -13,6 +13,7 @@ their inputs and outputs.
 from __future__ import annotations
 
 import os
+import warnings
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Callable
 
@@ -476,24 +477,36 @@ def triangulate(
     if max_iter is not None:
         opts["niter"] = int(max_iter)
 
-    # User-supplied size field. The full Phase-1/Phase-2 composition
-    # lands in Phase 5; for Phase 3 (US1 MVP) we accept a `size_field`
-    # callable directly. user_contribs/combine are silently dropped at
-    # this stage — wired in T043.
-    if user_contribs:
-        # Compose minimally: phase1 passthrough (no built-ins yet) then
-        # combine across user contribs. For US1 we don't need the full
-        # compose_size_field machinery — keep the wiring minimal here so
-        # T040's end-to-end test still has something to bind to.
-        contribs = tuple(user_contribs)
+    # Resolve the size field. Three cases:
+    #
+    #   1. Caller passed a pre-composed `size_field=`. They've already
+    #      done their own composition; we use it as-is. If they ALSO
+    #      passed `user_contribs=` we warn — those would be ignored
+    #      otherwise, which silently violates the contract.
+    #   2. Caller passed `user_contribs=`. Wrap them via
+    #      `compose_size_field` with `size_field` (if any) as the sole
+    #      Phase-1 builtin. Default combiner is `np.minimum.reduce`.
+    #   3. Neither — uniform sizing falls through (`fh=None`).
+    if size_field is not None and user_contribs:
+        warnings.warn(
+            "triangulate: both `size_field` and `user_contribs` were "
+            "supplied; ignoring `user_contribs` (the pre-composed "
+            "`size_field` already encodes its own composition).",
+            UserWarning,
+            stacklevel=2,
+        )
+        fh = size_field
+    elif user_contribs:
+        from admesh.size_field import compose_size_field
 
-        def _size_field(p: np.ndarray, _contribs=contribs, _combine=combine) -> np.ndarray:
-            results = [np.asarray(c(p), dtype=np.float64) for c in _contribs]
-            if size_field is not None:
-                results.insert(0, np.asarray(size_field(p), dtype=np.float64))
-            return np.asarray(_combine(results), dtype=np.float64)
-
-        fh = _size_field
+        builtins_phase1 = (size_field,) if size_field is not None else ()
+        fh = compose_size_field(
+            builtins=builtins_phase1,
+            user_contribs=tuple(user_contribs),
+            combine=combine,
+            hmin=h_min,
+            hmax=h_max,
+        )
     else:
         fh = size_field  # may still be None — uniform sizing
 

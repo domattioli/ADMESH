@@ -122,19 +122,19 @@ US2's implementation is largely covered by US1's `fort14.py` correctness. The re
 
 ### Tests for User Story 3
 
-- [ ] T036 [P] [US3] `tests/test_size_field_composition.py` — Phase-1 isolation: run `compose_size_field(builtins=[curvature_fn, medial_fn], user_contribs=[])` and verify the result matches the existing faithful-port `mesh_size_function` output exactly (`atol=1e-12`). Constitution Principle I.
-- [ ] T037 [P] [US3] `tests/test_size_field_composition.py` — Phase-2 default combiner: `compose_size_field(builtins, user_contribs=[fn], combine=np.minimum.reduce)` returns elementwise `min` of the Phase-1 result and `fn`. Verify on a small synthetic point set.
-- [ ] T038 [P] [US3] `tests/test_size_field_composition.py` — Phase-2 custom combiner: pass `combine=np.maximum.reduce`; verify the result is elementwise `max` between Phase-1 and the user contribution; verify the Phase-1 result itself is unchanged (i.e., the custom combiner does NOT leak into Phase-1).
-- [ ] T039 [P] [US3] `tests/test_size_field_composition.py` — invalid user values: contribution returns NaN at some points and negative values at others. Verify the pipeline clamps to `[hmin, hmax]` and emits a `UserWarning` whose message names the contribution and the affected count. FR-005 + Story 3 AS-2.
-- [ ] T040 [P] [US3] `tests/test_api_triangulate_user_contribs.py` — end-to-end: triangulate a unit-disk domain with a contribution that halves the size in a small disc; assert (a) min_q ≥ 0.30 still holds; (b) the mean inradius of elements whose centroid lies in the targeted region is strictly less than the mean inradius outside.
+- [X] T036 [P] [US3] `tests/test_size_field_composition.py` — Phase-1 isolation: run `compose_size_field(builtins=[curvature_fn, medial_fn], user_contribs=[])` and verify the result matches the existing faithful-port `mesh_size_function` output exactly (`atol=1e-12`). Constitution Principle I.
+- [X] T037 [P] [US3] `tests/test_size_field_composition.py` — Phase-2 default combiner: `compose_size_field(builtins, user_contribs=[fn], combine=np.minimum.reduce)` returns elementwise `min` of the Phase-1 result and `fn`. Verify on a small synthetic point set.
+- [X] T038 [P] [US3] `tests/test_size_field_composition.py` — Phase-2 custom combiner: pass `combine=np.maximum.reduce`; verify the result is elementwise `max` between Phase-1 and the user contribution; verify the Phase-1 result itself is unchanged (i.e., the custom combiner does NOT leak into Phase-1).
+- [X] T039 [P] [US3] `tests/test_size_field_composition.py` — invalid user values: contribution returns NaN at some points and negative values at others. Verify the pipeline clamps to `[hmin, hmax]` and emits a `UserWarning` whose message names the contribution and the affected count. FR-005 + Story 3 AS-2.
+- [X] T040 [P] [US3] `tests/test_api_triangulate_user_contribs.py` — end-to-end: triangulate a unit-disk domain with a contribution that halves the size in a small disc; assert (a) min_q ≥ 0.30 still holds; (b) the mean inradius of elements whose centroid lies in the targeted region is strictly less than the mean inradius outside.
 
 ### Implementation for User Story 3
 
-- [ ] T041 [US3] Create `admesh/size_field.py` with `SizeFieldFn` type alias and `compose_size_field(builtins, user_contribs=(), combine=np.minimum.reduce)` per `data-model.md` and the contract. Phase-1 always uses `np.minimum.reduce` regardless of `combine`. Inputs validated; output is a closure with stable signature `(N, 2) -> (N,)`.
-- [ ] T042 [US3] In `admesh/size_field.py`: implement clamping/warning behavior — invalid contribution values (NaN, ≤0, > `hmax`) clamped to `[hmin, hmax]` and emit `warnings.warn(...)` with affected count and contribution `__qualname__`.
-- [ ] T043 [US3] In `admesh/api.py`: wire `user_contribs` and `combine` kwargs of `triangulate()` through to `compose_size_field`. When the caller passes a pre-composed `size_field=`, ignore `user_contribs`/`combine` (they're already represented in the user's composition) and emit a `UserWarning` if both are given.
-- [ ] T044 [US3] Update `admesh/__init__.py` to re-export `compose_size_field` and `SizeFieldFn`. Update `__all__`.
-- [ ] T045 [US3] Add a runnable example `scripts/size_field_extension_demo.py` mirroring quickstart.md's wave-breaker example. Renders a before/after pair under `tests/output/` for manual inspection.
+- [X] T041 [US3] Create `admesh/size_field.py` with `SizeFieldFn` type alias and `compose_size_field(builtins, user_contribs=(), combine=np.minimum.reduce)` per `data-model.md` and the contract. Phase-1 always uses `np.minimum.reduce` regardless of `combine`. Inputs validated; output is a closure with stable signature `(N, 2) -> (N,)`.
+- [X] T042 [US3] In `admesh/size_field.py`: implement clamping/warning behavior — invalid contribution values (NaN, ≤0, > `hmax`) clamped to `[hmin, hmax]` and emit `warnings.warn(...)` with affected count and contribution `__qualname__`.
+- [X] T043 [US3] In `admesh/api.py`: wire `user_contribs` and `combine` kwargs of `triangulate()` through to `compose_size_field`. When the caller passes a pre-composed `size_field=`, ignore `user_contribs`/`combine` (they're already represented in the user's composition) and emit a `UserWarning` if both are given.
+- [X] T044 [US3] Update `admesh/__init__.py` to re-export `compose_size_field` and `SizeFieldFn`. Update `__all__`.
+- [X] T045 [US3] Add a runnable example `scripts/size_field_extension_demo.py` mirroring quickstart.md's wave-breaker example. Renders a before/after pair under `tests/output/` for manual inspection.
 
 **Checkpoint**: All three user stories work independently and compose without breaking each other.
 
