@@ -7,7 +7,8 @@ For each demo domain, produce a 2-up PNG comparing:
 - **After** — the same domain with a P1/P3 enrichment applied:
     - `unit_disk`: curvature-driven refinement via `build_h(curvature_scale=…)`
     - `annulus`: PTS-driven boundary refinement via the `triangulate(pts)` path
-    - `notched_rectangle`: medial-axis LFS refinement via `build_h(medial_scale=…)`
+    - `notched_rectangle`: full ADMESH stack — PTS path with exact-corner
+      densified ring + curvature (K) + medial (R) + boundary scale
 
 Writes `tests/output/demo_<name>.png`. Metrics table is printed on
 stdout so it can be pasted into the README / session report.
@@ -40,6 +41,28 @@ OUTDIR.mkdir(parents=True, exist_ok=True)
 def _metrics(p, t):
     min_q, mean_q, _ = mesh_quality(p, t)
     return {"N": len(p), "T": len(t), "min_q": float(min_q), "mean_q": float(mean_q)}
+
+
+def _densify_ring(corners: np.ndarray, *, spacing: float) -> np.ndarray:
+    """Walk a closed polygon of ``corners`` (CCW, non-repeating) and
+    insert ``ceil(edge_len / spacing) - 1`` points along each edge so
+    consecutive ring vertices are ~``spacing`` apart. Returns the
+    densified ring (corners preserved, no vertex repeated). Used for
+    domains whose ``PTS.from_domain`` marching-squares sampler would
+    round off sharp re-entrant corners.
+    """
+    corners = np.asarray(corners, dtype=float)
+    N = len(corners)
+    out: list[np.ndarray] = []
+    for i in range(N):
+        a = corners[i]
+        b = corners[(i + 1) % N]
+        edge_len = float(np.linalg.norm(b - a))
+        n_sub = max(1, int(np.ceil(edge_len / spacing)))
+        ts = np.linspace(0.0, 1.0, n_sub, endpoint=False)
+        for t in ts:
+            out.append(a + t * (b - a))
+    return np.asarray(out)
 
 
 def _draw(ax, p, t, *, title: str, node_bc=None) -> None:
@@ -137,29 +160,52 @@ def demo_annulus_pts():
 
 
 def demo_notched_rect_medial():
-    """Before: uniform. After: curvature + medial-axis composition.
+    """Before: uniform Domain path. After: PTS path + K + R + boundary refinement.
 
-    Mirrors MATLAB ``ADmeshRoutine.m`` lines 168 + 178 — CurvatureFunction
-    then MedialAxisFunction, each ``min``-stacked onto h0. Curvature
-    captures the convex/re-entrant corner singularities at the notch
-    that medial-LFS alone misses (the AOF-detected medial axis doesn't
-    extend into the wedge sectors directly under the notch corners).
+    Composes everything ADMESH offers for a sharp-cornered narrow-pinch
+    domain:
+
+    - **PTS path** (``distmesh2d_admesh``) for best-q tracker + boundary
+      cleanup at convergence.
+    - **Hand-densified outer ring** built from ``dom.fixed_points`` so
+      the re-entrant notch tips at (±0.05, 0.25) are preserved exactly
+      (marching-squares in ``PTS.from_domain`` rounds them).
+    - **Curvature stage** (MATLAB K) — δ-spike refinement at the four
+      notch corners that medial-LFS alone misses.
+    - **Medial-axis stage** (MATLAB R) — interior LFS refinement.
+    - **Boundary scale** matched to ``boundary_scale`` so pfix spacing
+      doesn't fight the truss equilibrium.
+    - **Fine ``grid_delta=0.01``** for the size-field gradient-limiter
+      to ramp smoothly across the tight pinch transition band.
+
+    Mirrors MATLAB ``ADmeshRoutine.m`` lines 168 + 178
+    (CurvatureFunction → MedialAxisFunction, each ``min``-stacked).
     """
     dom = domains.NOTCHED_RECTANGLE
-    # Before at the same h0 for apples-to-apples comparison.
-    p0, t0 = triangulate(dom, h0=0.04, niter=200, seed=0)
+    boundary_scale = 0.04
+
+    # Before: uniform Domain path — apples-to-apples with the other demos.
+    p0, t0 = triangulate(dom, h0=boundary_scale, niter=200, seed=0)
     m_before = _metrics(p0, t0)
 
-    fh = build_h(dom, base=0.12, curvature_scale=0.04, medial_scale=0.04, grid_delta=0.02)
-    p1, t1 = triangulate(dom, h0=0.04, fh=fh, niter=250, seed=0)
-    m_after = _metrics(p1, t1)
+    # After: PTS path with exact-corner densified ring + K + R + boundary scale.
+    ring = _densify_ring(dom.fixed_points, spacing=boundary_scale)
+    pts = PTS.from_polygons(ring, bc=[BoundaryType.WALL])
+    fh_after = build_h(
+        dom, base=0.12, pts=pts,
+        curvature_scale=boundary_scale, medial_scale=boundary_scale,
+        boundary_scale={int(BoundaryType.WALL): boundary_scale},
+        grid_delta=0.01,
+    )
+    out = triangulate(pts, h0=boundary_scale, fh=fh_after, seed=0, fd=dom.fd)
+    m_after = _metrics(out.p, out.t)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
     _draw(axes[0], p0, t0,
-          title=f"Before — uniform h0=0.04  N={m_before['N']} mean_q={m_before['mean_q']:.3f}")
-    _draw(axes[1], p1, t1,
-          title=f"After — curvature + medial LFS  N={m_after['N']} mean_q={m_after['mean_q']:.3f}")
-    fig.suptitle("notched_rectangle: curvature + medial-axis composition (MATLAB K + R stages)", fontsize=11)
+          title=f"Before — uniform Domain path  N={m_before['N']} min_q={m_before['min_q']:.3f}")
+    _draw(axes[1], out.p, out.t, node_bc=out.node_bc,
+          title=f"After — PTS + K + R  N={m_after['N']} min_q={m_after['min_q']:.3f}")
+    fig.suptitle("notched_rectangle: PTS path + curvature + medial-axis + exact corners (full ADMESH stack)", fontsize=11)
     fig.tight_layout()
     fig.savefig(OUTDIR / "demo_notched_rectangle_medial.png", dpi=120)
     plt.close(fig)
