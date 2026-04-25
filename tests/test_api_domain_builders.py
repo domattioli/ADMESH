@@ -60,3 +60,42 @@ def test_domain_from_polygon_rejects_wrong_shape():
 def test_domain_from_sdf_rejects_short_bbox():
     with pytest.raises(ValueError, match="bbox"):
         admesh.domain_from_sdf(lambda p: p[:, 0], bbox=(0.0, 1.0))  # type: ignore[arg-type]
+
+
+def test_domain_from_mesh_outer_ring_is_largest_by_area():
+    """Issue #11 — the outer ring is picked by signed area, not node count.
+
+    Construct a doughnut mesh where the inner-hole ring has more nodes
+    than the outer ring. The old node-count sort picked the hole as
+    "outer" and gave a bbox shrunken to the hole's extent.
+    """
+    from scipy.spatial import Delaunay
+
+    from admesh.api import Mesh
+
+    # Outer square: 4 nodes, area 400.
+    outer = np.array(
+        [[-10.0, -10.0], [10.0, -10.0], [10.0, 10.0], [-10.0, 10.0]]
+    )
+    # Inner dodecagon-hole: 12 nodes, area ~3.0.
+    n_inner = 12
+    theta = np.linspace(0.0, 2.0 * np.pi, n_inner, endpoint=False)
+    inner = np.column_stack([np.cos(theta), np.sin(theta)])
+    nodes = np.vstack([outer, inner])
+
+    tri = Delaunay(nodes)
+    centroids = nodes[tri.simplices].mean(axis=1)
+    # Drop triangles whose centroid lies inside the unit-circle hole.
+    keep = np.linalg.norm(centroids, axis=1) > 1.05
+    elements = tri.simplices[keep].astype(np.int64)
+
+    mesh = Mesh(nodes=nodes, elements=elements)
+    domain = admesh.Domain.from_mesh(mesh)
+
+    # Outer ring has 4 nodes but the largest area; the hole has 12 nodes
+    # but a much smaller area. Bbox must reflect the outer extent.
+    assert domain.bbox == pytest.approx((-10.0, -10.0, 10.0, 10.0))
+    # Origin lies inside the hole → strictly outside the domain.
+    assert domain.sdf(np.array([[0.0, 0.0]]))[0] > 0
+    # A point between the hole and the outer is inside the domain.
+    assert domain.sdf(np.array([[5.0, 5.0]]))[0] < 0

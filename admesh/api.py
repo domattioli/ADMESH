@@ -412,10 +412,18 @@ class Domain:
         polygon = Polygon(outer, holes=holes if holes else None)
 
         sdf = _shapely_sdf(rings_xy)
-        xmin = float(outer[:, 0].min()) - bbox_pad
-        ymin = float(outer[:, 1].min()) - bbox_pad
-        xmax = float(outer[:, 0].max()) + bbox_pad
-        ymax = float(outer[:, 1].max()) + bbox_pad
+        # Bbox spans every node so that disconnected boundary components
+        # (small detached islands far from the outer ring) are still
+        # enclosed by the search domain. Without this, real-world coastal
+        # fixtures like WNAT, where a Caribbean island sits south of the
+        # main Atlantic-Gulf outer ring, lose vertical extent — see
+        # issue #11.
+        node_min = np.asarray(mesh.nodes, dtype=np.float64).min(axis=0)
+        node_max = np.asarray(mesh.nodes, dtype=np.float64).max(axis=0)
+        xmin = float(node_min[0]) - bbox_pad
+        ymin = float(node_min[1]) - bbox_pad
+        xmax = float(node_max[0]) + bbox_pad
+        ymax = float(node_max[1]) + bbox_pad
 
         # Bathymetry interpolant via LinearNDInterpolator.
         bathy_callable = None
@@ -584,55 +592,62 @@ def _derive_boundary_segments(
     each ring as a :class:`BoundarySegment` with the supplied default BC
     type (caller can relabel afterward).
     """
-    # Collect undirected edges with multiplicity.
+    # Pass 1 — count edges (undirected) so we know which are boundary edges
+    # (those appearing in exactly one triangle).
     edges: dict[tuple[int, int], int] = {}
-    directed: dict[tuple[int, int], list[int]] = {}
     for tri in elements:
         a, b, c = int(tri[0]), int(tri[1]), int(tri[2])
         for u, v in ((a, b), (b, c), (c, a)):
             key = (u, v) if u < v else (v, u)
             edges[key] = edges.get(key, 0) + 1
-            directed.setdefault(u, []).append(v)
     boundary_edges = {k for k, count in edges.items() if count == 1}
     if not boundary_edges:
         return ()
 
-    # Build a directed-edge map restricted to boundary edges using the
-    # directed traversals we collected above. For each boundary undirected
-    # edge {u,v}, we want the *one* triangle's directed edge u→v that
-    # actually appeared (so the ring is consistently oriented).
-    next_node: dict[int, int] = {}
-    for u, vs in directed.items():
-        for v in vs:
+    # Pass 2 — collect each boundary directed edge u→v (orientation set by
+    # the unique triangle that owns it). Use a multimap because junction
+    # nodes (e.g. ADCIRC weir attachments) can have more than one outgoing
+    # boundary edge; the dict-of-singletons that this code used previously
+    # silently dropped all-but-one outgoing edge per junction, which left
+    # the ring walker chasing chains that never closed (issue #11).
+    out_edges: dict[int, list[int]] = {}
+    for tri in elements:
+        a, b, c = int(tri[0]), int(tri[1]), int(tri[2])
+        for u, v in ((a, b), (b, c), (c, a)):
             key = (u, v) if u < v else (v, u)
             if key in boundary_edges:
-                next_node[u] = v
+                out_edges.setdefault(u, []).append(v)
 
-    # Walk rings.
-    visited: set[int] = set()
+    # Walk rings — pop unused outgoing edges until exhausted. Every
+    # boundary directed edge is consumed exactly once, so the total ring
+    # set covers the full boundary.
     rings: list[list[int]] = []
-    for start in next_node:
-        if start in visited:
-            continue
-        if start not in next_node:
-            continue
+    while True:
+        start = next((u for u, vs in out_edges.items() if vs), None)
+        if start is None:
+            break
         ring = [start]
-        visited.add(start)
-        cur = next_node[start]
-        guard = len(next_node) + 2
-        while cur != start and guard > 0:
-            ring.append(cur)
-            visited.add(cur)
-            if cur not in next_node:
+        cur = start
+        while out_edges.get(cur):
+            nxt = out_edges[cur].pop()
+            if nxt == start:
                 break
-            cur = next_node[cur]
-            guard -= 1
+            ring.append(nxt)
+            cur = nxt
         if len(ring) >= 3:
             rings.append(ring)
 
-    # Order rings by length, longest first — gives the outer ring index 0
-    # for typical doubly-connected shapes.
-    rings.sort(key=len, reverse=True)
+    # Order rings by signed area, largest first — gives the outer ring at
+    # index 0 even when an interior ring (e.g. a complex coastline) has
+    # more nodes than the outer boundary. Sorting by node count picks the
+    # wrong ring on real-world coastal fixtures (issue #11).
+    def _ring_area(ring: list[int]) -> float:
+        pts = nodes[np.asarray(ring, dtype=np.int64)]
+        x = pts[:, 0]
+        y = pts[:, 1]
+        return 0.5 * abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
+
+    rings.sort(key=_ring_area, reverse=True)
     return tuple(
         BoundarySegment(
             node_ids=np.asarray(ring, dtype=np.int64),
