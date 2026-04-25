@@ -98,17 +98,17 @@ Single-project Python library, repo root = `/Users/domattioli/Projects/ADMESH/`.
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — construct a synthetic `Mesh` with a hand-crafted boundary list mixing `OPEN`, `MAINLAND`, `ISLAND`, `MAINLAND_FLUX`, and a numeric code (`bc_type=22`, an external-barrier code). Round-trip via fort.14 and assert: same segment count; same `bc_type` per segment (named codes preserve enum identity, numeric codes preserve int identity); same `node_ids` array per segment.
-- [ ] T031 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — verify the open vs land block placement: every segment with `bc_type == BoundaryType.OPEN` lands in the open-boundary block; every segment with any other code lands in the land-boundary block; numeric `bc_type` follows the segment's `is_open` flag.
-- [ ] T032 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — verify multiply-connected domain handling: build an annulus mesh (outer ring `OPEN`, inner ring `MAINLAND`); round-trip; assert each ring stays a separate segment with its own `bc_type`. Edge case from spec.
-- [ ] T033 [P] [US2] `tests/test_fort14_chilmesh_compat.py` (or a new `tests/test_fort14_chilmesh_smoke.py`) — gated by `pytest.importorskip("chilmesh")`, exercise `chilmesh.ChilMesh.from_fort14("output.14")` on an admesh2D-produced file and confirm chilmesh's reported segment counts and node groupings match. Skipped cleanly when chilmesh is not installed in the dev env.
+- [X] T030 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — construct a synthetic `Mesh` with a hand-crafted boundary list mixing `OPEN`, `MAINLAND`, `ISLAND`, `MAINLAND_FLUX`, and a numeric code (`bc_type=22`, an external-barrier code). Round-trip via fort.14 and assert: same segment count; same `bc_type` per segment (named codes preserve enum identity, numeric codes preserve int identity); same `node_ids` array per segment.
+- [X] T031 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — verify the open vs land block placement: every segment with `bc_type == BoundaryType.OPEN` lands in the open-boundary block; every segment with any other code lands in the land-boundary block; numeric `bc_type` follows the segment's `is_open` flag.
+- [X] T032 [P] [US2] `tests/test_fort14_chilmesh_compat.py` — verify multiply-connected domain handling: build an annulus mesh (outer ring `OPEN`, inner ring `MAINLAND`); round-trip; assert each ring stays a separate segment with its own `bc_type`. Edge case from spec.
+- [X] T033 [P] [US2] `tests/test_fort14_chilmesh_compat.py` (or a new `tests/test_fort14_chilmesh_smoke.py`) — gated by `pytest.importorskip("chilmesh")`, exercise `chilmesh.ChilMesh.from_fort14("output.14")` on an admesh2D-produced file and confirm chilmesh's reported segment counts and node groupings match. Skipped cleanly when chilmesh is not installed in the dev env.
 
 ### Implementation for User Story 2
 
 US2's implementation is largely covered by US1's `fort14.py` correctness. The remaining work is documentation and a worked round-trip example.
 
-- [ ] T034 [US2] Add a `## chilmesh integration` H2 section to `quickstart.md` (already present from `/speckit-plan`; verify content matches the recommended Option A path and includes the `io.StringIO` in-process example).
-- [ ] T035 [US2] Add a runnable script `scripts/chilmesh_roundtrip_demo.py` that produces an annulus mesh, writes to `fort.14`, and prints what chilmesh would see (segment-by-segment summary). Used in docs as a copy-modify starting point. Skipped from CI; the corresponding test (T033) covers verification.
+- [X] T034 [US2] Add a `## chilmesh integration` H2 section to `quickstart.md` (already present from `/speckit-plan`; verify content matches the recommended Option A path and includes the `io.StringIO` in-process example).
+- [X] T035 [US2] Add a runnable script `scripts/chilmesh_roundtrip_demo.py` that produces an annulus mesh, writes to `fort.14`, and prints what chilmesh would see (segment-by-segment summary). Used in docs as a copy-modify starting point. Skipped from CI; the corresponding test (T033) covers verification.
 
 **Checkpoint**: User Stories 1 AND 2 work independently. A user can pipe ADMESH output into a chilmesh-based workflow without writing a custom translator.
 
