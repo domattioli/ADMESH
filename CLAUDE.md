@@ -176,7 +176,7 @@ this is a port, not a research project. Keep it simple.
 | Path | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
-| `/workspace/MADMESHR` | Sibling RL-meshing project — **not related to ADMESH**, do not cross-contaminate |
+| `/workspace/MADMESHR` | Mixed-element extension of ADMESH (tri/quad/mixed). Long-term positioning undecided: may deprecate ADMESH or remain a sibling that consumes its tri output. Faithful-port boundary still applies — MADMESHR concepts must not bleed into the 13 locked stage modules in `admesh/*.py`. |
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
