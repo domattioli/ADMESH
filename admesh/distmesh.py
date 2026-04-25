@@ -375,6 +375,129 @@ def _boundary_cleanup_one_pass(
     return t[keep]
 
 
+def _boundary_density_control(
+    p: Points,
+    t: NDArray[np.int64],
+    C: NDArray[np.int64] | None = None,
+    nC: int = 0,
+) -> Points:
+    """Port of ``BoundaryDensityControl.m``.
+
+    For each triangle attached to a free-boundary edge, compute the
+    element quality ``q = (b+c-a)(c+a-b)(a+b-c)/(abc)`` (edge lengths
+    ``a,b,c``). If ``q < 0.2``, mark the triangle's **interior vertex**
+    — the one not on the free edge — for removal. Fixed points
+    (indices ``< nC``) and constrained-segment endpoints (``C``) are
+    never removed.
+
+    Called from the main loop on the ``k > niter/2`` density-control
+    branch; returns an updated ``p`` with the flagged interior vertices
+    dropped.
+    """
+    if t.size == 0 or p.size == 0:
+        return p
+
+    # Free-boundary edges = edges appearing exactly once. Keep the slot
+    # layout (s ∈ {0,1,2}) so for each free slot we can recover the
+    # interior vertex of that triangle as ``t[:, (s+2) % 3]``.
+    edges = np.vstack([t[:, [0, 1]], t[:, [1, 2]], t[:, [2, 0]]])
+    edges_sorted = np.sort(edges, axis=1)
+    _, inv, counts = np.unique(
+        edges_sorted, axis=0, return_inverse=True, return_counts=True
+    )
+    is_free_per_slot = (counts[inv] == 1).reshape(3, -1)  # (3, M)
+
+    # Triangle quality for every triangle (used only if at least one
+    # slot of that triangle is free, but easier to compute uniformly).
+    x = p[:, 0]
+    y = p[:, 1]
+    a = np.hypot(x[t[:, 1]] - x[t[:, 0]], y[t[:, 1]] - y[t[:, 0]])
+    b = np.hypot(x[t[:, 2]] - x[t[:, 1]], y[t[:, 2]] - y[t[:, 1]])
+    c = np.hypot(x[t[:, 0]] - x[t[:, 2]], y[t[:, 0]] - y[t[:, 2]])
+    denom = a * b * c
+    with np.errstate(divide="ignore", invalid="ignore"):
+        q = np.where(denom > 0, (b + c - a) * (c + a - b) * (a + b - c) / denom, 0.0)
+    bad_tri = q < 0.2
+
+    # For each slot, collect interior-vertex indices of triangles that
+    # are both free at that slot AND have q < 0.2.
+    bad_ids_parts: list[NDArray[np.int64]] = []
+    for s in range(3):
+        bad_slot = is_free_per_slot[s] & bad_tri
+        if bad_slot.any():
+            bad_ids_parts.append(t[bad_slot, (s + 2) % 3])
+
+    if not bad_ids_parts:
+        return p
+    bad_ids = np.unique(np.concatenate(bad_ids_parts))
+
+    # Preserve fixed points (MATLAB: ``setdiff(badQ, 1:nC)``).
+    bad_ids = bad_ids[bad_ids >= nC]
+    if C is not None and len(C):
+        C_set = set(np.asarray(C, dtype=np.int64).ravel().tolist())
+        bad_ids = np.array(
+            [int(i) for i in bad_ids if int(i) not in C_set], dtype=np.int64
+        )
+    if bad_ids.size == 0:
+        return p
+
+    keep = np.ones(len(p), dtype=bool)
+    keep[bad_ids] = False
+    return p[keep]
+
+
+def _constraint_density_control(
+    p: Points,
+    nC: int,
+    C: NDArray[np.int64] | None,
+    fh: SizeFn,
+) -> Points:
+    """Port of ``ConstraintDensityControl.m``.
+
+    For each constraint segment ``C[i] = (v1, v2)``, build a thin
+    rectangle of half-width ``fh(midpoint) * sqrt(3)/8`` straddling the
+    segment and drop every non-fixed point falling inside. Returns ``p``
+    unchanged when ``C`` is empty.
+    """
+    if C is None or len(C) == 0:
+        return p
+
+    from admesh.in_polygon import in_polygon
+
+    C_arr = np.asarray(C, dtype=np.int64).reshape(-1, 2)
+    x1 = p[C_arr[:, 0], 0]
+    y1 = p[C_arr[:, 0], 1]
+    x2 = p[C_arr[:, 1], 0]
+    y2 = p[C_arr[:, 1], 1]
+    dx = x1 - x2
+    dy = y1 - y2
+    eL = np.hypot(dx, dy)
+    eL = np.where(eL > 0, eL, 1.0)
+    nx = dy / eL
+    ny = -dx / eL
+    xm = 0.5 * (x1 + x2)
+    ym = 0.5 * (y1 + y2)
+    L_mid = fh(np.column_stack([xm, ym])) * np.sqrt(3.0) / 8.0
+
+    if nC >= len(p):
+        return p
+    q = p[nC:]
+    remove_mask = np.zeros(len(q), dtype=bool)
+    for i in range(len(C_arr)):
+        Lx = nx[i] * L_mid[i]
+        Ly = ny[i] * L_mid[i]
+        poly_x = np.array([x1[i] + Lx, x1[i] - Lx, x2[i] - Lx, x2[i] + Lx])
+        poly_y = np.array([y1[i] + Ly, y1[i] - Ly, y2[i] - Ly, y2[i] + Ly])
+        inside, _ = in_polygon(q[:, 0], q[:, 1], poly_x, poly_y)
+        remove_mask |= inside
+
+    if not remove_mask.any():
+        return p
+    keep = np.ones(len(p), dtype=bool)
+    keep[nC + np.where(remove_mask)[0]] = False
+    return p[keep]
+
+
 def _project_back_to_boundary(
     p: Points, fd: SDF, geps: float, *, deps: float
 ) -> Points:
@@ -574,10 +697,20 @@ def distmesh2d_admesh(
                 pold = np.full_like(p, np.inf)
                 k += 1
                 continue
-            # The ``k > niter/2`` BoundaryDensityControl /
-            # ConstraintDensityControl branch from MATLAB lines 183-195
-            # is deferred to a follow-up port; falling through mirrors
-            # an empty-op and does not change correctness of the loop.
+            # MATLAB lines 183-195: ``k > niter/2`` late-run thinning.
+            # BoundaryDensityControl drops the interior vertex of any
+            # free-boundary triangle with q < 0.2; ConstraintDensityControl
+            # drops non-fixed points lying in a ``sqrt(3)/8·fh`` strip
+            # around each constraint segment. Mirrors the MATLAB
+            # ``continue`` — force a retriangulation next iter via
+            # ``pold=inf`` whether or not any points were actually removed.
+            if k > niter // 2 and t.size:
+                p = _boundary_density_control(p, t, C, nC)
+                p = _constraint_density_control(p, nC, C, fh)
+                N = len(p)
+                pold = np.full_like(p, np.inf)
+                k += 1
+                continue
 
         F = np.maximum(L0 - L, 0.0)
         with np.errstate(divide="ignore", invalid="ignore"):
