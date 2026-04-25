@@ -46,6 +46,23 @@ fixture.
   `tests/test_fort14_reference_corpus.py` and the
   `scripts/wnat_demo.py` end-to-end demo.
 
+  **Known data limitation — Bermuda is absent.** Despite the bbox
+  covering Bermuda's location (-64.78°W, 32.30°N), this small
+  variant carries no topological boundary in that region: 134 nodes
+  lie within 1.5° of Bermuda but none participate in a one-triangle
+  edge, and bathymetry there is uniformly 488–4811 m deep. The mesh
+  smooths over the Bermuda platform entirely. Verify with::
+
+      python scripts/diagnose_wnat_bermuda.py
+
+  See issue #12 for the investigation. A higher-resolution upstream
+  WNAT (HSOFS, EC2015, or the QuADMesh-MATLAB reference fixture)
+  is required to round-trip Bermuda as a hole. To produce a slim
+  budget-friendly fixture from any such upstream::
+
+      python scripts/extract_boundary_only_fort14.py upstream.14 \
+          tests/fixtures/fort14/community/wnat_islands.14
+
 ### `community/`
 
 _(none yet — populated by T027)_
