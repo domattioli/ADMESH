@@ -194,7 +194,8 @@ def demo_notched_rect_medial():
     # only ``PTS.BC`` constraint points are pinned, not the densified
     # ring. The boundary then emerges from truss equilibrium +
     # ``projectBackToBoundary`` at ``fh_after``-driven spacing — denser
-    # near the notch tips (small ``fh``), coarser along straight runs.
+    # near the notch tips and the convex outer corners (small ``fh``
+    # there from the curvature stage), coarser along straight runs.
     ring = _densify_ring(dom.fixed_points, spacing=boundary_scale)
     pts = PTS.from_polygons(ring, bc=[BoundaryType.WALL])
     fh_after = build_h(
@@ -203,8 +204,18 @@ def demo_notched_rect_medial():
         boundary_scale={int(BoundaryType.WALL): boundary_scale},
         grid_delta=0.01,
     )
+    # MATLAB ADmeshRoutine.m line 256: ``hmin = min(h(:))``. The
+    # truss-solver lattice spacing must match the size-field minimum,
+    # not the user's ``boundary_scale`` — otherwise the curvature
+    # stage's sub-``boundary_scale`` requests at the convex outer
+    # corners produce sparse, sliver-prone meshes there.
+    gx, gy = np.meshgrid(
+        np.linspace(dom.bbox[0], dom.bbox[2], 200),
+        np.linspace(dom.bbox[1], dom.bbox[3], 100),
+    )
+    h0_min = float(fh_after(np.column_stack([gx.ravel(), gy.ravel()])).min())
     out = triangulate(
-        pts, h0=boundary_scale, fh=fh_after, seed=0, fd=dom.fd,
+        pts, h0=h0_min, fh=fh_after, seed=0, fd=dom.fd,
         pfix=dom.fixed_points,
     )
     m_after = _metrics(out.p, out.t)
