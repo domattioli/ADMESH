@@ -32,7 +32,16 @@ def test_triangulate_mvp_domain(name: str) -> None:
     domain = admesh.domain_from_sdf(
         sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix
     )
-    mesh = admesh.triangulate(domain, seed=0, **_MVP[name])
+    # Spec-001 baseline: opt out of spec-002's default stack so the
+    # legacy uniform-`h` quality envelope still holds. The default-stack
+    # behaviour gets its own coverage in tests/test_default_size_field.py.
+    mesh = admesh.triangulate(
+        domain,
+        seed=0,
+        enable_curvature=False,
+        enable_medial_axis=False,
+        **_MVP[name],
+    )
 
     assert mesh.n_nodes > 0
     assert mesh.n_elements > 0
