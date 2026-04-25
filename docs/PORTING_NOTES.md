@@ -658,6 +658,49 @@ unobservable amount in practice (no test has surfaced a difference).
 **Impact**: Every downstream caller (distance, distmesh, routine)
 gets drop-in compatibility.
 
+## 2026-04-25 — quad_prep — leg-not-hypotenuse `h` scaling (spec-004)
+
+**MATLAB**: n/a — this is a new module (spec-004), not a port.
+**Python**: `admesh.quad_prep.smooth_for_quadrangulation`,
+specifically the per-element scale `sigma_k = h(centroid) / sqrt(2)`.
+**Substitution**: For the right-isoceles target with legs `L` and
+hypotenuse `L * sqrt(2)`, the user-supplied size field `h` is
+interpreted as the desired **leg** length, not the hypotenuse. So
+`sigma_k = h / sqrt(2)`. Rationale: after downstream tri-to-quad
+fusion (CHILmesh `tri2quad`), each pair of right-isoceles triangles
+fuses along their shared hypotenuse, and the resulting quad inherits
+the **leg** as its edge length, not the hypotenuse. So the size field
+must scale legs, not hypotenuses, for `h` to remain the natural
+"target edge length" downstream consumers expect.
+**Behavior diff**: None — there's no MATLAB analog to compare against.
+This convention is documented per Constitution Principle II so the
+choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between
+leg lengths and `h(centroid)`).
+**Impact**: Callers who pass an OceanMesh2D-style mesh-size function
+get the expected behavior: triangle legs (and downstream quad edges)
+track `h` directly, no `sqrt(2)` rescaling needed.
+
+## 2026-04-25 — quality — `right_iso_quality` companion metric
+
+**MATLAB**: n/a — additive (not a port). The original `MeshQuality.m`
+measures equilateral-ness only.
+**Python**: `admesh.quality.right_iso_quality`.
+**Substitution**: Right-isoceles deviation score in `[0, 1]` per
+spec-004 FR-006. Per-element score is the product of three terms:
+leg-equality, right-angle-fit, hypotenuse-fit. Mesh score is the
+unweighted mean. Constitutionally additive: the existing
+`mesh_quality` (equilateral target) is **not** modified (Principle I).
+The two metrics report side by side; ADMESH's distmesh output
+typically scores ~1.0 on `mesh_quality` and ~0.5 on
+`right_iso_quality`, and the spec-004 smoother trades the former for
+the latter (validated on Block_O.14: 0.977 → 0.923 for
+`mesh_quality`, 0.498 → 0.686 for `right_iso_quality`).
+**Behavior diff**: None to MATLAB (no analog). The metric is
+documented in the public-api.md contract so its semantics are pinned.
+**Impact**: Downstream consumers who run tri-to-quad fusion now have
+a quality metric that meaningfully scores mesh suitability for that
+operation.
+
 ## 2026-04-18 — general — `.mex*` binaries discarded
 
 **MATLAB**: `.mexw64`, `.mexmaci64`, `.mexa64` files throughout the
@@ -670,3 +713,28 @@ throwaway; the Python port replaces the C source with Numba
 build artifacts, not source.
 **Impact**: `pip install admesh` needs no C toolchain — satisfies
 the Article I north-star "installs without a C toolchain".
+
+## 2026-04-25 — quad_prep — leg-not-hypotenuse `h` scaling
+
+**MATLAB**: n/a — this feature has no MATLAB counterpart. The
+QuADMesh-MATLAB pipeline relies on downstream tools (CHILmesh
+`tri2quad`) to absorb the equilateral→rhombus mismatch in their own
+smoothers; ADMESH's MATLAB lineage has no pre-quadrangulation
+right-isoceles smoother to port.
+**Python**: `admesh.quad_prep.smooth_for_quadrangulation`
+**Substitution**: SVD-invariant FEM target-Jacobian formulation
+(Knupp 2012, Formulation 1 in `specs/004-quad-prep-smoother/research.md`).
+Per-element corner choice is selected by argmin over the 3 cyclic
+permutations of the triangle indices, resolving the right-angle-
+corner ambiguity deferred from `/speckit-clarify`.
+**Behavior diff (vs. naive convention)**: When a size field `h` is
+provided, the per-element scale `σ_k = h(centroid) / sqrt(2)` so the
+target *leg* length tracks `h`, not the hypotenuse. Rationale: the
+post-pairing quad inherits the *leg* as its edge length (the shared
+hypotenuse becomes the quad's interior diagonal in the fusion step),
+not the hypotenuse. A hypotenuse-tracking convention would produce
+quads `sqrt(2)×` too coarse relative to the requested `h`. Spec
+FR-004.
+**Impact**: `triangulate(domain, ..., for_quads=True)` (FR-011, when
+landed) yields a tri mesh whose post-fusion quad edge lengths match
+the user's intended `h(x, y)` size field.
