@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <strong>Colton J. Conroy<sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
+  <strong><a href="https://github.com/coltonjconroy">Colton J. Conroy</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
   <sup>1</sup>Computational Hydrodynamics and Informatics Lab (CHIL), The Ohio State University<br>
   <em>Ocean Dynamics</em> 62, 1503–1517 (2012) · <a href="https://doi.org/10.1007/s10236-012-0574-0">doi:10.1007/s10236-012-0574-0</a>
 </p>
@@ -88,6 +88,14 @@ Under construction. The v1 plan and task list live in
 of the original 13-stage pipeline is the current production path
 (142 tests passing); the Pythonic API and fort.14 I/O above are the v1
 deliverables.
+
+## Upstream
+
+The reference MATLAB implementation is
+[`coltonjconroy/ADMESH`](https://github.com/coltonjconroy/ADMESH),
+maintained by the original author. That repository may carry features
+beyond what this port currently covers; new functionality is adopted
+here as it's pulled across.
 
 ## Citation
 
