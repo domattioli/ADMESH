@@ -23,16 +23,17 @@
 
 ## Install
 
-> ⚠ PyPI release is not live yet — install from source until v1 ships.
+```bash
+pip install admesh2D            # core
+pip install admesh2D[viz]       # adds matplotlib for mesh.plot()
+```
+
+From source:
 
 ```bash
 git clone https://github.com/domattioli/ADMESH.git
 cd ADMESH
 pip install -e ".[dev]"
-
-# Once v1 is published:
-# pip install admesh2D          # core
-# pip install admesh2D[viz]     # adds matplotlib for mesh.plot()
 ```
 
 Requires Python ≥ 3.10. Core dependencies: NumPy, SciPy, Numba, Shapely.
@@ -40,12 +41,6 @@ Requires Python ≥ 3.10. Core dependencies: NumPy, SciPy, Numba, Shapely.
 ---
 
 ## Quickstart
-
-> ⚠ The API below is the **target** v1 surface defined by
-> `specs/001-pythonize-and-fort14-integration/`. It is not yet
-> implemented. The existing module-level functions
-> (`admesh.routine.ADmeshRoutine`, `admesh.distmesh.distmesh2d_admesh`,
-> …) remain the production path until v1 lands.
 
 ```python
 import admesh
