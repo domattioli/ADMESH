@@ -12,6 +12,7 @@
 - Q: Manifest format (TOML vs JSON vs YAML vs dual-format)? → A: TOML
 - Q: How are mesh IDs assigned (uniqueness rule)? → A: Composite slug `<namespace>/<name>@<version>` + content-hash (SHA-256) as a side-field for byte-equality dedup detection
 - Q: Mesh file hosting model (catalog-only vs mirror)? → A: Hybrid — HuggingFace mirror for redistributable licenses (public-domain, MIT, CC-BY, CC-BY-SA, CC0); link-only for proprietary or unknown licenses. Per-entry `mirror_eligible` flag is derived from `license`
+- Q: Scale & query performance targets? → A: ~10K entries at maturity; sub-second query latency for typical filter combinations; single TOML manifest until ~5K entries, then shard by namespace
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -130,6 +131,10 @@ Downstream users need clear license information to know if they can use, modify,
 
 - **FR-012**: System MUST handle mesh file versioning or URL changes gracefully: support fallback URLs and indicate file availability status.
 
+- **FR-013**: System MUST scale to ~10,000 mesh entries at maturity. Manifest layout starts as a single TOML file and MUST be sharded by `namespace` (one TOML file per contributing org/user) once the registry reaches 5,000 entries. Sharding boundary chosen by namespace count, not entry count, to keep namespace-level edits localized.
+
+- **FR-014**: System MUST return query results (any combination of bbox, features, max_size, license filters) in under 1 second for the full ~10K-entry catalog when run from the Python package against a locally cached manifest.
+
 ### Key Entities
 
 - **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, mirror_eligible (boolean derived from license: true for public-domain/MIT/CC-BY/CC-BY-SA/CC0; false for proprietary/unknown), bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug), provenance_history (list of operations).
@@ -159,6 +164,8 @@ Downstream users need clear license information to know if they can use, modify,
 - **SC-007**: Lineage tracing is enabled for at least 3 derived-mesh examples, showing a clear parent→child relationship and recorded operations.
 
 - **SC-008**: Zero duplicate entries in the registry (all unique meshes have distinct IDs; duplicates are flagged and consolidated).
+
+- **SC-009**: Registry supports scaling to 10,000 entries with query response under 1 second for typical filter combinations (bbox + features + license).
 
 ## Assumptions
 
