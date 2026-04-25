@@ -29,9 +29,9 @@ Single-project Python library, repo root = `/Users/domattioli/Projects/ADMESH/`.
 
 **Purpose**: Wire up the optional matplotlib extra and the test-fixture directory layout. No production code yet.
 
-- [ ] T001 Add `viz` optional extra to `pyproject.toml` `[project.optional-dependencies]` table: `viz = ["matplotlib>=3.7"]`. Bump `version` to `0.1.0` to mark the v1 development line.
-- [ ] T002 [P] Create the fort.14 fixture directory tree: `tests/fixtures/fort14/adcirc_examples/`, `tests/fixtures/fort14/community/`, `tests/fixtures/fort14/malformed/`, each with a placeholder `.gitkeep`.
-- [ ] T003 [P] Add `tests/fixtures/fort14/README.md` describing the three subdirectories, expected file count per directory (≥2 / ≥3 / ≥10), and the rules for adding new fixtures (size limit <2 MB combined, plain-text fort.14 only).
+- [X] T001 Add `viz` optional extra to `pyproject.toml` `[project.optional-dependencies]` table: `viz = ["matplotlib>=3.7"]`. Bump `version` to `0.1.0` to mark the v1 development line.
+- [X] T002 [P] Create the fort.14 fixture directory tree: `tests/fixtures/fort14/adcirc_examples/`, `tests/fixtures/fort14/community/`, `tests/fixtures/fort14/malformed/`, each with a placeholder `.gitkeep`.
+- [X] T003 [P] Add `tests/fixtures/fort14/README.md` describing the three subdirectories, expected file count per directory (≥2 / ≥3 / ≥10), and the rules for adding new fixtures (size limit <2 MB combined, plain-text fort.14 only).
 
 **Checkpoint**: Project metadata reflects v1 development; fixture layout is in place.
 
@@ -43,12 +43,12 @@ Single-project Python library, repo root = `/Users/domattioli/Projects/ADMESH/`.
 
 **⚠️ CRITICAL**: No user-story work may begin until this phase is complete.
 
-- [ ] T004 Create `admesh/boundary_types.py` with `BoundaryType(IntEnum)` containing members `OPEN=0`, `MAINLAND=1`, `ISLAND=11`, `MAINLAND_FLUX=20`. Add `WALL` as a deliberate alias of `MAINLAND` (same int value) for backward compatibility with existing usage. Module docstring cites `data-model.md` and FR-022.
-- [ ] T005 [P] Add `tests/test_boundary_types.py` covering: each enum member has the documented int value; `BoundaryType.OPEN == 0` is True (IntEnum semantics); `WALL` and `MAINLAND` compare equal; iterating the enum yields the four canonical members (alias not duplicated).
-- [ ] T006 Create `admesh/api.py` with `BoundarySegment`, `Mesh`, and `Domain` frozen dataclasses per `data-model.md`. Include `Mesh.n_nodes`, `Mesh.n_elements`, `Mesh.n_boundaries` properties. Methods `to_fort14`, `plot`, `equals`, `__repr__`, `__str__` declared with `NotImplementedError` placeholders that the per-story tasks will fill in. No imports from `admesh/fort14.py` or `admesh/viz.py` yet (those are wired lazily later).
-- [ ] T007 [P] Add `tests/test_api_dataclass_shapes.py` covering: `Mesh` and `Domain` are `frozen` (assignment to a field raises `dataclasses.FrozenInstanceError`); `BoundarySegment` rejects out-of-range `node_ids` with a clear assertion in `__post_init__`; the `n_nodes` / `n_elements` / `n_boundaries` properties return the array shapes correctly.
-- [ ] T008 Update `admesh/__init__.py` to re-export the foundational symbols listed in `contracts/python-api.md` *that exist after Phase 2*: `Mesh`, `Domain`, `BoundarySegment`, `BoundaryType`. Leave the rest commented out with TODO references to the task IDs that will land them.
-- [ ] T009 [P] Add `tests/test_public_api_imports.py` asserting `from admesh import Mesh, Domain, BoundarySegment, BoundaryType` succeeds, and that `admesh.__all__` matches the expected v1 surface (subset for now — extended in later phases).
+- [X] T004 Create `admesh/boundary_types.py` with `BoundaryType(IntEnum)` containing members `OPEN=0`, `MAINLAND=1`, `ISLAND=11`, `MAINLAND_FLUX=20`. Add `WALL` as a deliberate alias of `MAINLAND` (same int value) for backward compatibility with existing usage. Module docstring cites `data-model.md` and FR-022.
+- [X] T005 [P] Add `tests/test_boundary_types.py` covering: each enum member has the documented int value; `BoundaryType.OPEN == 0` is True (IntEnum semantics); `WALL` and `MAINLAND` compare equal; iterating the enum yields the four canonical members (alias not duplicated).
+- [X] T006 Create `admesh/api.py` with `BoundarySegment`, `Mesh`, and `Domain` frozen dataclasses per `data-model.md`. Include `Mesh.n_nodes`, `Mesh.n_elements`, `Mesh.n_boundaries` properties. Methods `to_fort14`, `plot`, `equals`, `__repr__`, `__str__` declared with `NotImplementedError` placeholders that the per-story tasks will fill in. No imports from `admesh/fort14.py` or `admesh/viz.py` yet (those are wired lazily later).
+- [X] T007 [P] Add `tests/test_api_dataclass_shapes.py` covering: `Mesh` and `Domain` are `frozen` (assignment to a field raises `dataclasses.FrozenInstanceError`); `BoundarySegment` rejects out-of-range `node_ids` with a clear assertion in `__post_init__`; the `n_nodes` / `n_elements` / `n_boundaries` properties return the array shapes correctly.
+- [X] T008 Update `admesh/__init__.py` to re-export the foundational symbols listed in `contracts/python-api.md` *that exist after Phase 2*: `Mesh`, `Domain`, `BoundarySegment`, `BoundaryType`. Leave the rest commented out with TODO references to the task IDs that will land them.
+- [X] T009 [P] Add `tests/test_public_api_imports.py` asserting `from admesh import Mesh, Domain, BoundarySegment, BoundaryType` succeeds, and that `admesh.__all__` matches the expected v1 surface (subset for now — extended in later phases).
 
 **Checkpoint**: Foundation in place — every user story can now begin in parallel.
 
