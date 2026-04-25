@@ -43,13 +43,14 @@ def _load_minimal_fort14(path: Path) -> tuple[np.ndarray, np.ndarray]:
     return p, t
 
 
-def _build_boundary_polygon(p: np.ndarray, t: np.ndarray) -> np.ndarray:
-    """Recover the boundary polygon ring from triangle edges.
+def _build_boundary_rings(p: np.ndarray, t: np.ndarray) -> list[np.ndarray]:
+    """Recover ALL boundary rings from triangle edges (outer + inner holes).
 
-    Boundary edges are those owned by exactly one triangle. Walk them
-    into a closed polygon (assumes simply connected outer ring; for a
-    domain with holes this returns the outermost ring containing the
-    centroid).
+    Boundary edges are those owned by exactly one triangle. Walk every
+    such ring; return them sorted with the outer (largest by signed
+    area) ring first. Issue #18 — earlier versions returned only the
+    largest ring, which silently dropped interior holes and let inner-
+    ring nodes drift through the smoother.
     """
     edge_count: dict[tuple[int, int], int] = {}
     edge_dir: dict[tuple[int, int], tuple[int, int]] = {}
@@ -60,17 +61,16 @@ def _build_boundary_polygon(p: np.ndarray, t: np.ndarray) -> np.ndarray:
             if key not in edge_dir:
                 edge_dir[key] = (int(a), int(b))
     boundary_edges = [edge_dir[k] for k, c in edge_count.items() if c == 1]
-    return _walk_boundary_rings(p, boundary_edges)
+    return _walk_all_rings(p, boundary_edges)
 
 
-def _walk_boundary_rings(p: np.ndarray, edges: list[tuple[int, int]]) -> np.ndarray:
-    """Walk boundary edges into rings; return the largest ring as a polygon."""
+def _walk_all_rings(p: np.ndarray, edges: list[tuple[int, int]]) -> list[np.ndarray]:
     adj: dict[int, list[int]] = {}
     for a, b in edges:
         adj.setdefault(a, []).append(b)
         adj.setdefault(b, []).append(a)
     visited: set[int] = set()
-    rings: list[list[int]] = []
+    ring_idx_lists: list[list[int]] = []
     for start in adj:
         if start in visited:
             continue
@@ -92,30 +92,53 @@ def _walk_boundary_rings(p: np.ndarray, edges: list[tuple[int, int]]) -> np.ndar
             prev = cur
             cur = nxt
         if len(ring) > 2:
-            rings.append(ring)
-    rings.sort(key=lambda r: -len(r))
-    if not rings:
+            ring_idx_lists.append(ring)
+
+    rings_xy = [p[r] for r in ring_idx_lists]
+    # Sort by absolute signed area, descending — the first ring is the
+    # outer boundary; the rest are holes.
+    rings_xy.sort(key=lambda xy: -abs(_signed_area(xy)))
+    if not rings_xy:
         raise RuntimeError("no boundary ring found")
-    largest = rings[0]
-    return p[largest]
+    return rings_xy
 
 
-def _make_sdf(boundary_xy: np.ndarray):
-    """Vectorized signed-distance to the boundary polygon."""
-    xs = np.asarray(boundary_xy[:, 0], dtype=np.float64)
-    ys = np.asarray(boundary_xy[:, 1], dtype=np.float64)
-    ax_ = xs
-    ay_ = ys
-    bx_ = np.roll(xs, -1)
-    by_ = np.roll(ys, -1)
+def _signed_area(xy: np.ndarray) -> float:
+    x = xy[:, 0]
+    y = xy[:, 1]
+    return 0.5 * float(np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y))
+
+
+def _make_sdf(rings: list[np.ndarray]):
+    """Vectorized signed-distance to a multi-ring polygon (outer + holes).
+
+    Inside-test: inside outer ring AND outside every hole ring.
+    Distance: minimum distance to any edge across all rings.
+    """
+    # Pre-stack all edge segments across all rings.
+    seg_a_x_list, seg_a_y_list = [], []
+    seg_b_x_list, seg_b_y_list = [], []
+    for ring_xy in rings:
+        xs = np.asarray(ring_xy[:, 0], dtype=np.float64)
+        ys = np.asarray(ring_xy[:, 1], dtype=np.float64)
+        seg_a_x_list.append(xs)
+        seg_a_y_list.append(ys)
+        seg_b_x_list.append(np.roll(xs, -1))
+        seg_b_y_list.append(np.roll(ys, -1))
+    ax_ = np.concatenate(seg_a_x_list)
+    ay_ = np.concatenate(seg_a_y_list)
+    bx_ = np.concatenate(seg_b_x_list)
+    by_ = np.concatenate(seg_b_y_list)
     dx_ = bx_ - ax_
     dy_ = by_ - ay_
     ll_ = dx_ * dx_ + dy_ * dy_
     ll_ = np.where(ll_ > 1e-30, ll_, 1.0)
 
+    outer = rings[0]
+    holes = rings[1:]
+
     def fd(q: np.ndarray) -> np.ndarray:
         q = np.atleast_2d(q)
-        # Distance to each edge: shape (K, M).
         qx = q[:, 0:1]
         qy = q[:, 1:2]
         tt = ((qx - ax_) * dx_ + (qy - ay_) * dy_) / ll_
@@ -124,7 +147,12 @@ def _make_sdf(boundary_xy: np.ndarray):
         cy = ay_ + tt * dy_
         d2 = (qx - cx) ** 2 + (qy - cy) ** 2
         d_min = np.sqrt(d2.min(axis=1))
-        inside, _ = in_polygon(q[:, 0], q[:, 1], xs, ys)
+        inside_outer, _ = in_polygon(q[:, 0], q[:, 1], outer[:, 0], outer[:, 1])
+        inside_any_hole = np.zeros(len(q), dtype=bool)
+        for h_xy in holes:
+            in_h, _ = in_polygon(q[:, 0], q[:, 1], h_xy[:, 0], h_xy[:, 1])
+            inside_any_hole |= in_h
+        inside = inside_outer & ~inside_any_hole
         return np.where(inside, -d_min, d_min)
 
     return fd
@@ -179,10 +207,10 @@ def main() -> None:
     print(f"  BBox x: [{p_in[:,0].min():.2f}, {p_in[:,0].max():.2f}]")
     print(f"  BBox y: [{p_in[:,1].min():.2f}, {p_in[:,1].max():.2f}]")
 
-    print("Building boundary polygon and SDF (vectorized; may take ~10 s)")
-    boundary_xy = _build_boundary_polygon(p_in, t)
-    print(f"  Boundary ring nodes: {len(boundary_xy)}")
-    fd = _make_sdf(boundary_xy)
+    print("Building multi-ring SDF (outer + holes; issue #18 fix)")
+    rings = _build_boundary_rings(p_in, t)
+    print(f"  Rings: {len(rings)}  (sizes: {[len(r) for r in rings]})")
+    fd = _make_sdf(rings)
 
     q_in = admesh.right_iso_quality(p_in, t)
     _, mq_in_mean, mq_in = admesh.mesh_quality(p_in, t)
@@ -209,14 +237,35 @@ def main() -> None:
     drift = np.max(np.abs(fd(p_out[bnd]))) if bnd.any() else 0.0
     print(f"Boundary drift: {drift:.2e}  (geps={geps:.2e})")
 
-    # Render side-by-side
-    print("Rendering before/after PNG")
-    fig, axes = plt.subplots(1, 2, figsize=(14, 9))
-    _plot_mesh(axes[0], p_in, t, f"Input  (right_iso_q = {q_in:.3f})")
-    _plot_mesh(axes[1], p_out, t, f"Smoothed  (right_iso_q = {q_out:.3f})")
+    # Post-smooth Delaunay retriangulation (still respecting boundaries):
+    # Delaunay over smoothed nodes, then keep only triangles whose centroid
+    # is inside the domain (signed-distance test fd(centroid) < -geps).
+    # This is the standard distmesh-style domain-restricted Delaunay
+    # (admesh.distmesh uses the same pattern). Boundary nodes are at
+    # exactly the smoothed positions, so the boundary itself is honored.
+    from scipy.spatial import Delaunay
+    print("Re-triangulating smoothed nodes (Delaunay + domain filter)")
+    tri = Delaunay(p_out)
+    t_re = tri.simplices.astype(np.int64)
+    centroids = (p_out[t_re[:, 0]] + p_out[t_re[:, 1]] + p_out[t_re[:, 2]]) / 3.0
+    keep = fd(centroids) < -geps
+    t_re = t_re[keep]
+    q_re = admesh.right_iso_quality(p_out, t_re)
+    _, mq_re_mean, _ = admesh.mesh_quality(p_out, t_re)
+    print(f"  retriangulated: {len(p_out)} nodes, {len(t_re)} elements")
+    print(f"  Re-tri right_iso = {q_re:.4f}, mesh_quality (mean) = {mq_re_mean:.4f}")
+
+    # Render side-by-side-by-side: input | smoothed | retriangulated
+    print("Rendering before/after/retriangulated PNG")
+    fig, axes = plt.subplots(1, 3, figsize=(20, 9))
+    _plot_mesh(axes[0], p_in, t, f"Input\n(right_iso_q = {q_in:.3f})")
+    _plot_mesh(axes[1], p_out, t,
+               f"Smoothed (same connectivity)\n(right_iso_q = {q_out:.3f})")
+    _plot_mesh(axes[2], p_out, t_re,
+               f"Smoothed + Delaunay re-tri\n(right_iso_q = {q_re:.3f})")
     fig.suptitle(
-        f"Block_O.14  —  {len(p_in)} nodes, {len(t)} triangles  —  "
-        f"smooth_for_quadrangulation, n_outer=2",
+        f"Block_O.14  —  {len(p_in)} nodes  —  "
+        f"smooth_for_quadrangulation (n_outer=2) then domain-restricted Delaunay",
         fontsize=12,
     )
     fig.tight_layout()
