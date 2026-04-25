@@ -180,6 +180,18 @@ this is a port, not a research project. Keep it simple.
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+Active spec-kit feature: `001-pythonize-and-fort14-integration` (branch
+`001-pythonize-and-fort14-integration`). For technical context, the
+target Pythonic API surface, fort.14 I/O contract, and module layout
+under `admesh/`, read:
+
+- `specs/001-pythonize-and-fort14-integration/plan.md`
+- `specs/001-pythonize-and-fort14-integration/data-model.md`
+- `specs/001-pythonize-and-fort14-integration/contracts/python-api.md`
+- `specs/001-pythonize-and-fort14-integration/quickstart.md`
+
+Constitution Principle I still applies: the existing faithful-port
+modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
+identical. The new modules (`api.py`, `fort14.py`, `boundary_types.py`,
+`size_field.py`, `viz.py`) are strictly additive.
 <!-- SPECKIT END -->
