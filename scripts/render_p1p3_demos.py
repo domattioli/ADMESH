@@ -188,7 +188,13 @@ def demo_notched_rect_medial():
     p0, t0 = triangulate(dom, h0=boundary_scale, niter=200, seed=0)
     m_before = _metrics(p0, t0)
 
-    # After: PTS path with exact-corner densified ring + K + R + boundary scale.
+    # After: PTS path with exact-corner densified ring (for SDF / bbox)
+    # + K + R + boundary scale. Pin **only** the 8 corner vertices as
+    # pfix — mirrors MATLAB ``GetMeshConstraints.m`` semantics where
+    # only ``PTS.BC`` constraint points are pinned, not the densified
+    # ring. The boundary then emerges from truss equilibrium +
+    # ``projectBackToBoundary`` at ``fh_after``-driven spacing — denser
+    # near the notch tips (small ``fh``), coarser along straight runs.
     ring = _densify_ring(dom.fixed_points, spacing=boundary_scale)
     pts = PTS.from_polygons(ring, bc=[BoundaryType.WALL])
     fh_after = build_h(
@@ -197,7 +203,10 @@ def demo_notched_rect_medial():
         boundary_scale={int(BoundaryType.WALL): boundary_scale},
         grid_delta=0.01,
     )
-    out = triangulate(pts, h0=boundary_scale, fh=fh_after, seed=0, fd=dom.fd)
+    out = triangulate(
+        pts, h0=boundary_scale, fh=fh_after, seed=0, fd=dom.fd,
+        pfix=dom.fixed_points,
+    )
     m_after = _metrics(out.p, out.t)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))

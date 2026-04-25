@@ -299,11 +299,15 @@ class MeshOutput:
 def _boundary_cleanup(
     p: Points, t: NDArray[np.int64], C: NDArray[np.int64] | None = None
 ) -> NDArray[np.int64]:
-    """Port of ``BoundaryCleanUp.m``.
+    """Port of ``BoundaryCleanUp.m``, applied iteratively to fixed-point.
 
     Drops triangles attached to the free boundary whose element
     quality ``q = (b+c-a)(c+a-b)(a+b-c)/(abc)`` is below ``0.15``.
-    Preserves triangles containing any constrained edge.
+    Preserves triangles containing any constrained edge. Iterates
+    until no further triangles are dropped — a single pass only
+    catches slivers attached to the *current* free boundary, so when
+    pfix-free runs leave near-boundary slivers in chains, the second
+    layer surfaces only after the first is removed.
 
     Parameters
     ----------
@@ -313,6 +317,17 @@ def _boundary_cleanup(
         Constrained edges (vertex-index pairs). Triangles attached to
         any constrained edge are kept regardless of quality.
     """
+    prev = -1
+    while t.size and len(t) != prev:
+        prev = len(t)
+        t = _boundary_cleanup_one_pass(p, t, C)
+    return t
+
+
+def _boundary_cleanup_one_pass(
+    p: Points, t: NDArray[np.int64], C: NDArray[np.int64] | None = None
+) -> NDArray[np.int64]:
+    """Single pass of ``BoundaryCleanUp.m``."""
     if t.size == 0:
         return t
 
@@ -430,6 +445,7 @@ def distmesh2d_admesh(
     fh: SizeFn | None,
     h0: float,
     *,
+    pfix: ArrayLike | None = None,
     cleanup: bool = True,
     **opts,
 ) -> MeshOutput:
@@ -449,6 +465,14 @@ def distmesh2d_admesh(
         Mesh-size function; uniform if ``None``.
     h0 : float
         Target minimum edge length (``hmin`` in the MATLAB source).
+    pfix : (M, 2) array or None
+        Fixed points (always present in the mesh, never moved). Mirrors
+        MATLAB ``GetMeshConstraints`` semantics: only points from
+        ``PTS.BC`` constraints are pinned, **not** the densified ring
+        vertices. Pass ``None`` (default) for no pinning — the boundary
+        emerges from truss equilibrium + ``projectBackToBoundary`` at
+        ``fh``-driven spacing. Pass a small set of corner / constraint
+        points to anchor sharp features that must land exactly.
     cleanup : bool
         Run :func:`_boundary_cleanup` on the final best-quality mesh.
     **opts :
@@ -481,19 +505,27 @@ def distmesh2d_admesh(
     p = _initial_point_list_from_pts(fd, pts, h0, geps)
     p = _rejection_method(p, fh, rng)
 
-    # Constraints (pfix): PTS ring vertices concatenated. No interior
-    # edge constraints in this port — matches MATLAB's ``C = []``
-    # branch when the PTS has no ``Constraints`` field.
-    pfix = np.vstack(pts.rings) if pts.rings else np.empty((0, 2))
-    nC = len(pfix)
+    # Constraints (pfix). Faithful to MATLAB ``GetMeshConstraints.m``
+    # @ 19b2eb9: pfix is **only** the points from ``PTS.BC`` (open-ocean
+    # BC, line constraints, barriers) — *not* the densified polygon
+    # ring. When the PTS has no constraints, ``nC = 0`` and the boundary
+    # emerges from truss equilibrium + ``projectBackToBoundary``, with
+    # spacing driven by ``fh``. Pre-Apr-26 code stuffed the entire ring
+    # into pfix, which forced uniform boundary spacing regardless of
+    # curvature.
+    if pfix is not None:
+        pfix_arr = np.asarray(pfix, dtype=float).reshape(-1, 2)
+    else:
+        pfix_arr = np.empty((0, 2))
+    nC = len(pfix_arr)
     if nC:
         # Drop free points that coincide with a fixed point.
         if len(p):
             d2fix = np.min(
-                np.linalg.norm(p[:, None, :] - pfix[None, :, :], axis=2), axis=1
+                np.linalg.norm(p[:, None, :] - pfix_arr[None, :, :], axis=2), axis=1
             )
             p = p[d2fix > geps]
-        p = np.vstack([pfix, p])
+        p = np.vstack([pfix_arr, p])
     C: NDArray[np.int64] | None = None  # no interior constraints
 
     N = len(p)
