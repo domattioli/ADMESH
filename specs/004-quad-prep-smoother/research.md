@@ -343,16 +343,81 @@ describes it: a soft penalty on the local stiffness that biases
 mutual longest-edge alignment. Under F2 it would have been implicit
 in the field; under F1 it remains an explicit feature.
 
-## Open questions for /speckit-plan
+## Decisions log (resolved during /speckit-plan)
 
-- Does `scipy.sparse` ship the SVD-stiffness assembly we need, or do
-  we need a per-element 6×6 closed form?
-- What is the `kinf` boundary-pin scale that keeps boundary nodes
-  within `geps` after the solve on the WNAT-class fixtures?
-  (Expectation: 1e12 same as CHILmesh, but verify.)
-- How do we record the v1 → v2 carry-forward? A separate spec or a
-  note appended to this research doc once the F1 quality numbers
-  land?
-- For the soft pair-hint penalty, what scale relative to the
-  per-element shape stiffness keeps it from dominating the solve?
-  (Empirical; expect to tune in implementation.)
+### D-001 — Stiffness assembly approach
+
+- **Decision**: Hand-roll the per-element 6×6 local stiffness block
+  in pure NumPy; assemble globally via `scipy.sparse.csr_matrix`
+  using `(row_idx, col_idx, data)` triples. Solve with
+  `scipy.sparse.linalg.spsolve` (Cholesky factorisation under the
+  hood for SPD systems).
+- **Rationale**: SciPy ships no "FEM stiffness assembler"; the 6×6
+  closed form is the standard mesh-optimization recipe (CHILmesh
+  uses the identical pattern in its `direct_smoother`). Pure NumPy
+  for the reference path; Numba `@njit` is permitted (per
+  Constitution Principle II) for the inner element loop if profiling
+  shows the NumPy path is >2× too slow at 10K nodes.
+- **Alternatives considered**: scikit-fem (overkill for a 2D
+  triangle SPD assembly; adds a dep); fenics/dolfinx (heavyweight,
+  C-extension-bearing, violates Principle II).
+
+### D-002 — Boundary-pin scale (`kinf`)
+
+- **Decision**: `kinf = 1e12` in the same units as the per-element
+  shape stiffness diagonal. Boundary nodes get `+= kinf * I` on
+  their stiffness diagonal and `+= kinf * p_i` on the RHS, pinning
+  them within solver round-off.
+- **Rationale**: CHILmesh `direct_smoother` uses 1e12; same units
+  convention; same numerical behaviour expected. Empirically the
+  resulting boundary drift is well under `geps` on coastal-grade
+  meshes.
+- **Alternatives considered**: Lagrange-multiplier formulation (more
+  numerically robust but doubles the degrees of freedom and breaks
+  the SPD structure; not worth it at this scale); explicit row/column
+  elimination (cleanest mathematically, but messier `csr_matrix`
+  edits — `kinf` is the standard FEM workaround for a reason).
+
+### D-003 — v2 follow-up record-keeping
+
+- **Decision**: Open a new spec `005-frame-field-quad-prep` once v1
+  quality numbers land. Do not extend this research note in place;
+  do not bury the v2 design inside spec-004's tasks.
+- **Rationale**: F1 (this spec) and F2 (frame-field) are
+  independently scoped. F2 has its own surface (a frame-field solver
+  + per-element field sampler), its own LOC budget (~400), and its
+  own acceptance criteria (probably tighter than F1's because F2
+  promises global coherence). Keeping them separate lets the v2
+  effort be costed and reviewed cleanly.
+- **Alternatives considered**: Append to this doc (clutter; mixes
+  v1 implementation guidance with v2 design); fold into a v1.1
+  PATCH of spec-004 (loses the architectural distinction).
+
+### D-004 — Pair-hint penalty scale
+
+- **Decision**: Pair-hint soft penalty enters the per-element
+  stiffness diagonal at `α = 0.1` × the shape-stiffness scale, with
+  α exposed as a private module constant `_PAIR_HINT_WEIGHT` for
+  empirical tuning during implementation.
+- **Rationale**: A penalty large enough to bias longest-edge
+  alignment, small enough not to dominate the shape-target solve.
+  CHILmesh's `direct_smoother` uses similar 0.1-1.0 scale ratios for
+  its boundary-edge bias. The exact value is not load-bearing on
+  acceptance — SC-004 (≥ 25% relative lift in pairing mutuality)
+  has plenty of headroom.
+- **Alternatives considered**: Hard constraint via Lagrange
+  multiplier (over-constrains; breaks the soft "no topology change"
+  promise of the spec); auto-tuning per element (over-engineered for
+  v1; the empirical sweep during implementation is sufficient).
+
+## Open questions deferred to /speckit-tasks or implementation
+
+- **Numba JIT?** Decision deferred until the pure-NumPy reference
+  path is benchmarked. The NumPy path is the load-bearing reference
+  per Constitution Principle II's `_solve_iter_py` / `_solve_iter_nb`
+  pattern; Numba is added only if needed. No design implication for
+  the API surface either way.
+- **Synthetic fixture generation script** — is it a standalone
+  script under `scripts/` or a pytest conftest builder? Either works;
+  the choice is style, not contract. Will surface in
+  /speckit-tasks.

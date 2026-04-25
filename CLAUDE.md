@@ -180,18 +180,28 @@ this is a port, not a research project. Keep it simple.
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `001-pythonize-and-fort14-integration` (branch
-`001-pythonize-and-fort14-integration`). For technical context, the
-target Pythonic API surface, fort.14 I/O contract, and module layout
-under `admesh/`, read:
+Active spec-kit feature: `004-quad-prep-smoother` (branch
+`claude/smooth-quad-preprocessing-FmMxF`). Pre-quadrangulation
+triangle smoother — nudges ADMESH triangulations toward right-
+isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`,
+OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
+For the spec, formulation choice, public API, and design
+rationale, read:
 
-- `specs/001-pythonize-and-fort14-integration/plan.md`
-- `specs/001-pythonize-and-fort14-integration/data-model.md`
-- `specs/001-pythonize-and-fort14-integration/contracts/python-api.md`
-- `specs/001-pythonize-and-fort14-integration/quickstart.md`
+- `specs/004-quad-prep-smoother/spec.md`
+- `specs/004-quad-prep-smoother/plan.md`
+- `specs/004-quad-prep-smoother/research.md`
+- `specs/004-quad-prep-smoother/data-model.md`
+- `specs/004-quad-prep-smoother/contracts/python-api.md`
+- `specs/004-quad-prep-smoother/quickstart.md`
+
+The previous active feature (`001-pythonize-and-fort14-integration`)
+is shipped; its Pythonic API + fort.14 I/O surface is now the public
+admesh contract.
 
 Constitution Principle I still applies: the existing faithful-port
 modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
-identical. The new modules (`api.py`, `fort14.py`, `boundary_types.py`,
-`size_field.py`, `viz.py`) are strictly additive.
+identical. The new modules from spec-001 (`api.py`, `fort14.py`,
+`boundary_types.py`, `size_field.py`, `viz.py`) and spec-004
+(`quad_prep.py`) are strictly additive.
 <!-- SPECKIT END -->
