@@ -193,6 +193,13 @@ edge is also the shared edge). Verify the `True` case exceeds the
   corner-invariant shape target or per-element energy minimisation).
   If neither approach is tractable in the plan, fall back to a
   deterministic heuristic and re-clarify.
+- Q: How does the smoother surface diagnostic info (boundary drift,
+  before/after `right_iso_quality`, iteration count) for tests? → A:
+  It does not. The smoother returns `(p_new, t)` only; tests compute
+  diagnostics on demand via existing helpers (call
+  `right_iso_quality` before/after, compute boundary drift from
+  `fd(p_in)` vs `fd(p_out)`). No diagnostic dict, log emission, or
+  alternate return shape is part of the API.
 
 ## Requirements *(mandatory)*
 
@@ -225,8 +232,11 @@ edge is also the shared edge). Verify the `True` case exceeds the
   function MUST NOT be modified.
 - **FR-007**: The smoother MUST cap rotation magnitude for boundary-band
   nodes (those within `2 * h_local` of the SDF zero level-set) so that
-  boundary projection remains feasible. The boundary degradation MUST be
-  reported by the test suite, not hidden.
+  boundary projection remains feasible. The smoother itself returns no
+  diagnostic data; the resulting boundary-band quality degradation MUST
+  be measured and reported by the test suite (typically by comparing
+  `right_iso_quality` over boundary-band elements vs. interior
+  elements), not hidden.
 - **FR-008**: The smoother MUST accept `n_outer ≥ 1` and run that many
   outer-iteration passes, where each pass alternates a smoothing step
   with a boundary-projection step.
