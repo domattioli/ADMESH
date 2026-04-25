@@ -157,26 +157,42 @@ edge is also the shared edge). Verify the `True` case exceeds the
   13 faithful-port stage modules. Any size-field, SDF, or geometry
   helper it needs is consumed via the public surface of those modules
   unchanged.
-- **Mis-oriented input triangles**: If the caller's intended
-  right-angle corner is not at index 0 of `t[i]`, the smoother still
-  drives the geometry toward right-isoceles with vertex 0 as the
-  apex — producing a valid right-isoceles triangle in a different
-  orientation than intended. The smoother does not detect or correct
-  this; the canonical fix is to pre-orient via
-  `admesh.triangulate(..., for_quads=True)` (or any caller-side
-  permutation of `t`).
+- **Right-angle-corner ambiguity**: The right-isoceles target shape
+  is unique only up to choice of right-angle vertex. The intent for
+  this feature is for the FEM target-Jacobian formulation itself to
+  determine the corner — either via a corner-invariant shape target
+  (e.g. SVD-based: enforce equal singular values plus a 90° apex)
+  or via a per-element energy-minimisation over the three corner
+  choices, picking the lowest-energy assignment per outer iteration.
+  Concrete resolution is deferred to `/speckit-plan`. If neither
+  formulation proves tractable, the plan documents a fallback
+  heuristic (e.g. corner opposite the longest input edge) as a
+  follow-up clarification.
 
 ## Clarifications
 
 ### Session 2026-04-25
 
+- Q: When the caller does not provide a signed-distance function
+  (`fd=None`), how should the smoother decide which nodes are
+  boundary nodes? → A: It does not — `fd` is required in practice.
+  The canonical caller is admesh, which always supplies a
+  `Domain.fd`; external callers must explicitly pass an SDF rather
+  than relying on a topology-based fallback.
+- Q: How thick is `quad_prep.smooth_for_quadrangulation` relative to
+  issue #1's `fem_smooth(target="right_isoceles")`? → A: Independent
+  reimplementation. `quad_prep` ships its own target-Jacobian
+  smoother tuned for the right-isoceles target, with no runtime
+  dependency on issue #1. The two implementations may share design
+  references (Knupp 2012, Balendran) but MUST NOT import each other.
+  This relaxes the sequencing constraint — `quad_prep` may ship
+  before, alongside, or after #1.
 - Q: Which corner of each triangle gets the 90° angle in the
-  right-isoceles target shape? → A: Always vertex 0 in `t[i]`. The
-  smoother does not re-permute. The canonical caller
-  (`admesh.triangulate(..., for_quads=True)`) pre-orients each
-  triangle so vertex 0 is the desired right-angle corner before
-  invoking the smoother; external callers are responsible for
-  pre-orienting their triangles themselves.
+  right-isoceles target shape? → A: Deferred to `/speckit-plan`. The
+  intent is for the FEM formulation to determine the corner (via a
+  corner-invariant shape target or per-element energy minimisation).
+  If neither approach is tractable in the plan, fall back to a
+  deterministic heuristic and re-clarify.
 
 ## Requirements *(mandatory)*
 
@@ -189,9 +205,10 @@ edge is also the shared edge). Verify the `True` case exceeds the
 - **FR-002**: The smoother MUST return `(p_new, t)` such that
   `len(p_new) == len(p)` and `t` is element-for-element identical to the
   input — no node insertion, deletion, or re-indexing.
-- **FR-003**: When `fd` is provided, every node in `p_new` whose input
-  position lay on the SDF zero level-set within `geps` MUST also lie on
-  the zero level-set within `geps` after smoothing.
+- **FR-003**: Every node in `p_new` whose input position lay on the
+  SDF zero level-set within `geps` (per the required `fd` callable —
+  see FR-013) MUST also lie on the zero level-set within `geps` after
+  smoothing.
 - **FR-004**: When `h` is provided, the smoother MUST scale the
   per-element target shape so that the resulting triangle's *leg* length
   (not hypotenuse) tracks `h` evaluated at the element centroid. This
@@ -225,17 +242,18 @@ edge is also the shared edge). Verify the `True` case exceeds the
   that runs the pre-quadrangulation smoother as the final stage of a
   triangulation. This shortcut is additive and MUST NOT change the
   default behaviour of `triangulate(...)`.
-- **FR-012**: The implementation MUST consume the FEM smoother
-  introduced in issue #1 (`admesh/smoother.py`) with its
-  `target="right_isoceles"` mode rather than reimplementing the
-  target-Jacobian framework from scratch. This feature is sequenced
-  after issue #1.
-- **FR-013**: The smoother MUST treat vertex 0 of each triangle
-  (`t[i, 0]`) as the target right-angle corner — i.e. the corner
-  opposite the right-isoceles target shape's hypotenuse. The smoother
-  MUST NOT re-permute triangle vertices. Pre-orienting `t` so that
-  vertex 0 is the intended right-angle corner is the caller's
-  responsibility.
+- **FR-012**: The implementation MUST be self-contained — it ships
+  its own target-Jacobian smoother tuned for the right-isoceles
+  target, with no runtime dependency on issue #1's
+  `admesh/smoother.py`. The two implementations may share design
+  references (Knupp 2012, Balendran) and test infrastructure but
+  MUST NOT import each other. This relaxes the sequencing constraint
+  — `quad_prep` may ship before, alongside, or after issue #1.
+- **FR-013**: When the caller does not supply `fd`, the smoother
+  MUST raise a clear, actionable error rather than silently falling
+  back to topology-based boundary detection. The canonical caller
+  (`admesh.triangulate(..., for_quads=True)`) always supplies
+  `Domain.fd`; external callers must pass an SDF explicitly.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -294,10 +312,11 @@ edge is also the shared edge). Verify the `True` case exceeds the
 
 ## Assumptions
 
-- The FEM smoother from issue #1 (`admesh/smoother.py`) is available
-  and exposes a `target="right_isoceles"` mode. This feature is
-  sequenced after #1 and consumes its API; if #1 changes shape, this
-  spec's references to it must be reconciled.
+- The implementation is independent of issue #1. Both features may
+  ship in either order. They are expected to share design references
+  (Knupp 2012, Balendran) and possibly test scaffolding, but neither
+  imports the other. If a unification is desired post-v1 it lives in
+  a follow-up spec, not this one.
 - `geps` is the existing ADMESH boundary-projection tolerance constant
   used elsewhere in the codebase. The smoother adopts it without
   introducing a new tolerance.
@@ -317,20 +336,21 @@ edge is also the shared edge). Verify the `True` case exceeds the
 - Triangulation node ordering within each triangle is consistent with
   the rest of the codebase (counter-clockwise, the convention used by
   `admesh.routine.triangulate`).
-- The canonical caller is `admesh.triangulate(..., for_quads=True)`,
-  which pre-orients each triangle so vertex 0 sits opposite the
-  longest edge before invoking the smoother — using `admesh`'s
-  existing per-element geometry helpers. Initial v1 use is in-tree
-  with `admesh`; external callers (e.g. consumers of `read_fort14`)
-  must pre-orient their triangles themselves. A standalone
-  `orient_for_quads(p, t)` helper may be added later but is not
-  required for the initial release.
+- The canonical caller is admesh's pipeline: `Domain.fd` supplies the
+  required SDF, `admesh.mesh_size.build_h` supplies the optional size
+  field, and admesh has the per-element geometry it needs for any
+  pre-orientation step the plan ends up choosing. Initial v1 use is
+  in-tree with admesh; external callers must supply their own `fd`
+  (and, optionally, `h`) — the smoother does not synthesize them
+  from mesh topology.
 - The pair-hint regularizer is a *soft* constraint. The smoother never
   swaps, splits, or merges triangles; topology in equals topology out.
-- Performance target SC-005 (10K nodes in 10 s) assumes the FEM
-  smoother from issue #1 runs in linear time per outer iteration. If
-  #1's solver is super-linear, SC-005 should be revisited rather than
-  forcing a structural redesign in this feature.
+- Performance target SC-005 (10K nodes in 10 s) assumes the
+  feature's own target-Jacobian solve is linear per outer iteration
+  and the pair-hint pre-pass is at most `O(M log M)` in element
+  count. If profiling on a representative coastal fixture shows the
+  solver is super-linear, SC-005 is the place to renegotiate, not
+  the API surface.
 - Triangle-to-quad fusion, quad smoothing, and any mixed tri/quad
   output are explicitly out of scope and live downstream (CHILmesh
   `tri2quad` or equivalent).
