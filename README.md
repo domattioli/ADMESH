@@ -25,12 +25,18 @@
 
 ## Install
 
+> 🚧 **0.1.0 in progress.** Spec 002 lands the default size-field stack
+> + ADCIRC paired-edge BC support; the first PyPI tag follows when the
+> Tier-2 / WNAT structural-validity gate is green
+> ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
+> Until then, install from source.
+
 ```bash
-pip install admesh2D            # core
+pip install admesh2D            # core (when 0.1.0 ships)
 pip install admesh2D[viz]       # adds matplotlib for mesh.plot()
 ```
 
-From source:
+From source (current):
 
 ```bash
 git clone https://github.com/domattioli/ADMESH.git
@@ -43,6 +49,12 @@ Requires Python ≥ 3.10. Core dependencies: NumPy, SciPy, Numba, Shapely.
 ---
 
 ## Quickstart
+
+> 🚧 The `triangulate()` defaults are stabilizing across spec 002.
+> The 3-line idiom below works today; advanced kwargs
+> (`enable_curvature`, `enable_medial_axis`, `bathymetry`,
+> `tide_period`, `default_depth`, …) are documented in
+> `specs/002-size-field-defaults/contracts/python-api-default-stack.md`.
 
 ```python
 import admesh
@@ -81,10 +93,13 @@ a user-chosen combiner (default elementwise minimum).
 ## Status
 
 Under construction. The v1 plan and task list live in
-`specs/001-pythonize-and-fort14-integration/`. The faithful Python port
-of the original 13-stage pipeline is the current production path
-(142 tests passing); the Pythonic API and fort.14 I/O above are the v1
-deliverables.
+`specs/001-pythonize-and-fort14-integration/` (shipped) and
+`specs/002-size-field-defaults/` (in progress — wires the
+MATLAB-faithful size-field stack as the default Phase-1 in
+`triangulate()` + extends fort.14 for IBTYPE 3 / 4 / 13 / 24
+paired-edge BC records). The faithful Python port of the original
+13-stage pipeline is the production path (now 250+ tests passing);
+the Pythonic API + fort.14 I/O are the 0.1.0 deliverables.
 
 ## Upstream
 

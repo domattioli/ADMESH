@@ -105,16 +105,21 @@ Single-package Python library, flat layout under `admesh/`. Tests live under `te
 
 ### Implementation for User Story 4
 
-- [ ] T023 [P] [US4] Walk back the constitution amendment in `.specify/memory/constitution.md`: append a v1.0.2 amendment to the Amendments log explicitly noting the size-field default as a precondition for the fort.14 contract being release-ready; update the version banner at the bottom of the file from `1.0.1` to `1.0.2`; preserve the v1.0.1 entry for transparency (per spec FR-017)
-- [ ] T024 [P] [US4] Restore "0.1.0 in progress" callout in `README.md` install section (currently spec-001's polish removed it): add a brief note like "Spec 002 in progress — 0.1.0 will be the first PyPI tag of the new Pythonic API"; do NOT undo the ADCIRC compatibility tagline added earlier in this session
-- [ ] T025 [P] [US4] Restore "API in progress" framing in `README.md` Quickstart section: add a short callout that `triangulate()` defaults are stabilizing across spec 002; preserve the 3-line idiom example
-- [ ] T026 [P] [US4] Remove `papers/wnat_admesh.png` if present in the working tree: this is the rough WNAT render the user rejected; it was never committed. Log a single-line justification in the commit message
-- [ ] T027 [P] [US4] Remove `dist/` and `build/` directories from the working tree if present (artefacts from spec-001's wheel smoke); add to `.gitignore` if not already covered (verify spec-001 left them ignored)
-- [ ] T028 [P] [US4] Clean stale demo artefacts under `tests/output/`: enumerate files, delete those that are not regression baselines for the spec-002 acceptance tests; preserve `tests/output/quickstart_validation.txt` if it's still spec-001's reference output
+- [X] T023 [P] [US4] Walk back the constitution amendment in `.specify/memory/constitution.md`: append a v1.0.2 amendment to the Amendments log explicitly noting the size-field default as a precondition for the fort.14 contract being release-ready; update the version banner at the bottom of the file from `1.0.1` to `1.0.2`; preserve the v1.0.1 entry for transparency (per spec FR-017)
+- [X] T024 [P] [US4] Restore "0.1.0 in progress" callout in `README.md` install section (currently spec-001's polish removed it): add a brief note like "Spec 002 in progress — 0.1.0 will be the first PyPI tag of the new Pythonic API"; do NOT undo the ADCIRC compatibility tagline added earlier in this session
+- [X] T025 [P] [US4] Restore "API in progress" framing in `README.md` Quickstart section: add a short callout that `triangulate()` defaults are stabilizing across spec 002; preserve the 3-line idiom example
+- [X] T026 [P] [US4] Remove `papers/wnat_admesh.png` if present in the working tree: this is the rough WNAT render the user rejected; it was never committed. Log a single-line justification in the commit message
+- [X] T027 [P] [US4] Remove `dist/` and `build/` directories from the working tree if present (artefacts from spec-001's wheel smoke); add to `.gitignore` if not already covered (verify spec-001 left them ignored)
+  - **Implementation note**: `.gitignore` already covered both via `build/` and `dist/` patterns (Python convention) — confirmed by reading `.gitignore` lines 11-15 in T001. No `.gitignore` edit was needed.
+- [X] T028 [P] [US4] Clean stale demo artefacts under `tests/output/`: enumerate files, delete those that are not regression baselines for the spec-002 acceptance tests; preserve `tests/output/quickstart_validation.txt` if it's still spec-001's reference output
+  - **Implementation note**: removed 3 untracked diagnostic PNGs (`diag_notched_lfs.png`, `diag_notched_medial_axis.png`, `demo_notched_rectangle_K_vs_R_vs_KR.png`). Tracked tests/output files preserved.
 - [ ] T029 [P] [US4] Acquire the Tier 1.5 Shinnecock Bay fixture per `research.md` Decision 6: download the ADCIRC official Example "Shinnecock Bay" fort.14 from `https://adcirc.org/home/documentation/example-problems/` (or equivalent canonical mirror at `adcirc/adcirc-cg` GitHub repo's `work/example/shinnecock/` directory); save to `tests/fixtures/fort14/adcirc_examples/shinnecock.14`; verify file size and AGRID identifier match the canonical source
+  - **Status**: deferred — network-dependent fixture acquisition. Not gating the 0.1.0 tag (Tier-1 wetting-and-drying covers the paired-edge BC use-case).
 - [ ] T030 [US4] Create `tests/fixtures/fort14/adcirc_examples/PROVENANCE.md` documenting source, license, mesh stats (NN, NE, BC IBTYPE coverage), and reason-for-inclusion for each fixture in the directory: `wnat_test.14`, `wetting_and_drying_test.14`, `shinnecock.14`
+  - **Status**: deferred (depends on T029).
 - [ ] T031 [US4] Tier 1.5 acceptance test in `tests/test_default_size_field.py`: load `shinnecock.14`, build `Domain.from_mesh(src)`, call `triangulate(domain, h_min=20.0, h_max=500.0)`, assert structural validity; depends on T029 + T030
-- [ ] T032 [US4] Pre-tag verification script `scripts/pre_tag_check.sh` (or equivalent pytest hook): asserts FR-017 through FR-019 — constitution version is `>=1.0.2`, README has "0.1.0 in progress" callout, no `papers/wnat_admesh.png` in working tree, no `dist/` or `build/` directories. Failing this script blocks the 0.1.0 tag.
+  - **Status**: deferred (depends on T029).
+- [X] T032 [US4] Pre-tag verification script `scripts/pre_tag_check.sh` (or equivalent pytest hook): asserts FR-017 through FR-019 — constitution version is `>=1.0.2`, README has "0.1.0 in progress" callout, no `papers/wnat_admesh.png` in working tree, no `dist/` or `build/` directories. Failing this script blocks the 0.1.0 tag.
 
 **Checkpoint**: User Story 4 complete. Repo is shippable. Tier 1.5 fixture is in the test ladder. Pre-tag verification script passes.
 
