@@ -3,8 +3,16 @@
 Source commit pin: 19b2eb9f078a648daec3fd40d5d4c6e072f467ac
 """
 
-from admesh.api import BoundarySegment, Domain, Mesh
+from admesh.api import (
+    BoundarySegment,
+    Domain,
+    Mesh,
+    domain_from_polygon,
+    domain_from_sdf,
+    triangulate,
+)
 from admesh.boundary_types import BoundaryType
+from admesh.fort14 import Fort14ParseError, read_fort14, write_fort14
 
 __version__ = "0.1.0"
 
@@ -13,14 +21,16 @@ __all__ = [
     "BoundarySegment",
     "BoundaryType",
     "Domain",
+    "Fort14ParseError",
     "Mesh",
+    "domain_from_polygon",
+    "domain_from_sdf",
+    "read_fort14",
+    "triangulate",
+    "write_fort14",
     # TODO: re-export once implemented.
-    # "triangulate",         # T021
-    # "domain_from_polygon", # T020
-    # "domain_from_sdf",     # T020
-    # "read_fort14",         # T024
-    # "write_fort14",        # T024
     # "compose_size_field",  # T038
+    # "SizeFieldFn",         # T041
     # Faithful-port stage modules (Constitution Principle I — untouched).
     "background_grid",
     "bathymetry",
