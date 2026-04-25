@@ -408,10 +408,53 @@ class Domain:
 
         rings_xy = [mesh.nodes[seg.node_ids] for seg in rings_segs]
         outer = rings_xy[0]
-        holes = rings_xy[1:]
+
+        # Classify non-outer rings as genuine holes vs. internal weir
+        # slits. ADCIRC IBTYPE 24 weirs duplicate nodes along an internal
+        # line; the topology walker recovers these as boundary rings, but
+        # mesh triangles fill BOTH sides of the slit — so the ring is not
+        # a hole in the domain (issue #10). Heuristic: a ring is a hole
+        # only if no source-mesh triangle's centroid lies inside it.
+        # ``Domain.from_mesh``'s docstring already disclaims that internal
+        # weir / barrier records are not transferred to the new mesh, so
+        # treating weir slits as no-ops here matches the documented intent.
+        holes: list[np.ndarray] = []
+        if len(rings_xy) > 1:
+            from shapely.geometry import Point as _ShapelyPoint
+            from shapely.geometry import Polygon as _ShapelyPolygon
+            from shapely.prepared import prep as _shp_prep
+
+            elem_centroids = mesh.nodes[mesh.elements].mean(axis=1)
+            for ring in rings_xy[1:]:
+                if len(ring) < 3:
+                    continue
+                ring_poly = _ShapelyPolygon(ring)
+                if not ring_poly.is_valid or ring_poly.area <= 0:
+                    continue
+                # Cheap bbox prefilter then prepared.contains.
+                xmn, ymn, xmx, ymx = ring_poly.bounds
+                in_box = (
+                    (elem_centroids[:, 0] >= xmn)
+                    & (elem_centroids[:, 0] <= xmx)
+                    & (elem_centroids[:, 1] >= ymn)
+                    & (elem_centroids[:, 1] <= ymx)
+                )
+                candidate = elem_centroids[in_box]
+                if candidate.size == 0:
+                    holes.append(ring)
+                    continue
+                prepared_ring = _shp_prep(ring_poly)
+                inside_count = sum(
+                    1 for c in candidate
+                    if prepared_ring.contains(_ShapelyPoint(c[0], c[1]))
+                )
+                if inside_count == 0:
+                    holes.append(ring)
+                # else: weir slit / internal feature — skip.
+
         polygon = Polygon(outer, holes=holes if holes else None)
 
-        sdf = _shapely_sdf(rings_xy)
+        sdf = _shapely_sdf([outer, *holes])
         # Bbox spans every node so that disconnected boundary components
         # (small detached islands far from the outer ring) are still
         # enclosed by the search domain. Without this, real-world coastal
@@ -829,12 +872,11 @@ def triangulate(
     from admesh.quality import mesh_quality
     from admesh.routine import triangulate as _routine_triangulate
 
-    # Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.
+    # Resolve h_max for the size-field clip, falling back to a fraction
+    # of the bbox diagonal.
     if h_max is None:
-        h0 = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
-        h_max_eff = h0
+        h_max_eff = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
     else:
-        h0 = float(h_max)
         h_max_eff = float(h_max)
 
     # Default h_min if not supplied — used by the default size-field
@@ -842,6 +884,15 @@ def triangulate(
     # `hmin = base / 8.0` fallback so the public default matches the
     # composer's internal default.
     h_min_eff = float(h_min) if h_min is not None else h_max_eff / 8.0
+
+    # h0 in the Persson DistMesh formulation is the FINEST lattice
+    # spacing — the rejection method then thins points where the size
+    # field is larger. When the caller explicitly passes ``h_min``, they
+    # want a multi-scale mesh and h0 = h_min matches MATLAB
+    # ``ADmeshRoutine`` (which uses ``h0 = MinEL``). When only ``h_max``
+    # is supplied, the legacy spec-001 contract is uniform meshing —
+    # h0 = h_max gives the desired edge size directly. Issue #10.
+    h0 = h_min_eff if h_min is not None else h_max_eff
 
     # Adapter: the faithful-port `Domain` carries the SDF + fixed points.
     pfix = domain.pfix
