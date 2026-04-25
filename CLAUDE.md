@@ -203,18 +203,29 @@ operational summary:
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `001-pythonize-and-fort14-integration` (branch
-`001-pythonize-and-fort14-integration`). For technical context, the
-target Pythonic API surface, fort.14 I/O contract, and module layout
-under `admesh/`, read:
+Active spec-kit feature: `005-adcirc-mesh-registry` (branch
+`005-adcirc-mesh-registry`). This is a **non-port** feature
+(community data-engineering tool); see `plan.md` Constitution Check
+for the explicit Principle I deviation rationale. The implementation
+lives in a NEW repo (`domattioli/adcirc-mesh-registry`), NOT inside
+`admesh/`. ADMESH may later consume the published package via
+`pyproject.toml`, but no code from this feature lands in `admesh/`.
 
-- `specs/001-pythonize-and-fort14-integration/plan.md`
-- `specs/001-pythonize-and-fort14-integration/data-model.md`
-- `specs/001-pythonize-and-fort14-integration/contracts/python-api.md`
-- `specs/001-pythonize-and-fort14-integration/quickstart.md`
+For design artifacts:
 
-Constitution Principle I still applies: the existing faithful-port
-modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
-identical. The new modules (`api.py`, `fort14.py`, `boundary_types.py`,
-`size_field.py`, `viz.py`) are strictly additive.
+- `specs/005-adcirc-mesh-registry/spec.md`
+- `specs/005-adcirc-mesh-registry/plan.md`
+- `specs/005-adcirc-mesh-registry/research.md`
+- `specs/005-adcirc-mesh-registry/data-model.md`
+- `specs/005-adcirc-mesh-registry/contracts/manifest-schema.md`
+- `specs/005-adcirc-mesh-registry/contracts/python-api.md`
+- `specs/005-adcirc-mesh-registry/contracts/ci-validator.md`
+- `specs/005-adcirc-mesh-registry/contracts/hf-publisher.md`
+- `specs/005-adcirc-mesh-registry/quickstart.md`
+
+Prior feature (`001-pythonize-and-fort14-integration`) shipped; its
+artifacts remain under `specs/001-pythonize-and-fort14-integration/`
+for reference. Constitution Principle I still applies to the 13
+faithful-port stage modules in `admesh/*.py` — they MUST stay
+numerically identical regardless of additive features like this one.
 <!-- SPECKIT END -->
