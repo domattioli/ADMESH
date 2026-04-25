@@ -60,12 +60,24 @@ reimpl by necessity — see 2026-04-18 PORTING_NOTES entry.
 
 ---
 
-## Quality trajectory (no change from S5)
+## Quality trajectory (S6 close re-render)
 
-No new demo renders this session — S6 was entirely port-closure
-work on modules that don't exercise the demo pipeline (boundary,
-inpaint, bathymetry, tide are plumbing for P3 orchestration).
-Notched_rect `min_q = 0.162` carries forward to session 7.
+Re-rendered all three P1/P3 demos at S6 close. S6 code didn't
+touch the demo pipeline; numerical-library version drift in the
+fresh venv (numpy 2.4.4, scipy 1.17.1, numba 0.65.1) shifts the
+distmesh trajectory slightly — verified by running the same
+`scripts/render_p1p3_demos.py` against the S5-close source tree
+(commit `be5ec44`), which produces the same numbers shown below.
+
+| demo                         | S5 report | S6 close (this venv) |
+|------------------------------|----------:|---------------------:|
+| unit_disk medial             | 0.695     | **0.695** (stable)   |
+| annulus PTS                  | 0.428     | **0.380**            |
+| notched_rect medial          | 0.162     | **0.100**            |
+
+unit_disk + annulus still cross the 0.30 gate; notched_rect
+remains below it. Session 7's full-routine composition is the
+intended fix for notched_rect.
 
 ---
 
