@@ -157,6 +157,26 @@ edge is also the shared edge). Verify the `True` case exceeds the
   13 faithful-port stage modules. Any size-field, SDF, or geometry
   helper it needs is consumed via the public surface of those modules
   unchanged.
+- **Mis-oriented input triangles**: If the caller's intended
+  right-angle corner is not at index 0 of `t[i]`, the smoother still
+  drives the geometry toward right-isoceles with vertex 0 as the
+  apex — producing a valid right-isoceles triangle in a different
+  orientation than intended. The smoother does not detect or correct
+  this; the canonical fix is to pre-orient via
+  `admesh.triangulate(..., for_quads=True)` (or any caller-side
+  permutation of `t`).
+
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: Which corner of each triangle gets the 90° angle in the
+  right-isoceles target shape? → A: Always vertex 0 in `t[i]`. The
+  smoother does not re-permute. The canonical caller
+  (`admesh.triangulate(..., for_quads=True)`) pre-orients each
+  triangle so vertex 0 is the desired right-angle corner before
+  invoking the smoother; external callers are responsible for
+  pre-orienting their triangles themselves.
 
 ## Requirements *(mandatory)*
 
@@ -210,6 +230,12 @@ edge is also the shared edge). Verify the `True` case exceeds the
   `target="right_isoceles"` mode rather than reimplementing the
   target-Jacobian framework from scratch. This feature is sequenced
   after issue #1.
+- **FR-013**: The smoother MUST treat vertex 0 of each triangle
+  (`t[i, 0]`) as the target right-angle corner — i.e. the corner
+  opposite the right-isoceles target shape's hypotenuse. The smoother
+  MUST NOT re-permute triangle vertices. Pre-orienting `t` so that
+  vertex 0 is the intended right-angle corner is the caller's
+  responsibility.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -291,6 +317,14 @@ edge is also the shared edge). Verify the `True` case exceeds the
 - Triangulation node ordering within each triangle is consistent with
   the rest of the codebase (counter-clockwise, the convention used by
   `admesh.routine.triangulate`).
+- The canonical caller is `admesh.triangulate(..., for_quads=True)`,
+  which pre-orients each triangle so vertex 0 sits opposite the
+  longest edge before invoking the smoother — using `admesh`'s
+  existing per-element geometry helpers. Initial v1 use is in-tree
+  with `admesh`; external callers (e.g. consumers of `read_fort14`)
+  must pre-orient their triangles themselves. A standalone
+  `orient_for_quads(p, t)` helper may be added later but is not
+  required for the initial release.
 - The pair-hint regularizer is a *soft* constraint. The smoother never
   swaps, splits, or merges triangles; topology in equals topology out.
 - Performance target SC-005 (10K nodes in 10 s) assumes the FEM
