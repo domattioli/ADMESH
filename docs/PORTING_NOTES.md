@@ -670,3 +670,43 @@ throwaway; the Python port replaces the C source with Numba
 build artifacts, not source.
 **Impact**: `pip install admesh` needs no C toolchain — satisfies
 the Article I north-star "installs without a C toolchain".
+
+## 2026-04-25 — fort.14 — paired-edge / barrier BC records (spec 002)
+
+**MATLAB**: ADCIRC v55 fort.14 land-boundary block discriminates on
+`IBTYPE` per segment header; for IBTYPE 3 / 4 / 13 / 23 / 24 / 25
+each record line carries 4–5 numeric tokens (single-node + crest
+data, or paired-node + crest data) rather than the simple 1-token
+node id used for IBTYPE 0 / 1 / 11 / 20.
+**Python**: `admesh.fort14.read_fort14` + `admesh.fort14.write_fort14`,
+new helpers `_read_single_node_barrier_records` and
+`_read_paired_node_barrier_records`. New constants
+`_SINGLE_NODE_LAND_IBTYPES = frozenset({0, 1, 2, 11, 12, 21, 22})`,
+`_SINGLE_NODE_BARRIER_IBTYPES = frozenset({3, 13, 23})` (3 trailing
+floats per record per the v55 manual), and
+`_PAIRED_NODE_BARRIER_IBTYPES = frozenset({4, 14, 24, 25})` (5
+tokens per record).
+**Substitution**: dataclass `BoundarySegment` extended with
+optional `paired_node_ids: NDArray[np.int64] | None` and
+`barrier_data: NDArray[np.float64] | None` fields; both default to
+`None` so spec-001 callers see no change. Index conversion
+(1-based on disk → 0-based in memory) is applied to BOTH `node_ids`
+AND `paired_node_ids` at the I/O boundary.
+**Behavior diff**: the **column count of `barrier_data` is
+determined dynamically per segment** rather than fixed to the
+v55-documented 3 floats. Real-world fixtures vary — ADCIRC's
+`wetting_and_drying_test.14` writes only 2 trailing floats per
+IBTYPE-3 record. Reader locks the count from the first record and
+enforces it for the rest of the segment; writer round-trips
+whatever shape was read with `%.3f` precision (matches the example10n
+fixture). Open- and land-segment headers also tolerate inline `=`
+comments in the second token (the example10n fixture annotates
+`58 = Number of nodes for open boundary 1`). Unknown IBTYPE codes
+are preserved as plain `int` per spec-001's policy and parsed as
+single-node records (no barrier_data).
+**Impact**: spec 002 closes the Tier-1 fixture round-trip gap —
+`tests/test_fort14_reference_corpus.py::...[wetting_and_drying_test.14]`
+went from RED (the spec-001 reader couldn't parse `=` comments
+or paired-edge records) to GREEN. Five new round-trip / parser-error
+unit tests under `tests/test_fort14_paired.py` cover the IBTYPE 3,
+24, unknown-fallback, and malformed-record paths.
