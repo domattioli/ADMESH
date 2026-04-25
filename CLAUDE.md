@@ -180,18 +180,31 @@ this is a port, not a research project. Keep it simple.
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `001-pythonize-and-fort14-integration` (branch
-`001-pythonize-and-fort14-integration`). For technical context, the
-target Pythonic API surface, fort.14 I/O contract, and module layout
-under `admesh/`, read:
+Active spec-kit feature: `002-size-field-defaults` (branch
+`002-size-field-defaults`). Wires the existing MATLAB-faithful
+size-field stack as the default Phase-1 in `admesh.triangulate()` and
+extends fort.14 I/O for paired-edge BC records (IBTYPE 3 / 4 / 13 /
+24). Release-blocker for 0.1.0; bundles repo cleanup + constitution
+walkback rider.
 
-- `specs/001-pythonize-and-fort14-integration/plan.md`
-- `specs/001-pythonize-and-fort14-integration/data-model.md`
-- `specs/001-pythonize-and-fort14-integration/contracts/python-api.md`
-- `specs/001-pythonize-and-fort14-integration/quickstart.md`
+For technical context, the API extensions (`Domain.bathymetry`,
+`Domain.tide_period`, `Domain.from_mesh`, the new `BoundaryType`
+members), the structural-validity test gate, and the test fixture
+ladder, read:
 
-Constitution Principle I still applies: the existing faithful-port
-modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
-identical. The new modules (`api.py`, `fort14.py`, `boundary_types.py`,
-`size_field.py`, `viz.py`) are strictly additive.
+- `specs/002-size-field-defaults/plan.md`
+- `specs/002-size-field-defaults/research.md`
+- `specs/002-size-field-defaults/data-model.md`
+- `specs/002-size-field-defaults/contracts/python-api-default-stack.md`
+- `specs/002-size-field-defaults/contracts/fort14-paired-edge.md`
+- `specs/002-size-field-defaults/quickstart.md`
+
+Spec 001 (`001-pythonize-and-fort14-integration`) is shipped on its
+branch and remains the foundation; its plan/data-model/contracts are
+still authoritative for the spec-001 surface. Constitution Principle I
+still applies: the 13 faithful-port stage modules in `admesh/*.py`
+MUST stay numerically identical. Spec-002 changes live in `api.py`,
+`fort14.py`, `boundary_types.py` (extending), and a new pair of test
+modules (`tests/test_default_size_field.py`,
+`tests/test_fort14_paired.py`); all strictly additive.
 <!-- SPECKIT END -->
