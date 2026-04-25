@@ -165,8 +165,8 @@ in the integrator — not buried two stages down.
 
 Working sessions follow a fixed read order at startup:
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` → the latest
-`docs/session_<N-1>_state.md` (if any) → the active
-`docs/session_<N>_plan.md`. Skipping the previous-session state file is
+`docs/sessions/session_<N-1>_state.md` (if any) → the active
+`docs/sessions/session_<N>_plan.md`. Skipping the previous-session state file is
 how context gets lost at session boundaries; this read order is
 load-bearing.
 

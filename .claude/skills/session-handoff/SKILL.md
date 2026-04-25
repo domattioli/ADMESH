@@ -1,6 +1,6 @@
 ---
 name: session-handoff
-description: Write a concise `docs/session_<N>_state.md` so the next session (or the current session after /compact) can resume without re-reading everything. Captures the running plan pointer, what shipped in this session, what's in-flight, open blockers, and next concrete action. Inspired by Codex long-horizon and GSD pause-work patterns. Use before stopping work, before /compact, and when the user redirects mid-session.
+description: Write a concise `docs/sessions/session_<N>_state.md` so the next session (or the current session after /compact) can resume without re-reading everything. Captures the running plan pointer, what shipped in this session, what's in-flight, open blockers, and next concrete action. Inspired by Codex long-horizon and GSD pause-work patterns. Use before stopping work, before /compact, and when the user redirects mid-session.
 ---
 
 # session-handoff
@@ -15,17 +15,17 @@ description: Write a concise `docs/session_<N>_state.md` so the next session (or
 
 ## What it writes
 
-A single file: `docs/session_<N>_state.md` (overwrites in-place, one
+A single file: `docs/sessions/session_<N>_state.md` (overwrites in-place, one
 per session). Plus an update to `PROJECT_PLAN.md`'s "Where we are
 today" snapshot when a milestone shipped.
 
-## Template for `docs/session_<N>_state.md`
+## Template for `docs/sessions/session_<N>_state.md`
 
 ```markdown
 # Session <N> — state snapshot
 
 **Last updated:** <YYYY-MM-DDTHH:MM>
-**Session plan:** `docs/session_<N>_plan.md`
+**Session plan:** `docs/sessions/session_<N>_plan.md`
 **Active milestone:** <M.x> — <one-line description>
 **Active workstream:** <WSk> — <one-line description>
 **Repo head:** <git short SHA> — "<commit message first line>"
@@ -65,7 +65,7 @@ append-only>
 
 ### 1 — determine session number
 
-- Find the most recent `docs/session_<N>_plan.md`. Use that `<N>`.
+- Find the most recent `docs/sessions/session_<N>_plan.md`. Use that `<N>`.
 - If none exists, `<N> = 0` and warn that no plan file was found.
 
 ### 2 — gather snapshot data
@@ -74,7 +74,7 @@ append-only>
 - Task list (via `TaskList`) for active / shipped / blocked state.
 - Scan the session plan for the current active milestone + workstream.
 
-### 3 — write `docs/session_<N>_state.md`
+### 3 — write `docs/sessions/session_<N>_state.md`
 
 Populate the template. Keep bullets terse (< 15 words each). The
 "Next concrete action" paragraph is the single most important
@@ -89,7 +89,7 @@ Do NOT rewrite phase definitions or exit criteria — only the
 ### 5 — commit
 
 ```bash
-git add docs/session_<N>_state.md PROJECT_PLAN.md
+git add docs/sessions/session_<N>_state.md PROJECT_PLAN.md
 git commit -m "session <N>: handoff snapshot"
 git push
 ```

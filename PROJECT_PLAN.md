@@ -231,7 +231,7 @@ implementations.
 - **2nd `SOURCE_UNAVAILABLE`** logged; one more recurrence
   triggers a Constitution-amendment proposal.
 
-**Next entry point:** `docs/session_4_plan.md` — Phase P2
+**Next entry point:** `docs/sessions/session_4_plan.md` — Phase P2
 (bathymetry + tide + inpaint) now that the PTS structure can
 carry per-segment physical data.
 
@@ -253,7 +253,7 @@ carry per-segment physical data.
 - **65 pytest tests passing** (54 → 65 = +3 curvature + 4 medial
   + 4 composer).
 
-**Next entry point:** `docs/session_3_plan.md` WS0 — if MATLAB
+**Next entry point:** `docs/sessions/session_3_plan.md` WS0 — if MATLAB
 clone is present, backfill faithful-port passes of session-2
 modules (Branch A); else continue clean-room with Phase P2
 (bathymetry + tide + inpaint, Branch B).
