@@ -10,6 +10,7 @@
 ### Session 2026-04-25
 
 - Q: Manifest format (TOML vs JSON vs YAML vs dual-format)? → A: TOML
+- Q: How are mesh IDs assigned (uniqueness rule)? → A: Composite slug `<namespace>/<name>@<version>` + content-hash (SHA-256) as a side-field for byte-equality dedup detection
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -112,7 +113,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 - **FR-004**: System MUST support querying meshes by: geographic bounding box (spatial overlap), physical features (multi-select), triangle count range (min/max), license type, and contributor.
 
-- **FR-005**: System MUST display mesh deduplication signal: when multiple entries point to the same content hash, system flags them and indicates which is authoritative.
+- **FR-005**: System MUST detect and display mesh deduplication signal: when two entries with distinct composite-slug IDs share the same content hash (SHA-256), the system flags them as byte-identical duplicates and surfaces which is the authoritative entry (oldest `created_date` by default, overridable by maintainer marking one `authoritative=true`).
 
 - **FR-006**: System MUST track and expose provenance: for each derived mesh, store its parent mesh ID and a list of operations applied (operation_type: string, parameters: dict, timestamp: ISO-8601).
 
@@ -130,7 +131,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 ### Key Entities
 
-- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (unique identifier), name, source_url, content_hash (SHA-256), num_triangles, license, bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID), provenance_history (list of operations).
+- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug), provenance_history (list of operations).
 
 - **MeshFeature**: Represents a physical or geographic characteristic of a mesh. Examples: "levee", "breakwater", "open_ocean", "inlet", "estuary", "tidal_flat", "barrier_island". Attributes: name, description.
 
