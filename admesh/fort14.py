@@ -31,6 +31,21 @@ if TYPE_CHECKING:
 __all__ = ["Fort14ParseError", "read_fort14", "write_fort14"]
 
 
+# Spec 002 — paired-edge / barrier IBTYPE classifications.
+#
+# The fort.14 land-boundary block is a heterogeneous record format
+# discriminated by IBTYPE. The constants below are tunable (tied to the
+# ADCIRC v55 grammar and the wetting_and_drying_test.14 fixture).
+# Grammar shapes:
+#   - single-node, no payload (1 token per record):  0, 1, 2, 11, 12, 21, 22
+#   - single-node, barrier payload (4 tokens):       3, 13, 23
+#   - paired-node, barrier payload (5 tokens):       4, 14, 24, 25
+# See ``specs/002-size-field-defaults/contracts/fort14-paired-edge.md``.
+_SINGLE_NODE_LAND_IBTYPES = frozenset({0, 1, 2, 11, 12, 21, 22})
+_SINGLE_NODE_BARRIER_IBTYPES = frozenset({3, 13, 23})
+_PAIRED_NODE_BARRIER_IBTYPES = frozenset({4, 14, 24, 25})
+
+
 # ---------------------------------------------------------------------------
 # Errors
 # ---------------------------------------------------------------------------
@@ -111,6 +126,126 @@ def _open_text(
         return iter(text.splitlines()), None
     fh = open(os.fspath(path), encoding="utf-8")
     return (line.rstrip("\n") for line in fh), fh
+
+
+def _read_single_node_barrier_records(
+    cursor: _Cursor,
+    n_records: int,
+    n_nodes: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Parse N records of "node_id [float ...]" for IBTYPE 3 / 13 / 23.
+
+    Column count is locked from the **first** record and enforced for
+    the remaining records in the segment. ADCIRC v55 documents 3 float
+    columns (``hbar coef_sub coef_super``) but real-world fixtures
+    vary — for example, ADCIRC's ``wetting_and_drying_test.14`` writes
+    only 2 floats per IBTYPE-3 record. The reader is column-agnostic;
+    the writer round-trips whatever shape was read.
+
+    Returns ``(ids[N], barrier[N, K])`` with 0-based ``ids`` and
+    float64 ``barrier`` columns.
+    """
+    ids = np.empty(n_records, dtype=np.int64)
+    barrier_rows: list[list[float]] = []
+    n_cols: int | None = None
+    for j in range(n_records):
+        line = cursor.next_line(
+            f"land-segment barrier record {j + 1} of {n_records}"
+        )
+        tok = line.split()
+        if len(tok) < 2:
+            raise cursor.fail(
+                "single-node barrier record (>= 2 tokens: nid + floats)",
+                line,
+            )
+        one_based = _parse_int(tok[0], cursor, "integer node id")
+        if not (1 <= one_based <= n_nodes):
+            raise cursor.fail(
+                f"node id in [1, {n_nodes}]", tok[0]
+            )
+        ids[j] = one_based - 1
+        floats = [
+            _parse_float(t, cursor, f"barrier column {k}")
+            for k, t in enumerate(tok[1:])
+        ]
+        if n_cols is None:
+            n_cols = len(floats)
+        elif len(floats) != n_cols:
+            raise cursor.fail(
+                f"single-node barrier record with {n_cols} float columns "
+                f"(consistent with first record)",
+                line,
+            )
+        barrier_rows.append(floats)
+    if n_cols is None or n_cols == 0:
+        # Defensive: a 0-record segment OR a segment with no floats —
+        # fall back to a (n, 0)-shaped array so downstream shape checks
+        # are well-defined.
+        barrier = np.zeros((n_records, 0), dtype=np.float64)
+    else:
+        barrier = np.asarray(barrier_rows, dtype=np.float64)
+    return ids, barrier
+
+
+def _read_paired_node_barrier_records(
+    cursor: _Cursor,
+    n_records: int,
+    n_nodes: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Parse N records of "node_id paired_id [float ...]" for IBTYPE 4/14/24/25.
+
+    As with the single-node helper, the trailing-float column count is
+    locked from the first record and enforced for the rest of the
+    segment. Both ``ids`` and ``paired`` are converted to 0-based.
+    """
+    ids = np.empty(n_records, dtype=np.int64)
+    paired = np.empty(n_records, dtype=np.int64)
+    barrier_rows: list[list[float]] = []
+    n_cols: int | None = None
+    for j in range(n_records):
+        line = cursor.next_line(
+            f"land-segment paired-edge record {j + 1} of {n_records}"
+        )
+        tok = line.split()
+        if len(tok) < 3:
+            raise cursor.fail(
+                "paired-edge record (>= 3 tokens: nid pid + floats)",
+                line,
+            )
+        one_based = _parse_int(tok[0], cursor, "integer node id")
+        if not (1 <= one_based <= n_nodes):
+            raise cursor.fail(
+                f"node id in [1, {n_nodes}]", tok[0]
+            )
+        ids[j] = one_based - 1
+
+        paired_one_based = _parse_int(
+            tok[1], cursor, "integer paired node id"
+        )
+        if not (1 <= paired_one_based <= n_nodes):
+            raise cursor.fail(
+                f"paired node id in [1, {n_nodes}]", tok[1]
+            )
+        paired[j] = paired_one_based - 1
+
+        floats = [
+            _parse_float(t, cursor, f"barrier column {k}")
+            for k, t in enumerate(tok[2:])
+        ]
+        if n_cols is None:
+            n_cols = len(floats)
+        elif len(floats) != n_cols:
+            raise cursor.fail(
+                f"paired-edge record with {n_cols} float columns "
+                f"(consistent with first record)",
+                line,
+            )
+        barrier_rows.append(floats)
+    if n_cols is None or n_cols == 0:
+        barrier = np.zeros((n_records, 0), dtype=np.float64)
+    else:
+        barrier = np.asarray(barrier_rows, dtype=np.float64)
+    return ids, paired, barrier
 
 
 def read_fort14(path: "str | os.PathLike[str] | TextIO") -> Mesh:
@@ -214,11 +349,17 @@ def read_fort14(path: "str | os.PathLike[str] | TextIO") -> Mesh:
                 seg_tokens[0], cursor, "integer open-segment node count"
             )
             # IBTYPE optional in open-segment header — defaults to 0 (OPEN).
-            bc_code = (
-                _parse_int(seg_tokens[1], cursor, "integer IBTYPE")
-                if len(seg_tokens) >= 2
-                else 0
-            )
+            # Some fixtures (e.g. ADCIRC's wetting_and_drying_test.14)
+            # annotate the header with an inline "= Number of …" comment;
+            # the second token is then "=" rather than an integer. Spec
+            # 002: be lenient — only treat the second token as IBTYPE if
+            # it parses as an int.
+            bc_code = 0
+            if len(seg_tokens) >= 2:
+                try:
+                    bc_code = int(seg_tokens[1])
+                except (TypeError, ValueError):
+                    bc_code = 0
             ids = np.empty(n_seg_nodes, dtype=np.int64)
             for j in range(n_seg_nodes):
                 tok = cursor.next_line(
@@ -261,29 +402,68 @@ def read_fort14(path: "str | os.PathLike[str] | TextIO") -> Mesh:
             n_seg_nodes = _parse_int(
                 seg_tokens[0], cursor, "integer land-segment node count"
             )
+            # IBTYPE follows NVELL; tolerate a trailing inline-`=` comment
+            # (e.g. "9 24 = Number of node pairs for weir") by parsing
+            # only the integer-positional second token.
             bc_code = _parse_int(seg_tokens[1], cursor, "integer IBTYPE")
-            ids = np.empty(n_seg_nodes, dtype=np.int64)
-            for j in range(n_seg_nodes):
-                tok = cursor.next_line(
-                    f"land-segment node {j + 1} of {n_seg_nodes}"
-                ).split()
-                if not tok:
-                    raise cursor.fail("land-segment node id", "")
-                one_based = _parse_int(
-                    tok[0], cursor, "integer node id"
+
+            if bc_code in _PAIRED_NODE_BARRIER_IBTYPES:
+                # Paired-node barrier: each record line is
+                # "node_id paired_id hbar coef_sub coef_super"
+                # → ids[j] (0-based), paired[j] (0-based),
+                #   barrier_data[j] = (hbar, coef_sub, coef_super).
+                ids, paired, barrier = _read_paired_node_barrier_records(
+                    cursor, n_seg_nodes, n_nodes
                 )
-                if not (1 <= one_based <= n_nodes):
-                    raise cursor.fail(
-                        f"node id in [1, {n_nodes}]", tok[0]
+                boundaries.append(
+                    BoundarySegment(
+                        node_ids=ids,
+                        bc_type=_coerce_bc(bc_code),
+                        is_open=False,
+                        paired_node_ids=paired,
+                        barrier_data=barrier,
                     )
-                ids[j] = one_based - 1
-            boundaries.append(
-                BoundarySegment(
-                    node_ids=ids,
-                    bc_type=_coerce_bc(bc_code),
-                    is_open=False,
                 )
-            )
+            elif bc_code in _SINGLE_NODE_BARRIER_IBTYPES:
+                # Single-node barrier: each record is
+                # "node_id hbar coef_sub coef_super"
+                # → ids[j], barrier_data[j] = (hbar, coef_sub, coef_super).
+                ids, barrier = _read_single_node_barrier_records(
+                    cursor, n_seg_nodes, n_nodes
+                )
+                boundaries.append(
+                    BoundarySegment(
+                        node_ids=ids,
+                        bc_type=_coerce_bc(bc_code),
+                        is_open=False,
+                        barrier_data=barrier,
+                    )
+                )
+            else:
+                # Single-node, no payload (spec-001 path; preserves the
+                # "unknown IBTYPE → plain int, no barrier_data" behaviour).
+                ids = np.empty(n_seg_nodes, dtype=np.int64)
+                for j in range(n_seg_nodes):
+                    tok = cursor.next_line(
+                        f"land-segment node {j + 1} of {n_seg_nodes}"
+                    ).split()
+                    if not tok:
+                        raise cursor.fail("land-segment node id", "")
+                    one_based = _parse_int(
+                        tok[0], cursor, "integer node id"
+                    )
+                    if not (1 <= one_based <= n_nodes):
+                        raise cursor.fail(
+                            f"node id in [1, {n_nodes}]", tok[0]
+                        )
+                    ids[j] = one_based - 1
+                boundaries.append(
+                    BoundarySegment(
+                        node_ids=ids,
+                        bc_type=_coerce_bc(bc_code),
+                        is_open=False,
+                    )
+                )
 
         # Bathymetry: only return when at least one node carries non-zero
         # depth — pure-zero columns are common in synthetic test meshes
@@ -381,8 +561,27 @@ def write_fort14(
         for seg in land_segs:
             bc_code = int(seg.bc_type)
             out.write(f"{seg.node_ids.size} {bc_code}\n")
-            for nid in seg.node_ids:
-                out.write(f"{int(nid) + 1}\n")
+            if seg.barrier_data is None:
+                # Single-node, no payload (spec-001 path).
+                for nid in seg.node_ids:
+                    out.write(f"{int(nid) + 1}\n")
+            elif seg.paired_node_ids is None:
+                # Single-node + barrier payload (IBTYPE 3 / 13 / 23).
+                # Format: "nid+1 hbar coef_sub coef_super" with %.3f
+                # crest/coef precision (matches example10n fixture).
+                for j, nid in enumerate(seg.node_ids):
+                    cols = " ".join(f"{x:.3f}" for x in seg.barrier_data[j])
+                    out.write(f"{int(nid) + 1} {cols}\n")
+            else:
+                # Paired-node + barrier payload (IBTYPE 4 / 14 / 24 / 25).
+                # Format: "nid+1 pid+1 hbar coef_sub coef_super".
+                for j, (nid, pid) in enumerate(
+                    zip(seg.node_ids, seg.paired_node_ids)
+                ):
+                    cols = " ".join(f"{x:.3f}" for x in seg.barrier_data[j])
+                    out.write(
+                        f"{int(nid) + 1} {int(pid) + 1} {cols}\n"
+                    )
     finally:
         if close:
             out.close()

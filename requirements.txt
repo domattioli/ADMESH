@@ -1,6 +1,18 @@
 # Runtime dependencies for the ADMESH Python port (CPU-only; no CUDA/GPU).
+#
+# These are the minimum packages required to `import admesh` and run the
+# triangulator end-to-end (the spec-002 default size-field stack + the
+# spec-001 fort.14 reader/writer). Versions mirror pyproject.toml's
+# [project.dependencies]; install with `pip install -r requirements.txt`
+# or, equivalently, `pip install admesh2D`.
+#
+# Optional extras (NOT installed by this file):
+#   - admesh2D[viz]  → matplotlib (Mesh.plot, the viz module)
+#   - admesh2D[dev]  → pytest, pytest-cov, ruff, mypy
+#
+# To install dev tooling on top of runtime, use requirements-dev.txt.
+
 numpy>=1.24
 scipy>=1.11
 numba>=0.58
 shapely>=2.0
-matplotlib>=3.7
