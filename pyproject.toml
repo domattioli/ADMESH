@@ -5,12 +5,17 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "admesh2D"
 version = "0.0.2"
-description = "Python port of the ADMESH library for 2D unstructured mesh generation."
+description = "ADMESH: an advanced, automatic unstructured mesh generator for 2D shallow-water models."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [
+    { name = "Colton J. Conroy" },
+    { name = "Ethan J. Kubatko" },
+    { name = "Dustin W. West" },
+]
+maintainers = [
     { name = "Dominik Mattioli" },
 ]
 dependencies = [
@@ -30,7 +35,7 @@ dev = [
 
 [project.urls]
 Source = "https://github.com/domattioli/ADMESH"
-"MATLAB reference" = "https://github.com/domattioli/QuADMesh-MATLAB"
+Paper = "https://doi.org/10.1007/s10236-012-0574-0"
 
 [tool.setuptools.packages.find]
 include = ["admesh*"]

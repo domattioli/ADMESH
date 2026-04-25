@@ -1,25 +1,42 @@
 <h1 align="center">ADMESH</h1>
 
 <p align="center">
-  Python port of the ADMESH library — an advancing-front / distance-driven
-  unstructured mesh generator for 2D shallow-water (ADCIRC-style) domains.
+  An advanced, automatic unstructured mesh generator for 2D
+  shallow-water models.
 </p>
 
 <p align="center">
-  <strong><a href="https://scholar.google.com/citations?user=IBFSkOcAAAAJ&hl=en">Dominik Mattioli</a><sup>1†</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan Kubatko</a><sup>2</sup></strong><br>
-  <sup>†</sup>Corresponding author<br>
-  <sup>1</sup>Penn State University &nbsp;·&nbsp; <sup>2</sup>Computational Hydrodynamics and Informatics Lab (CHIL), The Ohio State University
+  <strong>Colton J. Conroy<sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
+  <sup>1</sup>Computational Hydrodynamics and Informatics Lab (CHIL), The Ohio State University<br>
+  <em>Ocean Dynamics</em> 62, 1503–1517 (2012) · <a href="https://doi.org/10.1007/s10236-012-0574-0">doi:10.1007/s10236-012-0574-0</a>
+</p>
+
+<p align="center">
+  Python implementation maintained by <a href="https://scholar.google.com/citations?user=IBFSkOcAAAAJ&hl=en">Dominik Mattioli</a> (Penn State University).
+</p>
+
+<p align="center">
+  <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea — initial Delaunay triangulation (left) and final force-equilibrated mesh (right), with colors indicating bathymetric depth." width="100%">
+</p>
+<p align="center">
+  <em>Fig. 8 from Conroy et al. (2012): a mesh of the Western North Atlantic,
+  Gulf of Mexico, and Caribbean Sea created using ADMESH — initial Delaunay
+  triangulation (left) and the final mesh obtained from force equilibrium
+  (right). Colors indicate bathymetric depth.</em>
 </p>
 
 ---
 
 ## About
 
-ADMESH is a faithful Python port of the MATLAB `01_ADMESH_Library`
-module from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB)
-(pinned source commit: `19b2eb9`).
+ADMESH produces a high-quality 2D unstructured mesh from a minimal set of
+inputs — target minimum and maximum element sizes, plus points defining
+the domain boundary and (optionally) bathymetry/topography. The size
+field is composed from local feature scale (curvature, medial axis) and
+physics-aware controls (bathymetric gradient, dominant tidal
+wavelength), then passed to a DistMesh-style force-balance triangulator.
 
-The port preserves the original 13-stage pipeline:
+The implementation follows the original 13-stage pipeline:
 
 1. `routine` — top-level ADMESH driver
 2. `background_grid` — structured background grid over the domain
@@ -233,12 +250,19 @@ Regenerate: `PYTHONPATH=. python scripts/render_p1p3_demos.py`.
 
 ## Install
 
+> ⚠ The PyPI release is not live yet. Until v1 ships, install from
+> source. The `pip install admesh2D` form below is the target
+> install path once the v1 wheel is published.
+
 ```bash
+# From source (current):
+git clone https://github.com/domattioli/ADMESH.git
+cd ADMESH
+pip install -e ".[dev]"
+
+# From PyPI (target — once v1 is published):
 pip install admesh2D                 # core library
 pip install admesh2D[viz]            # adds matplotlib for mesh.plot()
-
-# Or, for development:
-pip install -e ".[dev]"
 ```
 
 Requires Python ≥ 3.10, NumPy, SciPy, Numba, and Shapely.
@@ -248,7 +272,25 @@ matplotlib is an optional extra used only by `mesh.plot()`.
 
 Apache 2.0 — see `LICENSE`.
 
+## Citation
+
+If you use ADMESH in academic work, please cite:
+
+> Conroy, C.J., Kubatko, E.J., West, D.W. (2012). ADMESH: an advanced,
+> automatic unstructured mesh generator for shallow water models.
+> *Ocean Dynamics* 62, 1503–1517. <https://doi.org/10.1007/s10236-012-0574-0>
+
+A copy of the paper is included in this repository:
+[`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+
+## Contact
+
+- **Theory / methodology** (mesh generation algorithm, size-field
+  formulation, ADCIRC integration): Ethan J. Kubatko —
+  [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu)
+- **Python implementation / code maintenance** (this repository): Dominik
+  Mattioli — [github.com/domattioli](https://github.com/domattioli)
+
 ## Related work
 
-- Original MATLAB implementation: [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB)
 - DistMesh (Persson & Strang, 2004): <http://persson.berkeley.edu/distmesh/>
