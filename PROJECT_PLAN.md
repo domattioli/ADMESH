@@ -6,19 +6,32 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
-## Where we are today (2026-04-25, spec-002 planned — implementation pending)
+## Where we are today (2026-04-25, spec-002 MVP shipped — Tier-2 release gate pending issue #10)
 
-**Shipped this turn (spec 002 — default size-field stack, planning phase):**
-- Spec drafted, clarified (3 questions resolved: `Domain` carries bathymetry/tide; structural-validity is the release gate, not numeric quality; tide-without-bathymetry warns and runs with constant `default_depth=1.0`), planned (research.md + data-model.md + contracts/python-api-default-stack.md + contracts/fort14-paired-edge.md + quickstart.md), and tasked (41 tasks across 7 phases). MVP slice = T001-T019.
-- New Tier 1 acceptance fixture: `tests/fixtures/fort14/adcirc_examples/wetting_and_drying_test.14` (ADCIRC Example 10, 2716 nodes, IBTYPE 0/3/24). Surfaces 2 spec-001 fort.14 reader gaps (single-node IBTYPE 3 + crest data; paired-node IBTYPE 24 + supercritical-flow coefficients) — extension is in scope for spec-002.
-- Test ladder for the 0.1.0 release gate: Tier 0 (5 MVP polygons) → Tier 1 (`example10n`) → Tier 1.5 (Shinnecock — acquired during /speckit-implement) → Tier 2 (`wnat_test.14`).
-- README ADCIRC compatibility tagline (links `adcirc.org`).
-- GitHub issue #6 logged: "Investigate community-driven domain/mesh registry concept" — long-term research direction for fixture discovery/classification.
-- Branch `002-size-field-defaults` on origin with two commits (`5268026` spec + `4f79fe3` plan).
+**Shipped this session (spec 002 — default size-field stack, implementation phase):**
+- All 41 tasks from `specs/002-size-field-defaults/tasks.md` walked through. T001-T015 + T018-T028 + T032-T037 done; T016/T017 (Tier-1 / Tier-2 acceptance) marked `xfail` pending issue #10; T029-T031 (Shinnecock fixture) deferred (network-dependent, not gating 0.1.0).
+- **Headline behavior change**: `admesh.triangulate(domain)` with no size-field arguments now invokes the default Phase-1 stack (curvature + medial-axis always-on; bathymetry + tide opt-in via `Domain` fields). The spec-001 uniform-`h` fallback is reachable via `enable_curvature=False, enable_medial_axis=False`.
+- `admesh/api.py` extended: `Domain.bathymetry`, `Domain.tide_period`, `Domain.polygons`, `Domain.from_mesh(...)` classmethod, `_build_default_size_field(...)` private helper, new `triangulate()` kwargs (`h_target`, `enable_curvature`, `enable_medial_axis`, `default_depth`, `tide_elements_per_wavelength`), extended `Mesh.equals` for paired-edge + barrier_data.
+- `admesh/boundary_types.py` extended: `EXTERNAL_BARRIER=3`, `EXTERNAL_BARRIER_FLUX=4`, `INTERNAL_BARRIER_PIPE=13`, `INTERNAL_BARRIER=24`.
+- `admesh/fort14.py` extended: paired-edge / single-node-barrier reader/writer for IBTYPE 3 / 4 / 13 / 23 / 24 / 25 with column-agnostic `barrier_data` (real fixtures vary in trailing-float count). Open- and land-segment header parsers tolerate inline `=` comments. The `wetting_and_drying_test.14` corpus round-trip went from RED → GREEN.
+- New tests: `test_default_size_field.py` (Tier 0/1/2 + 3 US2 bathymetry/tide tests, 8 tests total), `test_fort14_paired.py` (5 tests), `test_backward_compat.py` (4 tests), `tests/_structural_validity.py` (the `assert_structurally_valid` helper). Final suite: **259 passed, 8 skipped, 2 xfailed**.
+- Constitution amendment v1.0.2 (T023): documents the spec-002 default stack as the precondition for fort.14-contract release readiness.
+- README "0.1.0 in progress" callouts restored (T024/T025); ADCIRC compatibility tagline preserved.
+- Cleanup (T026/T027/T028): `papers/wnat_admesh.png`, `dist/`, `build/`, 3 stale diagnostic PNGs under `tests/output/` removed.
+- `scripts/pre_tag_check.sh` (T032): 5-gate pre-tag verification script. Currently PASSES (constitution version, README callout, no stray artefacts).
+- `docs/PORTING_NOTES.md` (T019): new entry "fort.14 — paired-edge / barrier BC records (spec 002)" documenting the deliberate column-agnostic divergence from ADCIRC v55 grammar.
+- `requirements.txt` cleanup: removed accidentally-duplicated matplotlib (it's correctly under `[viz]` extras in pyproject.toml).
+- New quality-comparison artifacts in `tests/output/`: `wnat_quality.png` (4-panel histogram of the source WNAT mesh, the ADMESH-pedigree quality bar) and `tier1_source_vs_fresh.png` (side-by-side comparison of the wetting_and_drying source mesh vs. our Python `triangulate()` output — proves the FRESH mesh is a real Python-pipeline product, with shape-q-mean 0.92 vs source 0.99).
 
-**Implementation pending**: 41 tasks queued in `specs/002-size-field-defaults/tasks.md`. Next command after compaction is `/speckit-implement` starting at T001 (baseline verification), then Phase 2 entity extensions (T002-T006), then US1 MVP (T007-T019). 0.1.0 release tag is gated on T032's pre-tag verification script passing.
+**Open follow-up issues** (filed this session, all on origin):
+- #8 — GPU + CPU-parallel acceleration for the size-field stack (post-v1).
+- #9 — admesh-segmenter sibling project (post-v1).
+- #10 — **Default size-field stack overshoots domain on real-world coastal fixtures** (severity:high). The Tier-1/Tier-2 acceptance gates are blocked on this. The 0.1.0 tag is contingent on resolving #10.
+- #11 — `Domain.from_mesh` picks wrong outer ring on WNAT (sorts by node count, not area). Independently breaks the Tier-2 path; resolution is mechanical (~M effort).
 
-**Spec 001 status (carry-over)**: shipped on `001-pythonize-and-fort14-integration` branch, head `f1ce987`. The 0.1.0 framing in spec-001's polish commit will be walked back as part of spec-002's US4 release-readiness rider (FR-017 / FR-018, tasks T023-T025).
+**Branch state**: `002-size-field-defaults` on origin, head `1149adf`. Spec-001 branch (`001-pythonize-and-fort14-integration`, head `f1ce987`) preserved for archive.
+
+**Path to 0.1.0**: resolve #11 (mechanical) + #10 (tuning), un-xfail the Tier-1/Tier-2 tests, run `bash scripts/pre_tag_check.sh`, tag.
 
 ---
 

@@ -149,11 +149,14 @@ Single-package Python library, flat layout under `admesh/`. Tests live under `te
 
 **Purpose**: Final integration, documentation, and the "ship it" checklist.
 
-- [ ] T037 [P] Run `pytest tests/ -q` and confirm all tests pass: 142 spec-001 tests + new spec-002 test modules (`test_default_size_field.py`, `test_fort14_paired.py`, `test_backward_compat.py`); zero tolerance for new failures
-- [ ] T038 [P] Update `PROJECT_PLAN.md` "Where we are today" section: note spec-002 shipped, default size-field stack is the headline behaviour, 0.1.0 tag is unblocked
-- [ ] T039 [P] Update `CLAUDE.md` SPECKIT marker block to reflect "spec 002 shipped" status (still leave spec-002 as the "active" feature reference until the next spec opens)
+- [X] T037 [P] Run `pytest tests/ -q` and confirm all tests pass: 142 spec-001 tests + new spec-002 test modules (`test_default_size_field.py`, `test_fort14_paired.py`, `test_backward_compat.py`); zero tolerance for new failures
+  - **Result**: 259 passed, 8 skipped (env-deps), 2 xfailed (Tier-1 + Tier-2 — issue #10).
+- [X] T038 [P] Update `PROJECT_PLAN.md` "Where we are today" section: note spec-002 shipped, default size-field stack is the headline behaviour, 0.1.0 tag is unblocked
+  - **Note**: 0.1.0 tag is NOT yet unblocked — gated on issues #10 + #11.
+- [X] T039 [P] Update `CLAUDE.md` SPECKIT marker block to reflect "spec 002 shipped" status (still leave spec-002 as the "active" feature reference until the next spec opens)
 - [ ] T040 Run `quickstart.md` validation manually: execute each Tier 0 → Tier 2 example and confirm the printed output is consistent with the documented expectations; capture any discrepancies as follow-up issues
-- [ ] T041 Final commit + push to `origin/002-size-field-defaults`; reference each completed FR in the commit body for traceability; do NOT tag 0.1.0 in this commit (that's a separate explicit step gated on T032's verification script)
+  - **Status**: deferred — Tier 1 / Tier 2 quickstart examples are gated on issues #10 / #11. The Tier 0 examples have parametrized regression coverage in `tests/test_default_size_field.py::test_tier0_default_stack_structural_validity[*]`. Manual quickstart.md replay across all tiers belongs in the issue-#10 closeout.
+- [X] T041 Final commit + push to `origin/002-size-field-defaults`; reference each completed FR in the commit body for traceability; do NOT tag 0.1.0 in this commit (that's a separate explicit step gated on T032's verification script)
 
 ---
 

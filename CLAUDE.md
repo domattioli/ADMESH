@@ -181,11 +181,15 @@ this is a port, not a research project. Keep it simple.
 
 <!-- SPECKIT START -->
 Active spec-kit feature: `002-size-field-defaults` (branch
-`002-size-field-defaults`). Wires the existing MATLAB-faithful
-size-field stack as the default Phase-1 in `admesh.triangulate()` and
-extends fort.14 I/O for paired-edge BC records (IBTYPE 3 / 4 / 13 /
-24). Release-blocker for 0.1.0; bundles repo cleanup + constitution
-walkback rider.
+`002-size-field-defaults`). **MVP slice shipped** (T001-T015 +
+T018-T028 + T032-T037, 252 → 259 tests passing). Default Phase-1
+stack wired into `admesh.triangulate()`; fort.14 I/O extended for
+paired-edge BC records (IBTYPE 3 / 4 / 13 / 24); constitution walked
+back to v1.0.2; pre-tag verification script in place. Tier-1 / Tier-2
+acceptance tests are `xfail` pending issue #10 (default-stack
+overshoot on real-world coastal fixtures) and issue #11
+(Domain.from_mesh outer-ring picker). 0.1.0 tag is gated on those
+two.
 
 For technical context, the API extensions (`Domain.bathymetry`,
 `Domain.tide_period`, `Domain.from_mesh`, the new `BoundaryType`
@@ -204,7 +208,15 @@ branch and remains the foundation; its plan/data-model/contracts are
 still authoritative for the spec-001 surface. Constitution Principle I
 still applies: the 13 faithful-port stage modules in `admesh/*.py`
 MUST stay numerically identical. Spec-002 changes live in `api.py`,
-`fort14.py`, `boundary_types.py` (extending), and a new pair of test
-modules (`tests/test_default_size_field.py`,
-`tests/test_fort14_paired.py`); all strictly additive.
+`fort14.py`, `boundary_types.py` (extending), `_structural_validity.py`
+(test helper), and three new test modules
+(`tests/test_default_size_field.py`, `tests/test_fort14_paired.py`,
+`tests/test_backward_compat.py`); all strictly additive.
+
+**Open follow-up issues** (`gh issue list --repo domattioli/ADMESH`):
+- #6 — domain/mesh registry concept (low, post-v1)
+- #8 — GPU + CPU-parallel acceleration (low, post-v1)
+- #9 — admesh-segmenter sibling project (low, post-v1)
+- #10 — default-stack domain overshoot on real-world coastal fixtures (high; release-blocker for 0.1.0)
+- #11 — Domain.from_mesh outer-ring picker (high; mechanical fix)
 <!-- SPECKIT END -->
