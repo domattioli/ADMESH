@@ -2,7 +2,9 @@
 
 <p align="center">
   An advanced, automatic unstructured mesh generator for 2D
-  shallow-water models.
+  shallow-water models. Built for
+  <a href="https://adcirc.org/">ADCIRC</a> compatibility — meshes
+  round-trip natively as <code>fort.14</code>.
 </p>
 
 <p align="center">
