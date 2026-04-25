@@ -137,13 +137,20 @@ def demo_annulus_pts():
 
 
 def demo_notched_rect_medial():
-    """Before: uniform. After: medial-axis LFS refinement at the pinch."""
+    """Before: uniform. After: curvature + medial-axis composition.
+
+    Mirrors MATLAB ``ADmeshRoutine.m`` lines 168 + 178 — CurvatureFunction
+    then MedialAxisFunction, each ``min``-stacked onto h0. Curvature
+    captures the convex/re-entrant corner singularities at the notch
+    that medial-LFS alone misses (the AOF-detected medial axis doesn't
+    extend into the wedge sectors directly under the notch corners).
+    """
     dom = domains.NOTCHED_RECTANGLE
     # Before at the same h0 for apples-to-apples comparison.
     p0, t0 = triangulate(dom, h0=0.04, niter=200, seed=0)
     m_before = _metrics(p0, t0)
 
-    fh = build_h(dom, base=0.12, medial_scale=0.04, grid_delta=0.02)
+    fh = build_h(dom, base=0.12, curvature_scale=0.04, medial_scale=0.04, grid_delta=0.02)
     p1, t1 = triangulate(dom, h0=0.04, fh=fh, niter=250, seed=0)
     m_after = _metrics(p1, t1)
 
@@ -151,8 +158,8 @@ def demo_notched_rect_medial():
     _draw(axes[0], p0, t0,
           title=f"Before — uniform h0=0.04  N={m_before['N']} mean_q={m_before['mean_q']:.3f}")
     _draw(axes[1], p1, t1,
-          title=f"After — medial LFS  N={m_after['N']} mean_q={m_after['mean_q']:.3f}")
-    fig.suptitle("notched_rectangle: medial-axis LFS refinement (fine at pinch, coarser elsewhere)", fontsize=11)
+          title=f"After — curvature + medial LFS  N={m_after['N']} mean_q={m_after['mean_q']:.3f}")
+    fig.suptitle("notched_rectangle: curvature + medial-axis composition (MATLAB K + R stages)", fontsize=11)
     fig.tight_layout()
     fig.savefig(OUTDIR / "demo_notched_rectangle_medial.png", dpi=120)
     plt.close(fig)
