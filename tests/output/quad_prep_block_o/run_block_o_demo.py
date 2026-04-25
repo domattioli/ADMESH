@@ -332,6 +332,34 @@ def main() -> None:
     plt.close(fig)
     print(f"  wrote {out_hist}")
 
+    # Layer/skeletonization plots (onion-peel BFS from boundary)
+    print("Rendering mesh layers (skeletonization) for input/smoothed/retriangulated")
+    fig, axes = plt.subplots(1, 3, figsize=(20, 9))
+
+    # Create minimal Mesh objects for layer plotting
+    input_mesh = admesh.Mesh(nodes=p_in, elements=t, boundaries=[])
+    smoothed_mesh = admesh.Mesh(nodes=p_out, elements=t, boundaries=[])
+    retri_mesh = admesh.Mesh(nodes=p_out, elements=t_re, boundaries=[])
+
+    input_mesh.plot_layers(ax=axes[0], cmap="viridis")
+    axes[0].set_title(f"Input mesh layers\n({len(t)} elements)", fontsize=11)
+
+    smoothed_mesh.plot_layers(ax=axes[1], cmap="viridis")
+    axes[1].set_title(f"Smoothed mesh layers\n({len(t)} elements, same connectivity)", fontsize=11)
+
+    retri_mesh.plot_layers(ax=axes[2], cmap="viridis")
+    axes[2].set_title(f"Retriangulated mesh layers\n({len(t_re)} elements)", fontsize=11)
+
+    fig.suptitle(
+        "Block_O.14 — Mesh layers (skeletonization via onion-peel BFS from boundary)",
+        fontsize=12,
+    )
+    fig.tight_layout()
+    out_layers = OUT_DIR / "block_o_layers.png"
+    fig.savefig(out_layers, dpi=150)
+    plt.close(fig)
+    print(f"  wrote {out_layers}")
+
     print("Done.")
 
 
