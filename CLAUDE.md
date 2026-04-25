@@ -176,7 +176,8 @@ this is a port, not a research project. Keep it simple.
 | Path | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
-| `/workspace/MADMESHR` | Mixed-element extension of ADMESH (tri/quad/mixed). Long-term positioning undecided: may deprecate ADMESH or remain a sibling that consumes its tri output. Faithful-port boundary still applies — MADMESHR concepts must not bleed into the 13 locked stage modules in `admesh/*.py`. |
+| `/workspace/MADMESHR` | RL-based **mesh generator** for tri/quad/mixed 2D meshes (advancing-front, Soft Actor-Critic). MVP/PoC, not on PyPI. Long-term positioning vs ADMESH undecided: may deprecate ADMESH or remain a sibling. Faithful-port boundary still applies — MADMESHR concepts must not bleed into the 13 locked stage modules in `admesh/*.py`. |
+| [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap an ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
 | `/workspace/ADMESH` | This repo |
 
 <!-- SPECKIT START -->
