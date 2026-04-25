@@ -27,6 +27,8 @@ from admesh.boundary import (
 from admesh.curvature import apply_curvature
 from admesh.distmesh import (
     _boundary_cleanup,
+    _boundary_density_control,
+    _constraint_density_control,
     _initial_point_list_from_pts,
     _project_back_to_boundary,
 )
@@ -145,6 +147,111 @@ def test_project_back_leaves_deep_interior_points_alone():
     deps = 1e-8
     out = _project_back_to_boundary(p, fd, geps, deps=deps)
     np.testing.assert_allclose(out, p, atol=1e-12)
+
+
+# ---------------------------------------------------------------------------
+# BoundaryDensityControl / ConstraintDensityControl — hand-derived cases
+# ---------------------------------------------------------------------------
+
+
+def test_boundary_density_control_drops_apex_of_attached_sliver():
+    """A sliver whose free edge lies on the mesh perimeter, with its
+    two other edges shared with good interior triangles, should lose
+    only its apex vertex.
+
+    Mesh: small 3-tri patch around a near-boundary interior apex (3):
+      - tri_body_1 = (0, 3, 2), tri_body_2 = (1, 3, 2): interior
+      - tri_sliver = (0, 1, 3): base (0,1) on the perimeter, apex at 3
+    With 3 placed very close to (0,1), tri_sliver has q ≪ 0.2 while
+    the bodies have q > 0.2. MATLAB's ``iNode`` for the sliver's free
+    edge (0,1) = 3. The interior-body free edges (0,2) and (1,2) also
+    point to 3, but those triangles are good-quality and don't mark.
+    """
+    p = np.array([
+        [0.0, 0.0],   # 0
+        [1.0, 0.0],   # 1
+        [0.5, 1.0],   # 2
+        [0.5, 0.05],  # 3 — apex close to edge (0,1) → sliver
+    ])
+    t = np.array(
+        [
+            [0, 3, 2],  # body 1 (good)
+            [1, 3, 2],  # body 2 (good)
+            [0, 1, 3],  # sliver (q ≈ 0.016)
+        ],
+        dtype=np.int64,
+    )
+    out = _boundary_density_control(p, t, C=None, nC=0)
+    assert len(out) == 3
+    # Vertices 0, 1, 2 preserved (in order); 3 removed.
+    np.testing.assert_allclose(out, p[:3])
+
+
+def test_boundary_density_control_keeps_fixed_apex():
+    """When the bad sliver's apex is a fixed point (index < nC), the
+    removal must be skipped even though MATLAB would otherwise target
+    it. Mirrors ``setdiff(badQ, 1:nC)`` at MATLAB line 60.
+    """
+    # Same geometry as above but with the apex as the FIRST (fixed) point.
+    p = np.array([
+        [0.5, 0.05],  # 0 — fixed apex
+        [0.0, 0.0],   # 1
+        [1.0, 0.0],   # 2
+        [0.5, 1.0],   # 3
+    ])
+    t = np.array(
+        [
+            [1, 0, 3],  # body 1
+            [2, 0, 3],  # body 2
+            [1, 2, 0],  # sliver (apex = 0 is fixed)
+        ],
+        dtype=np.int64,
+    )
+    out = _boundary_density_control(p, t, C=None, nC=1)
+    assert len(out) == 4
+
+
+def test_boundary_density_control_keeps_good_quality_triangles():
+    """When no boundary triangle has q < 0.2, nothing is removed."""
+    # Equilateral-ish pair sharing one edge; all qs are near 1.
+    p = np.array([
+        [0.0, 0.0],
+        [1.0, 0.0],
+        [0.5, np.sqrt(3) / 2.0],
+        [0.5, -np.sqrt(3) / 2.0],
+    ])
+    t = np.array([[0, 1, 2], [0, 1, 3]], dtype=np.int64)
+    out = _boundary_density_control(p, t, C=None, nC=0)
+    assert len(out) == 4
+
+
+def test_constraint_density_control_noop_when_C_empty():
+    p = np.array([[0.0, 0.0], [1.0, 1.0], [0.5, 0.5]])
+    fh = lambda q: np.full(len(q), 0.1)  # noqa: E731
+    out = _constraint_density_control(p, nC=0, C=None, fh=fh)
+    np.testing.assert_allclose(out, p)
+    out2 = _constraint_density_control(p, nC=0, C=np.empty((0, 2), dtype=np.int64), fh=fh)
+    np.testing.assert_allclose(out2, p)
+
+
+def test_constraint_density_control_removes_points_in_strip():
+    """Constraint segment from (0,0)→(1,0); fh=0.8 ⇒ half-width ≈ 0.173.
+    A point at (0.5, 0.1) lies inside the strip; (0.5, 0.5) does not.
+    Segment endpoints are fixed (nC=2) so they survive regardless.
+    """
+    p = np.array([
+        [0.0, 0.0],  # 0 — fixed endpoint of C
+        [1.0, 0.0],  # 1 — fixed endpoint of C
+        [0.5, 0.1],  # 2 — inside strip (expected to be removed)
+        [0.5, 0.5],  # 3 — outside strip (keep)
+    ])
+    C = np.array([[0, 1]], dtype=np.int64)
+    fh = lambda q: np.full(len(q), 0.8)  # noqa: E731
+    # Half-width = 0.8 * sqrt(3)/8 ≈ 0.173, so 0.1 is inside, 0.5 is outside.
+    out = _constraint_density_control(p, nC=2, C=C, fh=fh)
+    assert len(out) == 3
+    # Rows 0,1,3 should remain.
+    np.testing.assert_allclose(out, p[[0, 1, 3]])
 
 
 # ---------------------------------------------------------------------------

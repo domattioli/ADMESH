@@ -17,6 +17,16 @@ Template:
 
 ---
 
+## 2026-04-24 — distmesh — late-run density-control branch (`BoundaryDensityControl` + `ConstraintDensityControl`)
+
+**MATLAB**: `01_ADMESH_Library/10_Distmesh_2d/{BoundaryDensityControl,ConstraintDensityControl}.m`, invoked at `distmesh2d.m:183-195` on the `mod(k,75)==0 && k > niter/2` branch.
+**Python**: `admesh.distmesh._boundary_density_control`, `admesh.distmesh._constraint_density_control`; wired into `distmesh2d_admesh`'s density-control block.
+**Substitution**: Retires the deferred-port TODO comment previously left in `distmesh2d_admesh`. `BoundaryDensityControl` drops the interior (off-free-edge) vertex of any free-boundary-attached triangle with `q = (b+c-a)(c+a-b)(a+b-c)/(abc) < 0.2`, excluding fixed (`<nC`) and constraint (`C`) nodes. `ConstraintDensityControl` drops non-fixed points inside a `sqrt(3)/8·fh(midpoint)` rectangular strip straddling each constraint segment; no-op when `C` is empty (our current PTS path).
+**Behavior diff**: None intentional vs. MATLAB. The mid-run thinning now fires every 75 iters past `niter/2`, so `h0 = min(fh)`-style runs shed redundant interior nodes that the initial lattice + rejection over-populated. Renderer pass confirms: `unit_disk` after-medial demo drops 1452 → 419 nodes (quality `mean_q = 0.957`), `annulus` PTS demo 1907 → 772 (`mean_q = 0.962`). `notched_rectangle` stays at 3426 because its K+R-driven boundary triangles all have `q > 0.2` — density control correctly finds no bad triangles; count is genuinely fh-driven.
+**Impact**: +5 port-correctness tests in `tests/test_matlab_port.py`. No regression on existing 137 tests. MVP quality gates hold on all demos.
+
+---
+
 ## 2026-04-24 — boundary — **faithful port** of MATLAB `EnforceBoundaryConditions.m`
 
 **MATLAB**: `01_ADMESH_Library/08_Enforce_Boundary_Conditions/
