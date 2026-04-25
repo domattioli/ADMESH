@@ -13,6 +13,7 @@
 - Q: How are mesh IDs assigned (uniqueness rule)? → A: Composite slug `<namespace>/<name>@<version>` + content-hash (SHA-256) as a side-field for byte-equality dedup detection
 - Q: Mesh file hosting model (catalog-only vs mirror)? → A: Hybrid — HuggingFace mirror for redistributable licenses (public-domain, MIT, CC-BY, CC-BY-SA, CC0); link-only for proprietary or unknown licenses. Per-entry `mirror_eligible` flag is derived from `license`
 - Q: Scale & query performance targets? → A: ~10K entries at maturity; sub-second query latency for typical filter combinations; single TOML manifest until ~5K entries, then shard by namespace
+- Q: Mesh removal / license retraction handling? → A: Tombstone — entry retained with `review_state=deprecated`, file removed from HuggingFace mirror, metadata + `deprecation_reason` preserved; hidden from default queries unless `include_deprecated=True`
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -97,7 +98,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 ### Edge Cases
 
-- What happens when a mesh has been deleted or removed from a source? How is its record handled in the registry (tombstone vs. hard delete)?
+- What happens when a mesh has been deleted or removed from a source? Resolved (FR-015): tombstoned with `review_state=deprecated`, file removed from mirror, metadata + reason preserved; hidden from default queries.
 - How does the system handle duplicate mesh entries pointing to the same content hash (deduplication)?
 - What if a mesh's source URL becomes unavailable — is the mesh still discoverable and how does the system signal unavailability?
 - How are mesh files versioned if the same mesh is updated in-place at its source URL?
@@ -135,9 +136,11 @@ Downstream users need clear license information to know if they can use, modify,
 
 - **FR-014**: System MUST return query results (any combination of bbox, features, max_size, license filters) in under 1 second for the full ~10K-entry catalog when run from the Python package against a locally cached manifest.
 
+- **FR-015**: System MUST handle mesh removal and license retraction via tombstoning, NOT hard delete. When a mesh is removed or its license is retracted, its entry is retained with `review_state=deprecated`, `deprecation_reason` (free-text), and `deprecated_date` (ISO-8601). Its file is removed from the HuggingFace mirror at the next release. Tombstoned entries are excluded from default query results but remain resolvable by ID for lineage integrity (descendants' `derived_from` pointers continue to resolve). A query parameter `include_deprecated=True` opts back into surfacing tombstones.
+
 ### Key Entities
 
-- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, mirror_eligible (boolean derived from license: true for public-domain/MIT/CC-BY/CC-BY-SA/CC0; false for proprietary/unknown), bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug), provenance_history (list of operations).
+- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, mirror_eligible (boolean derived from license: true for public-domain/MIT/CC-BY/CC-BY-SA/CC0; false for proprietary/unknown), bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), deprecation_reason (free-text, required when review_state=deprecated), deprecated_date (ISO-8601, set when transitioning to deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug; tombstoned parents still resolve), provenance_history (list of operations).
 
 - **MeshFeature**: Represents a physical or geographic characteristic of a mesh. Examples: "levee", "breakwater", "open_ocean", "inlet", "estuary", "tidal_flat", "barrier_island". Attributes: name, description.
 
