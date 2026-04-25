@@ -5,6 +5,12 @@
 **Status**: Draft  
 **Input**: Federated mesh registry for coastal-simulation meshes (ADCIRC)
 
+## Clarifications
+
+### Session 2026-04-25
+
+- Q: Manifest format (TOML vs JSON vs YAML vs dual-format)? → A: TOML
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Discover Meshes by Geographic Region and Features (Priority: P1)
@@ -98,7 +104,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 ### Functional Requirements
 
-- **FR-001**: System MUST maintain a structured manifest (TOML/JSON/YAML, format TBD) with one entry per mesh containing: name, source URL, content hash (SHA-256 or similar), license, geographic bounding box (min_lon, min_lat, max_lon, max_lat), number of triangles, physical features list, derived-from pointer (optional), contributor name/email, and review state (draft/approved/deprecated).
+- **FR-001**: System MUST maintain a structured manifest in **TOML** format with one entry per mesh (e.g., `[[meshes]]` array-of-tables blocks) containing: name, source URL, content hash (SHA-256 or similar), license, geographic bounding box (min_lon, min_lat, max_lon, max_lat), number of triangles, physical features list, derived-from pointer (optional), contributor name/email, and review state (draft/approved/deprecated).
 
 - **FR-002**: System MUST support a GitHub repository as the source of truth, accepting new mesh entries via pull requests against the manifest file.
 
