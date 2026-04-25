@@ -39,13 +39,29 @@ class BoundaryType(IntEnum):
     WALL
         Alias for ``MAINLAND`` (same int value). Retained because the
         faithful-port surface uses the name ``WALL`` for ADCIRC code 1.
+    EXTERNAL_BARRIER
+        ADCIRC code 3 — external weir / barrier with crest elevation
+        and sub/super-critical weir coefficients (single-node record;
+        spec 002).
+    EXTERNAL_BARRIER_FLUX
+        ADCIRC code 4 — external paired-edge barrier with crest +
+        coefficients (paired-node record; spec 002).
+    INTERNAL_BARRIER_PIPE
+        ADCIRC code 13 — internal barrier with pipe / culvert
+        coefficients (single-node record; spec 002).
+    INTERNAL_BARRIER
+        ADCIRC code 24 — internal barrier with paired-node + crest +
+        super-critical flow coefficients (paired-node record; spec 002).
 
     Notes
     -----
     Codes outside this set are preserved on round-trip as plain
     ``int`` values in ``BoundarySegment.bc_type``. Use
     ``isinstance(bc, BoundaryType)`` to discriminate the named-vs-numeric
-    case.
+    case. Paired-edge / barrier records carry extra columns in
+    :attr:`BoundarySegment.barrier_data` and
+    :attr:`BoundarySegment.paired_node_ids` per
+    ``specs/002-size-field-defaults/contracts/fort14-paired-edge.md``.
     """
 
     OPEN = 0
@@ -53,3 +69,8 @@ class BoundaryType(IntEnum):
     ISLAND = 11
     MAINLAND_FLUX = 20
     WALL = 1
+    # Spec 002 — paired-edge / barrier IBTYPEs.
+    EXTERNAL_BARRIER = 3
+    EXTERNAL_BARRIER_FLUX = 4
+    INTERNAL_BARRIER_PIPE = 13
+    INTERNAL_BARRIER = 24
