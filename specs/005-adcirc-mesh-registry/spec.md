@@ -11,6 +11,7 @@
 
 - Q: Manifest format (TOML vs JSON vs YAML vs dual-format)? → A: TOML
 - Q: How are mesh IDs assigned (uniqueness rule)? → A: Composite slug `<namespace>/<name>@<version>` + content-hash (SHA-256) as a side-field for byte-equality dedup detection
+- Q: Mesh file hosting model (catalog-only vs mirror)? → A: Hybrid — HuggingFace mirror for redistributable licenses (public-domain, MIT, CC-BY, CC-BY-SA, CC0); link-only for proprietary or unknown licenses. Per-entry `mirror_eligible` flag is derived from `license`
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -117,7 +118,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 - **FR-006**: System MUST track and expose provenance: for each derived mesh, store its parent mesh ID and a list of operations applied (operation_type: string, parameters: dict, timestamp: ISO-8601).
 
-- **FR-007**: System MUST publish the manifest and mesh files to HuggingFace Datasets on each GitHub release, generating a dataset card with search metadata, citation information, and download counts.
+- **FR-007**: System MUST publish the manifest and a subset of mesh files to HuggingFace Datasets on each GitHub release, generating a dataset card with search metadata, citation information, and download counts. The published file subset is determined by per-entry `mirror_eligible` (derived from license): meshes under public-domain, MIT, CC-BY, CC-BY-SA, or CC0 are mirrored; meshes under proprietary or unknown licenses are catalogued by metadata only with a link to `source_url` (no file copy).
 
 - **FR-008**: System MUST provide a Python package (thin loader) exposing an API: `registry.find(bbox=..., features=..., max_size=..., license=...) -> List[Mesh]`, where Mesh objects include metadata and a method to load the mesh file locally.
 
@@ -131,7 +132,7 @@ Downstream users need clear license information to know if they can use, modify,
 
 ### Key Entities
 
-- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug), provenance_history (list of operations).
+- **Mesh**: Represents a single coastal-simulation mesh. Attributes: id (composite slug `<namespace>/<name>@<version>`, e.g., `noaa/hsofs@v2021`; namespace is the contributing org/user, name is a slug, version is a free-form revision tag), name, source_url, content_hash (SHA-256 of the canonical mesh file, used as side-field for byte-equality dedup detection — not the primary key), num_triangles, license, mirror_eligible (boolean derived from license: true for public-domain/MIT/CC-BY/CC-BY-SA/CC0; false for proprietary/unknown), bounding_box (4-tuple), features (list of tags), created_by (contributor), created_date (ISO-8601), review_state (draft/approved/deprecated), derived_from (optional parent mesh ID, references another Mesh by composite slug), provenance_history (list of operations).
 
 - **MeshFeature**: Represents a physical or geographic characteristic of a mesh. Examples: "levee", "breakwater", "open_ocean", "inlet", "estuary", "tidal_flat", "barrier_island". Attributes: name, description.
 
