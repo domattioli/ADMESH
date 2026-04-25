@@ -13,6 +13,7 @@ from admesh.api import (
 )
 from admesh.boundary_types import BoundaryType
 from admesh.fort14 import Fort14ParseError, read_fort14, write_fort14
+from admesh.size_field import SizeFieldFn, compose_size_field
 
 __version__ = "0.1.0"
 
@@ -23,14 +24,13 @@ __all__ = [
     "Domain",
     "Fort14ParseError",
     "Mesh",
+    "SizeFieldFn",
+    "compose_size_field",
     "domain_from_polygon",
     "domain_from_sdf",
     "read_fort14",
     "triangulate",
     "write_fort14",
-    # TODO: re-export once implemented.
-    # "compose_size_field",  # T038
-    # "SizeFieldFn",         # T041
     # Faithful-port stage modules (Constitution Principle I — untouched).
     "background_grid",
     "bathymetry",
