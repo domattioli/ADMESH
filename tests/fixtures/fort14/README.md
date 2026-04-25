@@ -35,7 +35,16 @@ fixture.
 
 ### `adcirc_examples/`
 
-_(none yet — populated by T026)_
+- **`wnat_test.14`** (1.2 MB, 9,934 nodes / 18,578 elements) —
+  Western North Atlantic test domain. Bbox roughly
+  `(-97.85°W, 8.00°N) → (-60.04°W, 45.77°N)`, bathymetry
+  0.1 m → 7,572 m (positive-down on disk; positive-up in `Mesh`).
+  Single outer-ring boundary, no declared open/land segments.
+  Originally derived from Hagen et al.'s WNAT meshes; this is the
+  small (~10K-node) variant redistributed widely with ADMESH and
+  ADCIRC tutorials. Public domain. Used by
+  `tests/test_fort14_reference_corpus.py` and the
+  `scripts/wnat_demo.py` end-to-end demo.
 
 ### `community/`
 
@@ -43,5 +52,17 @@ _(none yet — populated by T027)_
 
 ### `malformed/`
 
-_(none yet — populated by T025; hand-crafted in this repo, no external
-provenance required)_
+Ten hand-crafted negative-test fixtures, each violating exactly one
+fort.14 grammar rule. Source: hand-authored in this repo by T025; no
+external provenance required.
+
+- `element_node_out_of_range.14` — element references vertex id beyond NN
+- `invalid_nodes_per_element.14` — element line declares 4 nodes (not 3)
+- `missing_open_boundary_block.14` — file ends after the element block
+- `negative_node_count.14` — counts line has negative NN
+- `non_integer_node_id.14` — node id token is `2.5`
+- `non_monotonic_node_ids.14` — second node has id 5 instead of 2
+- `non_numeric_coordinate.14` — alphabetic where float expected
+- `truncated_element_block.14` — declared NE=2 but only 1 element line
+- `wrong_node_count_too_many.14` — declared NN=5 but only 4 nodes follow
+- `wrong_segment_node_count.14` — segment declares 4 nodes, only 2 follow
