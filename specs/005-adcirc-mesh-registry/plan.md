@@ -95,56 +95,99 @@ specs/005-adcirc-mesh-registry/
 └── tasks.md             # Phase 2 (/speckit-tasks output)
 ```
 
-### Source Code (target repo: `domattioli/adcirc-mesh-registry`)
+### Source Code (lives in ADMESH for now; future migration to new repo)
 
-The implementation lives in a **new repository**, not inside ADMESH.
-Per the spec ("federated, not owned by any single project"), the
-registry is a peer to ADMESH, not a sub-feature of it. ADMESH may
-later depend on the published `adcirc-mesh-registry` package via
-`pyproject.toml`, but no code from this feature lands in `admesh/`.
+**Decision (2026-04-25, dictator-approved exception)**: The
+implementation lives **inside the ADMESH repo** under a
+clearly-segregated top-level path (`mesh_registry/`), not a separate
+repo. This is an explicit exception to the spec's "federated, not
+owned by any single project" preference, accepted by the project
+owner to reduce bootstrap friction. Migration to a standalone
+`domattioli/adcirc-mesh-registry` repo is planned (see Migration
+Notes below) but deferred until the registry has matured (target:
+≥20 contributed meshes, or ≥3 external dependents).
+
+The path is segregated from `admesh/*.py` (the faithful-port stage
+modules) so future extraction is a clean `git filter-branch` of the
+`mesh_registry/` subtree.
 
 ```text
-adcirc-mesh-registry/                 # new repo
-├── manifest.toml                     # source of truth (single file <5K entries)
-├── manifests/                        # sharded layout (≥5K entries; FR-013)
-│   └── <namespace>.toml
-├── meshes/                           # optional local stash for self-hosted seeds
-│   └── <namespace>/<name>/<version>.fort.14
-├── src/adcirc_mesh_registry/         # importable Python package
-│   ├── __init__.py                   # re-exports: find, Mesh, load_manifest
-│   ├── schema.py                     # pydantic models: Mesh, MeshOperation, License
-│   ├── manifest.py                   # load/write TOML, sharded resolution
-│   ├── query.py                      # find(...) implementation, bbox overlap
-│   ├── loader.py                     # Mesh.load() — fetch+cache from HF or source_url
-│   ├── publisher.py                  # HuggingFace Datasets publishing
-│   └── cli.py                        # `mesh-registry validate|publish|find`
+ADMESH/                                       # this repo
+├── admesh/                                   # faithful-port modules (UNCHANGED)
+│   ├── distance.py
+│   └── ... (the 13 stage modules + fort14.py etc.)
+│
+├── mesh_registry/                            # NEW — registry implementation
+│   ├── __init__.py                           # re-exports: find, Mesh, load_manifest
+│   ├── schema.py                             # pydantic models: Mesh, MeshOperation, License
+│   ├── manifest.py                           # load/write TOML, sharded resolution
+│   ├── query.py                              # find(...) implementation, bbox overlap
+│   ├── loader.py                             # Mesh.load() — fetch+cache from HF or source_url
+│   ├── publisher.py                          # HuggingFace Datasets publishing
+│   └── cli.py                                # `mesh-registry validate|publish|find`
+│
+├── registry_data/                            # NEW — manifest as committed data
+│   ├── manifest.toml                         # source of truth (single file <5K entries)
+│   └── manifests/                            # sharded layout (≥5K entries; FR-013)
+│       └── <namespace>.toml
+│
 ├── tests/
-│   ├── fixtures/                     # golden TOML manifests + expected results
-│   ├── test_schema.py
-│   ├── test_manifest.py
-│   ├── test_query.py
-│   ├── test_loader.py
-│   └── test_publisher.py
+│   ├── test_<stage>.py                       # existing port tests (UNCHANGED)
+│   ├── test_registry_schema.py               # NEW
+│   ├── test_registry_manifest.py             # NEW
+│   ├── test_registry_query.py                # NEW
+│   ├── test_registry_loader.py               # NEW
+│   ├── test_registry_publisher.py            # NEW
+│   └── fixtures/
+│       └── registry/                         # NEW — golden TOML manifests + expected results
+│
 ├── .github/
 │   └── workflows/
-│       ├── validate-pr.yml           # CI: schema + sanity checks on PR
-│       └── publish-hf.yml            # release-tag: push to HuggingFace Datasets
-├── pyproject.toml
-├── README.md
-└── CONTRIBUTING.md                   # PR-based submission walkthrough
+│       ├── validate-registry-pr.yml          # NEW — CI: schema + sanity on PRs touching registry_data/
+│       └── publish-registry-hf.yml           # NEW — release-tag: push to HuggingFace Datasets
+│
+├── pyproject.toml                            # MODIFIED: add mesh_registry as a second package + new optional [registry] extra
+├── README.md                                 # MODIFIED: link to registry quickstart
+└── docs/
+    └── registry/
+        ├── README.md                         # promoted from quickstart.md
+        └── CONTRIBUTING.md                   # PR-based submission walkthrough
 ```
 
-**Structure Decision**: New repo, single Python package (no monorepo
-split). The CI workflows and the loader package coexist because they
-share schema definitions (`schema.py`); duplicating them across two
-repos would invite drift. The repo is structured so that the package
-is `pip install`-able independently of the manifest data — the
-manifest is data the package operates on, not data the package
-embeds.
+**Structure Decision**: Two top-level Python packages in one repo
+(`admesh/` and `mesh_registry/`), wired via `pyproject.toml`'s
+`[tool.setuptools.packages.find]` (or equivalent in hatch/pdm).
+Cross-imports between them are **forbidden** — the registry is not
+allowed to import from `admesh.*`, and `admesh.*` is not allowed
+to import from `mesh_registry.*`. Enforced by an import-linter rule
+in CI.
+
+The `[registry]` optional extra in `pyproject.toml` pins
+registry-only dependencies (pydantic v2, shapely, huggingface_hub,
+httpx, click, tomli-w) so a baseline `pip install admesh` doesn't
+pull them.
+
+### Migration Notes (future, post-Phase 1)
+
+When the registry matures and migration is approved, the lift is:
+
+1. `git subtree split --prefix=mesh_registry/ -b registry-extract`
+2. Push to a new `domattioli/adcirc-mesh-registry` repo.
+3. Move `registry_data/`, `tests/fixtures/registry/`, the two GH
+   Actions workflows, and `docs/registry/` similarly.
+4. Drop the `[registry]` extra from ADMESH's `pyproject.toml`.
+5. Update CLAUDE.md SPECKIT marker; archive this spec in
+   `specs/005-adcirc-mesh-registry/MIGRATED.md`.
+
+The directory layout above was chosen so each of these steps
+operates on a single subtree.
 
 ## Complexity Tracking
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| New repo (vs. ADMESH submodule) | The spec explicitly calls for "federated, not owned by any single project." If the registry lives inside ADMESH, ADMESH becomes a de-facto governance body for a community catalog — wrong incentive structure, and creates a circular dependency the moment ADMESH wants to consume the registry. | A submodule under `admesh/registry/` would couple registry releases to ADMESH releases and force registry contributors to fork ADMESH. |
-| Principle I deviation (non-port feature) | Justified above: there is no MATLAB source for a community catalog. The registry is additive ecosystem infrastructure. | Treating this as a port would require fabricating a MATLAB precedent that doesn't exist, defeating the purpose of the principle. |
+| Registry lives in ADMESH (not a new repo) | **Dictator-approved exception (2026-04-25)** to the spec's federation preference. Reduces bootstrap friction; we get one CI pipeline, one issue tracker, one contributor onboarding flow during Phase 1. Migration to a standalone repo is planned but deferred until ≥20 contributed meshes or ≥3 external dependents. | A new repo from day one would split contributor attention and double the CI/release ceremony for what is currently a 5-mesh seed. |
+| `mesh_registry/` as a sibling top-level package (not under `admesh/`) | Keeps the registry code clearly outside the faithful-port surface; future subtree extraction is a clean operation on a single directory. | Putting it under `admesh/registry/` would entangle it with the port modules and complicate extraction. |
+| Two top-level packages in one `pyproject.toml` | Avoids a monorepo/workspace setup for what is still a small project. The `[registry]` optional extra keeps default installs lean. | A separate `setup.py` per package would prematurely fragment the build. |
+| Cross-import ban (admesh ↔ mesh_registry) | Preserves the future-extraction property; enforced by import-linter in CI. | Allowing imports would silently couple the two codebases and make the migration painful. |
+| Principle I deviation (non-port feature) | Dictator-approved as well: there is no MATLAB source for a community catalog. The registry is additive ecosystem infrastructure that does not modify the 13 faithful-port stage modules. | Treating this as a port would require fabricating a MATLAB precedent that doesn't exist, defeating the purpose of the principle. |

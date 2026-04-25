@@ -206,10 +206,14 @@ operational summary:
 Active spec-kit feature: `005-adcirc-mesh-registry` (branch
 `005-adcirc-mesh-registry`). This is a **non-port** feature
 (community data-engineering tool); see `plan.md` Constitution Check
-for the explicit Principle I deviation rationale. The implementation
-lives in a NEW repo (`domattioli/adcirc-mesh-registry`), NOT inside
-`admesh/`. ADMESH may later consume the published package via
-`pyproject.toml`, but no code from this feature lands in `admesh/`.
+for the explicit Principle I deviation (dictator-approved exception,
+2026-04-25). The implementation lives **inside ADMESH** under a
+segregated top-level path `mesh_registry/` (sibling to `admesh/`,
+NOT a sub-module of it). Cross-imports between `admesh.*` and
+`mesh_registry.*` are forbidden — enforced by import-linter in CI.
+Migration to a standalone `domattioli/adcirc-mesh-registry` repo is
+planned but deferred (see `specs/005-adcirc-mesh-registry/plan.md`
+Migration Notes).
 
 For design artifacts:
 
