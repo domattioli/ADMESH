@@ -255,8 +255,8 @@ difference. This is load-bearing for downstream stages.
 
 - Quad conversion (`tri2quad.m`, `distquadmesh2d.m`). ADMESH is a
   triangulation library; quadrangulation is a separate project.
-- GUI / visualization beyond test-output PNGs.
-- ADCIRC `.fort.14` I/O.
+- GUI / visualization beyond the `Mesh.plot()` matplotlib helper
+  and test-output PNGs.
 
 ## Governance
 
@@ -301,6 +301,30 @@ phased roadmap and current state, see `PROJECT_PLAN.md`.
 
 ## Amendments log
 
+### 2026-04-25 — v1.0.1 — fort.14 I/O lifted off the deferred list; viz scope narrowed
+
+Spec `001-pythonize-and-fort14-integration` ships ADCIRC v55 fort.14
+read/write (`admesh/fort14.py`) and a lazy-imported matplotlib helper
+(`admesh.viz.plot_mesh` via `Mesh.plot()`). Both were on the
+"explicitly deferred" list at v1.0.0.
+
+Changes (PATCH — clarifications, no governance change):
+
+- Remove the `ADCIRC .fort.14 I/O` bullet from Out-of-scope. The I/O
+  surface is implemented as `admesh.fort14.{read_fort14,write_fort14,
+  Fort14ParseError}` plus the `Mesh.to_fort14(path)` method, with all
+  1-based↔0-based and elevation↔depth conversion confined to that
+  module.
+- Reword the visualization line from `GUI / visualization beyond
+  test-output PNGs` to `GUI / visualization beyond the Mesh.plot()
+  matplotlib helper and test-output PNGs`. The helper is opt-in via
+  the `[viz]` extra and lazy-imports matplotlib so headless
+  environments are unaffected.
+
+Constitution Principle I unchanged — the new modules are strictly
+additive over the 13 faithful-port stage modules; the 142-test
+faithful-port baseline still passes verbatim.
+
 ### 2026-04-24 — v1.0.0 — Spec-kit constitution scaffold filled
 
 Concrete fill of the `.specify/memory/constitution.md` template using
@@ -309,4 +333,4 @@ doc, ratified 2026-04-18 and amended 2026-04-21 to add Article VII),
 `PROJECT_PLAN.md`, and `CLAUDE.md`. No governance change in substance — this
 is the spec-kit-managed mirror of the rules already in force.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-24
+**Version**: 1.0.1 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-25
