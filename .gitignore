@@ -207,7 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 # ADMESH-specific
-tests/output/
+tests/output/*
+!tests/output/quad_prep_block_o/
 *.mexw64
 *.mexmaci64
 *.mexa64
