@@ -6,6 +6,52 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-25, post-spec-001)
+
+**Shipped (spec 001 — Pythonic API + fort.14 I/O):**
+- v1 Pythonic surface in `admesh/api.py`, `admesh/fort14.py`,
+  `admesh/boundary_types.py`, `admesh/size_field.py`, `admesh/viz.py`
+  — strictly additive over the 13 faithful-port stage modules
+  (Constitution Principle I unbroken). The 142-test faithful-port
+  baseline still passes, with `tests/test_smoke.py` the only
+  test-tree edit (taught to skip class re-exports).
+- 3-line happy path runs end-to-end on all 5 MVP domains:
+  `domain_from_polygon([ring])` → `triangulate(domain)` →
+  `mesh.to_fort14(path)`. Round-trip equal at `atol=1e-5` on
+  `unit_square`, `l_shape`, `unit_disk`, `annulus`,
+  `notched_rectangle`. Evidence in
+  `tests/output/quickstart_validation.txt`.
+- ADCIRC v55 fort.14 reader/writer with ``Fort14ParseError``
+  carrying ``line_no/expected/actual``. Open-segments / land-
+  segments round-trip; named (`OPEN/MAINLAND/ISLAND/MAINLAND_FLUX`)
+  and unmapped numeric BC codes both preserved.
+- Real-world stress test: `tests/fixtures/fort14/adcirc_examples/
+  wnat_test.14` (1.2 MB, 9,934 nodes, US East Coast + Gulf of
+  Mexico + Caribbean) parses, round-trips, and re-triangulates via
+  `scripts/wnat_demo.py`.
+- chilmesh round-trip: 8 compat tests cover BC label preservation
+  across the fort.14 boundary; a separate gated smoke test exercises
+  `chilmesh.ChilMesh.from_fort14` when chilmesh is installed.
+- Two-phase size-field composer (`compose_size_field`): Phase-1
+  builtins always min-stack (Constitution Principle I); Phase-2
+  user contributions combine via caller-chosen reduction. Demo
+  shrinks mean edge length 44 % near a wave-breaker line
+  (`scripts/size_field_extension_demo.py`).
+- Test totals: 239 passed / 6 skipped (matplotlib path tested with
+  `Agg` backend; chilmesh + 5 MATLAB fixtures absent locally).
+- Constitution PATCH amendment removes `ADCIRC .fort.14 I/O` from
+  the deferred-list (T050 below); version bumped to 1.0.1.
+- Sibling-feature follow-ups parked: GH issue
+  [#5](https://github.com/domattioli/ADMESH/issues/5) for Gmsh
+  `.msh` I/O as feature 003; reserved feature 002 for performance
+  optimization.
+
+Open work in spec 001: T027 (≥ 3 community fixtures, needs external
+acquisition). All other tasks in
+`specs/001-pythonize-and-fort14-integration/tasks.md` complete.
+
+---
+
 ## Where we are today (2026-04-24, post-session 6)
 
 **Shipped (session 6 — faithful-port completion across all 13 stages):**

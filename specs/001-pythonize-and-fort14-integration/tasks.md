@@ -144,13 +144,13 @@ US2's implementation is largely covered by US1's `fort14.py` correctness. The re
 
 **Purpose**: Validate cross-cutting acceptance, update docs, and propose the constitution amendment that lifts the deferred-list scope changes.
 
-- [ ] T046 Run the full test suite (`pytest tests/ -q`) and verify: (a) all previously-existing 142 tests still pass with zero modifications to their files; (b) every new test from T005, T007, T009–T019, T030–T033, T036–T040 passes; (c) total collected tests ≥ 200.
-- [ ] T047 [P] Run `quickstart.md`'s three-line happy path manually on each of the 5 MVP domains. Capture output, paste into `tests/output/quickstart_validation.txt`, commit as evidence. SC-001.
-- [ ] T048 [P] Update `docs/PORTING_NOTES.md` with one-line entries for any non-obvious substitutions introduced (Shapely-based SDF in `domain_from_polygon`, lazy matplotlib import). Add a paragraph under a new `## v1 Pythonic layer (2026-04-XX)` heading recording that the layer is strictly additive over the faithful-port surface.
-- [ ] T049 [P] Update `PROJECT_PLAN.md` "Where we are today" with v1 milestone status (Pythonic layer + fort.14 + chilmesh-export). Cross-link to this task list.
-- [ ] T050 [P] Draft a PATCH amendment to `.specify/memory/constitution.md`: remove `ADCIRC .fort.14 I/O` from the "Out-of-scope (explicitly deferred)" list (line 259); reword the visualization line to `GUI / visualization beyond the mesh.plot() matplotlib helper`. Bump version to 1.0.1; append an Amendments-log entry citing this feature.
-- [ ] T051 Bump `pyproject.toml` `version` to `0.1.0` (if not already done in T001) and update `README.md` install snippet to remove the "in progress" callout from the Quickstart once T046 passes.
-- [ ] T052 Run `.venv/bin/python -m build` to verify the wheel still builds cleanly under the new module list. Smoke-test: `pip install --force-reinstall dist/admesh2D-0.1.0-*.whl` in a fresh venv, then `python -c "import admesh; m = admesh.triangulate(admesh.domain_from_polygon([np.array([[0,0],[1,0],[1,1],[0,1]])])); m.to_fort14('/tmp/smoke.14')"`.
+- [X] T046 Run the full test suite (`pytest tests/ -q`) and verify: (a) all previously-existing 142 tests still pass with zero modifications to their files; (b) every new test from T005, T007, T009–T019, T030–T033, T036–T040 passes; (c) total collected tests ≥ 200.
+- [X] T047 [P] Run `quickstart.md`'s three-line happy path manually on each of the 5 MVP domains. Capture output, paste into `tests/output/quickstart_validation.txt`, commit as evidence. SC-001.
+- [X] T048 [P] Update `docs/PORTING_NOTES.md` with one-line entries for any non-obvious substitutions introduced (Shapely-based SDF in `domain_from_polygon`, lazy matplotlib import). Add a paragraph under a new `## v1 Pythonic layer (2026-04-XX)` heading recording that the layer is strictly additive over the faithful-port surface.
+- [X] T049 [P] Update `PROJECT_PLAN.md` "Where we are today" with v1 milestone status (Pythonic layer + fort.14 + chilmesh-export). Cross-link to this task list.
+- [X] T050 [P] Draft a PATCH amendment to `.specify/memory/constitution.md`: remove `ADCIRC .fort.14 I/O` from the "Out-of-scope (explicitly deferred)" list (line 259); reword the visualization line to `GUI / visualization beyond the mesh.plot() matplotlib helper`. Bump version to 1.0.1; append an Amendments-log entry citing this feature.
+- [X] T051 Bump `pyproject.toml` `version` to `0.1.0` (if not already done in T001) and update `README.md` install snippet to remove the "in progress" callout from the Quickstart once T046 passes.
+- [X] T052 Run `.venv/bin/python -m build` to verify the wheel still builds cleanly under the new module list. Smoke-test: `pip install --force-reinstall dist/admesh2D-0.1.0-*.whl` in a fresh venv, then `python -c "import admesh; m = admesh.triangulate(admesh.domain_from_polygon([np.array([[0,0],[1,0],[1,1],[0,1]])])); m.to_fort14('/tmp/smoke.14')"`.
 
 **Final checkpoint**: v1 is releasable. All success criteria SC-001 through SC-007 are met; FR-001 through FR-022 are implemented and tested; the faithful-port surface is unchanged.
 

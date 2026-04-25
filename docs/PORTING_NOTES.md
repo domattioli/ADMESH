@@ -17,6 +17,118 @@ Template:
 
 ---
 
+## v1 Pythonic layer (2026-04-25)
+
+A Pythonic API + ADCIRC fort.14 I/O surface lands in
+`admesh/api.py`, `admesh/fort14.py`, `admesh/boundary_types.py`,
+`admesh/size_field.py`, and `admesh/viz.py`. The layer is **strictly
+additive** over the 13 faithful-port stage modules — Constitution
+Principle I unbroken. The 142-test faithful-port suite continues to
+pass with zero file modifications; `tests/test_smoke.py` was taught
+to skip class re-exports (the only test-tree change). See spec
+`specs/001-pythonize-and-fort14-integration/` for the full surface
+contract; `tests/output/quickstart_validation.txt` for evidence the
+3-line happy path round-trips on all 5 MVP domains.
+
+The non-obvious substitutions introduced by this layer:
+
+### `domain_from_polygon` — Shapely-based SDF
+
+**Python**: `admesh.api.domain_from_polygon(rings, *, pfix=None,
+bc_segments=())` builds a `Domain` whose `sdf` is constructed from a
+Shapely `Polygon` (outer ring first, holes after). Distance to the
+`polygon.boundary` LineString gives `|d|`; `prepared.contains(point)`
+flips sign for interior points.
+
+**Substitution**: replaces ad-hoc `inpolygon` + per-edge distance
+loops you'd otherwise have to write. Shapely is already a transitive
+dependency via the geometry stack, so no new install graph cost.
+
+**Behavior diff**: Shapely uses GEOS (C/C++) under the hood; tie
+behaviour on the boundary is "point on the boundary returns
+distance 0 with sign 0", matching our `d = 0` boundary convention.
+For points *exactly* on a vertex shared between rings, GEOS picks
+the same sign as the containing ring — no surprises so far.
+
+**Impact**: callers can omit explicit fixed-point lists for simple
+polygon domains; the bbox is auto-derived from the outer ring's
+extent. Two new dataclass fields on `admesh.api.Domain` (`pts`,
+`bc_segments`) ride along but are reserved for the PTS path
+(faithful-port) and the bc-label-passthrough story.
+
+### `Mesh.plot()` — lazy matplotlib import
+
+**Python**: `admesh.viz.plot_mesh` is imported only when
+`Mesh.plot()` is called, not at module-import time. The
+`pyproject.toml` `[viz]` extra (`matplotlib>=3.7`) is opt-in.
+
+**Substitution**: keeps `import admesh` cheap (no matplotlib
+backend init) and lets headless / lambda / CI environments use the
+package without a display dependency. On `ImportError`, the wrapper
+re-raises with a message naming the `admesh2D[viz]` extra so users
+get an actionable install hint instead of a Python traceback.
+
+**Behavior diff**: none vs. raw `matplotlib.pyplot.triplot`; the
+helper just adds boundary-segment coloring (per `BoundaryType`) and
+sets `aspect='equal'` by default.
+
+**Impact**: tests that need matplotlib use `pytest.importorskip` or
+the `Agg` backend; the `viz` test suite parametrizes the missing-
+matplotlib path via a `monkeypatch` of `builtins.__import__`.
+
+### fort.14 I/O — convention isolation at the boundary
+
+**Python**: `admesh.fort14.{read_fort14, write_fort14}` are the
+**only** code path that knows about ADCIRC's 1-based node IDs and
+positive-down depth convention. Every internal `Mesh` is 0-based
+and stores bathymetry as elevation (positive-up). Conversions:
+
+- `node_id_disk = node_id_internal + 1`
+- `depth_disk = -elevation_internal`
+
+The reader inverts both; the writer applies both. Other modules
+treat `Mesh` arrays as opaque indices/elevations.
+
+**Substitution**: replaces a hypothetical "convention-everywhere"
+design where every consumer would have to remember which side it's
+on.
+
+**Behavior diff**: A `Mesh.bathymetry` of all-zeros round-trips as
+`None` (no point preserving a meaningless column). Real bathymetry
+round-trips bit-for-bit within the writer's `precision=` (default
+6 decimal places).
+
+**Impact**: writers/readers in third-party tooling that expect
+positive-down depth or 1-based ids interoperate naturally; readers
+that expect positive-up never need an inversion.
+
+### Two-phase size-field composition
+
+**Python**: `admesh.size_field.compose_size_field(builtins,
+user_contribs, combine, hmin, hmax)` composes a
+`(N, 2) -> (N,)` callable.
+
+**Substitution**: replaces the implicit "build_h composes via min"
+contract from earlier prototypes with a public, two-phase API.
+Phase 1 (built-ins) **always** uses `np.minimum.reduce` regardless
+of `combine` — Constitution Principle I (the faithful-port
+`mesh_size_function` pipeline must remain numerically identical to
+MATLAB). Phase 2 (user contributions) is combined with the Phase-1
+result via the caller's chosen reduction (default: minimum).
+
+**Behavior diff**: invalid user-contribution outputs (NaN, ≤ 0,
+out of `[hmin, hmax]`) are clamped and a `UserWarning` names the
+offending callable + affected count. This is more lenient than
+the faithful-port path, which presumes well-formed inputs.
+
+**Impact**: power users can refine specific regions without
+forking the size-field stack. Demoed in
+`scripts/size_field_extension_demo.py` — wave-breaker contribution
+shrinks mean edge length from 0.262 → 0.145 (44%) inside a
+transition band.
+
+---
+
 ## 2026-04-24 — distmesh — late-run density-control branch (`BoundaryDensityControl` + `ConstraintDensityControl`)
 
 **MATLAB**: `01_ADMESH_Library/10_Distmesh_2d/{BoundaryDensityControl,ConstraintDensityControl}.m`, invoked at `distmesh2d.m:183-195` on the `mod(k,75)==0 && k > niter/2` branch.

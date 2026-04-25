@@ -1,0 +1,31 @@
+========================================================================
+admesh2D v1 quickstart validation — T047 / SC-001
+========================================================================
+
+--- domain: unit_square ---
+Mesh(n_nodes=88, n_elements=138, min_q=0.80, mean_q=0.96, n_boundaries=1)
+  round-trip equal:  True
+  pipeline time:     402.1 ms
+
+--- domain: l_shape ---
+Mesh(n_nodes=169, n_elements=279, min_q=0.77, mean_q=0.96, n_boundaries=1)
+  round-trip equal:  True
+  pipeline time:     53.5 ms
+
+--- domain: unit_disk ---
+Mesh(n_nodes=162, n_elements=281, min_q=0.77, mean_q=0.97, n_boundaries=1)
+  round-trip equal:  True
+  pipeline time:     46.9 ms
+
+--- domain: annulus ---
+Mesh(n_nodes=211, n_elements=353, min_q=0.79, mean_q=0.96, n_boundaries=2)
+  round-trip equal:  True
+  pipeline time:     66.5 ms
+
+--- domain: notched_rectangle ---
+Mesh(n_nodes=383, n_elements=680, min_q=0.80, mean_q=0.98, n_boundaries=1)
+  round-trip equal:  True
+  pipeline time:     70.6 ms
+
+All 5 MVP domains: triangulate → to_fort14 → read_fort14 → equals.
+Captured at: 2026-04-25 02:13:57
