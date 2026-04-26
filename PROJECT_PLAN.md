@@ -6,6 +6,35 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-04-25, spec-002 MVP shipped — Tier-2 release gate pending issue #10)
+
+**Shipped this session (spec 002 — default size-field stack, implementation phase):**
+- All 41 tasks from `specs/002-size-field-defaults/tasks.md` walked through. T001-T015 + T018-T028 + T032-T037 done; T016/T017 (Tier-1 / Tier-2 acceptance) marked `xfail` pending issue #10; T029-T031 (Shinnecock fixture) deferred (network-dependent, not gating 0.1.0).
+- **Headline behavior change**: `admesh.triangulate(domain)` with no size-field arguments now invokes the default Phase-1 stack (curvature + medial-axis always-on; bathymetry + tide opt-in via `Domain` fields). The spec-001 uniform-`h` fallback is reachable via `enable_curvature=False, enable_medial_axis=False`.
+- `admesh/api.py` extended: `Domain.bathymetry`, `Domain.tide_period`, `Domain.polygons`, `Domain.from_mesh(...)` classmethod, `_build_default_size_field(...)` private helper, new `triangulate()` kwargs (`h_target`, `enable_curvature`, `enable_medial_axis`, `default_depth`, `tide_elements_per_wavelength`), extended `Mesh.equals` for paired-edge + barrier_data.
+- `admesh/boundary_types.py` extended: `EXTERNAL_BARRIER=3`, `EXTERNAL_BARRIER_FLUX=4`, `INTERNAL_BARRIER_PIPE=13`, `INTERNAL_BARRIER=24`.
+- `admesh/fort14.py` extended: paired-edge / single-node-barrier reader/writer for IBTYPE 3 / 4 / 13 / 23 / 24 / 25 with column-agnostic `barrier_data` (real fixtures vary in trailing-float count). Open- and land-segment header parsers tolerate inline `=` comments. The `wetting_and_drying_test.14` corpus round-trip went from RED → GREEN.
+- New tests: `test_default_size_field.py` (Tier 0/1/2 + 3 US2 bathymetry/tide tests, 8 tests total), `test_fort14_paired.py` (5 tests), `test_backward_compat.py` (4 tests), `tests/_structural_validity.py` (the `assert_structurally_valid` helper). Final suite: **259 passed, 8 skipped, 2 xfailed**.
+- Constitution amendment v1.0.2 (T023): documents the spec-002 default stack as the precondition for fort.14-contract release readiness.
+- README "0.1.0 in progress" callouts restored (T024/T025); ADCIRC compatibility tagline preserved.
+- Cleanup (T026/T027/T028): `papers/wnat_admesh.png`, `dist/`, `build/`, 3 stale diagnostic PNGs under `tests/output/` removed.
+- `scripts/pre_tag_check.sh` (T032): 5-gate pre-tag verification script. Currently PASSES (constitution version, README callout, no stray artefacts).
+- `docs/PORTING_NOTES.md` (T019): new entry "fort.14 — paired-edge / barrier BC records (spec 002)" documenting the deliberate column-agnostic divergence from ADCIRC v55 grammar.
+- `requirements.txt` cleanup: removed accidentally-duplicated matplotlib (it's correctly under `[viz]` extras in pyproject.toml).
+- New quality-comparison artifacts in `tests/output/`: `wnat_quality.png` (4-panel histogram of the source WNAT mesh, the ADMESH-pedigree quality bar) and `tier1_source_vs_fresh.png` (side-by-side comparison of the wetting_and_drying source mesh vs. our Python `triangulate()` output — proves the FRESH mesh is a real Python-pipeline product, with shape-q-mean 0.92 vs source 0.99).
+
+**Open follow-up issues** (filed this session, all on origin):
+- #8 — GPU + CPU-parallel acceleration for the size-field stack (post-v1).
+- #9 — admesh-segmenter sibling project (post-v1).
+- #10 — **Default size-field stack overshoots domain on real-world coastal fixtures** (severity:high). The Tier-1/Tier-2 acceptance gates are blocked on this. The 0.1.0 tag is contingent on resolving #10.
+- #11 — `Domain.from_mesh` picks wrong outer ring on WNAT (sorts by node count, not area). Independently breaks the Tier-2 path; resolution is mechanical (~M effort).
+
+**Branch state**: `002-size-field-defaults` on origin, head `1149adf`. Spec-001 branch (`001-pythonize-and-fort14-integration`, head `f1ce987`) preserved for archive.
+
+**Path to 0.1.0**: resolve #11 (mechanical) + #10 (tuning), un-xfail the Tier-1/Tier-2 tests, run `bash scripts/pre_tag_check.sh`, tag.
+
+---
+
 ## Where we are today (2026-04-25, post-spec-001)
 
 **Shipped (spec 001 — Pythonic API + fort.14 I/O):**
@@ -202,7 +231,7 @@ implementations.
 - **2nd `SOURCE_UNAVAILABLE`** logged; one more recurrence
   triggers a Constitution-amendment proposal.
 
-**Next entry point:** `docs/session_4_plan.md` — Phase P2
+**Next entry point:** `docs/sessions/session_4_plan.md` — Phase P2
 (bathymetry + tide + inpaint) now that the PTS structure can
 carry per-segment physical data.
 
@@ -224,7 +253,7 @@ carry per-segment physical data.
 - **65 pytest tests passing** (54 → 65 = +3 curvature + 4 medial
   + 4 composer).
 
-**Next entry point:** `docs/session_3_plan.md` WS0 — if MATLAB
+**Next entry point:** `docs/sessions/session_3_plan.md` WS0 — if MATLAB
 clone is present, backfill faithful-port passes of session-2
 modules (Branch A); else continue clean-room with Phase P2
 (bathymetry + tide + inpaint, Branch B).

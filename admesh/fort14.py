@@ -214,11 +214,14 @@ def read_fort14(path: "str | os.PathLike[str] | TextIO") -> Mesh:
                 seg_tokens[0], cursor, "integer open-segment node count"
             )
             # IBTYPE optional in open-segment header — defaults to 0 (OPEN).
-            bc_code = (
-                _parse_int(seg_tokens[1], cursor, "integer IBTYPE")
-                if len(seg_tokens) >= 2
-                else 0
-            )
+            # Some fixtures annotate the header with an inline "= Number of …"
+            # comment; treat the second token as IBTYPE only if it parses as int.
+            bc_code = 0
+            if len(seg_tokens) >= 2:
+                try:
+                    bc_code = int(seg_tokens[1])
+                except (TypeError, ValueError):
+                    bc_code = 0
             ids = np.empty(n_seg_nodes, dtype=np.int64)
             for j in range(n_seg_nodes):
                 tok = cursor.next_line(

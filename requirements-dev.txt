@@ -1,5 +1,11 @@
-# Development dependencies for ADMESH: test, lint, and type-check tooling.
+# Development dependencies for ADMESH: test, lint, and type-check tooling
+# layered on top of the runtime requirements.txt.
+#
+# Equivalent to `pip install -e ".[dev,viz]"`. Includes matplotlib so the
+# viz module's tests (tests/test_viz.py) can run.
+
 -r requirements.txt
+matplotlib>=3.7
 pytest>=7
 pytest-cov
 ruff

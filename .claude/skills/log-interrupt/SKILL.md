@@ -8,7 +8,7 @@ description: Append a row to `docs/persistence_journal.md` when a persistent ses
 ## When to invoke
 
 Fire when any of these happens during a session running under a
-persistent-run plan (e.g. `docs/session_<N>_plan.md`):
+persistent-run plan (e.g. `docs/sessions/session_<N>_plan.md`):
 
 1. User gave mid-workstream direction that wasn't "keep going"
    (redirect, scope change, priority swap).
@@ -60,7 +60,7 @@ rows. Format:
 
 ### 3 — mirror into session state
 
-If `docs/session_<N>_state.md` exists, also append the row to its
+If `docs/sessions/session_<N>_state.md` exists, also append the row to its
 `## Live interrupts` section.
 
 ### 4 — confirm

@@ -165,8 +165,8 @@ in the integrator — not buried two stages down.
 
 Working sessions follow a fixed read order at startup:
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` → the latest
-`docs/session_<N-1>_state.md` (if any) → the active
-`docs/session_<N>_plan.md`. Skipping the previous-session state file is
+`docs/sessions/session_<N-1>_state.md` (if any) → the active
+`docs/sessions/session_<N>_plan.md`. Skipping the previous-session state file is
 how context gets lost at session boundaries; this read order is
 load-bearing.
 
@@ -301,6 +301,44 @@ phased roadmap and current state, see `PROJECT_PLAN.md`.
 
 ## Amendments log
 
+### 2026-04-25 — v1.0.2 — default size-field stack as the precondition for fort.14-contract release readiness
+
+Spec `002-size-field-defaults` wires the existing MATLAB-faithful
+size-field stages (`apply_curvature`, `apply_medial_axis`,
+`apply_bathymetry`, `apply_tide`, `solve_iter`) — already composed by
+`admesh.mesh_size.build_h(...)` — as the default Phase-1 source for
+`admesh.triangulate(domain)` when neither `size_field=` nor
+`user_contribs=` is supplied. The v1.0.1 amendment lifted fort.14 I/O
+off the deferred list; v1.0.2 acknowledges that "v1 ships" was
+premature framing — the fort.14 contract is release-ready only when
+the default mesher produces feature-aware meshes on real ADCIRC
+fixtures, not the spec-001 uniform-`h` fallback.
+
+Changes (PATCH — clarifications, no governance change):
+
+- Document that `admesh.triangulate(domain)` with no size-field
+  arguments is now feature-aware (curvature + medial-axis always-on;
+  bathymetry + tide opt-in via `Domain` fields). Spec-001 callers who
+  want the legacy uniform-`h` baseline must opt out explicitly via
+  `enable_curvature=False, enable_medial_axis=False`.
+- Document that the fort.14 reader/writer support paired-edge BC
+  records (IBTYPE 3 / 4 / 13 / 24 / 25) with column-agnostic
+  `barrier_data`. This closes a real-world fixture gap (ADCIRC
+  Example 10 wetting-and-drying) that the v1.0.1 amendment had
+  glossed over.
+- The Tier-2 / WNAT structural-validity gate for the 0.1.0 tag is
+  tracked as issue #10. Tier 0 (5 polygon-constructed MVP domains) is
+  green and demonstrates the headline behaviour change; Tier 1 / 2
+  are marked `xfail` pending #10 (default-stack tuning on real-world
+  coastal fixtures with sparse bathymetry interpolants).
+
+Constitution Principle I unchanged — the 13 faithful-port stage
+modules in `admesh/<stage>.py` remain numerically identical to the
+MATLAB reference. Spec-002 changes live entirely in `admesh/api.py`,
+`admesh/fort14.py`, `admesh/boundary_types.py` (extending), and the
+new tests/test_default_size_field.py + tests/test_fort14_paired.py.
+All extensions are strictly additive.
+
 ### 2026-04-25 — v1.0.1 — fort.14 I/O lifted off the deferred list; viz scope narrowed
 
 Spec `001-pythonize-and-fort14-integration` ships ADCIRC v55 fort.14
@@ -333,4 +371,4 @@ doc, ratified 2026-04-18 and amended 2026-04-21 to add Article VII),
 `PROJECT_PLAN.md`, and `CLAUDE.md`. No governance change in substance — this
 is the spec-kit-managed mirror of the rules already in force.
 
-**Version**: 1.0.1 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-25
+**Version**: 1.0.2 | **Ratified**: 2026-04-18 | **Last Amended**: 2026-04-25

@@ -169,10 +169,10 @@ pattern observed in session 0 (four `UNCONFIRMED_PAUSE` interrupts).
    prose, visibility / config picks, continue-prompts.
 3. **Session-start read order is fixed.** At every session start
    read in order: `CONSTITUTION.md` → `PROJECT_PLAN.md` →
-   `CLAUDE.md` → the latest `docs/session_<N-1>_state.md` (if any)
-   → the active `docs/session_<N>_plan.md`. This is load-bearing;
-   skipping the previous-session state file is how context gets
-   lost at session boundaries.
+   `CLAUDE.md` → the latest `docs/sessions/session_<N-1>_state.md`
+   (if any) → the active `docs/sessions/session_<N>_plan.md`. This
+   is load-bearing; skipping the previous-session state file is how
+   context gets lost at session boundaries.
 
 ---
 
@@ -195,7 +195,7 @@ on `005-adcirc-mesh-registry`.
 Added Article VII — Persistent-session cadence. Codifies the
 report-and-advance discipline learned from session 0's four
 `UNCONFIRMED_PAUSE` interrupts (see `docs/persistence_journal.md`
-and `docs/session_0_report.md` § "Persistence retro"). Session
+and `docs/sessions/session_0_report.md` § "Persistence retro"). Session
 reference: ADMESH session 1.
 
 ### 2026-04-18 — Constitution adopted
