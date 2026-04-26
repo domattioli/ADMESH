@@ -10,15 +10,13 @@ license = "public-domain"
 created_by = "Test Suite"
 created_date = 2026-01-01T00:00:00Z
 review_state = "approved"
+features = ["open_ocean"]
 
   [meshes.bounding_box]
   min_lon = -97.0
   min_lat = 25.0
   max_lon = -88.0
   max_lat = 30.0
-
-  [[meshes.features]]
-  value = "open_ocean"
 
 [[meshes]]
 id = "test/derived-v1"
@@ -31,15 +29,13 @@ created_by = "Test Suite"
 created_date = 2026-02-01T00:00:00Z
 derived_from = "test/parent-v1"
 review_state = "approved"
+features = ["estuary"]
 
   [meshes.bounding_box]
   min_lon = -95.0
   min_lat = 27.0
   max_lon = -90.0
   max_lat = 29.0
-
-  [[meshes.features]]
-  value = "estuary"
 
   [[meshes.provenance_history]]
   operation_type = "refine_box"
@@ -61,18 +57,13 @@ created_by = "Test Suite"
 created_date = 2026-03-01T00:00:00Z
 derived_from = "test/derived-v1"
 review_state = "approved"
+features = ["estuary", "levee"]
 
   [meshes.bounding_box]
   min_lon = -95.0
   min_lat = 27.0
   max_lon = -90.0
   max_lat = 29.0
-
-  [[meshes.features]]
-  value = "estuary"
-
-  [[meshes.features]]
-  value = "levee"
 
   [[meshes.provenance_history]]
   operation_type = "add_levee"

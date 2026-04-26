@@ -10,15 +10,13 @@ license = "public-domain"
 created_by = "Test Suite"
 created_date = 2026-04-01T00:00:00Z
 review_state = "approved"
+features = ["open_ocean"]
 
   [meshes.bounding_box]
   min_lon = -90.0
   min_lat = 25.0
   max_lon = -80.0
   max_lat = 30.0
-
-  [[meshes.features]]
-  value = "open_ocean"
 
 [[meshes]]
 id = "test/simple-v2"
@@ -30,12 +28,10 @@ license = "CC-BY-4.0"
 created_by = "Test Suite"
 created_date = 2026-04-02T00:00:00Z
 review_state = "approved"
+features = ["levee"]
 
   [meshes.bounding_box]
   min_lon = -95.0
   min_lat = 28.0
   max_lon = -85.0
   max_lat = 32.0
-
-  [[meshes.features]]
-  value = "levee"
