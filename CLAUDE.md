@@ -22,6 +22,19 @@ Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
 
 ---
 
+## Stream Timeout Prevention
+
+1. Do each numbered task ONE AT A TIME. Complete one task fully,
+   confirm it worked, then move to the next.
+2. Never write a file longer than ~150 lines in a single tool call.
+   If a file will be longer, write it in multiple append/edit passes.
+3. Start a fresh session if the conversation gets long (20+ tool calls).
+   The error gets worse as the session grows.
+4. Keep individual grep/search outputs short. Use flags like
+   `--include` and `-l` (list files only) to limit output size.
+5. If you do hit the timeout, retry the same step in a shorter form.
+   Don't repeat the entire task from scratch.
+   
 ## Commands
 
 ```bash
@@ -40,6 +53,62 @@ python scripts/bench_mesh_size.py
 # Export fresh reference fixtures from MATLAB (requires MATLAB)
 matlab -batch "run('scripts/export_matlab_fixtures.m')"
 ```
+
+---
+
+## Domain Loading & API (v0.2+)
+
+**v0.2 breaking change**: `domain_from_polygon()` and `domain_from_sdf()` have been
+removed from the public API. All domains now come from files or the ADMESH-Domains
+registry. Domain definitions become version-controlled artifacts, not ad-hoc Python objects.
+
+**File-based domain loading:**
+```python
+from admesh import load_domain_from_toml, load_domain_from_json, load_domain_from_fort14
+
+# Load domain then triangulate
+domain = load_domain_from_toml("domain.toml")
+mesh = admesh.triangulate(domain, h0=0.1)
+
+# Or pass path/mesh_id directly to triangulate()
+mesh = admesh.triangulate("domain.toml", h0=0.1)
+mesh = admesh.triangulate("domain.json", h0=0.1)
+mesh = admesh.triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
+```
+
+**Registry integration (requires `admesh-domains` package):**
+```python
+from admesh import load_domain_from_registry, list_available_domains
+
+domains = list_available_domains()
+mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)  # Auto-detects registry
+```
+
+**Supported domain file formats:**
+- `TOML` — ADMESH-Domains native format (recommended; version-controllable)
+- `JSON` — Universal portable format
+- `.14` / `.grd` — Fort.14 ADCIRC mesh files (extracts boundary as domain)
+
+**Migration from v0.1:**
+```python
+# v0.1 (removed) — no longer works
+domain = admesh.domain_from_polygon([outer_ring, hole_ring])
+domain = admesh.domain_from_sdf(my_sdf, bbox=(-1, -1, 1, 1))
+
+# v0.2 — save polygon to JSON once, load every time
+import json
+domain_dict = {"bbox": [-1, -1, 1, 1], "rings": [outer_ring.tolist()]}
+with open("my_domain.json", "w") as f:
+    json.dump(domain_dict, f)
+mesh = admesh.triangulate("my_domain.json", h0=0.1)
+
+# v0.2 — custom SDF: use Domain dataclass directly (still exported)
+from admesh import Domain
+domain = Domain(sdf=my_sdf_callable, bbox=(-1, -1, 1, 1))
+mesh = admesh.triangulate(domain, h0=0.1)
+```
+
+See `docs/DOMAIN_IO.md` for complete examples and format specifications.
 
 ---
 
@@ -171,53 +240,62 @@ this is a port, not a research project. Keep it simple.
 
 ---
 
-## Related repos on disk
+## Branching (operational)
 
-| Path | What it is |
+See **Constitution Article VI rules 5–8** for the binding rules. Quick
+operational summary:
+
+- **Default to `main`.** Don't create branches for one-off edits.
+- **Speckit is the only branch-creator.** New feature branches come
+  from `/speckit-specify` (which fires the `before_specify` git hook).
+  Don't run `git checkout -b` directly.
+- **Speckit naming only.** Branches follow `NNN-<short-name>`
+  (sequential) per `.specify/init-options.json`. Do not create or
+  accept `claude/<feature>-<hash>` branches; if the session-system
+  pre-creates one, ignore or consolidate under the speckit branch.
+- **Scan first.** Before invoking `/speckit-specify`, run
+  `git branch -a` and look for a branch already covering the same
+  feature (by short-name, keywords, or related issue #). Reuse it
+  rather than create a parallel one.
+- **Consolidate redundancies.** If you find duplicate branches for the
+  same feature, ask the user once, then delete the redundant ones
+  (local + remote) and keep only the speckit-named branch.
+
+---
+
+## Related repos on disk and on GitHub
+
+| Path / URL | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
 | `/workspace/MADMESHR` | RL-based **mesh generator** for tri/quad/mixed 2D meshes (advancing-front, Soft Actor-Critic). MVP/PoC, not on PyPI. Long-term positioning vs ADMESH undecided: may deprecate ADMESH or remain a sibling. Faithful-port boundary still applies — MADMESHR concepts must not bleed into the 13 locked stage modules in `admesh/*.py`. |
 | [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap an ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
 | `/workspace/ADMESH` | This repo |
+| [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `002-size-field-defaults` (branch
-`002-size-field-defaults`). **MVP slice shipped** (T001-T015 +
-T018-T028 + T032-T037, 252 → 259 tests passing). Default Phase-1
-stack wired into `admesh.triangulate()`; fort.14 I/O extended for
-paired-edge BC records (IBTYPE 3 / 4 / 13 / 24); constitution walked
-back to v1.0.2; pre-tag verification script in place. Tier-1 / Tier-2
-acceptance tests are `xfail` pending issue #10 (default-stack
-overshoot on real-world coastal fixtures) and issue #11
-(Domain.from_mesh outer-ring picker). 0.1.0 tag is gated on those
-two.
+Active spec-kit feature: `004-quad-prep-smoother` (branch
+`claude/smooth-quad-preprocessing-FmMxF`). Pre-quadrangulation
+triangle smoother — nudges ADMESH triangulations toward right-
+isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`,
+OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
+For the spec, formulation choice, public API, and design
+rationale, read:
 
-For technical context, the API extensions (`Domain.bathymetry`,
-`Domain.tide_period`, `Domain.from_mesh`, the new `BoundaryType`
-members), the structural-validity test gate, and the test fixture
-ladder, read:
+- `specs/004-quad-prep-smoother/spec.md`
+- `specs/004-quad-prep-smoother/plan.md`
+- `specs/004-quad-prep-smoother/research.md`
+- `specs/004-quad-prep-smoother/data-model.md`
+- `specs/004-quad-prep-smoother/contracts/python-api.md`
+- `specs/004-quad-prep-smoother/quickstart.md`
 
-- `specs/002-size-field-defaults/plan.md`
-- `specs/002-size-field-defaults/research.md`
-- `specs/002-size-field-defaults/data-model.md`
-- `specs/002-size-field-defaults/contracts/python-api-default-stack.md`
-- `specs/002-size-field-defaults/contracts/fort14-paired-edge.md`
-- `specs/002-size-field-defaults/quickstart.md`
+The previous active feature (`001-pythonize-and-fort14-integration`)
+is shipped; its Pythonic API + fort.14 I/O surface is now the public
+admesh contract.
 
-Spec 001 (`001-pythonize-and-fort14-integration`) is shipped on its
-branch and remains the foundation; its plan/data-model/contracts are
-still authoritative for the spec-001 surface. Constitution Principle I
-still applies: the 13 faithful-port stage modules in `admesh/*.py`
-MUST stay numerically identical. Spec-002 changes live in `api.py`,
-`fort14.py`, `boundary_types.py` (extending), `_structural_validity.py`
-(test helper), and three new test modules
-(`tests/test_default_size_field.py`, `tests/test_fort14_paired.py`,
-`tests/test_backward_compat.py`); all strictly additive.
-
-**Open follow-up issues** (`gh issue list --repo domattioli/ADMESH`):
-- #6 — domain/mesh registry concept (low, post-v1)
-- #8 — GPU + CPU-parallel acceleration (low, post-v1)
-- #9 — admesh-segmenter sibling project (low, post-v1)
-- #10 — default-stack domain overshoot on real-world coastal fixtures (high; release-blocker for 0.1.0)
-- #11 — Domain.from_mesh outer-ring picker (high; mechanical fix)
+Constitution Principle I still applies: the existing faithful-port
+modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
+identical. The new modules from spec-001 (`api.py`, `fort14.py`,
+`boundary_types.py`, `size_field.py`, `viz.py`) and spec-004
+(`quad_prep.py`) are strictly additive.
 <!-- SPECKIT END -->

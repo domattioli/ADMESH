@@ -49,7 +49,7 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
   `mesh.to_fort14(path)`. Round-trip equal at `atol=1e-5` on
   `unit_square`, `l_shape`, `unit_disk`, `annulus`,
   `notched_rectangle`. Evidence in
-  `tests/output/quickstart_validation.txt`.
+  `output/quickstart_validation.txt`.
 - ADCIRC v55 fort.14 reader/writer with ``Fort14ParseError``
   carrying ``line_no/expected/actual``. Open-segments / land-
   segments round-trip; named (`OPEN/MAINLAND/ISLAND/MAINLAND_FLUX`)
@@ -279,7 +279,7 @@ modules (Branch A); else continue clean-room with Phase P2
 - **M.4** end-to-end validation + PNGs (S1): `tests/test_mvp_domains.py`
   parametrized over all 5 domains; `tests/conftest.py` with shared
   `assert_valid_mesh` helper; PNGs committed at
-  `tests/output/mvp_<name>.png`; quality metrics
+  `output/mvp_<name>.png`; quality metrics
   (`min_q ≥ 0.30, mean_q ≥ 0.60`) met on every domain.
 - **Correctness bugfix in `distmesh2d`** (S1): added a final Delaunay
   + centroid-filter step after the iteration loop to eliminate
@@ -361,7 +361,7 @@ gate — we tighten once the port is validated against MATLAB).
   for all 5 test domains.
 - `pytest tests/test_mvp_*.py` all green.
 - At least one rendered PNG per domain committed to
-  `tests/output/mvp_<domain>.png` as visual evidence.
+  `output/mvp_<domain>.png` as visual evidence.
 - Runtime ≤ 60 s per domain on a laptop (the Numba size-field solver
   must not be a wall-clock blocker).
 

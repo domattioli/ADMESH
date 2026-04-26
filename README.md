@@ -1,11 +1,4 @@
-<h1 align="center">ADMESH</h1>
-
-<p align="center">
-  An advanced, automatic unstructured mesh generator for 2D
-  shallow-water models. Built for
-  <a href="https://adcirc.org/">ADCIRC</a> compatibility — meshes
-  round-trip natively as <code>fort.14</code>.
-</p>
+<h1 align="center">ADMESH: An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</h1>
 
 <p align="center">
   <strong><a href="https://github.com/coltonjconroy">Colton J. Conroy</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
@@ -108,6 +101,13 @@ The reference MATLAB implementation is
 maintained by the original author. That repository may carry features
 beyond what this port currently covers; new functionality is adopted
 here as it's pulled across.
+
+## Related projects
+
+- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** —
+  federated registry of ADCIRC-compatible meshes (domains) for
+  discovery, lineage tracking, and community contribution. Built as a
+  companion to this library.
 
 ## Citation
 
