@@ -40,7 +40,7 @@ def _refine_in_disc(pts: np.ndarray) -> np.ndarray:
 
 def _disc_domain():
     sdf = lambda p: np.hypot(p[:, 0], p[:, 1]) - 1.0
-    return admesh.domain_from_sdf(sdf, bbox=(-1.0, -1.0, 1.0, 1.0))
+    return admesh.Domain(sdf=sdf, bbox=(-1.0, -1.0, 1.0, 1.0))
 
 
 def _triangle_centroids(mesh: admesh.Mesh) -> np.ndarray:

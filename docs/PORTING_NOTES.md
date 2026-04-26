@@ -17,6 +17,27 @@ Template:
 
 ---
 
+## v0.2 — Domain API consolidation (2026-04-26)
+
+**Removed from public API:**
+- `admesh.domain_from_polygon(rings, *, pfix, bc_segments)` — Shapely-based polygon→SDF builder
+- `admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)` — SDF callable + bbox wrapper
+
+**Rationale:** File-based domain loading (TOML/JSON/fort.14) and the ADMESH-Domains registry
+are now the canonical entry points. Storing domain definitions as files enables version control,
+reproducibility, and integration with the federated registry (`domattioli/ADMESH-Domains`).
+
+**Migration:**
+- Polygon domains → serialize to JSON/TOML once; reload via `load_domain_from_json()` or `load_domain_from_toml()`
+- Custom SDF domains → construct `Domain(sdf=callable, bbox=(...))` directly (dataclass still exported)
+- See `CLAUDE.md` § "Domain Loading & API (v0.2+)" for code examples
+
+**Internal:** `_shapely_sdf` and `_domain_from_polygon` moved to `admesh/loaders.py` as private
+helpers for file-loader internals. Tests that require in-memory polygon→Domain conversion
+import `_domain_from_polygon` from `admesh.loaders`.
+
+---
+
 ## v1 Pythonic layer (2026-04-25)
 
 A Pythonic API + ADCIRC fort.14 I/O surface lands in

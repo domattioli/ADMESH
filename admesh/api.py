@@ -29,8 +29,6 @@ __all__ = [
     "Mesh",
     "Domain",
     "triangulate",
-    "domain_from_polygon",
-    "domain_from_sdf",
 ]
 
 
@@ -258,98 +256,6 @@ class Domain:
     pfix: np.ndarray | None = None
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
-
-
-# ---------------------------------------------------------------------------
-# Domain builders (T020).
-# ---------------------------------------------------------------------------
-
-
-def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
-    """Construct an SDF from a list of rings using Shapely.
-
-    Outer ring first, holes following. The returned callable accepts an
-    ``(N, 2)`` array of query points and returns ``(N,)`` signed
-    distances: negative inside, positive outside, zero on the boundary.
-    """
-    from shapely.geometry import Polygon, Point  # noqa: F401  (Point used below)
-    from shapely.prepared import prep
-    from shapely import distance as shp_distance, points as shp_points
-
-    if not rings:
-        raise ValueError("rings must contain at least one outer ring")
-
-    outer = np.asarray(rings[0], dtype=np.float64)
-    holes = [np.asarray(r, dtype=np.float64) for r in rings[1:]]
-    polygon = Polygon(outer, holes=holes if holes else None)
-    boundary = polygon.boundary
-    prepared = prep(polygon)
-
-    def sdf(p: np.ndarray) -> np.ndarray:
-        pts = np.asarray(p, dtype=np.float64)
-        if pts.ndim == 1:
-            pts = pts[None, :]
-        sp = shp_points(pts[:, 0], pts[:, 1])
-        d = shp_distance(sp, boundary)
-        # Inside: negative. Use prepared.contains for vectorized membership.
-        inside = np.array([prepared.contains(g) for g in sp])
-        return np.where(inside, -d, d).astype(np.float64)
-
-    return sdf
-
-
-def domain_from_polygon(
-    rings: list[np.ndarray],
-    *,
-    pfix: np.ndarray | None = None,
-    bc_segments: tuple[BoundarySegment, ...] = (),
-) -> Domain:
-    """Build a :class:`Domain` from a list of polygon rings.
-
-    Outer ring first, then any holes. Each ring is an ``(M, 2)`` float
-    array of ``(x, y)`` vertices. The SDF is built via Shapely; the
-    bbox is derived from the outer-ring extent.
-    """
-    if not rings:
-        raise ValueError("domain_from_polygon: rings must be non-empty")
-    outer = np.asarray(rings[0], dtype=np.float64)
-    if outer.ndim != 2 or outer.shape[1] != 2:
-        raise ValueError(
-            f"domain_from_polygon: outer ring must have shape (M, 2), got {outer.shape}"
-        )
-    xmin = float(outer[:, 0].min())
-    ymin = float(outer[:, 1].min())
-    xmax = float(outer[:, 0].max())
-    ymax = float(outer[:, 1].max())
-    return Domain(
-        sdf=_shapely_sdf(rings),
-        bbox=(xmin, ymin, xmax, ymax),
-        pfix=pfix,
-        pts=None,
-        bc_segments=bc_segments,
-    )
-
-
-def domain_from_sdf(
-    sdf: Callable[[np.ndarray], np.ndarray],
-    bbox: tuple[float, float, float, float],
-    *,
-    pfix: np.ndarray | None = None,
-    pts: np.ndarray | None = None,
-    bc_segments: tuple[BoundarySegment, ...] = (),
-) -> Domain:
-    """Build a :class:`Domain` from an explicit SDF callable + bbox."""
-    if len(bbox) != 4:
-        raise ValueError(
-            f"domain_from_sdf: bbox must be (xmin, ymin, xmax, ymax); got {bbox}"
-        )
-    return Domain(
-        sdf=sdf,
-        bbox=tuple(float(x) for x in bbox),  # type: ignore[arg-type]
-        pfix=pfix,
-        pts=pts,
-        bc_segments=bc_segments,
-    )
 
 
 # ---------------------------------------------------------------------------

@@ -7,8 +7,6 @@ from admesh.api import (
     BoundarySegment,
     Domain,
     Mesh,
-    domain_from_polygon,
-    domain_from_sdf,
     triangulate,
 )
 from admesh.boundary_types import BoundaryType
@@ -27,7 +25,7 @@ from admesh.registry import (
 )
 from admesh.size_field import SizeFieldFn, compose_size_field
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     # v1 public API surface (additive layer over the faithful port).
@@ -38,8 +36,6 @@ __all__ = [
     "Mesh",
     "SizeFieldFn",
     "compose_size_field",
-    "domain_from_polygon",
-    "domain_from_sdf",
     "list_available_domains",
     "load_domain_from_fort14",
     "load_domain_from_json",
