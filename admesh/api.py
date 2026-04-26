@@ -132,6 +132,19 @@ class Mesh:
 
         return plot_mesh(self, ax=ax, **kwargs)
 
+    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
+        """Draw mesh layers (onion-peel BFS from boundary) with colors.
+
+        Raises
+        ------
+        ImportError
+            If matplotlib is not installed. Install with
+            ``pip install admesh2D[viz]``.
+        """
+        from admesh.viz import plot_mesh_layers
+
+        return plot_mesh_layers(self, ax=ax, cmap=cmap, **kwargs)
+
     def equals(self, other: "Mesh", *, atol: float = 1e-10, rtol: float = 0.0) -> bool:
         """Tolerance-aware equality check for round-trip tests.
 

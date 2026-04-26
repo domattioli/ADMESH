@@ -22,6 +22,19 @@ Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
 
 ---
 
+## Stream Timeout Prevention
+
+1. Do each numbered task ONE AT A TIME. Complete one task fully,
+   confirm it worked, then move to the next.
+2. Never write a file longer than ~150 lines in a single tool call.
+   If a file will be longer, write it in multiple append/edit passes.
+3. Start a fresh session if the conversation gets long (20+ tool calls).
+   The error gets worse as the session grows.
+4. Keep individual grep/search outputs short. Use flags like
+   `--include` and `-l` (list files only) to limit output size.
+5. If you do hit the timeout, retry the same step in a shorter form.
+   Don't repeat the entire task from scratch.
+   
 ## Commands
 
 ```bash
@@ -204,22 +217,28 @@ operational summary:
 | [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
-**No active spec-kit feature.**
+Active spec-kit feature: `004-quad-prep-smoother` (branch
+`claude/smooth-quad-preprocessing-FmMxF`). Pre-quadrangulation
+triangle smoother — nudges ADMESH triangulations toward right-
+isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`,
+OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
+For the spec, formulation choice, public API, and design
+rationale, read:
 
-The most recent feature, `005-adcirc-mesh-registry`, was developed
-inside this repo between 2026-04-25 and 2026-04-26, then **migrated
-out** to its own repository: [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains).
-That repo is now the sole home of the registry; do not reintroduce
-`mesh_registry/` or `admesh_domains/` code into this repo.
+- `specs/004-quad-prep-smoother/spec.md`
+- `specs/004-quad-prep-smoother/plan.md`
+- `specs/004-quad-prep-smoother/research.md`
+- `specs/004-quad-prep-smoother/data-model.md`
+- `specs/004-quad-prep-smoother/contracts/python-api.md`
+- `specs/004-quad-prep-smoother/quickstart.md`
 
-The historical specification artifacts remain at
-`specs/005-adcirc-mesh-registry/` for reference, with `MIGRATED.md`
-documenting the extraction. New design work for the registry should
-happen in the ADMESH-Domains repo.
+The previous active feature (`001-pythonize-and-fort14-integration`)
+is shipped; its Pythonic API + fort.14 I/O surface is now the public
+admesh contract.
 
-Prior feature (`001-pythonize-and-fort14-integration`) shipped; its
-artifacts remain under `specs/001-pythonize-and-fort14-integration/`
-for reference. Constitution Principle I continues to govern the 13
-faithful-port stage modules in `admesh/*.py` — they MUST stay
-numerically identical to the QuADMesh-MATLAB reference.
+Constitution Principle I still applies: the existing faithful-port
+modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
+identical. The new modules from spec-001 (`api.py`, `fort14.py`,
+`boundary_types.py`, `size_field.py`, `viz.py`) and spec-004
+(`quad_prep.py`) are strictly additive.
 <!-- SPECKIT END -->
