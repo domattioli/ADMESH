@@ -48,7 +48,7 @@ Principle I unbroken. The 142-test faithful-port suite continues to
 pass with zero file modifications; `tests/test_smoke.py` was taught
 to skip class re-exports (the only test-tree change). See spec
 `specs/001-pythonize-and-fort14-integration/` for the full surface
-contract; `tests/output/quickstart_validation.txt` for evidence the
+contract; `output/quickstart_validation.txt` for evidence the
 3-line happy path round-trips on all 5 MVP domains.
 
 The non-obvious substitutions introduced by this layer:

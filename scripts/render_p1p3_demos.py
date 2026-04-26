@@ -2,7 +2,7 @@
 
 For each demo domain, produce a 2-up PNG comparing:
 - **Before** — ``triangulate(Domain)`` with a uniform size function
-  (the MVP M.4 path, which is what ``tests/output/mvp_*.png``
+  (the MVP M.4 path, which is what ``output/mvp_*.png``
   currently shows).
 - **After** — the same domain with a P1/P3 enrichment applied:
     - `unit_disk`: curvature-driven refinement via `build_h(curvature_scale=…)`
@@ -10,7 +10,7 @@ For each demo domain, produce a 2-up PNG comparing:
     - `notched_rectangle`: full ADMESH stack — PTS path with exact-corner
       densified ring + curvature (K) + medial (R) + boundary scale
 
-Writes `tests/output/demo_<name>.png`. Metrics table is printed on
+Writes `output/demo_<name>.png`. Metrics table is printed on
 stdout so it can be pasted into the README / session report.
 
 Run:
@@ -34,7 +34,7 @@ from admesh.routine import triangulate
 
 matplotlib.use("Agg")
 
-OUTDIR = Path(__file__).resolve().parent.parent / "tests" / "output"
+OUTDIR = Path(__file__).resolve().parent.parent / "output"
 OUTDIR.mkdir(parents=True, exist_ok=True)
 
 
