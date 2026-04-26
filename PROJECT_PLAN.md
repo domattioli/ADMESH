@@ -6,7 +6,7 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
-## Where we are today (2026-04-25, spec-002 MVP shipped — Tier-2 release gate pending issue #10)
+## Where we are today (2026-04-26, main merged — 298 tests green, open blockers #10/#11/#12)
 
 **Shipped this session (spec 002 — default size-field stack, implementation phase):**
 - All 41 tasks from `specs/002-size-field-defaults/tasks.md` walked through. T001-T015 + T018-T028 + T032-T037 done; T016/T017 (Tier-1 / Tier-2 acceptance) marked `xfail` pending issue #10; T029-T031 (Shinnecock fixture) deferred (network-dependent, not gating 0.1.0).
