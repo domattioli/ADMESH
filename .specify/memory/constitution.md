@@ -123,7 +123,7 @@ Rules:
 4. End-to-end tests exercise `routine.triangulate()` on the 5 MVP
    synthetic domains (unit square, L-shape, unit disk, annulus, notched
    rectangle) and assert quality gates `min_q ≥ 0.30`, `mean_q ≥ 0.60`.
-5. Visual inspection (PNGs under `tests/output/`) is encouraged but
+5. Visual inspection (PNGs under `output/`) is encouraged but
    MUST NOT gate CI.
 
 **Why**: This is a port. The reference is authoritative. Without

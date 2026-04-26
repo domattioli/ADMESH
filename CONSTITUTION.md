@@ -107,7 +107,7 @@ commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`, path
    annulus) and compare the final mesh (vertices + connectivity) to
    MATLAB output.
 4. **Visual inspection is encouraged but not required.** A test
-   producing a PNG under `tests/output/` is fine; don't gate CI on it.
+   producing a PNG under `output/` is fine; don't gate CI on it.
 
 ---
 

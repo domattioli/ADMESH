@@ -20,9 +20,11 @@ import admesh
 from admesh.in_polygon import in_polygon
 
 
-HERE = Path(__file__).parent
-FORT14 = HERE / "Block_O.14"
-OUT_DIR = HERE
+HERE = Path(__file__).resolve().parent
+REPO_ROOT = HERE.parent
+OUT_DIR = REPO_ROOT / "output" / "quad_prep_block_o"
+FORT14 = OUT_DIR / "Block_O.14"
+OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _load_minimal_fort14(path: Path) -> tuple[np.ndarray, np.ndarray]:
