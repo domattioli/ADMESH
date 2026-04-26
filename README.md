@@ -1,9 +1,4 @@
-<h1 align="center">ADMESH</h1>
-
-<p align="center">
-  An advanced, automatic unstructured mesh generator for 2D
-  shallow-water models.
-</p>
+<h1 align="center">ADMESH: An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</h1>
 
 <p align="center">
   <strong><a href="https://github.com/coltonjconroy">Colton J. Conroy</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
