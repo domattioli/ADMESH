@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from admesh.api import Domain, domain_from_polygon
+from admesh.api import Domain
+from admesh.loaders import _domain_from_polygon
 
 if TYPE_CHECKING:
     pass
@@ -215,4 +216,4 @@ def _convert_to_admesh_domain(admesh_domains_obj: object) -> Domain:
     if pfix is not None and not isinstance(pfix, np.ndarray):
         pfix = np.array(pfix, dtype=np.float64) if pfix else None
 
-    return domain_from_polygon(rings, pfix=pfix)
+    return _domain_from_polygon(rings, pfix=pfix)

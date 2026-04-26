@@ -9,20 +9,62 @@ from __future__ import annotations
 import json
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Callable
 
 import numpy as np
 
-from admesh.api import Domain, domain_from_polygon
-
-if TYPE_CHECKING:
-    pass
+from admesh.api import Domain
 
 __all__ = [
     "load_domain_from_toml",
     "load_domain_from_fort14",
     "load_domain_from_json",
 ]
+
+def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
+    from shapely.geometry import Polygon
+    from shapely.prepared import prep
+    from shapely import distance as shp_distance, points as shp_points
+
+    if not rings:
+        raise ValueError("rings must contain at least one outer ring")
+    outer = np.asarray(rings[0], dtype=np.float64)
+    holes = [np.asarray(r, dtype=np.float64) for r in rings[1:]]
+    polygon = Polygon(outer, holes=holes if holes else None)
+    boundary = polygon.boundary
+    prepared = prep(polygon)
+
+    def sdf(p: np.ndarray) -> np.ndarray:
+        pts = np.asarray(p, dtype=np.float64)
+        if pts.ndim == 1:
+            pts = pts[None, :]
+        sp = shp_points(pts[:, 0], pts[:, 1])
+        d = shp_distance(sp, boundary)
+        inside = np.array([prepared.contains(g) for g in sp])
+        return np.where(inside, -d, d).astype(np.float64)
+
+    return sdf
+
+
+def _domain_from_polygon(
+    rings: list[np.ndarray],
+    *,
+    pfix: np.ndarray | None = None,
+) -> Domain:
+    """Internal helper: build a Domain from polygon rings via Shapely SDF."""
+    if not rings:
+        raise ValueError("rings must be non-empty")
+    outer = np.asarray(rings[0], dtype=np.float64)
+    if outer.ndim != 2 or outer.shape[1] != 2:
+        raise ValueError(f"outer ring must have shape (M, 2), got {outer.shape}")
+    bbox = (
+        float(outer[:, 0].min()),
+        float(outer[:, 1].min()),
+        float(outer[:, 0].max()),
+        float(outer[:, 1].max()),
+    )
+    return Domain(sdf=_shapely_sdf(rings), bbox=bbox, pfix=pfix)
+
 
 # Use tomllib (Python 3.11+) or fall back to toml package
 if sys.version_info >= (3, 11):
@@ -88,7 +130,7 @@ def load_domain_from_toml(path: str | Path) -> Domain:
         if coords_list and coords_list[0]:
             fixed_points = np.array(coords_list[0], dtype=np.float64)
 
-    return domain_from_polygon(rings, pfix=fixed_points)
+    return _domain_from_polygon(rings, pfix=fixed_points)
 
 
 def load_domain_from_fort14(path: str | Path) -> Domain:
@@ -135,7 +177,7 @@ def load_domain_from_fort14(path: str | Path) -> Domain:
     if rings and len(rings[0]) > 0:
         fixed_points = np.array(rings[0][[0, len(rings[0]) // 2, -1]], dtype=np.float64)
 
-    return domain_from_polygon(rings, pfix=fixed_points)
+    return _domain_from_polygon(rings, pfix=fixed_points)
 
 
 def load_domain_from_json(path: str | Path) -> Domain:
@@ -183,4 +225,4 @@ def load_domain_from_json(path: str | Path) -> Domain:
     if fixed_raw:
         fixed_points = np.array(fixed_raw, dtype=np.float64)
 
-    return domain_from_polygon(rings, pfix=fixed_points)
+    return _domain_from_polygon(rings, pfix=fixed_points)
