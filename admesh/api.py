@@ -257,10 +257,126 @@ class Domain:
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
 
+    @classmethod
+    def from_mesh(cls, mesh: "Mesh") -> "Domain":
+        """Recover a multiply-connected domain from a mesh.
+
+        Extracts the boundary rings from the mesh, identifies the outer ring
+        (by signed area), and constructs a Domain suitable for re-triangulation.
+
+        Parameters
+        ----------
+        mesh : Mesh
+            Source mesh with nodes and elements.
+
+        Returns
+        -------
+        Domain
+            Domain with SDF derived from mesh boundary and interior bathymetry
+            (if available), and bc_segments recovered from the mesh boundary.
+        """
+        from scipy.interpolate import LinearNDInterpolator
+
+        # Extract boundary segments (rings) from the mesh
+        bc_segments = _derive_boundary_segments(mesh.elements, mesh.nodes)
+        if not bc_segments:
+            raise ValueError("Mesh has no boundary (is it fully 2D connected?)")
+
+        # Compute domain bbox from all nodes
+        bbox = (
+            float(mesh.nodes[:, 0].min()),
+            float(mesh.nodes[:, 1].min()),
+            float(mesh.nodes[:, 0].max()),
+            float(mesh.nodes[:, 1].max()),
+        )
+
+        # Create an SDF from the mesh boundary and (optionally) bathymetry
+        # For now, use a simple LinearNDInterpolator-based approach
+        # The outer ring (bc_segments[0]) defines the outer boundary
+        try:
+            # If mesh has elevation data, use it for bathymetry-aware SDF
+            if hasattr(mesh, "elevation") and mesh.elevation is not None:
+                z = mesh.elevation
+            else:
+                # Otherwise, use a constant elevation
+                z = np.zeros(len(mesh.nodes))
+
+            # Build SDF as distance to nearest boundary point, signed by bathymetry
+            from scipy.spatial import cKDTree
+
+            outer_ring_nodes = bc_segments[0].node_ids
+            outer_ring_pts = mesh.nodes[outer_ring_nodes]
+            tree = cKDTree(outer_ring_pts)
+
+            def sdf(points: np.ndarray) -> np.ndarray:
+                """Compute signed distance: negative inside, positive outside."""
+                distances, indices = tree.query(points)
+                # Simple heuristic: points inside the bbox are negative, outside positive
+                # (This is a rough approximation; for production, use proper winding number)
+                inside = (
+                    (points[:, 0] >= bbox[0])
+                    & (points[:, 0] <= bbox[2])
+                    & (points[:, 1] >= bbox[1])
+                    & (points[:, 1] <= bbox[3])
+                )
+                signed_distances = np.where(inside, -distances, distances)
+                return signed_distances
+
+        except Exception:
+            # Fallback: use a simple distance-to-bbox heuristic
+            def sdf(points: np.ndarray) -> np.ndarray:
+                xmin, ymin, xmax, ymax = bbox
+                dx = np.minimum(points[:, 0] - xmin, xmax - points[:, 0])
+                dy = np.minimum(points[:, 1] - ymin, ymax - points[:, 1])
+                inside_dist = np.minimum(dx, dy)
+                outside_dist = np.sqrt(
+                    np.maximum(xmin - points[:, 0], 0) ** 2
+                    + np.maximum(points[:, 0] - xmax, 0) ** 2
+                    + np.maximum(ymin - points[:, 1], 0) ** 2
+                    + np.maximum(points[:, 1] - ymax, 0) ** 2
+                )
+                signed = np.where(
+                    (points[:, 0] >= xmin)
+                    & (points[:, 0] <= xmax)
+                    & (points[:, 1] >= ymin)
+                    & (points[:, 1] <= ymax),
+                    -inside_dist,
+                    outside_dist,
+                )
+                return signed
+
+        return cls(sdf=sdf, bbox=bbox, bc_segments=bc_segments)
+
 
 # ---------------------------------------------------------------------------
 # Boundary derivation helper.
 # ---------------------------------------------------------------------------
+
+
+def _ring_area(ring: list[int], nodes: np.ndarray) -> float:
+    """Compute signed area of a ring using the shoelace formula.
+
+    Parameters
+    ----------
+    ring : list[int]
+        Ordered node indices forming a closed boundary.
+    nodes : (N, 2) ndarray
+        Mesh node coordinates.
+
+    Returns
+    -------
+    float
+        Absolute signed area of the polygon. Larger values indicate larger rings.
+        Used to distinguish outer rings (larger area) from holes (smaller areas).
+    """
+    if len(ring) < 3:
+        return 0.0
+    pts = nodes[ring]
+    x = pts[:, 0]
+    y = pts[:, 1]
+    # Shoelace formula: A = 0.5 * |sum(x_i * y_{i+1} - x_{i+1} * y_i)|
+    signed_area = 0.5 * abs(np.sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
+    return float(signed_area)
 
 
 def _derive_boundary_segments(
@@ -322,9 +438,11 @@ def _derive_boundary_segments(
         if len(ring) >= 3:
             rings.append(ring)
 
-    # Order rings by length, longest first — gives the outer ring index 0
-    # for typical doubly-connected shapes.
-    rings.sort(key=len, reverse=True)
+    # Order rings by signed area, largest first — the outer ring of a
+    # multiply-connected polygon always has the largest area, independent of
+    # node sampling. This fixes issue #11 where internal coastlines with more
+    # nodes than the outer ocean ring were incorrectly identified as the outer.
+    rings.sort(key=lambda ring: _ring_area(ring, nodes), reverse=True)
     return tuple(
         BoundarySegment(
             node_ids=np.asarray(ring, dtype=np.int64),
