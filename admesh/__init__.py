@@ -13,8 +13,18 @@ from admesh.api import (
 )
 from admesh.boundary_types import BoundaryType
 from admesh.fort14 import Fort14ParseError, read_fort14, write_fort14
+from admesh.loaders import (
+    load_domain_from_fort14,
+    load_domain_from_json,
+    load_domain_from_toml,
+)
 from admesh.quad_prep import smooth_for_quadrangulation
 from admesh.quality import mesh_quality, right_iso_quality
+from admesh.registry import (
+    list_available_domains,
+    load_domain_from_registry,
+    load_domain_with_metadata,
+)
 from admesh.size_field import SizeFieldFn, compose_size_field
 
 __version__ = "0.1.0"
@@ -30,6 +40,12 @@ __all__ = [
     "compose_size_field",
     "domain_from_polygon",
     "domain_from_sdf",
+    "list_available_domains",
+    "load_domain_from_fort14",
+    "load_domain_from_json",
+    "load_domain_from_registry",
+    "load_domain_from_toml",
+    "load_domain_with_metadata",
     "mesh_quality",
     "read_fort14",
     "right_iso_quality",

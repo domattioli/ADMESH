@@ -56,6 +56,45 @@ matlab -batch "run('scripts/export_matlab_fixtures.m')"
 
 ---
 
+## Domain Loading & Registry Integration (v0.2+)
+
+ADMESH now supports loading domains from files and the ADMESH-Domains registry:
+
+**File-based domain loading:**
+```python
+from admesh import load_domain_from_toml, load_domain_from_json, load_domain_from_fort14
+
+# Load domain from file
+domain = load_domain_from_toml("domain.toml")
+
+# Pass directly to triangulate()
+mesh = admesh.triangulate("domain.toml", h0=0.1)
+mesh = admesh.triangulate("domain.json", h0=0.1)
+mesh = admesh.triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
+```
+
+**Registry integration (requires `admesh-domains` package):**
+```python
+from admesh import load_domain_from_registry, list_available_domains
+
+# List available meshes
+domains = list_available_domains()
+print(f"Available: {list(domains.keys())}")
+
+# Load by mesh_id
+domain = load_domain_from_registry("noaa-hsofs-v20")
+mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)  # Auto-detects registry
+```
+
+**Supported domain file formats:**
+- `TOML` — ADMESH-Domains native format (recommended)
+- `JSON` — Universal portable format
+- `.14` / `.grd` — Fort.14 ADCIRC mesh files (extracts boundary as domain)
+
+See `docs/DOMAIN_IO.md` for complete examples and format specifications.
+
+---
+
 ## Architecture
 
 ```
