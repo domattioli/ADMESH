@@ -263,3 +263,29 @@ class Manifest(BaseModel):
     def get_schema_json(self) -> Dict[str, Any]:
         """Export schema as JSON-Schema for HuggingFace dataset card."""
         return Mesh.model_json_schema()
+
+    def get_authoritative_for_hash(self, content_hash: str) -> Optional[Mesh]:
+        """Get authoritative mesh for a given content hash (deduplication).
+
+        When multiple meshes share the same content_hash, returns:
+        - The mesh with authoritative=True (if exactly one exists)
+        - Otherwise, the oldest by created_date (tiebreaker)
+        - None if no meshes match the hash
+
+        Args:
+            content_hash: SHA-256 hash to look up.
+
+        Returns:
+            Authoritative Mesh for this hash, or None.
+        """
+        matching = [m for m in self.meshes if m.content_hash == content_hash]
+        if not matching:
+            return None
+
+        # Check for explicit authoritative flag
+        authoritative = [m for m in matching if m.authoritative]
+        if authoritative:
+            return authoritative[0]
+
+        # Tiebreaker: oldest created_date
+        return min(matching, key=lambda m: m.created_date)
