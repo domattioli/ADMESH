@@ -87,6 +87,13 @@ maintained by the original author. That repository may carry features
 beyond what this port currently covers; new functionality is adopted
 here as it's pulled across.
 
+## Related projects
+
+- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** —
+  federated registry of ADCIRC-compatible meshes (domains) for
+  discovery, lineage tracking, and community contribution. Built as a
+  companion to this library.
+
 ## Citation
 
 > Conroy, C.J., Kubatko, E.J., West, D.W. (2012). ADMESH: an advanced,
