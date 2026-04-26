@@ -439,8 +439,63 @@ def _bbox_diag(bbox: tuple[float, float, float, float]) -> float:
     return float(np.hypot(xmax - xmin, ymax - ymin))
 
 
+def _load_domain_from_source(source: str | "os.PathLike[str]") -> Domain:
+    """Load domain from file or registry.
+
+    Parameters
+    ----------
+    source : str or os.PathLike
+        File path or mesh_id string (from ADMESH-Domains registry).
+
+    Returns
+    -------
+    Domain
+        Loaded domain ready for triangulation.
+    """
+    import os
+    from pathlib import Path
+
+    source_str = str(source)
+    is_path = (
+        isinstance(source, os.PathLike)
+        or ("/" in source_str or "\\" in source_str)
+        or any(source_str.endswith(ext) for ext in [".toml", ".json", ".14", ".grd"])
+    )
+
+    if not is_path:
+        # Try registry first
+        try:
+            from admesh.registry import load_domain_from_registry
+            return load_domain_from_registry(source_str)
+        except ImportError:
+            pass
+
+    # Load as file
+    from admesh.loaders import (
+        load_domain_from_fort14,
+        load_domain_from_json,
+        load_domain_from_toml,
+    )
+
+    path = Path(source)
+    if not path.exists():
+        raise ValueError(f"Domain file not found: {path}")
+
+    suffix = path.suffix.lower()
+    if suffix == ".toml":
+        return load_domain_from_toml(path)
+    elif suffix in [".14", ".grd"]:
+        return load_domain_from_fort14(path)
+    elif suffix == ".json":
+        return load_domain_from_json(path)
+    else:
+        raise ValueError(
+            f"Unknown domain file format: {suffix}. Supported: .toml, .14, .grd, .json"
+        )
+
+
 def triangulate(
-    domain: Domain,
+    domain: Domain | str | "os.PathLike[str]",
     *,
     h_max: float | None = None,
     h_min: float | None = None,
@@ -453,11 +508,48 @@ def triangulate(
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
+    Parameters
+    ----------
+    domain : Domain, str, or os.PathLike
+        Domain object, file path (TOML/JSON/fort.14), or mesh_id string
+        (from ADMESH-Domains registry if installed).
+    h_max : float or None
+        Target maximum edge length. If None, defaults to bbox_diagonal / 20.
+    h_min : float or None
+        Minimum edge length for size field composition.
+    size_field : callable or None
+        Pre-composed size field function.
+    user_contribs : tuple of callables
+        User-defined size field contributions.
+    combine : callable
+        Function to combine multiple size fields (default: np.minimum.reduce).
+    seed : int or None
+        Random seed for reproducibility.
+    max_iter : int or None
+        Maximum iterations for mesh generation.
+    quality_gate : tuple[float, float]
+        Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).
+
+    Returns
+    -------
+    Mesh
+        Triangulated mesh with quality metrics and boundaries.
+
+    Raises
+    ------
+    ValueError
+        If domain source cannot be resolved or quality gates fail.
+    ImportError
+        If registry lookup is attempted without admesh-domains installed.
+
     Adapts the v1 :class:`Domain` onto the faithful-port driver
     :func:`admesh.routine.triangulate` without modifying it (Constitution
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
+    # Load domain from file or registry if necessary
+    if not isinstance(domain, Domain):
+        domain = _load_domain_from_source(domain)
     # Lazy imports — keeps `import admesh` cheap and avoids a hard
     # dependency cycle with the faithful-port modules at import time.
     from admesh.domains import Domain as _PortDomain
