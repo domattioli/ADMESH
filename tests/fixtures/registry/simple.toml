@@ -1,0 +1,41 @@
+schema_version = "1.0"
+
+[[meshes]]
+id = "test/simple-v1"
+name = "Simple Test Mesh"
+source_url = "https://example.com/simple.fort.14"
+content_hash = "sha256:abcd1234"
+num_triangles = 1000
+license = "public-domain"
+created_by = "Test Suite"
+created_date = 2026-04-01T00:00:00Z
+review_state = "approved"
+
+  [meshes.bounding_box]
+  min_lon = -90.0
+  min_lat = 25.0
+  max_lon = -80.0
+  max_lat = 30.0
+
+  [[meshes.features]]
+  value = "open_ocean"
+
+[[meshes]]
+id = "test/simple-v2"
+name = "Another Simple Mesh"
+source_url = "https://example.com/simple2.fort.14"
+content_hash = "sha256:efgh5678"
+num_triangles = 5000
+license = "CC-BY-4.0"
+created_by = "Test Suite"
+created_date = 2026-04-02T00:00:00Z
+review_state = "approved"
+
+  [meshes.bounding_box]
+  min_lon = -95.0
+  min_lat = 28.0
+  max_lon = -85.0
+  max_lat = 32.0
+
+  [[meshes.features]]
+  value = "levee"
