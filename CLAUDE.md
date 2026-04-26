@@ -114,9 +114,21 @@ See `docs/DOMAIN_IO.md` for complete examples and format specifications.
 
 ## Architecture
 
+The package has **two layers**:
+
+1. **Faithful-port stage modules** (Constitution Principle I — locked, must
+   stay numerically identical to MATLAB). One module per MATLAB stage,
+   bottom-up dependency order.
+2. **Additive Pythonic API layer** (spec-001 through spec-005). Public
+   user-facing surface — `triangulate()`, `Mesh`, `Domain`, fort.14 I/O,
+   loaders, registry integration, viz, quad-prep. Composes the stage
+   modules; never modifies them.
+
 ```
 admesh/
-  __init__.py          # package entry, re-exports public API
+  __init__.py          # public API re-exports (Domain, Mesh, triangulate, …)
+
+  # Faithful-port stage modules (locked) ------------------------------
   routine.py           # 01 — top-level driver (ADmeshRoutine, ADmeshSubMeshRoutine)
   background_grid.py   # 02 — CreateBackgroundGrid
   distance.py          # 03 — SignedDistanceFunction, PTS2PointList
@@ -131,17 +143,56 @@ admesh/
   in_polygon.py        # 12 — InPolygon
   inpaint.py           # 13 — inpaint_nans
 
+  # Additive Pythonic API layer (spec-001+, strictly composes the above)
+  api.py               # spec-001 — Domain/Mesh/BoundarySegment dataclasses + triangulate()
+  boundary_types.py    # spec-001 — BoundaryType enum (ADCIRC IBTYPE codes incl. 3/4/13/24)
+  fort14.py            # spec-001 — read_fort14 / write_fort14 round-trip I/O
+  size_field.py        # spec-002 — SizeFieldFn protocol + compose_size_field stack
+  loaders.py           # spec-002 — load_domain_from_{toml,json,fort14}
+  domains.py           # MVP domain helpers (square, L-shape, U-shape, hole, doughnut)
+  viz.py               # optional matplotlib mesh.plot() (extras=[viz])
+  quad_prep.py         # spec-004 — smooth_for_quadrangulation (right-isoceles smoother)
+  registry.py          # spec-005 — load_domain_from_registry, list_available_domains
+
 tests/
-  test_<stage>.py      # one per stage
-  fixtures/<stage>/    # .npz inputs+outputs captured from MATLAB
+  test_<stage>.py              # faithful-port stage tests (one per stage)
+  test_api_*.py                # spec-001 public-API surface
+  test_fort14_*.py             # fort.14 round-trip + reference corpus
+  test_size_field_composition.py # size-field stack
+  test_quad_prep*.py           # spec-004
+  test_registry.py             # spec-005
+  test_matlab_port.py          # cross-stage MATLAB parity smoke
+  test_backward_compat_full_suite.py # v0.1 → v0.2 migration guard
+  fixtures/<stage>/            # .npz inputs+outputs captured from MATLAB
+  fixtures/fort14/             # ADCIRC reference meshes (incl. wnat_test.14)
 
 scripts/
-  export_matlab_fixtures.m   # MATLAB-side fixture emitter
-  bench_mesh_size.py         # Numba vs. C solver benchmark
+  export_matlab_fixtures.m     # MATLAB-side fixture emitter
+  mat_to_npz.py                # one-off .mat → .npz converter
+  bench_mesh_size.py           # Numba vs. C solver benchmark
+  render_*.py                  # demo / inspection plots → output/
+  wnat_demo.py                 # WNAT structural-validity gate driver
+  pre_tag_check.sh             # release-gate pre-flight
+
+specs/
+  001-pythonize-and-fort14-integration/  # SHIPPED — Pythonic API + fort.14 I/O
+  002-size-field-defaults/               # IN-FLIGHT — default size-field stack (0.1.0 blocker)
+  004-quad-prep-smoother/                # IN-FLIGHT — pre-quad triangle smoother
+  005-adcirc-mesh-registry/              # IN-FLIGHT — federated mesh registry
 
 docs/
   PORTING_NOTES.md     # running log of MATLAB → Python substitutions
+  DOMAIN_IO.md         # domain file format spec (TOML / JSON / fort.14)
+  sessions/            # per-session plan + state handoff files
+  persistence_journal.md  # log of session interruptions / redirects
+
+output/                # generated PNGs / artifacts (gitignored except gate plots)
 ```
+
+**Locked vs additive**: any change to the 13 faithful-port stage modules
+requires Constitution-Principle-I justification. New behaviour belongs
+in the additive layer. Stage modules can be *called* from the additive
+layer, never the reverse.
 
 ---
 
@@ -274,28 +325,33 @@ operational summary:
 | [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `004-quad-prep-smoother` (branch
-`claude/smooth-quad-preprocessing-FmMxF`). Pre-quadrangulation
-triangle smoother — nudges ADMESH triangulations toward right-
-isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`,
-OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
-For the spec, formulation choice, public API, and design
-rationale, read:
+**Shipped:** `001-pythonize-and-fort14-integration` — Pythonic public
+API (`Domain`, `Mesh`, `triangulate()`) + ADCIRC fort.14 round-trip
+I/O. Now the public admesh contract.
 
-- `specs/004-quad-prep-smoother/spec.md`
-- `specs/004-quad-prep-smoother/plan.md`
-- `specs/004-quad-prep-smoother/research.md`
-- `specs/004-quad-prep-smoother/data-model.md`
-- `specs/004-quad-prep-smoother/contracts/python-api.md`
-- `specs/004-quad-prep-smoother/quickstart.md`
+**In-flight specs** (read each spec's `spec.md` + `plan.md` before
+touching its modules):
 
-The previous active feature (`001-pythonize-and-fort14-integration`)
-is shipped; its Pythonic API + fort.14 I/O surface is now the public
-admesh contract.
+- `002-size-field-defaults` — wire the MATLAB-faithful size-field
+  stack (curvature → medial-axis → bathymetry → tide, `min`-stacked)
+  as the Phase-1 default in `triangulate()`; extends fort.14 with
+  IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. **0.1.0 release
+  blocker** — gated on the WNAT structural-validity gate
+  ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
+- `004-quad-prep-smoother` — `smooth_for_quadrangulation()` nudges
+  ADMESH triangulations toward right-isoceles so downstream
+  tri-to-quad fusion (CHILmesh `tri2quad`, OceanMesh2D, ADCIRC v55+)
+  produces clean quads instead of rhombi.
+- `005-adcirc-mesh-registry` — federated mesh registry for ADCIRC
+  meshes (TOML manifests, HuggingFace mirror for redistributable
+  licenses, slug + SHA-256 IDs). The split-out `ADMESH-Domains`
+  repo is the upstream catalog; this spec wires registry lookup
+  into `triangulate(mesh_id)`.
 
-Constitution Principle I still applies: the existing faithful-port
-modules in `admesh/*.py` (the 13 stage modules) MUST stay numerically
-identical. The new modules from spec-001 (`api.py`, `fort14.py`,
-`boundary_types.py`, `size_field.py`, `viz.py`) and spec-004
-(`quad_prep.py`) are strictly additive.
+**Constitution Principle I** still binds: the 13 faithful-port stage
+modules MUST stay numerically identical to MATLAB. New behaviour goes
+in the additive-layer modules (`api.py`, `fort14.py`,
+`boundary_types.py`, `loaders.py`, `size_field.py`, `viz.py`,
+`quad_prep.py`, `registry.py`, `domains.py`) — strictly additive,
+never replacing the locked modules.
 <!-- SPECKIT END -->
