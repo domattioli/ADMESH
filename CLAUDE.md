@@ -184,13 +184,37 @@ this is a port, not a research project. Keep it simple.
 
 ---
 
-## Related repos on disk
+## Branching (operational)
 
-| Path | What it is |
+See **Constitution Article VI rules 5–8** for the binding rules. Quick
+operational summary:
+
+- **Default to `main`.** Don't create branches for one-off edits.
+- **Speckit is the only branch-creator.** New feature branches come
+  from `/speckit-specify` (which fires the `before_specify` git hook).
+  Don't run `git checkout -b` directly.
+- **Speckit naming only.** Branches follow `NNN-<short-name>`
+  (sequential) per `.specify/init-options.json`. Do not create or
+  accept `claude/<feature>-<hash>` branches; if the session-system
+  pre-creates one, ignore or consolidate under the speckit branch.
+- **Scan first.** Before invoking `/speckit-specify`, run
+  `git branch -a` and look for a branch already covering the same
+  feature (by short-name, keywords, or related issue #). Reuse it
+  rather than create a parallel one.
+- **Consolidate redundancies.** If you find duplicate branches for the
+  same feature, ask the user once, then delete the redundant ones
+  (local + remote) and keep only the speckit-named branch.
+
+---
+
+## Related repos on disk and on GitHub
+
+| Path / URL | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
 | `/workspace/MADMESHR` | Sibling RL-meshing project — **not related to ADMESH**, do not cross-contaminate |
 | `/workspace/ADMESH` | This repo |
+| [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
 Active spec-kit feature: `004-quad-prep-smoother` (branch
