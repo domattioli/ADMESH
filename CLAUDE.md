@@ -56,18 +56,21 @@ matlab -batch "run('scripts/export_matlab_fixtures.m')"
 
 ---
 
-## Domain Loading & Registry Integration (v0.2+)
+## Domain Loading & API (v0.2+)
 
-ADMESH now supports loading domains from files and the ADMESH-Domains registry:
+**v0.2 breaking change**: `domain_from_polygon()` and `domain_from_sdf()` have been
+removed from the public API. All domains now come from files or the ADMESH-Domains
+registry. Domain definitions become version-controlled artifacts, not ad-hoc Python objects.
 
 **File-based domain loading:**
 ```python
 from admesh import load_domain_from_toml, load_domain_from_json, load_domain_from_fort14
 
-# Load domain from file
+# Load domain then triangulate
 domain = load_domain_from_toml("domain.toml")
+mesh = admesh.triangulate(domain, h0=0.1)
 
-# Pass directly to triangulate()
+# Or pass path/mesh_id directly to triangulate()
 mesh = admesh.triangulate("domain.toml", h0=0.1)
 mesh = admesh.triangulate("domain.json", h0=0.1)
 mesh = admesh.triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
@@ -77,19 +80,33 @@ mesh = admesh.triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
 ```python
 from admesh import load_domain_from_registry, list_available_domains
 
-# List available meshes
 domains = list_available_domains()
-print(f"Available: {list(domains.keys())}")
-
-# Load by mesh_id
-domain = load_domain_from_registry("noaa-hsofs-v20")
 mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)  # Auto-detects registry
 ```
 
 **Supported domain file formats:**
-- `TOML` — ADMESH-Domains native format (recommended)
+- `TOML` — ADMESH-Domains native format (recommended; version-controllable)
 - `JSON` — Universal portable format
 - `.14` / `.grd` — Fort.14 ADCIRC mesh files (extracts boundary as domain)
+
+**Migration from v0.1:**
+```python
+# v0.1 (removed) — no longer works
+domain = admesh.domain_from_polygon([outer_ring, hole_ring])
+domain = admesh.domain_from_sdf(my_sdf, bbox=(-1, -1, 1, 1))
+
+# v0.2 — save polygon to JSON once, load every time
+import json
+domain_dict = {"bbox": [-1, -1, 1, 1], "rings": [outer_ring.tolist()]}
+with open("my_domain.json", "w") as f:
+    json.dump(domain_dict, f)
+mesh = admesh.triangulate("my_domain.json", h0=0.1)
+
+# v0.2 — custom SDF: use Domain dataclass directly (still exported)
+from admesh import Domain
+domain = Domain(sdf=my_sdf_callable, bbox=(-1, -1, 1, 1))
+mesh = admesh.triangulate(domain, h0=0.1)
+```
 
 See `docs/DOMAIN_IO.md` for complete examples and format specifications.
 

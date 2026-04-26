@@ -6,14 +6,16 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from admesh import Mesh, domain_from_polygon, triangulate
+from admesh import Mesh, load_domain_from_json, triangulate
 
 
 @pytest.fixture
-def sample_domain():
+def sample_domain(tmp_path):
     """Create a simple square domain for testing."""
-    rings = [np.array([[-1, -1], [1, -1], [1, 1], [-1, 1]], dtype=np.float64)]
-    return domain_from_polygon(rings)
+    json_data = {"bbox": [-1.0, -1.0, 1.0, 1.0], "rings": [[[-1, -1], [1, -1], [1, 1], [-1, 1]]]}
+    p = tmp_path / "square.json"
+    p.write_text(json.dumps(json_data))
+    return load_domain_from_json(p)
 
 
 @pytest.fixture

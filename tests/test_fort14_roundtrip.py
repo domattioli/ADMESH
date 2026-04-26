@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 
 import admesh
+from admesh import Domain
 from admesh.domains import ALL as DOMAIN_REGISTRY
 
 
@@ -24,7 +25,7 @@ _MVP = {
 def test_fort14_roundtrip_via_buffer(name: str) -> None:
     port_dom = DOMAIN_REGISTRY[name]
     pfix = port_dom.fixed_points if port_dom.fixed_points.size else None
-    domain = admesh.domain_from_sdf(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix)
+    domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix)
     mesh = admesh.triangulate(domain, seed=0, **_MVP[name])
 
     buf = io.StringIO()
@@ -45,10 +46,7 @@ def test_fort14_roundtrip_via_buffer(name: str) -> None:
 
 def test_fort14_roundtrip_via_path(tmp_path) -> None:
     port_dom = DOMAIN_REGISTRY["unit_square"]
-    domain = admesh.domain_from_sdf(
-        sdf=port_dom.fd, bbox=port_dom.bbox,
-        pfix=port_dom.fixed_points,
-    )
+    domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=port_dom.fixed_points)
     mesh = admesh.triangulate(domain, h_max=0.12, max_iter=200, seed=0)
 
     out = tmp_path / "mesh.14"
