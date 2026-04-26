@@ -1,0 +1,34 @@
+# ADCIRC Mesh Registry Manifest
+# Single source of truth for coastal-simulation meshes
+#
+# Format: TOML with array-of-tables [[meshes]] blocks
+# Schema version: 1.0 (supports forward-compatible schema evolution)
+#
+# Contributing: See docs/registry/CONTRIBUTING.md for PR-based submission workflow
+
+schema_version = "1.0"
+
+# Mesh entries (array-of-tables)
+# Each [[meshes]] block represents one coastal-simulation mesh
+#
+# Example entry:
+# [[meshes]]
+# id = "noaa/hsofs@v2021"
+# name = "HSOFS Atlantic+Gulf 2021"
+# source_url = "https://example.com/hsofs-v2021.fort.14"
+# content_hash = "sha256:abc123..."
+# num_triangles = 2100000
+# license = "public-domain"
+# mirror_eligible = true
+# created_by = "NOAA NHC <support@nhc.noaa.gov>"
+# created_date = 2021-01-15T00:00:00Z
+# review_state = "approved"
+#
+#   [meshes.bounding_box]
+#   min_lon = -97.0
+#   min_lat = 8.0
+#   max_lon = -25.0
+#   max_lat = 48.0
+#
+#   [[meshes.features]]
+#   name = "open_ocean"
