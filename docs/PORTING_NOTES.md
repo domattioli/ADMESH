@@ -17,6 +17,27 @@ Template:
 
 ---
 
+## v0.2 — Domain API consolidation (2026-04-26)
+
+**Removed from public API:**
+- `admesh.domain_from_polygon(rings, *, pfix, bc_segments)` — Shapely-based polygon→SDF builder
+- `admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)` — SDF callable + bbox wrapper
+
+**Rationale:** File-based domain loading (TOML/JSON/fort.14) and the ADMESH-Domains registry
+are now the canonical entry points. Storing domain definitions as files enables version control,
+reproducibility, and integration with the federated registry (`domattioli/ADMESH-Domains`).
+
+**Migration:**
+- Polygon domains → serialize to JSON/TOML once; reload via `load_domain_from_json()` or `load_domain_from_toml()`
+- Custom SDF domains → construct `Domain(sdf=callable, bbox=(...))` directly (dataclass still exported)
+- See `CLAUDE.md` § "Domain Loading & API (v0.2+)" for code examples
+
+**Internal:** `_shapely_sdf` and `_domain_from_polygon` moved to `admesh/loaders.py` as private
+helpers for file-loader internals. Tests that require in-memory polygon→Domain conversion
+import `_domain_from_polygon` from `admesh.loaders`.
+
+---
+
 ## v1 Pythonic layer (2026-04-25)
 
 A Pythonic API + ADCIRC fort.14 I/O surface lands in
@@ -27,7 +48,7 @@ Principle I unbroken. The 142-test faithful-port suite continues to
 pass with zero file modifications; `tests/test_smoke.py` was taught
 to skip class re-exports (the only test-tree change). See spec
 `specs/001-pythonize-and-fort14-integration/` for the full surface
-contract; `tests/output/quickstart_validation.txt` for evidence the
+contract; `output/quickstart_validation.txt` for evidence the
 3-line happy path round-trips on all 5 MVP domains.
 
 The non-obvious substitutions introduced by this layer:
@@ -658,6 +679,49 @@ unobservable amount in practice (no test has surfaced a difference).
 **Impact**: Every downstream caller (distance, distmesh, routine)
 gets drop-in compatibility.
 
+## 2026-04-25 — quad_prep — leg-not-hypotenuse `h` scaling (spec-004)
+
+**MATLAB**: n/a — this is a new module (spec-004), not a port.
+**Python**: `admesh.quad_prep.smooth_for_quadrangulation`,
+specifically the per-element scale `sigma_k = h(centroid) / sqrt(2)`.
+**Substitution**: For the right-isoceles target with legs `L` and
+hypotenuse `L * sqrt(2)`, the user-supplied size field `h` is
+interpreted as the desired **leg** length, not the hypotenuse. So
+`sigma_k = h / sqrt(2)`. Rationale: after downstream tri-to-quad
+fusion (CHILmesh `tri2quad`), each pair of right-isoceles triangles
+fuses along their shared hypotenuse, and the resulting quad inherits
+the **leg** as its edge length, not the hypotenuse. So the size field
+must scale legs, not hypotenuses, for `h` to remain the natural
+"target edge length" downstream consumers expect.
+**Behavior diff**: None — there's no MATLAB analog to compare against.
+This convention is documented per Constitution Principle II so the
+choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between
+leg lengths and `h(centroid)`).
+**Impact**: Callers who pass an OceanMesh2D-style mesh-size function
+get the expected behavior: triangle legs (and downstream quad edges)
+track `h` directly, no `sqrt(2)` rescaling needed.
+
+## 2026-04-25 — quality — `right_iso_quality` companion metric
+
+**MATLAB**: n/a — additive (not a port). The original `MeshQuality.m`
+measures equilateral-ness only.
+**Python**: `admesh.quality.right_iso_quality`.
+**Substitution**: Right-isoceles deviation score in `[0, 1]` per
+spec-004 FR-006. Per-element score is the product of three terms:
+leg-equality, right-angle-fit, hypotenuse-fit. Mesh score is the
+unweighted mean. Constitutionally additive: the existing
+`mesh_quality` (equilateral target) is **not** modified (Principle I).
+The two metrics report side by side; ADMESH's distmesh output
+typically scores ~1.0 on `mesh_quality` and ~0.5 on
+`right_iso_quality`, and the spec-004 smoother trades the former for
+the latter (validated on Block_O.14: 0.977 → 0.923 for
+`mesh_quality`, 0.498 → 0.686 for `right_iso_quality`).
+**Behavior diff**: None to MATLAB (no analog). The metric is
+documented in the public-api.md contract so its semantics are pinned.
+**Impact**: Downstream consumers who run tri-to-quad fusion now have
+a quality metric that meaningfully scores mesh suitability for that
+operation.
+
 ## 2026-04-18 — general — `.mex*` binaries discarded
 
 **MATLAB**: `.mexw64`, `.mexmaci64`, `.mexa64` files throughout the
@@ -671,42 +735,27 @@ build artifacts, not source.
 **Impact**: `pip install admesh` needs no C toolchain — satisfies
 the Article I north-star "installs without a C toolchain".
 
-## 2026-04-25 — fort.14 — paired-edge / barrier BC records (spec 002)
+## 2026-04-25 — quad_prep — leg-not-hypotenuse `h` scaling
 
-**MATLAB**: ADCIRC v55 fort.14 land-boundary block discriminates on
-`IBTYPE` per segment header; for IBTYPE 3 / 4 / 13 / 23 / 24 / 25
-each record line carries 4–5 numeric tokens (single-node + crest
-data, or paired-node + crest data) rather than the simple 1-token
-node id used for IBTYPE 0 / 1 / 11 / 20.
-**Python**: `admesh.fort14.read_fort14` + `admesh.fort14.write_fort14`,
-new helpers `_read_single_node_barrier_records` and
-`_read_paired_node_barrier_records`. New constants
-`_SINGLE_NODE_LAND_IBTYPES = frozenset({0, 1, 2, 11, 12, 21, 22})`,
-`_SINGLE_NODE_BARRIER_IBTYPES = frozenset({3, 13, 23})` (3 trailing
-floats per record per the v55 manual), and
-`_PAIRED_NODE_BARRIER_IBTYPES = frozenset({4, 14, 24, 25})` (5
-tokens per record).
-**Substitution**: dataclass `BoundarySegment` extended with
-optional `paired_node_ids: NDArray[np.int64] | None` and
-`barrier_data: NDArray[np.float64] | None` fields; both default to
-`None` so spec-001 callers see no change. Index conversion
-(1-based on disk → 0-based in memory) is applied to BOTH `node_ids`
-AND `paired_node_ids` at the I/O boundary.
-**Behavior diff**: the **column count of `barrier_data` is
-determined dynamically per segment** rather than fixed to the
-v55-documented 3 floats. Real-world fixtures vary — ADCIRC's
-`wetting_and_drying_test.14` writes only 2 trailing floats per
-IBTYPE-3 record. Reader locks the count from the first record and
-enforces it for the rest of the segment; writer round-trips
-whatever shape was read with `%.3f` precision (matches the example10n
-fixture). Open- and land-segment headers also tolerate inline `=`
-comments in the second token (the example10n fixture annotates
-`58 = Number of nodes for open boundary 1`). Unknown IBTYPE codes
-are preserved as plain `int` per spec-001's policy and parsed as
-single-node records (no barrier_data).
-**Impact**: spec 002 closes the Tier-1 fixture round-trip gap —
-`tests/test_fort14_reference_corpus.py::...[wetting_and_drying_test.14]`
-went from RED (the spec-001 reader couldn't parse `=` comments
-or paired-edge records) to GREEN. Five new round-trip / parser-error
-unit tests under `tests/test_fort14_paired.py` cover the IBTYPE 3,
-24, unknown-fallback, and malformed-record paths.
+**MATLAB**: n/a — this feature has no MATLAB counterpart. The
+QuADMesh-MATLAB pipeline relies on downstream tools (CHILmesh
+`tri2quad`) to absorb the equilateral→rhombus mismatch in their own
+smoothers; ADMESH's MATLAB lineage has no pre-quadrangulation
+right-isoceles smoother to port.
+**Python**: `admesh.quad_prep.smooth_for_quadrangulation`
+**Substitution**: SVD-invariant FEM target-Jacobian formulation
+(Knupp 2012, Formulation 1 in `specs/004-quad-prep-smoother/research.md`).
+Per-element corner choice is selected by argmin over the 3 cyclic
+permutations of the triangle indices, resolving the right-angle-
+corner ambiguity deferred from `/speckit-clarify`.
+**Behavior diff (vs. naive convention)**: When a size field `h` is
+provided, the per-element scale `σ_k = h(centroid) / sqrt(2)` so the
+target *leg* length tracks `h`, not the hypotenuse. Rationale: the
+post-pairing quad inherits the *leg* as its edge length (the shared
+hypotenuse becomes the quad's interior diagonal in the fusion step),
+not the hypotenuse. A hypotenuse-tracking convention would produce
+quads `sqrt(2)×` too coarse relative to the requested `h`. Spec
+FR-004.
+**Impact**: `triangulate(domain, ..., for_quads=True)` (FR-011, when
+landed) yields a tri mesh whose post-fusion quad edge lengths match
+the user's intended `h(x, y)` size field.

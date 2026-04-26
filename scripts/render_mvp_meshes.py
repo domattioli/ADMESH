@@ -24,7 +24,7 @@ from admesh.routine import triangulate
 
 matplotlib.use("Agg")
 
-OUTDIR = Path(__file__).resolve().parent.parent / "tests" / "output"
+OUTDIR = Path(__file__).resolve().parent.parent / "output"
 OUTDIR.mkdir(parents=True, exist_ok=True)
 
 # Per-domain h0 and niter (tuned for a reasonable first-pass preview).

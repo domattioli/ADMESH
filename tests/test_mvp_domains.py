@@ -6,13 +6,13 @@ For each registered domain in :mod:`admesh.domains`, assert:
   geometric checks in :func:`conftest.assert_valid_mesh`).
 - ``min_q >= 0.30`` and ``mean_q >= 0.60`` (per
   ``PROJECT_PLAN.md`` MVP acceptance criteria and
-  ``docs/sessions/session_1_plan.md`` binding gate).
+  ``docs/session_1_plan.md`` binding gate).
 
 Per-domain ``h0`` and ``niter`` defaults match
 ``scripts/render_mvp_meshes.py`` so the test suite and the PNG
 artifacts agree. If a domain misses the gate, the correct response
 is NOT to widen the tolerance — see the falsifier section of
-``docs/sessions/session_1_plan.md``.
+``docs/session_1_plan.md``.
 """
 
 from __future__ import annotations
