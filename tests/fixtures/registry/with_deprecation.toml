@@ -1,0 +1,65 @@
+schema_version = "1.0"
+
+[[meshes]]
+id = "test/active-mesh-v1"
+name = "Active Mesh"
+source_url = "https://example.com/active.fort.14"
+content_hash = "sha256:active001"
+num_triangles = 50000
+license = "MIT"
+created_by = "Test Suite"
+created_date = 2026-01-15T00:00:00Z
+review_state = "approved"
+
+  [meshes.bounding_box]
+  min_lon = -90.0
+  min_lat = 25.0
+  max_lon = -85.0
+  max_lat = 30.0
+
+  [[meshes.features]]
+  value = "inlet"
+
+[[meshes]]
+id = "test/deprecated-mesh-v1"
+name = "Deprecated Mesh (License Retracted)"
+source_url = "https://example.com/deprecated.fort.14"
+content_hash = "sha256:deprecated001"
+num_triangles = 75000
+license = "proprietary"
+created_by = "Test Suite"
+created_date = 2025-12-01T00:00:00Z
+review_state = "deprecated"
+deprecation_reason = "Source archive requested takedown"
+deprecated_date = 2026-04-15T00:00:00Z
+
+  [meshes.bounding_box]
+  min_lon = -92.0
+  min_lat = 26.0
+  max_lon = -87.0
+  max_lat = 31.0
+
+  [[meshes.features]]
+  value = "open_ocean"
+
+[[meshes]]
+id = "test/deprecated-v2-superseded"
+name = "Deprecated Mesh (Superseded)"
+source_url = "https://example.com/superseded.fort.14"
+content_hash = "sha256:superseded001"
+num_triangles = 80000
+license = "CC-BY-4.0"
+created_by = "Test Suite"
+created_date = 2025-11-01T00:00:00Z
+review_state = "deprecated"
+deprecation_reason = "Superseded by test/active-mesh-v1 with improved resolution"
+deprecated_date = 2026-03-01T00:00:00Z
+
+  [meshes.bounding_box]
+  min_lon = -90.0
+  min_lat = 25.0
+  max_lon = -85.0
+  max_lat = 30.0
+
+  [[meshes.features]]
+  value = "inlet"
