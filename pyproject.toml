@@ -31,29 +31,18 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
-    "pytest-asyncio",
-    "responses",
-    "respx",
-    "import-linter",
 ]
 viz = [
     "matplotlib>=3.7",
-]
-registry = [
-    "pydantic>=2.0",
-    "shapely>=2.0",
-    "httpx>=0.25",
-    "huggingface_hub>=0.20",
-    "click>=8.1",
-    "tomli-w>=1.0",
 ]
 
 [project.urls]
 Source = "https://github.com/domattioli/ADMESH"
 Paper = "https://doi.org/10.1007/s10236-012-0574-0"
+"Mesh Registry" = "https://github.com/domattioli/ADMESH-Domains"
 
 [tool.setuptools.packages.find]
-include = ["admesh*", "mesh_registry*"]
+include = ["admesh*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

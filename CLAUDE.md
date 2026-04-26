@@ -194,42 +194,32 @@ operational summary:
 
 ---
 
-## Related repos on disk
+## Related repos on disk and on GitHub
 
-| Path | What it is |
+| Path / URL | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
 | `/workspace/MADMESHR` | Sibling RL-meshing project — **not related to ADMESH**, do not cross-contaminate |
 | `/workspace/ADMESH` | This repo |
+| [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
-Active spec-kit feature: `005-adcirc-mesh-registry` (branch
-`005-adcirc-mesh-registry`). This is a **non-port** feature
-(community data-engineering tool); see `plan.md` Constitution Check
-for the explicit Principle I deviation (dictator-approved exception,
-2026-04-25). The implementation lives **inside ADMESH** under a
-segregated top-level path `mesh_registry/` (sibling to `admesh/`,
-NOT a sub-module of it). Cross-imports between `admesh.*` and
-`mesh_registry.*` are forbidden — enforced by import-linter in CI.
-Migration to a standalone `domattioli/adcirc-mesh-registry` repo is
-planned but deferred (see `specs/005-adcirc-mesh-registry/plan.md`
-Migration Notes).
+**No active spec-kit feature.**
 
-For design artifacts:
+The most recent feature, `005-adcirc-mesh-registry`, was developed
+inside this repo between 2026-04-25 and 2026-04-26, then **migrated
+out** to its own repository: [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains).
+That repo is now the sole home of the registry; do not reintroduce
+`mesh_registry/` or `admesh_domains/` code into this repo.
 
-- `specs/005-adcirc-mesh-registry/spec.md`
-- `specs/005-adcirc-mesh-registry/plan.md`
-- `specs/005-adcirc-mesh-registry/research.md`
-- `specs/005-adcirc-mesh-registry/data-model.md`
-- `specs/005-adcirc-mesh-registry/contracts/manifest-schema.md`
-- `specs/005-adcirc-mesh-registry/contracts/python-api.md`
-- `specs/005-adcirc-mesh-registry/contracts/ci-validator.md`
-- `specs/005-adcirc-mesh-registry/contracts/hf-publisher.md`
-- `specs/005-adcirc-mesh-registry/quickstart.md`
+The historical specification artifacts remain at
+`specs/005-adcirc-mesh-registry/` for reference, with `MIGRATED.md`
+documenting the extraction. New design work for the registry should
+happen in the ADMESH-Domains repo.
 
 Prior feature (`001-pythonize-and-fort14-integration`) shipped; its
 artifacts remain under `specs/001-pythonize-and-fort14-integration/`
-for reference. Constitution Principle I still applies to the 13
+for reference. Constitution Principle I continues to govern the 13
 faithful-port stage modules in `admesh/*.py` — they MUST stay
-numerically identical regardless of additive features like this one.
+numerically identical to the QuADMesh-MATLAB reference.
 <!-- SPECKIT END -->
