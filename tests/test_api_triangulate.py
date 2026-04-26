@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 import admesh
-from admesh import BoundaryType
+from admesh import BoundaryType, Domain
 from admesh.domains import ALL as DOMAIN_REGISTRY
 
 
@@ -29,9 +29,7 @@ _MVP = {
 def test_triangulate_mvp_domain(name: str) -> None:
     port_dom = DOMAIN_REGISTRY[name]
     pfix = port_dom.fixed_points if port_dom.fixed_points.size else None
-    domain = admesh.domain_from_sdf(
-        sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix
-    )
+    domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix)
     mesh = admesh.triangulate(domain, seed=0, **_MVP[name])
 
     assert mesh.n_nodes > 0
@@ -51,10 +49,8 @@ def test_triangulate_mvp_domain(name: str) -> None:
 
 def test_triangulate_quality_gate_failure_raises() -> None:
     """Quality gate enforcement: an impossible gate must raise ValueError."""
-    ring = np.array(
-        [[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]], dtype=float
-    )
-    domain = admesh.domain_from_polygon([ring])
+    port_dom = DOMAIN_REGISTRY["unit_square"]
+    domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=None)
     with pytest.raises(ValueError, match="quality_gate"):
         admesh.triangulate(
             domain, h_max=0.12, max_iter=200, seed=0,

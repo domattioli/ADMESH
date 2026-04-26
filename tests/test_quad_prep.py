@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import admesh
+from admesh.loaders import _domain_from_polygon
 from admesh.quad_prep import smooth_for_quadrangulation
 
 
@@ -74,7 +75,7 @@ _MVP_DOMAINS = [
 
 
 def _make_mesh(rings_fn: Callable, h: float):
-    domain = admesh.domain_from_polygon(rings_fn())
+    domain = _domain_from_polygon(rings_fn())
     mesh = admesh.triangulate(domain, h_min=h, h_max=h)
     p = mesh.nodes.copy()
     t = mesh.elements.astype(np.int64)
@@ -195,7 +196,7 @@ def test_size_field_correlation_varying_h() -> None:
     Uses a linear-ramp size field on the unit square.
     """
     rings = [np.array([[-1, -1], [1, -1], [1, 1], [-1, 1], [-1, -1]], dtype=float)]
-    domain = admesh.domain_from_polygon(rings)
+    domain = _domain_from_polygon(rings)
     mesh = admesh.triangulate(domain, h_min=0.1, h_max=0.1)
     p, t = mesh.nodes.copy(), mesh.elements.astype(np.int64)
     h = lambda q: 0.05 + 0.10 * (q[:, 0] + 1.0)
