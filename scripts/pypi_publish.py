@@ -13,6 +13,21 @@ Non-interactive skill that:
 Usage:
   pypi-publish [--version VERSION] [--repo /path/to/project]
 
+Credential Options:
+  1. PyPI config file (~/.pypirc):
+     [pypi]
+     repository = https://upload.pypi.org/legacy/
+     username = __token__
+     password = pypi-your_token_here
+     Then run: python scripts/pypi_publish.py
+
+  2. Environment variable (in Claude Code):
+     Use: /update-config to set PYPI_TOKEN securely
+     Then run: python scripts/pypi_publish.py
+
+  3. Environment variable (terminal):
+     $ PYPI_TOKEN=pypi-your_token_here python scripts/pypi_publish.py
+
 Exit codes:
   0 = success
   1 = failure

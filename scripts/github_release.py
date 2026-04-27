@@ -12,6 +12,18 @@ Non-interactive skill that:
 Usage:
   gh-release [--version VERSION] [--repo owner/repo]
 
+Credential Options:
+  1. Local gh CLI:
+     $ gh auth login
+     Then run: python scripts/github_release.py
+
+  2. Environment variable (in Claude Code):
+     Use: /update-config to set GITHUB_TOKEN securely
+     Then run: python scripts/github_release.py
+
+  3. Environment variable (terminal):
+     $ GITHUB_TOKEN=your_token python scripts/github_release.py
+
 Exit codes:
   0 = success
   1 = failure
