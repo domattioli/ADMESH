@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+<!-- maintained-by: maintain-claude-md skill -->
+
 Operational reference for Claude Code sessions on ADMESH.
 
 **Read these three at every session start (in order):**
@@ -19,6 +21,19 @@ rules (faithful port, no C extensions in first cut, 0-based indexing).
 
 Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
 `main`). Source tree of interest: `01_ADMESH_Library/`.
+
+---
+
+## Release Skills
+
+These two skills must be present in your global `~/.claude/skills/` inventory every session:
+
+| Skill | Trigger phrases | Script |
+|---|---|---|
+| `github-release` | "ship", "release", "ship vX.Y.Z", "create a release" | `python scripts/github_release.py` |
+| `pypi-publish` | "publish to PyPI", "upload the wheel", "push to PyPI" | `python scripts/pypi_publish.py` |
+
+Skills are installed at `~/.claude/skills/github-release/SKILL.md` and `~/.claude/skills/pypi-publish/SKILL.md`. If missing, reinstall: clone `https://github.com/anthropics/claude-plugins-official.git`, copy the skill-creator plugin, then recreate the two skill files above.
 
 ---
 
