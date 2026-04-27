@@ -16,7 +16,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/admesh2D/"><img alt="PyPI" src="https://img.shields.io/pypi/v/admesh2D.svg?style=flat-square"></a>
-  <a href="https://github.com/domattioli/ADMESH/issues"><img alt="Issues" src="https://img.shields.io/github/issues/domattioli/ADMESH?style=flat-square"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-beta-yellow?style=flat-square">
 </p>
 
 ---
