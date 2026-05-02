@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+<!-- maintained-by: maintain-claude-md skill -->
+
 Operational reference for Claude Code sessions on ADMESH.
 
 **Read these three at every session start (in order):**
