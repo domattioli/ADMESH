@@ -107,7 +107,7 @@ commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`, path
    annulus) and compare the final mesh (vertices + connectivity) to
    MATLAB output.
 4. **Visual inspection is encouraged but not required.** A test
-   producing a PNG under `tests/output/` is fine; don't gate CI on it.
+   producing a PNG under `output/` is fine; don't gate CI on it.
 
 ---
 
@@ -121,6 +121,34 @@ commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`, path
 4. **GitHub posting on the user's behalf requires explicit instruction.**
    Creating issues for tracking is pre-approved; commenting / closing /
    merging is not.
+5. **Feature branches are speckit-driven only.** A new feature branch
+   is created exclusively as part of the `/speckit-specify` workflow
+   (which delegates to the `before_specify` git hook). Claude does NOT
+   create branches manually, does NOT create branches from session-system
+   prompts (e.g. `claude/<...>-<random>`), and does NOT create
+   per-task branches for one-off edits. Direct work on `main` is the
+   default; if a change merits isolation, it goes through speckit.
+6. **Speckit naming is the only branch convention.** All feature
+   branches follow the speckit pattern: `NNN-<short-name>` (sequential)
+   or `YYYYMMDD-HHMMSS-<short-name>` (timestamp), per
+   `.specify/init-options.json`. The `claude/<feature>-<hash>` pattern
+   that some session-init systems suggest is NOT adopted. If the
+   session-system creates such a branch automatically, treat it as
+   redundant scaffolding to be ignored or consolidated under the
+   speckit branch.
+7. **Scan before creating.** Before invoking `/speckit-specify` or
+   any branch-creation operation, run `git branch -a` and check both
+   local and remote branches for an existing branch matching the
+   feature's intent (by short-name, topic keywords, or related issue
+   number). If a matching branch exists, REUSE it rather than create
+   a redundant one — switch to it and continue work, or, if it has
+   diverged, ask the user whether to merge/rebase rather than
+   silently creating a parallel branch.
+8. **Consolidate redundant branches when discovered.** If multiple
+   branches address the same feature (e.g. session-system branch +
+   speckit branch), confirm with the user once, then delete the
+   redundant ones (local + remote) and keep only the speckit-named
+   branch. Update any open PRs to point at the canonical branch.
 
 ---
 
@@ -149,6 +177,18 @@ pattern observed in session 0 (four `UNCONFIRMED_PAUSE` interrupts).
 ---
 
 ## Amendments log
+
+### 2026-04-25 — Article VI rules 5–8 adopted (branch governance)
+
+Tightened Article VI with four new rules (5–8) on branch lifecycle:
+speckit is the ONLY path to a feature branch; speckit naming
+(`NNN-<short-name>`) is the ONLY accepted convention; existing
+branches must be scanned before creation; redundant branches must
+be consolidated. Adopted after observing that session-system
+auto-created branches (`claude/<feature>-<hash>`) coexisted with
+speckit branches for the same feature, creating ambiguity about
+the canonical development line. Session reference: ADMESH session
+on `005-adcirc-mesh-registry`.
 
 ### 2026-04-21 — Article VII adopted
 

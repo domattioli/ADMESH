@@ -4,7 +4,7 @@ Mirrors the wave-breaker example from ``quickstart.md``. Triangulates
 a unit-disk domain twice — without and with a user-supplied size
 contribution that refines near a vertical "wave breaker" line —
 and renders both meshes side-by-side under
-``tests/output/size_field_extension_demo.png``.
+``output/size_field_extension_demo.png``.
 
 This is a power-user pattern: drop a callable ``(N, 2) -> (N,)`` into
 ``triangulate(user_contribs=[...])`` and the Phase-2 combiner (default
@@ -22,7 +22,7 @@ import admesh
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-OUT_PATH = REPO_ROOT / "tests" / "output" / "size_field_extension_demo.png"
+OUT_PATH = REPO_ROOT / "output" / "size_field_extension_demo.png"
 
 
 _BREAKER_X = 0.3

@@ -1,11 +1,4 @@
-<h1 align="center">ADMESH</h1>
-
-<p align="center">
-  An advanced, automatic unstructured mesh generator for 2D
-  shallow-water models. Built for
-  <a href="https://adcirc.org/">ADCIRC</a> compatibility — meshes
-  round-trip natively as <code>fort.14</code>.
-</p>
+<h1 align="center">ADMESH: An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</h1>
 
 <p align="center">
   <strong><a href="https://github.com/coltonjconroy">Colton J. Conroy</a><sup>1</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan J. Kubatko</a><sup>1</sup>, Dustin W. West<sup>1</sup></strong><br>
@@ -18,7 +11,19 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/admesh2D/"><img src="https://img.shields.io/pypi/v/admesh2D.svg?label=PyPI" alt="PyPI version"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/domattioli/ADMESH/releases/tag/v0.1.0"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases" alt="Latest Release"></a>
+</p>
+
+<p align="center">
   <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/admesh2D/"><img alt="PyPI" src="https://img.shields.io/pypi/v/admesh2D.svg?style=flat-square"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-beta-yellow?style=flat-square">
 </p>
 
 ---
@@ -108,6 +113,13 @@ The reference MATLAB implementation is
 maintained by the original author. That repository may carry features
 beyond what this port currently covers; new functionality is adopted
 here as it's pulled across.
+
+## Related projects
+
+- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** —
+  federated registry of ADCIRC-compatible meshes (domains) for
+  discovery, lineage tracking, and community contribution. Built as a
+  companion to this library.
 
 ## Citation
 

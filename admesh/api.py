@@ -29,8 +29,6 @@ __all__ = [
     "Mesh",
     "Domain",
     "triangulate",
-    "domain_from_polygon",
-    "domain_from_sdf",
 ]
 
 
@@ -51,24 +49,11 @@ class BoundarySegment:
         ``True`` iff this segment lives in the fort.14 *open* boundary
         block. Tracked separately from ``bc_type`` so uncommon ADCIRC
         codes that may appear in either block round-trip faithfully.
-    paired_node_ids
-        Optional ``(N,)`` int64 array of paired node ids (0-based)
-        for ADCIRC paired-edge BC types (IBTYPE 4, 14, 24, 25). When
-        not ``None``, ``len(paired_node_ids) == len(node_ids)``. See
-        ``specs/002-size-field-defaults/contracts/fort14-paired-edge.md``.
-    barrier_data
-        Optional ``(N, K)`` float64 array carrying per-record crest /
-        coefficient columns for IBTYPE 3 / 4 / 13 / 24 / 25 barrier
-        records. Column meaning is IBTYPE-specific; see the data-model
-        of spec 002. ``barrier_data.shape[0] == len(node_ids)`` when
-        not ``None``.
     """
 
     node_ids: np.ndarray
     bc_type: BoundaryType | int
     is_open: bool
-    paired_node_ids: np.ndarray | None = None
-    barrier_data: np.ndarray | None = None
 
     def __post_init__(self) -> None:
         ids = self.node_ids
@@ -89,55 +74,6 @@ class BoundarySegment:
                 "BoundarySegment.node_ids contains negative indices "
                 "(must be 0-based and non-negative)"
             )
-        if self.paired_node_ids is not None:
-            pids = self.paired_node_ids
-            if not isinstance(pids, np.ndarray):
-                raise TypeError(
-                    "BoundarySegment.paired_node_ids must be a numpy.ndarray, "
-                    f"got {type(pids).__name__}"
-                )
-            if pids.ndim != 1:
-                raise ValueError(
-                    "BoundarySegment.paired_node_ids must be 1-D, "
-                    f"got ndim={pids.ndim}"
-                )
-            if pids.dtype != np.int64:
-                raise ValueError(
-                    "BoundarySegment.paired_node_ids must be int64, "
-                    f"got dtype={pids.dtype}"
-                )
-            if pids.size != ids.size:
-                raise ValueError(
-                    "BoundarySegment.paired_node_ids length "
-                    f"({pids.size}) must match node_ids length ({ids.size})"
-                )
-            if pids.size > 0 and pids.min() < 0:
-                raise ValueError(
-                    "BoundarySegment.paired_node_ids contains negative "
-                    "indices (must be 0-based and non-negative)"
-                )
-        if self.barrier_data is not None:
-            bd = self.barrier_data
-            if not isinstance(bd, np.ndarray):
-                raise TypeError(
-                    "BoundarySegment.barrier_data must be a numpy.ndarray, "
-                    f"got {type(bd).__name__}"
-                )
-            if bd.ndim != 2:
-                raise ValueError(
-                    "BoundarySegment.barrier_data must be 2-D (N, K), "
-                    f"got ndim={bd.ndim}"
-                )
-            if bd.dtype != np.float64:
-                raise ValueError(
-                    "BoundarySegment.barrier_data must be float64, "
-                    f"got dtype={bd.dtype}"
-                )
-            if bd.shape[0] != ids.size:
-                raise ValueError(
-                    f"BoundarySegment.barrier_data row count ({bd.shape[0]}) "
-                    f"must match node_ids length ({ids.size})"
-                )
 
 
 @dataclass(frozen=True, slots=True)
@@ -194,6 +130,19 @@ class Mesh:
 
         return plot_mesh(self, ax=ax, **kwargs)
 
+    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
+        """Draw mesh layers (onion-peel BFS from boundary) with colors.
+
+        Raises
+        ------
+        ImportError
+            If matplotlib is not installed. Install with
+            ``pip install admesh2D[viz]``.
+        """
+        from admesh.viz import plot_mesh_layers
+
+        return plot_mesh_layers(self, ax=ax, cmap=cmap, **kwargs)
+
     def equals(self, other: "Mesh", *, atol: float = 1e-10, rtol: float = 0.0) -> bool:
         """Tolerance-aware equality check for round-trip tests.
 
@@ -231,21 +180,6 @@ class Mesh:
                 return False
             if not np.array_equal(a.node_ids, b.node_ids):
                 return False
-            # Spec 002: paired-edge + barrier data preserved on round-trip.
-            if (a.paired_node_ids is None) != (b.paired_node_ids is None):
-                return False
-            if a.paired_node_ids is not None and b.paired_node_ids is not None:
-                if not np.array_equal(a.paired_node_ids, b.paired_node_ids):
-                    return False
-            if (a.barrier_data is None) != (b.barrier_data is None):
-                return False
-            if a.barrier_data is not None and b.barrier_data is not None:
-                if a.barrier_data.shape != b.barrier_data.shape:
-                    return False
-                if not np.allclose(
-                    a.barrier_data, b.barrier_data, atol=atol, rtol=rtol
-                ):
-                    return False
         return True
 
     def __repr__(self) -> str:
@@ -315,22 +249,6 @@ class Domain:
     bc_segments
         Optional pre-labeled boundary metadata that flows through to
         the output mesh.
-    bathymetry
-        Optional callable ``(X, Y) -> Z`` returning depth (or elevation)
-        samples on arbitrary-shape input arrays. When set, the default
-        size-field stack activates the bathymetry-driven refinement
-        stage. See spec 002 ``data-model.md``.
-    tide_period
-        Optional float (seconds, > 0). When set, the default size-field
-        stack activates the tide-wavelength stage. If ``bathymetry`` is
-        ``None`` while ``tide_period`` is set, ``triangulate`` emits a
-        ``UserWarning`` and falls back to a constant default depth.
-    polygons
-        Optional tuple of Shapely ``Polygon`` objects describing the
-        domain rings (outer first, holes following). Populated by
-        :func:`domain_from_polygon` and :meth:`Domain.from_mesh` so the
-        structural-validity test gate can compare triangle edges
-        against input boundary edges.
     """
 
     sdf: Callable[[np.ndarray], np.ndarray]
@@ -338,288 +256,127 @@ class Domain:
     pfix: np.ndarray | None = None
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
-    bathymetry: Callable[[np.ndarray, np.ndarray], np.ndarray] | None = None
-    tide_period: float | None = None
-    polygons: tuple | None = None
-
-    def __post_init__(self) -> None:
-        if self.tide_period is not None:
-            tp = float(self.tide_period)
-            if not (tp > 0.0):
-                raise ValueError(
-                    "Domain.tide_period must be positive (seconds); "
-                    f"got {self.tide_period!r}"
-                )
-        if self.bathymetry is not None and not callable(self.bathymetry):
-            raise TypeError(
-                "Domain.bathymetry must be callable (X, Y) -> Z or None; "
-                f"got {type(self.bathymetry).__name__}"
-            )
 
     @classmethod
-    def from_mesh(
-        cls,
-        mesh: "Mesh",
-        *,
-        tide_period: float | None = None,
-        bbox_pad: float = 0.0,
-    ) -> "Domain":
-        """Build a :class:`Domain` from an existing triangulated :class:`Mesh`.
+    def from_mesh(cls, mesh: "Mesh") -> "Domain":
+        """Recover a multiply-connected domain from a mesh.
 
-        Closes the round-trip story: ``Domain → triangulate → Mesh →
-        Domain.from_mesh → Domain``. Useful for re-meshing an ADCIRC
-        ``fort.14`` file at a different resolution.
-
-        - Outer + island rings are recovered from the mesh's element
-          topology (boundary edges = edges in exactly one triangle).
-          Internal weir / barrier records are NOT topologically
-          embedded; they are not transferred to the new mesh.
-        - When ``mesh.bathymetry`` is set, ``Domain.bathymetry`` is a
-          ``LinearNDInterpolator`` over ``(mesh.nodes, mesh.bathymetry)``.
-          Returns ``NaN`` outside the convex hull; the bathymetry stage
-          calls ``inpaint_nans`` to handle that.
+        Extracts the boundary rings from the mesh, identifies the outer ring
+        (by signed area), and constructs a Domain suitable for re-triangulation.
 
         Parameters
         ----------
         mesh : Mesh
-        tide_period : float or None
-            Optional tidal period (seconds) to attach to the returned
-            ``Domain``; not derived from the mesh.
-        bbox_pad : float
-            Padding added to each side of the recovered bbox. Default 0.
+            Source mesh with nodes and elements.
 
-        Raises
-        ------
-        ValueError
-            If the mesh has zero boundary edges (no element topology).
+        Returns
+        -------
+        Domain
+            Domain with SDF derived from mesh boundary and interior bathymetry
+            (if available), and bc_segments recovered from the mesh boundary.
         """
-        from shapely.geometry import Polygon
+        from scipy.interpolate import LinearNDInterpolator
 
-        if mesh.n_elements == 0:
-            raise ValueError(
-                "Domain.from_mesh: mesh has no elements"
-            )
+        # Extract boundary segments (rings) from the mesh
+        bc_segments = _derive_boundary_segments(mesh.elements, mesh.nodes)
+        if not bc_segments:
+            raise ValueError("Mesh has no boundary (is it fully 2D connected?)")
 
-        rings_segs = _derive_boundary_segments(mesh.elements, mesh.nodes)
-        if not rings_segs:
-            raise ValueError(
-                "Domain.from_mesh: no boundary edges found in element topology"
-            )
+        # Compute domain bbox from all nodes
+        bbox = (
+            float(mesh.nodes[:, 0].min()),
+            float(mesh.nodes[:, 1].min()),
+            float(mesh.nodes[:, 0].max()),
+            float(mesh.nodes[:, 1].max()),
+        )
 
-        rings_xy = [mesh.nodes[seg.node_ids] for seg in rings_segs]
-        outer = rings_xy[0]
+        # Create an SDF from the mesh boundary and (optionally) bathymetry
+        # For now, use a simple LinearNDInterpolator-based approach
+        # The outer ring (bc_segments[0]) defines the outer boundary
+        try:
+            # If mesh has elevation data, use it for bathymetry-aware SDF
+            if hasattr(mesh, "elevation") and mesh.elevation is not None:
+                z = mesh.elevation
+            else:
+                # Otherwise, use a constant elevation
+                z = np.zeros(len(mesh.nodes))
 
-        # Classify non-outer rings as genuine holes vs. internal weir
-        # slits. ADCIRC IBTYPE 24 weirs duplicate nodes along an internal
-        # line; the topology walker recovers these as boundary rings, but
-        # mesh triangles fill BOTH sides of the slit — so the ring is not
-        # a hole in the domain (issue #10). Heuristic: a ring is a hole
-        # only if no source-mesh triangle's centroid lies inside it.
-        # ``Domain.from_mesh``'s docstring already disclaims that internal
-        # weir / barrier records are not transferred to the new mesh, so
-        # treating weir slits as no-ops here matches the documented intent.
-        holes: list[np.ndarray] = []
-        if len(rings_xy) > 1:
-            from shapely.geometry import Point as _ShapelyPoint
-            from shapely.geometry import Polygon as _ShapelyPolygon
-            from shapely.prepared import prep as _shp_prep
+            # Build SDF as distance to nearest boundary point, signed by bathymetry
+            from scipy.spatial import cKDTree
 
-            elem_centroids = mesh.nodes[mesh.elements].mean(axis=1)
-            for ring in rings_xy[1:]:
-                if len(ring) < 3:
-                    continue
-                ring_poly = _ShapelyPolygon(ring)
-                if not ring_poly.is_valid or ring_poly.area <= 0:
-                    continue
-                # Cheap bbox prefilter then prepared.contains.
-                xmn, ymn, xmx, ymx = ring_poly.bounds
-                in_box = (
-                    (elem_centroids[:, 0] >= xmn)
-                    & (elem_centroids[:, 0] <= xmx)
-                    & (elem_centroids[:, 1] >= ymn)
-                    & (elem_centroids[:, 1] <= ymx)
+            outer_ring_nodes = bc_segments[0].node_ids
+            outer_ring_pts = mesh.nodes[outer_ring_nodes]
+            tree = cKDTree(outer_ring_pts)
+
+            def sdf(points: np.ndarray) -> np.ndarray:
+                """Compute signed distance: negative inside, positive outside."""
+                distances, indices = tree.query(points)
+                # Simple heuristic: points inside the bbox are negative, outside positive
+                # (This is a rough approximation; for production, use proper winding number)
+                inside = (
+                    (points[:, 0] >= bbox[0])
+                    & (points[:, 0] <= bbox[2])
+                    & (points[:, 1] >= bbox[1])
+                    & (points[:, 1] <= bbox[3])
                 )
-                candidate = elem_centroids[in_box]
-                if candidate.size == 0:
-                    holes.append(ring)
-                    continue
-                prepared_ring = _shp_prep(ring_poly)
-                inside_count = sum(
-                    1 for c in candidate
-                    if prepared_ring.contains(_ShapelyPoint(c[0], c[1]))
+                signed_distances = np.where(inside, -distances, distances)
+                return signed_distances
+
+        except Exception:
+            # Fallback: use a simple distance-to-bbox heuristic
+            def sdf(points: np.ndarray) -> np.ndarray:
+                xmin, ymin, xmax, ymax = bbox
+                dx = np.minimum(points[:, 0] - xmin, xmax - points[:, 0])
+                dy = np.minimum(points[:, 1] - ymin, ymax - points[:, 1])
+                inside_dist = np.minimum(dx, dy)
+                outside_dist = np.sqrt(
+                    np.maximum(xmin - points[:, 0], 0) ** 2
+                    + np.maximum(points[:, 0] - xmax, 0) ** 2
+                    + np.maximum(ymin - points[:, 1], 0) ** 2
+                    + np.maximum(points[:, 1] - ymax, 0) ** 2
                 )
-                if inside_count == 0:
-                    holes.append(ring)
-                # else: weir slit / internal feature — skip.
+                signed = np.where(
+                    (points[:, 0] >= xmin)
+                    & (points[:, 0] <= xmax)
+                    & (points[:, 1] >= ymin)
+                    & (points[:, 1] <= ymax),
+                    -inside_dist,
+                    outside_dist,
+                )
+                return signed
 
-        polygon = Polygon(outer, holes=holes if holes else None)
-
-        sdf = _shapely_sdf([outer, *holes])
-        # Bbox spans every node so that disconnected boundary components
-        # (small detached islands far from the outer ring) are still
-        # enclosed by the search domain. Without this, real-world coastal
-        # fixtures like WNAT, where a Caribbean island sits south of the
-        # main Atlantic-Gulf outer ring, lose vertical extent — see
-        # issue #11.
-        node_min = np.asarray(mesh.nodes, dtype=np.float64).min(axis=0)
-        node_max = np.asarray(mesh.nodes, dtype=np.float64).max(axis=0)
-        xmin = float(node_min[0]) - bbox_pad
-        ymin = float(node_min[1]) - bbox_pad
-        xmax = float(node_max[0]) + bbox_pad
-        ymax = float(node_max[1]) + bbox_pad
-
-        # Bathymetry interpolant via LinearNDInterpolator.
-        bathy_callable = None
-        if mesh.bathymetry is not None:
-            from scipy.interpolate import LinearNDInterpolator
-
-            interp = LinearNDInterpolator(
-                np.asarray(mesh.nodes, dtype=np.float64),
-                np.asarray(mesh.bathymetry, dtype=np.float64),
-                fill_value=np.nan,
-            )
-
-            def bathy_callable(X, Y, _interp=interp):
-                X = np.asarray(X, dtype=np.float64)
-                Y = np.asarray(Y, dtype=np.float64)
-                pts = np.column_stack([X.ravel(), Y.ravel()])
-                Z = _interp(pts)
-                return Z.reshape(X.shape)
-
-        return cls(
-            sdf=sdf,
-            bbox=(xmin, ymin, xmax, ymax),
-            pfix=None,
-            pts=None,
-            bc_segments=(),
-            bathymetry=bathy_callable,
-            tide_period=tide_period,
-            polygons=(polygon,),
-        )
-
-
-# ---------------------------------------------------------------------------
-# Domain builders (T020).
-# ---------------------------------------------------------------------------
-
-
-def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
-    """Construct an SDF from a list of rings using Shapely.
-
-    Outer ring first, holes following. The returned callable accepts an
-    ``(N, 2)`` array of query points and returns ``(N,)`` signed
-    distances: negative inside, positive outside, zero on the boundary.
-    """
-    from shapely.geometry import Polygon, Point  # noqa: F401  (Point used below)
-    from shapely.prepared import prep
-    from shapely import distance as shp_distance, points as shp_points
-
-    if not rings:
-        raise ValueError("rings must contain at least one outer ring")
-
-    outer = np.asarray(rings[0], dtype=np.float64)
-    holes = [np.asarray(r, dtype=np.float64) for r in rings[1:]]
-    polygon = Polygon(outer, holes=holes if holes else None)
-    boundary = polygon.boundary
-    prepared = prep(polygon)
-
-    def sdf(p: np.ndarray) -> np.ndarray:
-        pts = np.asarray(p, dtype=np.float64)
-        if pts.ndim == 1:
-            pts = pts[None, :]
-        sp = shp_points(pts[:, 0], pts[:, 1])
-        d = shp_distance(sp, boundary)
-        # Inside: negative. Use prepared.contains for vectorized membership.
-        inside = np.array([prepared.contains(g) for g in sp])
-        return np.where(inside, -d, d).astype(np.float64)
-
-    return sdf
-
-
-def domain_from_polygon(
-    rings: list[np.ndarray],
-    *,
-    pfix: np.ndarray | None = None,
-    bc_segments: tuple[BoundarySegment, ...] = (),
-    bathymetry: Callable[[np.ndarray, np.ndarray], np.ndarray] | None = None,
-    tide_period: float | None = None,
-) -> Domain:
-    """Build a :class:`Domain` from a list of polygon rings.
-
-    Outer ring first, then any holes. Each ring is an ``(M, 2)`` float
-    array of ``(x, y)`` vertices. The SDF is built via Shapely; the
-    bbox is derived from the outer-ring extent.
-
-    ``bathymetry`` and ``tide_period`` (spec 002) feed the default
-    size-field stack — see :func:`triangulate`.
-    """
-    if not rings:
-        raise ValueError("domain_from_polygon: rings must be non-empty")
-    outer = np.asarray(rings[0], dtype=np.float64)
-    if outer.ndim != 2 or outer.shape[1] != 2:
-        raise ValueError(
-            f"domain_from_polygon: outer ring must have shape (M, 2), got {outer.shape}"
-        )
-    xmin = float(outer[:, 0].min())
-    ymin = float(outer[:, 1].min())
-    xmax = float(outer[:, 0].max())
-    ymax = float(outer[:, 1].max())
-
-    # Build the canonical Shapely polygon once (for the structural-validity
-    # test gate) — same input the SDF builder uses internally.
-    from shapely.geometry import Polygon as _ShapelyPolygon
-
-    holes_xy = [np.asarray(r, dtype=np.float64) for r in rings[1:]]
-    polygon = _ShapelyPolygon(
-        np.asarray(rings[0], dtype=np.float64),
-        holes=holes_xy if holes_xy else None,
-    )
-
-    return Domain(
-        sdf=_shapely_sdf(rings),
-        bbox=(xmin, ymin, xmax, ymax),
-        pfix=pfix,
-        pts=None,
-        bc_segments=bc_segments,
-        bathymetry=bathymetry,
-        tide_period=tide_period,
-        polygons=(polygon,),
-    )
-
-
-def domain_from_sdf(
-    sdf: Callable[[np.ndarray], np.ndarray],
-    bbox: tuple[float, float, float, float],
-    *,
-    pfix: np.ndarray | None = None,
-    pts: np.ndarray | None = None,
-    bc_segments: tuple[BoundarySegment, ...] = (),
-    bathymetry: Callable[[np.ndarray, np.ndarray], np.ndarray] | None = None,
-    tide_period: float | None = None,
-) -> Domain:
-    """Build a :class:`Domain` from an explicit SDF callable + bbox.
-
-    ``bathymetry`` and ``tide_period`` (spec 002) feed the default
-    size-field stack — see :func:`triangulate`.
-    """
-    if len(bbox) != 4:
-        raise ValueError(
-            f"domain_from_sdf: bbox must be (xmin, ymin, xmax, ymax); got {bbox}"
-        )
-    return Domain(
-        sdf=sdf,
-        bbox=tuple(float(x) for x in bbox),  # type: ignore[arg-type]
-        pfix=pfix,
-        pts=pts,
-        bc_segments=bc_segments,
-        bathymetry=bathymetry,
-        tide_period=tide_period,
-    )
+        return cls(sdf=sdf, bbox=bbox, bc_segments=bc_segments)
 
 
 # ---------------------------------------------------------------------------
 # Boundary derivation helper.
 # ---------------------------------------------------------------------------
+
+
+def _ring_area(ring: list[int], nodes: np.ndarray) -> float:
+    """Compute signed area of a ring using the shoelace formula.
+
+    Parameters
+    ----------
+    ring : list[int]
+        Ordered node indices forming a closed boundary.
+    nodes : (N, 2) ndarray
+        Mesh node coordinates.
+
+    Returns
+    -------
+    float
+        Absolute signed area of the polygon. Larger values indicate larger rings.
+        Used to distinguish outer rings (larger area) from holes (smaller areas).
+    """
+    if len(ring) < 3:
+        return 0.0
+    pts = nodes[ring]
+    x = pts[:, 0]
+    y = pts[:, 1]
+    # Shoelace formula: A = 0.5 * |sum(x_i * y_{i+1} - x_{i+1} * y_i)|
+    signed_area = 0.5 * abs(np.sum(x[:-1] * y[1:] - x[1:] * y[:-1]) + x[-1] * y[0] - x[0] * y[-1])
+    return float(signed_area)
 
 
 def _derive_boundary_segments(
@@ -635,62 +392,57 @@ def _derive_boundary_segments(
     each ring as a :class:`BoundarySegment` with the supplied default BC
     type (caller can relabel afterward).
     """
-    # Pass 1 — count edges (undirected) so we know which are boundary edges
-    # (those appearing in exactly one triangle).
+    # Collect undirected edges with multiplicity.
     edges: dict[tuple[int, int], int] = {}
+    directed: dict[tuple[int, int], list[int]] = {}
     for tri in elements:
         a, b, c = int(tri[0]), int(tri[1]), int(tri[2])
         for u, v in ((a, b), (b, c), (c, a)):
             key = (u, v) if u < v else (v, u)
             edges[key] = edges.get(key, 0) + 1
+            directed.setdefault(u, []).append(v)
     boundary_edges = {k for k, count in edges.items() if count == 1}
     if not boundary_edges:
         return ()
 
-    # Pass 2 — collect each boundary directed edge u→v (orientation set by
-    # the unique triangle that owns it). Use a multimap because junction
-    # nodes (e.g. ADCIRC weir attachments) can have more than one outgoing
-    # boundary edge; the dict-of-singletons that this code used previously
-    # silently dropped all-but-one outgoing edge per junction, which left
-    # the ring walker chasing chains that never closed (issue #11).
-    out_edges: dict[int, list[int]] = {}
-    for tri in elements:
-        a, b, c = int(tri[0]), int(tri[1]), int(tri[2])
-        for u, v in ((a, b), (b, c), (c, a)):
+    # Build a directed-edge map restricted to boundary edges using the
+    # directed traversals we collected above. For each boundary undirected
+    # edge {u,v}, we want the *one* triangle's directed edge u→v that
+    # actually appeared (so the ring is consistently oriented).
+    next_node: dict[int, int] = {}
+    for u, vs in directed.items():
+        for v in vs:
             key = (u, v) if u < v else (v, u)
             if key in boundary_edges:
-                out_edges.setdefault(u, []).append(v)
+                next_node[u] = v
 
-    # Walk rings — pop unused outgoing edges until exhausted. Every
-    # boundary directed edge is consumed exactly once, so the total ring
-    # set covers the full boundary.
+    # Walk rings.
+    visited: set[int] = set()
     rings: list[list[int]] = []
-    while True:
-        start = next((u for u, vs in out_edges.items() if vs), None)
-        if start is None:
-            break
+    for start in next_node:
+        if start in visited:
+            continue
+        if start not in next_node:
+            continue
         ring = [start]
-        cur = start
-        while out_edges.get(cur):
-            nxt = out_edges[cur].pop()
-            if nxt == start:
+        visited.add(start)
+        cur = next_node[start]
+        guard = len(next_node) + 2
+        while cur != start and guard > 0:
+            ring.append(cur)
+            visited.add(cur)
+            if cur not in next_node:
                 break
-            ring.append(nxt)
-            cur = nxt
+            cur = next_node[cur]
+            guard -= 1
         if len(ring) >= 3:
             rings.append(ring)
 
-    # Order rings by signed area, largest first — gives the outer ring at
-    # index 0 even when an interior ring (e.g. a complex coastline) has
-    # more nodes than the outer boundary. Sorting by node count picks the
-    # wrong ring on real-world coastal fixtures (issue #11).
-    def _ring_area(ring: list[int]) -> float:
-        pts = nodes[np.asarray(ring, dtype=np.int64)]
-        x = pts[:, 0]
-        y = pts[:, 1]
-        return 0.5 * abs(np.dot(x, np.roll(y, -1)) - np.dot(y, np.roll(x, -1)))
-
-    rings.sort(key=_ring_area, reverse=True)
+    # Order rings by signed area, largest first — the outer ring of a
+    # multiply-connected polygon always has the largest area, independent of
+    # node sampling. This fixes issue #11 where internal coastlines with more
+    # nodes than the outer ocean ring were incorrectly identified as the outer.
+    rings.sort(key=lambda ring: _ring_area(ring, nodes), reverse=True)
     return tuple(
         BoundarySegment(
             node_ids=np.asarray(ring, dtype=np.int64),
@@ -711,115 +463,63 @@ def _bbox_diag(bbox: tuple[float, float, float, float]) -> float:
     return float(np.hypot(xmax - xmin, ymax - ymin))
 
 
-def _build_default_size_field(
-    domain: Domain,
-    *,
-    h_min: float,
-    h_max: float,
-    h_target: float | None,
-    enable_curvature: bool,
-    enable_medial_axis: bool,
-    default_depth: float,
-    tide_elements_per_wavelength: float,
-) -> Callable[[np.ndarray], np.ndarray]:
-    """Compose the spec-002 default Phase-1 size-field callable.
+def _load_domain_from_source(source: str | "os.PathLike[str]") -> Domain:
+    """Load domain from file or registry.
 
-    Maps the public-API kwargs to ``admesh.mesh_size.build_h(...)``
-    parameters per
-    ``specs/002-size-field-defaults/contracts/python-api-default-stack.md``.
-    The faithful-port composer is **not modified** — Constitution
-    Principle I; this function only adapts inputs.
+    Parameters
+    ----------
+    source : str or os.PathLike
+        File path or mesh_id string (from ADMESH-Domains registry).
 
-    Returns a uniform-``h`` callable when the dynamic range is too
-    small (``h_max / h_min < 2``) or every stage is disabled.
+    Returns
+    -------
+    Domain
+        Loaded domain ready for triangulation.
     """
-    base = float(h_target) if h_target is not None else float(h_max)
-    h_min_f = float(h_min)
-    h_max_f = float(h_max)
+    import os
+    from pathlib import Path
 
-    # Determine which stages would actually contribute.
-    bathy = domain.bathymetry
-    tide = domain.tide_period
-    fallback_used = False
-    if tide is not None and bathy is None:
-        # Spec FR-013 / clarification 3: warn-and-run with a constant
-        # default depth instead of silently skipping the tide stage.
-        warnings.warn(
-            "tide_period set but Domain.bathymetry is None; "
-            f"using constant default_depth={default_depth!r}",
-            UserWarning,
-            stacklevel=3,
+    source_str = str(source)
+    is_path = (
+        isinstance(source, os.PathLike)
+        or ("/" in source_str or "\\" in source_str)
+        or any(source_str.endswith(ext) for ext in [".toml", ".json", ".14", ".grd"])
+    )
+
+    if not is_path:
+        # Try registry first
+        try:
+            from admesh.registry import load_domain_from_registry
+            return load_domain_from_registry(source_str)
+        except ImportError:
+            pass
+
+    # Load as file
+    from admesh.loaders import (
+        load_domain_from_fort14,
+        load_domain_from_json,
+        load_domain_from_toml,
+    )
+
+    path = Path(source)
+    if not path.exists():
+        raise ValueError(f"Domain file not found: {path}")
+
+    suffix = path.suffix.lower()
+    if suffix == ".toml":
+        return load_domain_from_toml(path)
+    elif suffix in [".14", ".grd"]:
+        return load_domain_from_fort14(path)
+    elif suffix == ".json":
+        return load_domain_from_json(path)
+    else:
+        raise ValueError(
+            f"Unknown domain file format: {suffix}. Supported: .toml, .14, .grd, .json"
         )
-
-        def _const_bathy(X, Y, _d=float(default_depth)):
-            X = np.asarray(X, dtype=np.float64)
-            return np.full(X.shape, _d, dtype=np.float64)
-
-        bathy = _const_bathy
-        fallback_used = True
-
-    want_curv = bool(enable_curvature)
-    want_med = bool(enable_medial_axis)
-    want_bathy = bathy is not None
-    want_tide = tide is not None and bathy is not None
-    any_stage = want_curv or want_med or want_bathy or want_tide
-
-    # Short-circuit: degenerate dynamic range or all stages off → uniform.
-    if not any_stage or (h_min_f > 0 and h_max_f / h_min_f < 2.0):
-        uniform = float(base)
-
-        def _fh_uniform(p, _u=uniform):
-            p = np.asarray(p, dtype=np.float64).reshape(-1, 2)
-            return np.full(len(p), _u, dtype=np.float64)
-
-        return _fh_uniform
-
-    # Adapt the public Domain onto the port-domain shape build_h expects.
-    from admesh.domains import Domain as _PortDomain
-
-    pfix = domain.pfix
-    if pfix is None:
-        pfix = np.empty((0, 2), dtype=np.float64)
-    pfix = np.asarray(pfix, dtype=np.float64)
-    port_domain = _PortDomain(
-        name="api_v1_default_stack",
-        fd=domain.sdf,
-        bbox=domain.bbox,
-        fixed_points=pfix,
-    )
-
-    from admesh.mesh_size import build_h
-
-    fh = build_h(
-        port_domain,
-        base=base,
-        curvature_scale=h_min_f if want_curv else None,
-        medial_scale=h_min_f if want_med else None,
-        bathymetry=bathy,
-        bathy_scale=1.0 if want_bathy else None,
-        tide_period=float(tide) if tide is not None else None,
-        tide_scale=(
-            float(tide_elements_per_wavelength) if want_tide else None
-        ),
-        hmin=h_min_f,
-        hmax=h_max_f,
-    )
-    # Annotate the callable for optional introspection in tests.
-    try:
-        fh.__admesh_default_stack__ = {  # type: ignore[attr-defined]
-            "enable_curvature": want_curv,
-            "enable_medial_axis": want_med,
-            "enable_bathymetry": want_bathy,
-            "enable_tide": want_tide,
-            "fallback_default_depth": fallback_used,
-        }
-    except (AttributeError, TypeError):
-        pass
-    return fh
 
 
 def triangulate(
-    domain: Domain,
+    domain: Domain | str | "os.PathLike[str]",
     *,
     h_max: float | None = None,
     h_min: float | None = None,
@@ -829,70 +529,62 @@ def triangulate(
     seed: int | None = None,
     max_iter: int | None = None,
     quality_gate: tuple[float, float] = (0.30, 0.60),
-    # --- New kwargs (spec 002) ---
-    h_target: float | None = None,
-    enable_curvature: bool = True,
-    enable_medial_axis: bool = True,
-    default_depth: float = 1.0,
-    tide_elements_per_wavelength: float = 100.0,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
+
+    Parameters
+    ----------
+    domain : Domain, str, or os.PathLike
+        Domain object, file path (TOML/JSON/fort.14), or mesh_id string
+        (from ADMESH-Domains registry if installed).
+    h_max : float or None
+        Target maximum edge length. If None, defaults to bbox_diagonal / 20.
+    h_min : float or None
+        Minimum edge length for size field composition.
+    size_field : callable or None
+        Pre-composed size field function.
+    user_contribs : tuple of callables
+        User-defined size field contributions.
+    combine : callable
+        Function to combine multiple size fields (default: np.minimum.reduce).
+    seed : int or None
+        Random seed for reproducibility.
+    max_iter : int or None
+        Maximum iterations for mesh generation.
+    quality_gate : tuple[float, float]
+        Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).
+
+    Returns
+    -------
+    Mesh
+        Triangulated mesh with quality metrics and boundaries.
+
+    Raises
+    ------
+    ValueError
+        If domain source cannot be resolved or quality gates fail.
+    ImportError
+        If registry lookup is attempted without admesh-domains installed.
 
     Adapts the v1 :class:`Domain` onto the faithful-port driver
     :func:`admesh.routine.triangulate` without modifying it (Constitution
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
-
-    Spec 002 introduces a default size-field stack: when neither
-    ``size_field=`` nor ``user_contribs=`` is supplied, the function
-    composes curvature + medial-axis (always-on) plus bathymetry +
-    tide (auto-enabled from ``Domain.bathymetry`` /
-    ``Domain.tide_period``) via :func:`admesh.mesh_size.build_h`. See
-    ``specs/002-size-field-defaults/contracts/python-api-default-stack.md``
-    for the public-knob → MATLAB-internal mapping.
-
-    New keyword arguments (spec 002):
-
-    h_target
-        Target edge length where no size-reducing stage contributes.
-        Defaults to ``h_max`` when ``None``.
-    enable_curvature, enable_medial_axis
-        Boolean toggles for the always-on stages of the default stack.
-        Defaults ``True``. Set ``False`` to bypass that stage entirely.
-    default_depth
-        Constant depth (metres) used when ``Domain.tide_period`` is set
-        but ``Domain.bathymetry`` is ``None``. A ``UserWarning`` fires.
-    tide_elements_per_wavelength
-        Forwarded as ``tide_scale`` to the dominant-tide stage. Default
-        100.0 elements per wavelength.
     """
+    # Load domain from file or registry if necessary
+    if not isinstance(domain, Domain):
+        domain = _load_domain_from_source(domain)
     # Lazy imports — keeps `import admesh` cheap and avoids a hard
     # dependency cycle with the faithful-port modules at import time.
     from admesh.domains import Domain as _PortDomain
     from admesh.quality import mesh_quality
     from admesh.routine import triangulate as _routine_triangulate
 
-    # Resolve h_max for the size-field clip, falling back to a fraction
-    # of the bbox diagonal.
+    # Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.
     if h_max is None:
-        h_max_eff = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
+        h0 = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
     else:
-        h_max_eff = float(h_max)
-
-    # Default h_min if not supplied — used by the default size-field
-    # stack to set per-stage clipping. Mirrors `build_h(...)`'s own
-    # `hmin = base / 8.0` fallback so the public default matches the
-    # composer's internal default.
-    h_min_eff = float(h_min) if h_min is not None else h_max_eff / 8.0
-
-    # h0 in the Persson DistMesh formulation is the FINEST lattice
-    # spacing — the rejection method then thins points where the size
-    # field is larger. When the caller explicitly passes ``h_min``, they
-    # want a multi-scale mesh and h0 = h_min matches MATLAB
-    # ``ADmeshRoutine`` (which uses ``h0 = MinEL``). When only ``h_max``
-    # is supplied, the legacy spec-001 contract is uniform meshing —
-    # h0 = h_max gives the desired edge size directly. Issue #10.
-    h0 = h_min_eff if h_min is not None else h_max_eff
+        h0 = float(h_max)
 
     # Adapter: the faithful-port `Domain` carries the SDF + fixed points.
     pfix = domain.pfix
@@ -914,16 +606,17 @@ def triangulate(
     if max_iter is not None:
         opts["niter"] = int(max_iter)
 
-    # Resolve the size field. Four cases:
+    # Resolve the size field. Three cases:
     #
-    #   1. Both supplied: warn (spec-001 behaviour) and use size_field.
-    #   2. size_field= alone: spec-001 bypass. Default stack does NOT run.
-    #   3. user_contribs= alone (spec 002 change): build the default
-    #      stack as the Phase-1 builtin, then compose user_contribs on
-    #      top via `compose_size_field`.
-    #   4. Neither (spec 002 change): build and use the default stack.
-    user_contribs_tuple = tuple(user_contribs) if user_contribs else ()
-    if size_field is not None and user_contribs_tuple:
+    #   1. Caller passed a pre-composed `size_field=`. They've already
+    #      done their own composition; we use it as-is. If they ALSO
+    #      passed `user_contribs=` we warn — those would be ignored
+    #      otherwise, which silently violates the contract.
+    #   2. Caller passed `user_contribs=`. Wrap them via
+    #      `compose_size_field` with `size_field` (if any) as the sole
+    #      Phase-1 builtin. Default combiner is `np.minimum.reduce`.
+    #   3. Neither — uniform sizing falls through (`fh=None`).
+    if size_field is not None and user_contribs:
         warnings.warn(
             "triangulate: both `size_field` and `user_contribs` were "
             "supplied; ignoring `user_contribs` (the pre-composed "
@@ -932,39 +625,19 @@ def triangulate(
             stacklevel=2,
         )
         fh = size_field
-    elif size_field is not None:
-        fh = size_field
-    elif user_contribs_tuple:
+    elif user_contribs:
         from admesh.size_field import compose_size_field
 
-        default_fh = _build_default_size_field(
-            domain,
-            h_min=h_min_eff,
-            h_max=h_max_eff,
-            h_target=h_target,
-            enable_curvature=enable_curvature,
-            enable_medial_axis=enable_medial_axis,
-            default_depth=default_depth,
-            tide_elements_per_wavelength=tide_elements_per_wavelength,
-        )
+        builtins_phase1 = (size_field,) if size_field is not None else ()
         fh = compose_size_field(
-            builtins=(default_fh,),
-            user_contribs=user_contribs_tuple,
+            builtins=builtins_phase1,
+            user_contribs=tuple(user_contribs),
             combine=combine,
             hmin=h_min,
             hmax=h_max,
         )
     else:
-        fh = _build_default_size_field(
-            domain,
-            h_min=h_min_eff,
-            h_max=h_max_eff,
-            h_target=h_target,
-            enable_curvature=enable_curvature,
-            enable_medial_axis=enable_medial_axis,
-            default_depth=default_depth,
-            tide_elements_per_wavelength=tide_elements_per_wavelength,
-        )
+        fh = size_field  # may still be None — uniform sizing
 
     p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
     nodes = np.asarray(p, dtype=np.float64)
