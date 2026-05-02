@@ -11,6 +11,13 @@
 </p>
 
 <p align="center">
+  <a href="https://pypi.org/project/admesh2D/"><img src="https://img.shields.io/pypi/v/admesh2D.svg?label=PyPI" alt="PyPI version"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/domattioli/ADMESH/releases/tag/v0.1.0"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases" alt="Latest Release"></a>
+</p>
+
+<p align="center">
   <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
 </p>
 
