@@ -21,6 +21,11 @@
   <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
 </p>
 
+<p align="center">
+  <a href="https://pypi.org/project/admesh2D/"><img alt="PyPI" src="https://img.shields.io/pypi/v/admesh2D.svg?style=flat-square"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-beta-yellow?style=flat-square">
+</p>
+
 ---
 
 ## Install
