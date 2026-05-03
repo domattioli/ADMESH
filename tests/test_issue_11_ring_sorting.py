@@ -160,3 +160,41 @@ class TestRingAreaHelper:
         nodes = np.array([[0, 0], [0, 0], [0, 0]])
         area = _ring_area(ring, nodes)
         assert area < 1e-10, f"Degenerate ring should have area ≈0, got {area}"
+
+
+class TestWnatRoundTrip:
+    """SC-002: Domain.from_mesh(wnat) → triangulate() produces non-empty mesh."""
+
+    def test_wnat_triangulate_non_empty(self):
+        """SC-002: triangulate(Domain.from_mesh(wnat)) produces a valid mesh.
+
+        Coarse h_max=3.0 degrees keeps runtime short; the key assertion is
+        non-empty mesh with nodes inside the domain bbox.
+        """
+        src = admesh.read_fort14(
+            "tests/fixtures/fort14/adcirc_examples/wnat_test.14"
+        )
+        dom = admesh.Domain.from_mesh(src)
+
+        # WNAT bbox should span the full Atlantic domain (not just Gulf).
+        assert dom.bbox[0] < -90, f"West boundary too far east: {dom.bbox[0]}"
+        assert dom.bbox[2] > -70, f"East boundary too far west: {dom.bbox[2]}"
+
+        mesh = admesh.triangulate(
+            dom,
+            h_min=0.5,
+            h_max=3.0,
+            max_iter=100,
+            seed=0,
+            quality_gate=(0.0, 0.0),
+        )
+
+        assert mesh.n_nodes > 0, "WNAT mesh should be non-empty"
+        assert mesh.n_elements > 0, "WNAT mesh should have elements"
+
+        # All nodes should be inside (or very near) the domain bbox.
+        pad = 0.1  # degree tolerance for boundary projection
+        assert mesh.nodes[:, 0].min() >= dom.bbox[0] - pad
+        assert mesh.nodes[:, 0].max() <= dom.bbox[2] + pad
+        assert mesh.nodes[:, 1].min() >= dom.bbox[1] - pad
+        assert mesh.nodes[:, 1].max() <= dom.bbox[3] + pad
