@@ -93,3 +93,50 @@ def test_triangulate_h_min_h_max_enforced() -> None:
     assert lengths.max() < h_max * 3.0, (
         f"max edge length {lengths.max():.4f} far exceeds h_max={h_max}"
     )
+
+
+def test_triangulate_boundary_pts_seeds_notch_walls() -> None:
+    """Fix #2: domain.pts triggers boundary edge seeding for short segments.
+
+    The NOTCHED_RECTANGLE has short notch walls (~0.25 units) that the 2-D
+    lattice alone under-samples. When pts is provided, _seed_boundary_1d
+    inserts intermediate pfix on each edge so the notch walls get nodes.
+    """
+    port_dom = DOMAIN_REGISTRY["notched_rectangle"]
+
+    boundary_pts = np.array(
+        [
+            [-1, -0.5], [1, -0.5], [1, 0.5], [0.05, 0.5], [0.05, 0.25],
+            [-0.05, 0.25], [-0.05, 0.5], [-1, 0.5],
+        ],
+        dtype=float,
+    )
+
+    # Domain WITH pts — should produce notch-wall seeds.
+    domain_with_pts = admesh.Domain(
+        sdf=port_dom.fd, bbox=port_dom.bbox, pts=boundary_pts
+    )
+    mesh_with = admesh.triangulate(domain_with_pts, h_max=0.12, max_iter=300, seed=0)
+
+    # Domain WITHOUT pts — baseline, no extra seeding.
+    domain_no_pts = admesh.Domain(sdf=port_dom.fd, bbox=port_dom.bbox)
+    mesh_without = admesh.triangulate(domain_no_pts, h_max=0.12, max_iter=300, seed=0)
+
+    # Both meshes must be valid.
+    assert mesh_with.n_nodes > 0
+    assert mesh_without.n_nodes > 0
+
+    # With pts the mesh should have at least as many nodes (boundary seeds add
+    # pfix that distmesh keeps, so n_nodes should be >= baseline).
+    assert mesh_with.n_nodes >= mesh_without.n_nodes, (
+        f"Expected boundary seeding to add nodes: "
+        f"with_pts={mesh_with.n_nodes}, without={mesh_without.n_nodes}"
+    )
+
+    # Verify nodes exist near the notch walls in the seeded mesh.
+    notch_wall_nodes = mesh_with.nodes[
+        (np.abs(mesh_with.nodes[:, 0] - 0.05) < 0.01)
+        & (mesh_with.nodes[:, 1] > 0.25)
+        & (mesh_with.nodes[:, 1] < 0.5)
+    ]
+    assert len(notch_wall_nodes) >= 1, "Notch right wall should have at least 1 node"
