@@ -571,32 +571,43 @@ def triangulate(
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
-    # Load domain from file or registry if necessary
-    if not isinstance(domain, Domain):
-        domain = _load_domain_from_source(domain)
     # Lazy imports — keeps `import admesh` cheap and avoids a hard
     # dependency cycle with the faithful-port modules at import time.
     from admesh.domains import Domain as _PortDomain
     from admesh.quality import mesh_quality
     from admesh.routine import triangulate as _routine_triangulate
 
-    # Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.
-    if h_max is None:
-        h0 = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
+    # Load domain from file or registry if it's a string; adapt if it's a port Domain.
+    api_domain = None  # Track whether we have an api.Domain (may have bc_segments)
+    if isinstance(domain, _PortDomain):
+        # Input is already a faithful-port Domain; use it directly.
+        port_domain = domain
+        bbox = domain.bbox
+        h0_default = max(_bbox_diag(bbox) / 20.0, 1e-6)
+        h0 = float(h_max) if h_max is not None else h0_default
     else:
-        h0 = float(h_max)
+        # Input should be an api.Domain or a file/registry path
+        if not isinstance(domain, Domain):
+            domain = _load_domain_from_source(domain)
 
-    # Adapter: the faithful-port `Domain` carries the SDF + fixed points.
-    pfix = domain.pfix
-    if pfix is None:
-        pfix = np.empty((0, 2), dtype=np.float64)
-    pfix = np.asarray(pfix, dtype=np.float64)
-    port_domain = _PortDomain(
-        name="api_v1",
-        fd=domain.sdf,
-        bbox=domain.bbox,
-        fixed_points=pfix,
-    )
+        api_domain = domain  # Track the api.Domain for bc_segments access later
+        # Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.
+        if h_max is None:
+            h0 = max(_bbox_diag(domain.bbox) / 20.0, 1e-6)
+        else:
+            h0 = float(h_max)
+
+        # Adapter: the faithful-port `Domain` carries the SDF + fixed points.
+        pfix = domain.pfix
+        if pfix is None:
+            pfix = np.empty((0, 2), dtype=np.float64)
+        pfix = np.asarray(pfix, dtype=np.float64)
+        port_domain = _PortDomain(
+            name="api_v1",
+            fd=domain.sdf,
+            bbox=domain.bbox,
+            fixed_points=pfix,
+        )
 
     # Build kwargs for the driver. seed / niter only forwarded when the
     # caller supplied them — let the routine apply its own defaults.
@@ -658,8 +669,8 @@ def triangulate(
     # on the Domain, pass them through verbatim — they're the user's
     # contract about the output. Otherwise default-label every closed
     # boundary ring as MAINLAND.
-    if domain.bc_segments:
-        boundaries = tuple(domain.bc_segments)
+    if api_domain and api_domain.bc_segments:
+        boundaries = tuple(api_domain.bc_segments)
     else:
         boundaries = _derive_boundary_segments(elements, nodes)
 

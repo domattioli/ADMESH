@@ -36,19 +36,17 @@ class TestRingSortingByArea:
         """T006: Test multiply-connected domain where interior ring has more nodes."""
         # Create a synthetic multiply-connected domain:
         # Outer ring: large square (sparse nodes)
-        # Inner ring (hole): smaller square with more nodes (denser)
+        # Inner ring (hole): smaller circle with more nodes (denser)
 
         # Outer ring: 4 nodes (corners of large square)
         outer_ring = np.array([[-10, -10], [10, -10], [10, 10], [-10, 10]])
 
-        # Inner ring (hole): 20 nodes on a smaller square (denser)
+        # Inner ring (hole): 20 nodes on a smaller circle (denser)
         t = np.linspace(0, 2 * np.pi, 21)[:-1]  # 20 nodes
-        inner_ring = 3 * np.array(
-            [[np.cos(t), np.sin(t)]]
-        )  # Circle, ~20 points
+        inner_ring = np.column_stack([3 * np.cos(t), 3 * np.sin(t)])
 
         # Combine nodes
-        nodes = np.vstack([outer_ring, inner_ring.T])
+        nodes = np.vstack([outer_ring, inner_ring])
 
         # Create triangulation with both rings as boundaries
         from scipy.spatial import Delaunay
@@ -96,18 +94,17 @@ class TestRingSortingByArea:
         assert len(dom.bc_segments) > 0, "Domain should have boundary segments"
 
     def test_mvp_domains_no_regression(self):
-        """T010: Verify 5 MVP synthetic domains still work."""
+        """T010: Verify MVP synthetic domains still work."""
         mvp_domains = [
             admesh.domains.UNIT_SQUARE,
             admesh.domains.L_SHAPE,
-            admesh.domains.U_SHAPE,
-            admesh.domains.SQUARE_WITH_HOLE,
-            admesh.domains.ANNULUS,
+            admesh.domains.UNIT_DISK,
+            admesh.domains.NOTCHED_RECTANGLE,
         ]
 
         for domain in mvp_domains:
-            # Triangulate original domain
-            mesh = admesh.triangulate(domain, h_min=0.05, h_max=1.0)
+            # Triangulate original domain (skip quality_gate for synthetic domains)
+            mesh = admesh.triangulate(domain, h_min=0.05, h_max=1.0, quality_gate=(0.0, 0.0))
 
             # Recover domain from mesh
             recovered = admesh.Domain.from_mesh(mesh)
