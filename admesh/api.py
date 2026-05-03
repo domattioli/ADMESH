@@ -617,15 +617,14 @@ def triangulate(
     if max_iter is not None:
         opts["niter"] = int(max_iter)
 
-    # Resolve the size field. Three cases:
+    # Resolve the size field. Cases:
     #
     #   1. Caller passed a pre-composed `size_field=`. They've already
     #      done their own composition; we use it as-is. If they ALSO
     #      passed `user_contribs=` we warn — those would be ignored
     #      otherwise, which silently violates the contract.
-    #   2. Caller passed `user_contribs=`. Wrap them via
-    #      `compose_size_field` with `size_field` (if any) as the sole
-    #      Phase-1 builtin. Default combiner is `np.minimum.reduce`.
+    #   2. Caller passed `user_contribs=` or `h_min`/`h_max` bounds.
+    #      Compose via `compose_size_field`.
     #   3. Neither — uniform sizing falls through (`fh=None`).
     if size_field is not None and user_contribs:
         warnings.warn(
@@ -636,13 +635,31 @@ def triangulate(
             stacklevel=2,
         )
         fh = size_field
-    elif user_contribs:
+    elif user_contribs or h_min is not None or h_max is not None:
         from admesh.size_field import compose_size_field
 
+        # Build Phase-1 builtins: include size_field if provided
         builtins_phase1 = (size_field,) if size_field is not None else ()
+
+        # Build Phase-2 user contributions
+        user_phase2 = tuple(user_contribs)
+
+        # If h_min/h_max specified without other size fields, create a bounded field.
+        if not builtins_phase1 and not user_phase2:
+            # Create a clamping size field directly to avoid warning noise.
+            def _clamped_uniform(pts):
+                pts_arr = np.asarray(pts, dtype=np.float64)
+                n = pts_arr.shape[0]
+                # Return uniform field, already clamped to [h_min, h_max]
+                result = np.full(n, h_max if h_max is not None else h_min or 1.0, dtype=np.float64)
+                if h_min is not None and h_max is not None:
+                    result[:] = h_max  # Use h_max as the target (conservative for refinement)
+                return result
+            user_phase2 = (_clamped_uniform,)
+
         fh = compose_size_field(
             builtins=builtins_phase1,
-            user_contribs=tuple(user_contribs),
+            user_contribs=user_phase2,
             combine=combine,
             hmin=h_min,
             hmax=h_max,
