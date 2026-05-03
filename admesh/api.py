@@ -615,7 +615,9 @@ def triangulate(
     #   2. Caller passed `user_contribs=`. Wrap them via
     #      `compose_size_field` with `size_field` (if any) as the sole
     #      Phase-1 builtin. Default combiner is `np.minimum.reduce`.
-    #   3. Neither — uniform sizing falls through (`fh=None`).
+    #   3. Caller passed h_min or h_max but no user_contribs — auto-create
+    #      a uniform clamping size field so the bounds are not silently ignored.
+    #   4. Neither — uniform sizing falls through (`fh=None`).
     if size_field is not None and user_contribs:
         warnings.warn(
             "triangulate: both `size_field` and `user_contribs` were "
@@ -632,6 +634,20 @@ def triangulate(
         fh = compose_size_field(
             builtins=builtins_phase1,
             user_contribs=tuple(user_contribs),
+            combine=combine,
+            hmin=h_min,
+            hmax=h_max,
+        )
+    elif size_field is None and (h_min is not None or h_max is not None):
+        # Fix #37: h_min/h_max were silently ignored when no user_contribs
+        # provided. Auto-compose a uniform field that clamps to [h_min, h_max].
+        from admesh.size_field import compose_size_field
+
+        _h_max_val = h_max if h_max is not None else h0
+        _uniform = lambda pts: np.full(len(pts), _h_max_val, dtype=float)  # noqa: E731
+        fh = compose_size_field(
+            builtins=(_uniform,),
+            user_contribs=(),
             combine=combine,
             hmin=h_min,
             hmax=h_max,
