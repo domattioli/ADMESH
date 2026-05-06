@@ -1,1 +1,3 @@
-{"feature_directory": "specs/006-fix-size-field-overshoot"}
+{
+  "feature_directory": "specs/006-verify-h-parameter-usage"
+}
