@@ -24,6 +24,38 @@ Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
 
 ---
 
+## DomI Sync Contract
+
+This repo is a downstream consumer of [`domattioli/DomI`](https://github.com/domattioli/DomI),
+the upstream source of truth for shared skills, MANIFEST, and policy.
+
+**On every session start**, `scripts/instructions_on_start.sh` invokes the
+`sync-from-domi` skill's `check_pin.sh` to detect drift against
+`domattioli/DomI@main`. The check compares the pinned commit in `.domi-pin`
+against upstream HEAD and verifies the MANIFEST.md hash at that pin.
+
+**Hard stop on drift.** If the local pin is behind upstream (exit code 1) or
+the manifest hash mismatches at the pinned SHA (exit code 3, "forked"), the
+startup hook prints a HARD STOP banner and exits non-zero. The session
+refuses all write work until the operator (or Claude) invokes the
+`sync-from-domi` skill via `> sync from DomI`, which pulls the changed
+artifacts, runs `update_pin.sh`, and commits the refreshed `.domi-pin`.
+
+**Skipped checks.** When `gh` is unavailable (exit code 4), the check is
+skipped with a warning and the session continues — infra failures must not
+block work. Unpinned state (exit code 2) is allowed for first-time setup.
+
+**Plumbing:**
+- `.domi-pin` (committed) — ledger of upstream SHA + MANIFEST.md sha256.
+- `scripts/instructions_on_start.sh` — startup hook with the drift gate.
+- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed
+  from the DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
+
+**MUST NOT** edit DomI-owned skills directly in this repo. Submit changes
+upstream via `request-from-domi`; downstream is pull-only.
+
+---
+
 ## Stream Timeout Prevention
 
 1. Do each numbered task ONE AT A TIME. Complete one task fully,
