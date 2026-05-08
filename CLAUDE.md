@@ -54,6 +54,22 @@ block work. Unpinned state (exit code 2) is allowed for first-time setup.
 **MUST NOT** edit DomI-owned skills directly in this repo. Submit changes
 upstream via `request-from-domi`; downstream is pull-only.
 
+**Release skills come from DomI.** `github-release` and `pypi-publish` are
+maintained upstream and pulled in via `sync-from-domi`. Do not vendor or
+fork local copies — upstream owns the version that ships.
+
+**Orthogonal to Constitution Principle I.** The DomI sync contract governs
+the skill / policy layer only. Constitution Principle I (faithful port)
+still binds the 13 locked stage modules under `admesh/`. Skill drift never
+licenses changes to those modules; a faithful-port violation never excuses
+skipping a sync.
+
+**Routine session instructions** (paste verbatim into any scheduled
+routine targeting this repo):
+
+> Read https://raw.githubusercontent.com/domattioli/DomI/main/claude_routine_instructions.md
+> then CONSTITUTION.md → PROJECT_PLAN.md → CLAUDE.md.
+
 ---
 
 ## Stream Timeout Prevention

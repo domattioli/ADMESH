@@ -176,7 +176,37 @@ pattern observed in session 0 (four `UNCONFIRMED_PAUSE` interrupts).
 
 ---
 
+## Article VIII — External upstream (DomI)
+
+[`domattioli/DomI`](https://github.com/domattioli/DomI) is the upstream
+skill and policy provider for this repo.
+
+1. **`.domi-pin` must be committed and current.** It records the upstream
+   commit SHA and MANIFEST.md sha256 the repo is synced against.
+2. **Session start auto-checks drift.** `scripts/instructions_on_start.sh`
+   invokes the `sync-from-domi` drift check; the session HARD STOPs if
+   the pin is behind `domattioli/DomI@main` or the manifest hash forks.
+3. **DomI-provided skills take precedence over inline implementations.**
+   When DomI ships a skill (e.g. `github-release`, `pypi-publish`), this
+   repo consumes it via `sync-from-domi` rather than maintaining a local
+   copy. Local re-implementations of upstream-owned skills are forbidden.
+4. **Orthogonal to Article II Principle I.** This article governs the
+   skill / policy layer only. The faithful-port hard rule on the 13
+   locked stage modules under `admesh/` is unaffected — DomI sync never
+   licenses a stage-module change, and faithful-port work never excuses
+   skipping a DomI sync.
+
+---
+
 ## Amendments log
+
+### 2026-05-08 — Article VIII adopted (DomI external upstream)
+
+Adopted the DomI sync contract: `.domi-pin` ledger, session-start drift
+check via `sync-from-domi`, and upstream precedence for shared skills
+(`github-release`, `pypi-publish`). Explicitly orthogonal to Principle I
+(faithful port) so the two governance layers cannot be confused. Session
+reference: PR #52 (`claude/setup-domi-plugins-tGWnU`).
 
 ### 2026-04-25 — Article VI rules 5–8 adopted (branch governance)
 
