@@ -7,68 +7,45 @@ Operational reference for Claude Code sessions on ADMESH.
 **Read these three at every session start (in order):**
 `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md`.
 
-If CLAUDE.md contradicts the constitution, the constitution wins.
+If CLAUDE.md contradicts constitution, constitution wins.
 
 ---
 
 ## Project overview
 
-Python port of `01_ADMESH_Library` from
-[`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB)
-at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See
-`CONSTITUTION.md` Article I for the north star; Article II for hard
-rules (faithful port, no C extensions in first cut, 0-based indexing).
+Python port of `01_ADMESH_Library` from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See `CONSTITUTION.md` Article I for north star; Article II for hard rules (faithful port, no C extensions in first cut, 0-based indexing).
 
-Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
-`main`). Source tree of interest: `01_ADMESH_Library/`.
+Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch `main`). Source tree of interest: `01_ADMESH_Library/`.
 
 ---
 
 ## DomI Sync Contract
 
-This repo is a downstream consumer of [`domattioli/DomI`](https://github.com/domattioli/DomI),
-the upstream source of truth for shared skills, MANIFEST, and policy.
+This repo = downstream consumer of [`domattioli/DomI`](https://github.com/domattioli/DomI), upstream source of truth for shared skills, MANIFEST, policy.
 
-**On every session start**, `scripts/instructions_on_start.sh` invokes the
-`sync-from-domi` skill's `check_pin.sh` to detect drift against
-`domattioli/DomI@main`. The check compares the pinned commit in `.domi-pin`
-against upstream HEAD and verifies the MANIFEST.md hash at that pin.
+**On every session start**, `scripts/instructions_on_start.sh` invokes `sync-from-domi` skill's `check_pin.sh` to detect drift against `domattioli/DomI@main`. Check compares pinned commit in `.domi-pin` against upstream HEAD + verifies MANIFEST.md hash at that pin.
 
-**Hard stop on drift.** If the local pin is behind upstream (exit code 1) or
-the manifest hash mismatches at the pinned SHA (exit code 3, "forked"), the
-startup hook prints a HARD STOP banner and exits non-zero. The session
-refuses all write work until the operator (or Claude) invokes the
-`sync-from-domi` skill via `> sync from DomI`, which pulls the changed
-artifacts, runs `update_pin.sh`, and commits the refreshed `.domi-pin`.
+**Hard stop on drift.** If local pin behind upstream (exit code 1) or manifest hash mismatches at pinned SHA (exit code 3, "forked"), startup hook prints HARD STOP banner + exits non-zero. Session refuses all write work until operator (or Claude) invokes `sync-from-domi` skill via `> sync from DomI`, which pulls changed artifacts, runs `update_pin.sh`, commits refreshed `.domi-pin`.
 
-**Skipped checks.** When `gh` is unavailable (exit code 4), the check is
-skipped with a warning and the session continues — infra failures must not
-block work. Unpinned state (exit code 2) is allowed for first-time setup.
+**Skipped checks.** When `gh` unavailable (exit code 4), check skipped with warning + session continues — infra failures must not block work. Unpinned state (exit code 2) allowed for first-time setup.
 
 **Plumbing:**
 - `.domi-pin` (committed) — ledger of upstream SHA + MANIFEST.md sha256.
-- `scripts/instructions_on_start.sh` — startup hook with the drift gate.
-- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed
-  from the DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
+- `scripts/instructions_on_start.sh` — startup hook with drift gate.
+- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed from DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
 
-**MUST NOT** edit DomI-owned skills directly in this repo. Submit changes
-upstream via `request-from-domi`; downstream is pull-only.
+**MUST NOT** edit DomI-owned skills directly in this repo. Submit changes upstream via `request-from-domi`; downstream = pull-only.
 
 ---
 
 ## Stream Timeout Prevention
 
-1. Do each numbered task ONE AT A TIME. Complete one task fully,
-   confirm it worked, then move to the next.
-2. Never write a file longer than ~150 lines in a single tool call.
-   If a file will be longer, write it in multiple append/edit passes.
-3. Start a fresh session if the conversation gets long (20+ tool calls).
-   The error gets worse as the session grows.
-4. Keep individual grep/search outputs short. Use flags like
-   `--include` and `-l` (list files only) to limit output size.
-5. If you do hit the timeout, retry the same step in a shorter form.
-   Don't repeat the entire task from scratch.
-   
+1. Each numbered task ONE AT A TIME. Complete fully, confirm, next.
+2. Never write file >~150 lines in single tool call. Multi-pass append/edit if longer.
+3. Fresh session if conversation long (20+ tool calls). Error worsens with session size.
+4. Keep grep/search outputs short. Flags `--include`, `-l` (list files only) limit output size.
+5. On timeout, retry shorter form. Don't repeat entire task from scratch.
+
 ## Commands
 
 ```bash
@@ -78,10 +55,10 @@ pip install -e ".[dev]"
 # Run all tests
 pytest tests/ -q
 
-# Run a single stage's tests
+# Run single stage's tests
 pytest tests/test_distance.py -v
 
-# Benchmark the Numba mesh_size solver vs. the C baseline
+# Benchmark Numba mesh_size solver vs. C baseline
 python scripts/bench_mesh_size.py
 
 # Export fresh reference fixtures from MATLAB (requires MATLAB)
@@ -92,9 +69,7 @@ matlab -batch "run('scripts/export_matlab_fixtures.m')"
 
 ## Domain Loading & API (v0.2+)
 
-**v0.2 breaking change**: `domain_from_polygon()` and `domain_from_sdf()` have been
-removed from the public API. All domains now come from files or the ADMESH-Domains
-registry. Domain definitions become version-controlled artifacts, not ad-hoc Python objects.
+**v0.2 breaking change**: `domain_from_polygon()` + `domain_from_sdf()` removed from public API. All domains now come from files or ADMESH-Domains registry. Domain definitions become version-controlled artifacts, not ad-hoc Python objects.
 
 **File-based domain loading:**
 ```python
@@ -142,21 +117,16 @@ domain = Domain(sdf=my_sdf_callable, bbox=(-1, -1, 1, 1))
 mesh = admesh.triangulate(domain, h0=0.1)
 ```
 
-See `docs/DOMAIN_IO.md` for complete examples and format specifications.
+See `docs/DOMAIN_IO.md` for complete examples + format specifications.
 
 ---
 
 ## Architecture
 
-The package has **two layers**:
+Package has **two layers**:
 
-1. **Faithful-port stage modules** (Constitution Principle I — locked, must
-   stay numerically identical to MATLAB). One module per MATLAB stage,
-   bottom-up dependency order.
-2. **Additive Pythonic API layer** (spec-001 through spec-005). Public
-   user-facing surface — `triangulate()`, `Mesh`, `Domain`, fort.14 I/O,
-   loaders, registry integration, viz, quad-prep. Composes the stage
-   modules; never modifies them.
+1. **Faithful-port stage modules** (Constitution Principle I — locked, must stay numerically identical to MATLAB). One module per MATLAB stage, bottom-up dependency order.
+2. **Additive Pythonic API layer** (spec-001 through spec-005). Public user-facing surface — `triangulate()`, `Mesh`, `Domain`, fort.14 I/O, loaders, registry integration, viz, quad-prep. Composes stage modules; never modifies them.
 
 ```
 admesh/
@@ -172,12 +142,12 @@ admesh/
   dominate_tide.py     # 07 — DominateTideFunction
   boundary.py          # 08 — EnforceBoundaryConditions, create_polygon_structure
   mesh_size.py         # 09 — MeshSizeFunction + Numba-JIT iterative solver
-  distmesh.py          # 10 — distmesh2d + fixmesh (triangulation only; tri2quad is out of scope)
+  distmesh.py          # 10 — distmesh2d + fixmesh (triangulation only; tri2quad out of scope)
   quality.py           # 11 — MeshQuality
   in_polygon.py        # 12 — InPolygon
   inpaint.py           # 13 — inpaint_nans
 
-  # Additive Pythonic API layer (spec-001+, strictly composes the above)
+  # Additive Pythonic API layer (spec-001+, strictly composes above)
   api.py               # spec-001 — Domain/Mesh/BoundarySegment dataclasses + triangulate()
   boundary_types.py    # spec-001 — BoundaryType enum (ADCIRC IBTYPE codes incl. 3/4/13/24)
   fort14.py            # spec-001 — read_fort14 / write_fort14 round-trip I/O
@@ -223,27 +193,20 @@ docs/
 output/                # generated PNGs / artifacts (gitignored except gate plots)
 ```
 
-**Locked vs additive**: any change to the 13 faithful-port stage modules
-requires Constitution-Principle-I justification. New behaviour belongs
-in the additive layer. Stage modules can be *called* from the additive
-layer, never the reverse.
+**Locked vs additive**: any change to 13 faithful-port stage modules requires Constitution-Principle-I justification. New behaviour belongs in additive layer. Stage modules can be *called* from additive layer, never reverse.
 
 ---
 
 ## MATLAB → Python conventions
 
 **Naming**
-- `CreateBackgroundGrid.m` → `create_background_grid()` in
-  `admesh/background_grid.py`.
-- Private helpers keep their MATLAB name in snake_case, leading
-  underscore if they're module-private.
+- `CreateBackgroundGrid.m` → `create_background_grid()` in `admesh/background_grid.py`.
+- Private helpers keep MATLAB name in snake_case, leading underscore if module-private.
 
 **Indexing**
-- MATLAB 1-based → Python 0-based. Subtract 1 wherever the MATLAB
-  source indexes into arrays.
+- MATLAB 1-based → Python 0-based. Subtract 1 wherever MATLAB source indexes into arrays.
 - MATLAB `end` → Python `-1` or `len(x) - 1`.
-- MATLAB `x(i:j)` inclusive → Python `x[i-1:j]` (half-open, remember
-  the upper bound doesn't shift).
+- MATLAB `x(i:j)` inclusive → Python `x[i-1:j]` (half-open, remember upper bound doesn't shift).
 
 **Common substitutions**
 | MATLAB | Python |
@@ -255,14 +218,12 @@ layer, never the reverse.
 | `struct` | `dataclasses.dataclass` or dict — pick per-module |
 | cell array of varying-length vectors | `list[np.ndarray]` |
 
-Document each non-obvious substitution in `docs/PORTING_NOTES.md` with
-a one-line note on any behavior difference (closed-vs-open boundary,
-tie-breaking, ordering).
+Document each non-obvious substitution in `docs/PORTING_NOTES.md` with one-line note on any behavior difference (closed-vs-open boundary, tie-breaking, ordering).
 
 **Docstring template**
 ```python
 def create_background_grid(domain, params):
-    """Build a structured background grid over the domain.
+    """Build structured background grid over domain.
 
     Port of ``01_ADMESH_Library/02_Create_Background_Grid/CreateBackgroundGrid.m``
     from QuADMesh-MATLAB @ 19b2eb9.
@@ -282,31 +243,26 @@ def create_background_grid(domain, params):
 
 ## Numba conventions
 
-`admesh/mesh_size.py` hosts the iterative PDE solver ported from
-`MeshSizeIterativeSolver.c`. Keep two implementations in-module:
+`admesh/mesh_size.py` hosts iterative PDE solver ported from `MeshSizeIterativeSolver.c`. Keep two implementations in-module:
 
-1. `_solve_iter_py(...)` — pure NumPy, readable, the reference.
+1. `_solve_iter_py(...)` — pure NumPy, readable, reference.
 2. `_solve_iter_nb(...)` — `@njit(cache=True)`, optimized.
 
-A test in `tests/test_mesh_size.py` asserts they agree to `atol=1e-10`
-on a fixed input. The public `solve_iter(...)` dispatches to the Numba
-path by default, with a `use_numba=False` kwarg for debugging.
+Test in `tests/test_mesh_size.py` asserts they agree to `atol=1e-10` on fixed input. Public `solve_iter(...)` dispatches to Numba path by default, with `use_numba=False` kwarg for debugging.
 
 ---
 
 ## Testing
 
 - One test file per stage: `tests/test_<stage>.py`.
-- Fixtures: `.npz` under `tests/fixtures/<stage>/<case>.npz` with
-  named arrays for inputs and expected outputs.
+- Fixtures: `.npz` under `tests/fixtures/<stage>/<case>.npz` with named arrays for inputs + expected outputs.
 - Load pattern:
   ```python
   data = np.load("tests/fixtures/distance/square.npz")
   out = admesh.distance.signed_distance(data["x"], data["y"], data["poly"])
   np.testing.assert_allclose(out, data["expected"], atol=1e-8)
   ```
-- Keep fixtures small (< 1 MB per file ideally) so the repo stays
-  lightweight.
+- Keep fixtures small (<1 MB per file ideally) so repo stays lightweight.
 
 ---
 
@@ -314,78 +270,45 @@ path by default, with a `use_numba=False` kwarg for debugging.
 
 Each working session:
 1. **Orient** — read `CONSTITUTION.md`, `PROJECT_PLAN.md`, this file.
-2. **Pick a stage** from the current phase in `PROJECT_PLAN.md`.
-3. **Port** the MATLAB source, committing per file/function.
+2. **Pick stage** from current phase in `PROJECT_PLAN.md`.
+3. **Port** MATLAB source, committing per file/function.
 4. **Test** against fixtures; iterate until green.
-5. **Commit + push.** Update `PROJECT_PLAN.md` "Where we are today" if
-   a phase milestone landed.
+5. **Commit + push.** Update `PROJECT_PLAN.md` "Where we are today" if phase milestone landed.
 
-No mandatory session reports, no 4-agent planning, no dispatch queue —
-this is a port, not a research project. Keep it simple.
+No mandatory session reports, no 4-agent planning, no dispatch queue — this = port, not research project. Keep simple.
 
 ---
 
 ## Branching (operational)
 
-See **Constitution Article VI rules 5–8** for the binding rules. Quick
-operational summary:
+See **Constitution Article VI rules 5–8** for binding rules. Quick operational summary:
 
 - **Default to `main`.** Don't create branches for one-off edits.
-- **Speckit is the only branch-creator.** New feature branches come
-  from `/speckit-specify` (which fires the `before_specify` git hook).
-  Don't run `git checkout -b` directly.
-- **Speckit naming only.** Branches follow `NNN-<short-name>`
-  (sequential) per `.specify/init-options.json`. Do not create or
-  accept `claude/<feature>-<hash>` branches; if the session-system
-  pre-creates one, ignore or consolidate under the speckit branch.
-- **Scan first.** Before invoking `/speckit-specify`, run
-  `git branch -a` and look for a branch already covering the same
-  feature (by short-name, keywords, or related issue #). Reuse it
-  rather than create a parallel one.
-- **Consolidate redundancies.** If you find duplicate branches for the
-  same feature, ask the user once, then delete the redundant ones
-  (local + remote) and keep only the speckit-named branch.
+- **Speckit = only branch-creator.** New feature branches come from `/speckit-specify` (which fires `before_specify` git hook). Don't run `git checkout -b` directly.
+- **Speckit naming only.** Branches follow `NNN-<short-name>` (sequential) per `.specify/init-options.json`. Don't create or accept `claude/<feature>-<hash>` branches; if session-system pre-creates one, ignore or consolidate under speckit branch.
+- **Scan first.** Before invoking `/speckit-specify`, run `git branch -a` + look for branch already covering same feature (by short-name, keywords, or related issue #). Reuse rather than create parallel one.
+- **Consolidate redundancies.** If duplicate branches for same feature found, ask user once, then delete redundant ones (local + remote) + keep only speckit-named branch.
 
 ---
 
-## Related repos on disk and on GitHub
+## Related repos on disk + on GitHub
 
 | Path / URL | What it is |
 |---|---|
 | `/workspace/QuADMesh-MATLAB` | MATLAB source (read-only reference) |
-| `/workspace/MADMESHR` | RL-based **mesh generator** for tri/quad/mixed 2D meshes (advancing-front, Soft Actor-Critic). MVP/PoC, not on PyPI. Long-term positioning vs ADMESH undecided: may deprecate ADMESH or remain a sibling. Faithful-port boundary still applies — MADMESHR concepts must not bleed into the 13 locked stage modules in `admesh/*.py`. |
-| [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap an ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
+| `/workspace/MADMESHR` | RL-based **mesh generator** for tri/quad/mixed 2D meshes (advancing-front, Soft Actor-Critic). MVP/PoC, not on PyPI. Long-term positioning vs ADMESH undecided: may deprecate ADMESH or remain sibling. Faithful-port boundary still applies — MADMESHR concepts must not bleed into 13 locked stage modules in `admesh/*.py`. |
+| [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
 | `/workspace/ADMESH` | This repo |
 | [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
 
 <!-- SPECKIT START -->
-**Shipped:** `001-pythonize-and-fort14-integration` — Pythonic public
-API (`Domain`, `Mesh`, `triangulate()`) + ADCIRC fort.14 round-trip
-I/O. Now the public admesh contract.
+**Shipped:** `001-pythonize-and-fort14-integration` — Pythonic public API (`Domain`, `Mesh`, `triangulate()`) + ADCIRC fort.14 round-trip I/O. Now public admesh contract.
 
-**In-flight specs** (read each spec's `spec.md` + `plan.md` before
-touching its modules):
+**In-flight specs** (read each spec's `spec.md` + `plan.md` before touching its modules):
 
-- `002-size-field-defaults` — wire the MATLAB-faithful size-field
-  stack (curvature → medial-axis → bathymetry → tide, `min`-stacked)
-  as the Phase-1 default in `triangulate()`; extends fort.14 with
-  IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. **0.1.0 release
-  blocker** — gated on the WNAT structural-validity gate
-  ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
-- `004-quad-prep-smoother` — `smooth_for_quadrangulation()` nudges
-  ADMESH triangulations toward right-isoceles so downstream
-  tri-to-quad fusion (CHILmesh `tri2quad`, OceanMesh2D, ADCIRC v55+)
-  produces clean quads instead of rhombi.
-- `005-adcirc-mesh-registry` — federated mesh registry for ADCIRC
-  meshes (TOML manifests, HuggingFace mirror for redistributable
-  licenses, slug + SHA-256 IDs). The split-out `ADMESH-Domains`
-  repo is the upstream catalog; this spec wires registry lookup
-  into `triangulate(mesh_id)`.
+- `002-size-field-defaults` — wire MATLAB-faithful size-field stack (curvature → medial-axis → bathymetry → tide, `min`-stacked) as Phase-1 default in `triangulate()`; extends fort.14 with IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. **0.1.0 release blocker** — gated on WNAT structural-validity gate ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
+- `004-quad-prep-smoother` — `smooth_for_quadrangulation()` nudges ADMESH triangulations toward right-isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`, OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
+- `005-adcirc-mesh-registry` — federated mesh registry for ADCIRC meshes (TOML manifests, HuggingFace mirror for redistributable licenses, slug + SHA-256 IDs). Split-out `ADMESH-Domains` repo = upstream catalog; this spec wires registry lookup into `triangulate(mesh_id)`.
 
-**Constitution Principle I** still binds: the 13 faithful-port stage
-modules MUST stay numerically identical to MATLAB. New behaviour goes
-in the additive-layer modules (`api.py`, `fort14.py`,
-`boundary_types.py`, `loaders.py`, `size_field.py`, `viz.py`,
-`quad_prep.py`, `registry.py`, `domains.py`) — strictly additive,
-never replacing the locked modules.
+**Constitution Principle I** still binds: 13 faithful-port stage modules MUST stay numerically identical to MATLAB. New behaviour goes in additive-layer modules (`api.py`, `fort14.py`, `boundary_types.py`, `loaders.py`, `size_field.py`, `viz.py`, `quad_prep.py`, `registry.py`, `domains.py`) — strictly additive, never replacing locked modules.
 <!-- SPECKIT END -->
