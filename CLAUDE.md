@@ -300,6 +300,7 @@ See **Constitution Article VI rules 5–8** for binding rules. Quick operational
 | [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
 | `/workspace/ADMESH` | This repo |
 | [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
+| [`domattioli/DomI`](https://github.com/domattioli/DomI) | Upstream skill provider. Foundational skills (`github-release`, `pypi-publish`, `api-key-rotation`, `send-email`, `act-autonomously`, `speckit-*`) sourced from here via `sync-from-domi`. |
 
 <!-- SPECKIT START -->
 **Shipped:** `001-pythonize-and-fort14-integration` — Pythonic public API (`Domain`, `Mesh`, `triangulate()`) + ADCIRC fort.14 round-trip I/O. Now public admesh contract.

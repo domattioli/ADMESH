@@ -83,7 +83,30 @@ Operational rules for Claude sessions to prevent pause-for-ack pattern observed 
 
 ---
 
+## Article VIII — External Upstream (DomI)
+
+Foundational skills and policy governed by [domattioli/DomI](https://github.com/domattioli/DomI).
+
+1. `.domi-pin` ledger MUST be committed and current.
+2. Session start auto-checks drift via `scripts/instructions_on_start.sh`. Hard stop on drift; `/sync-from-domi` unblocks.
+3. Skills from DomI take precedence over inline implementations. Local repo-specific skills (those NOT shipped by DomI) are exempt.
+4. Repo-specific principles in this constitution override DomI universal defaults where they conflict.
+5. This section does NOT affect existing repo-specific algorithmic principles.
+
+Note: ADMESH speckit branch policy (Articles VI 5–8) stays as-is. The universal routine session instructions from DomI do NOT override ADMESH-specific branch and speckit rules.
+
+---
+
 ## Amendments log
+
+### 2026-05-08 — Article VIII adopted (External Upstream: DomI)
+
+Added Article VIII to wire this repo to the DomI plugin marketplace
+contract. Foundational skills sourced from domattioli/DomI via
+sync-from-domi plugin. `.domi-pin` ledger required. Routine session
+instructions are universal and do NOT override repo-specific branch
+or speckit rules (Articles VI 5–8 intact). Session reference: DomI
+downstream rollout.
 
 ### 2026-04-25 — Article VI rules 5–8 adopted (branch governance)
 
