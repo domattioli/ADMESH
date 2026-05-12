@@ -29,10 +29,23 @@ Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch
 This repo is a downstream consumer of [`domattioli/DomI`](https://github.com/domattioli/DomI),
 the upstream source of truth for shared skills, MANIFEST, and policy.
 
-**On every session start**, `scripts/instructions_on_start.sh` invokes the
-`sync-from-domi` skill's `check_pin.sh` to detect drift against
-`domattioli/DomI@main`. The check compares the pinned commit in `.domi-pin`
-against upstream HEAD and verifies the MANIFEST.md hash at that pin.
+**Plugin install (one-time per environment):**
+```bash
+claude plugin marketplace add domattioli/DomI
+claude plugin install sync-from-domi@DomI
+claude plugin install request-from-domi@DomI
+claude plugin install introspect@DomI
+```
+
+**Init `.domi-pin` (one-time per clone):**
+```bash
+SKILL=$(ls -d ~/.claude/plugins/cache/DomI/sync-from-domi/*/skills/sync-from-domi 2>/dev/null | head -1)
+bash "${SKILL}/scripts/update_pin.sh"
+git add .domi-pin && git commit -m "chore: init DomI pin"
+```
+
+**Session start:** `scripts/instructions_on_start.sh` invokes the
+`sync-from-domi` skill's `check_pin.sh` automatically. Hard stop if behind — invoke `/sync-from-domi` before any write work.
 
 **Hard stop on drift.** If the local pin is behind upstream (exit code 1) or
 the manifest hash mismatches at the pinned SHA (exit code 3, "forked"), the
@@ -49,7 +62,16 @@ block work. Unpinned state (exit code 2) is allowed for first-time setup.
 - `.domi-pin` (committed) — ledger of upstream SHA + MANIFEST.md sha256.
 - `scripts/instructions_on_start.sh` — startup hook with the drift gate.
 - `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed
-  from the DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
+  from the DomI marketplace.
+
+**Skills:** Foundational skills (`github-release`, `pypi-publish`, `api-key-rotation`, `send-email`, `act-autonomously`, `speckit-*`) come from DomI. Don't implement inline. Vote for missing skills: comment `+1 from ADMESH: <1-2 sentence incident context>` on the relevant DomI issue, then `/request-from-domi`.
+
+**Caveman mode:** Auto-activates via DomI SessionStart hook. Main thread / orchestrator only — never sub-agent prompts, academic prose, or non-technical user messages.
+
+**Routine session instructions (universal one-liner — does NOT override ADMESH branch/speckit rules):**
+```
+Read https://raw.githubusercontent.com/domattioli/DomI/main/claude_routine_instructions.md then ./CLAUDE.md before any work. Per-repo rules override universal defaults.
+```
 
 **MUST NOT** edit DomI-owned skills directly in this repo. Submit changes
 upstream via `request-from-domi`; downstream is pull-only.
@@ -344,6 +366,7 @@ operational summary:
 | [`domattioli/CHILmesh`](https://github.com/domattioli/CHILmesh) | Same-author Python **mesh data structure + smoother** for tri/quad/mixed (PyPI: `chilmesh`). Composes downstream of ADMESH — wrap an ADMESH output for FEM smoothing, quality analysis, or `fort.14` I/O. Not a faithful-port concern; references in docs only. |
 | `/workspace/ADMESH` | This repo |
 | [`domattioli/ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) | Federated registry of ADCIRC-compatible meshes — split out of this repo on 2026-04-26 |
+| [`domattioli/DomI`](https://github.com/domattioli/DomI) | Upstream skill provider. Foundational skills (`github-release`, `pypi-publish`, `api-key-rotation`, `send-email`, `act-autonomously`, `speckit-*`) sourced from here via `sync-from-domi`. |
 
 <!-- SPECKIT START -->
 **Shipped:** `001-pythonize-and-fort14-integration` — Pythonic public

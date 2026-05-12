@@ -178,24 +178,28 @@ pattern observed in session 0 (four `UNCONFIRMED_PAUSE` interrupts).
 
 ## Article VIII — External Upstream (DomI)
 
-ADMESH is a downstream consumer of [`domattioli/DomI`](https://github.com/domattioli/DomI), which governs shared skills, MANIFEST, and cross-repo policy.
+Foundational skills and policy governed by [domattioli/DomI](https://github.com/domattioli/DomI).
 
-1. `.domi-pin` (committed) records the upstream SHA + MANIFEST.md sha256. Never hand-edit; regenerate via `update_pin.sh`.
-2. `scripts/instructions_on_start.sh` hard-stops on drift (exit 1 or 3). Run `/sync-from-domi` before any write work when blocked.
-3. DomI skills take precedence over inline reimplementation. Submit changes upstream via `request-from-domi`; this repo is pull-only.
-4. DomI governs cross-repo skill lifecycle and issue closure. ADMESH's internal constitution (Articles I–VII) governs porting, workflow, and cadence.
-5. Publish gate: sync from DomI before any speckit branching, PyPI release, or fixture publication if drift is detected at session start.
+1. `.domi-pin` ledger MUST be committed and current.
+2. Session start auto-checks drift via `scripts/instructions_on_start.sh`. Hard stop on drift; `/sync-from-domi` unblocks.
+3. Skills from DomI take precedence over inline implementations. Local repo-specific skills (those NOT shipped by DomI) are exempt.
+4. Repo-specific principles in this constitution override DomI universal defaults where they conflict.
+5. This section does NOT affect existing repo-specific algorithmic principles.
+
+Note: ADMESH speckit branch policy (Articles VI 5–8) stays as-is. The universal routine session instructions from DomI do NOT override ADMESH-specific branch and speckit rules.
 
 ---
 
 ## Amendments log
 
-### 2026-05-08 — Article VIII adopted (external upstream governance)
+### 2026-05-08 — Article VIII adopted (External Upstream: DomI)
 
-Added Article VIII — External Upstream (DomI). Codifies ADMESH as a
-downstream consumer of domattioli/DomI; establishes `.domi-pin`, startup
-hard-stop, and publish gate. Adopted as part of cross-repo DomI sync
-contract rollout.
+Added Article VIII to wire this repo to the DomI plugin marketplace
+contract. Foundational skills sourced from domattioli/DomI via
+sync-from-domi plugin. `.domi-pin` ledger required. Routine session
+instructions are universal and do NOT override repo-specific branch
+or speckit rules (Articles VI 5–8 intact). Session reference: DomI
+downstream rollout.
 
 ### 2026-04-25 — Article VI rules 5–8 adopted (branch governance)
 
