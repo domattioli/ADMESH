@@ -4,7 +4,7 @@ Git repository initialization, feature branch creation, numbering (sequential/ti
 
 ## Overview
 
-This extension provides Git operations as an optional, self-contained module. It manages:
+Provides Git operations as optional, self-contained module. Manages:
 
 - **Repository initialization** with configurable commit messages
 - **Feature branch creation** with sequential (`001-feature-name`) or timestamp (`20260319-143022-feature-name`) numbering
@@ -16,8 +16,8 @@ This extension provides Git operations as an optional, self-contained module. It
 
 | Command | Description |
 |---------|-------------|
-| `speckit.git.initialize` | Initialize a Git repository with a configurable commit message |
-| `speckit.git.feature` | Create a feature branch with sequential or timestamp numbering |
+| `speckit.git.initialize` | Initialize Git repository with configurable commit message |
+| `speckit.git.feature` | Create feature branch with sequential or timestamp numbering |
 | `speckit.git.validate` | Validate current branch follows feature branch naming conventions |
 | `speckit.git.remote` | Detect Git remote URL for GitHub integration |
 | `speckit.git.commit` | Auto-commit changes (configurable per-command enable/disable and messages) |
@@ -47,7 +47,7 @@ This extension provides Git operations as an optional, self-contained module. It
 
 ## Configuration
 
-Configuration is stored in `.specify/extensions/git/git-config.yml`:
+Configuration stored in `.specify/extensions/git/git-config.yml`:
 
 ```yaml
 # Branch numbering strategy: "sequential" or "timestamp"
@@ -84,15 +84,15 @@ specify extension enable git
 
 ## Graceful Degradation
 
-When Git is not installed or the directory is not a Git repository:
-- Spec directories are still created under `specs/`
-- Branch creation is skipped with a warning
-- Branch validation is skipped with a warning
+When Git not installed or directory not a Git repository:
+- Spec directories still created under `specs/`
+- Branch creation skipped with warning
+- Branch validation skipped with warning
 - Remote detection returns empty results
 
 ## Scripts
 
-The extension bundles cross-platform scripts:
+Extension bundles cross-platform scripts:
 
 - `scripts/bash/create-new-feature.sh` — Bash implementation
 - `scripts/bash/git-common.sh` — Shared Git utilities (Bash)
