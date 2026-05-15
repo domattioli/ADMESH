@@ -6,6 +6,41 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-05-15, sub-plan: spec 009 release-readiness-for-0.1.0)
+
+**Status snapshot (3 weeks since the 2026-04-26 entry):**
+- Issue **#11** (`Domain.from_mesh` outer-ring sort) — **closed 2026-05-06**. The mechanical half of the "Path to 0.1.0" gate is done. Got its own spec `003-fix-outer-ring-sorting`.
+- Issue **#10** (default size-field overshoots domain on real-world coastal fixtures) — **still open**, still severity:high. This remains the lone numerics blocker on the 0.1.0 tag.
+- Six new specs landed that this plan did not previously mention:
+  - `003-fix-outer-ring-sorting` (closed #11)
+  - `004-quad-prep-smoother` (issue #15, right-isosceles smoother for quad fusion prep — shipped, lives in `admesh/quad_prep.py`)
+  - `005-adcirc-mesh-registry` (federated mesh-discovery registry — shipped, lives in `admesh/registry.py` + `admesh/loaders.py`)
+  - `006-verify-h-parameter-usage` (investigation for issue #37)
+  - `007-1d-boundary-seeding` (issue #2, in progress)
+  - `008-gmsh-io-integration` (issue #5, planning)
+- ~20 ADMESH issues closed since the 2026-04-26 entry; issue #15 (right-isoceles smoother), #27 (valence balancing) and #36 (`distmesh2d` undefined `_boundary_cleanup`) are among the larger ones.
+- New "daily-issue-fixing" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit `ab5bb49e`, `manifest_sha256` recorded in `.domi-pin`).
+- `TEST-AUDIT.md` shipped on 2026-05-15 (issue #59). Surfaced **F-CRIT-01**: only `publish.yml` exists, no CI workflow runs the 310 test functions. Sibling audit issues #60 (test surface, routes to DomI #63) and #61 (Claude Code hooks, routes to DomI #64) are open.
+- `admesh-domains>=0.1.0` is now a hard runtime dependency (`pyproject.toml:22`). The registry sibling is part of the public surface for 0.1.0.
+
+**Known drift to fix before tag:**
+- **Version mismatch**: `pyproject.toml` declares `version = "0.1.0"` but `admesh/__init__.py` declares `__version__ = "0.2.0"`. Both must agree at the moment the tag is pushed.
+- **Test gate missing**: no CI workflow runs `pytest`. Wheel can be tagged on a broken suite today.
+- **Docs**: no `CONTRIBUTING.md`, no `TESTING.md`, no rendered API reference. README still says "0.1.0 in progress."
+
+### 0.1.0 Release-Readiness Sub-Plan → `specs/009-release-readiness-for-0.1.0/`
+
+The remaining work to ship 0.1.0 is bundled into spec 009. Four phases:
+
+- **Phase R1 — Tag-gate hygiene**: reconcile the `pyproject.toml` ↔ `__init__.py` version strings; extend `scripts/pre_tag_check.sh` with version-match, plan-staleness, and audit-artifact gates; commit `output/coverage.json` + `output/durations.txt` to close TEST-AUDIT backlog items B-04 / B-06.
+- **Phase R2 — CI + onboarding + contract**: add `.github/workflows/tests.yml` (closes F-CRIT-01) on Python 3.10/3.11/3.12; introduce a `slow` pytest marker with a weekly lane; ship `CONTRIBUTING.md`, `TESTING.md`, and `docs/ADMESH_DOMAINS_CONTRACT.md`; tighten the `admesh-domains` pin to `>=0.1.0,<0.2`; add a contract-parity test.
+- **Phase R3 — Reorg (gated) + API reference**: draft a Constitution amendment for splitting `admesh/` into a public-surface layer + `admesh/_stages/` faithful-port internals; if it passes, do the split with back-compat re-exports; ship mkdocs-material + GitHub Pages with auto-generated API reference via `mkdocstrings`.
+- **Phase R4 — Issue #10 + tag**: resolve the size-field-overshoot blocker; un-`xfail` `test_tier1_wetting_and_drying_round_trip` and `test_tier2_wnat_release_gate`; push `v0.1.0` and let `publish.yml` ship the wheel to PyPI as `admesh2D==0.1.0`.
+
+See `specs/009-release-readiness-for-0.1.0/spec.md` for the full feature spec (4 user stories, 26 functional requirements across the 4 phases, 8 measurable success criteria). The path to the actual 0.1.0 tag goes through that spec.
+
+---
+
 ## Where we are today (2026-04-26, main merged — 298 tests green, open blockers #10/#11/#12)
 
 **Shipped this session (spec 002 — default size-field stack, implementation phase):**
