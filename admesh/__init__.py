@@ -25,6 +25,14 @@ from admesh.registry import (
     load_domain_with_metadata,
 )
 from admesh.size_field import SizeFieldFn, compose_size_field
+from admesh.valence import (
+    BalanceConfig,
+    BalanceResult,
+    ValenceStats,
+    balance_valence_triangles,
+    compute_valence,
+    get_valence_report,
+)
 
 __version__ = "0.2.0"
 
@@ -49,7 +57,14 @@ __all__ = [
     "smooth_for_quadrangulation",
     "triangulate",
     "write_fort14",
-    # Faithful-port stage modules (Constitution Principle I — untouched).
+    # Valence balancing (issue #27)
+    "BalanceConfig",
+    "BalanceResult",
+    "ValenceStats",
+    "balance_valence_triangles",
+    "compute_valence",
+    "get_valence_report",
+    # Faithful-port stage modules (Constitution Principle I -- untouched).
     "background_grid",
     "bathymetry",
     "boundary",
