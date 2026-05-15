@@ -4,7 +4,6 @@ import numpy as np
 import pytest
 
 import admesh
-from admesh import domains
 
 
 class TestRingSortingByArea:
@@ -37,14 +36,14 @@ class TestRingSortingByArea:
         """T006: Test multiply-connected domain where interior ring has more nodes."""
         # Create a synthetic multiply-connected domain:
         # Outer ring: large square (sparse nodes)
-        # Inner ring (hole): smaller square with more nodes (denser)
+        # Inner ring (hole): smaller circle with more nodes (denser)
 
         # Outer ring: 4 nodes (corners of large square)
         outer_ring = np.array([[-10, -10], [10, -10], [10, 10], [-10, 10]])
 
         # Inner ring (hole): 20 nodes on a smaller circle (denser)
         t = np.linspace(0, 2 * np.pi, 21)[:-1]  # 20 nodes
-        inner_ring = 3 * np.column_stack([np.cos(t), np.sin(t)])  # Circle, 20 points, shape (20, 2)
+        inner_ring = np.column_stack([3 * np.cos(t), 3 * np.sin(t)])
 
         # Combine nodes
         nodes = np.vstack([outer_ring, inner_ring])
@@ -95,37 +94,33 @@ class TestRingSortingByArea:
         assert len(dom.bc_segments) > 0, "Domain should have boundary segments"
 
     def test_mvp_domains_no_regression(self):
-        """T010: Verify MVP domains recover correctly from mesh."""
-        # Test that MVP domains recover correctly via Domain.from_mesh
-        # (not testing triangulation itself, which is out of scope for this fix)
-
-        # Create simple test domains manually
-        test_cases = [
-            ("unit_square", np.array([[-0.5, -0.5], [0.5, -0.5], [0.5, 0.5], [-0.5, 0.5]])),
-            ("simple_rect", np.array([[0, 0], [1, 0], [1, 1], [0, 1]])),
+        """T010: Verify MVP synthetic domains still work."""
+        mvp_domains = [
+            admesh.domains.UNIT_SQUARE,
+            admesh.domains.L_SHAPE,
+            admesh.domains.UNIT_DISK,
+            admesh.domains.NOTCHED_RECTANGLE,
         ]
 
-        for name, boundary_nodes in test_cases:
-            from scipy.spatial import Delaunay
-            # Create a minimal triangulation with just the boundary
-            tri = Delaunay(boundary_nodes)
-            mesh = admesh.Mesh(nodes=boundary_nodes, elements=tri.simplices)
+        for domain in mvp_domains:
+            # Triangulate original domain (skip quality_gate for synthetic domains)
+            mesh = admesh.triangulate(domain, h_min=0.05, h_max=1.0, quality_gate=(0.0, 0.0))
 
-            # Recover domain
+            # Recover domain from mesh
             recovered = admesh.Domain.from_mesh(mesh)
 
             # Bbox should be reasonable (positive area)
             assert (
                 recovered.bbox[2] - recovered.bbox[0] > 0
-            ), f"{name}: bbox has zero or negative width"
+            ), f"{domain.name}: bbox has zero or negative width"
             assert (
                 recovered.bbox[3] - recovered.bbox[1] > 0
-            ), f"{name}: bbox has zero or negative height"
+            ), f"{domain.name}: bbox has zero or negative height"
 
             # Should have boundary segments
             assert (
                 len(recovered.bc_segments) > 0
-            ), f"{name}: should have boundary segments"
+            ), f"{domain.name}: should have boundary segments"
 
 
 class TestRingAreaHelper:
