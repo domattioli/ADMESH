@@ -3,6 +3,7 @@
 Source commit pin: 19b2eb9f078a648daec3fd40d5d4c6e072f467ac
 """
 
+from admesh import domains
 from admesh.api import (
     BoundarySegment,
     Domain,

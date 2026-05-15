@@ -11,18 +11,26 @@
 </p>
 
 <p align="center">
-  <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
+  <a href="https://pypi.org/project/admesh2D/"><img src="https://img.shields.io/pypi/v/admesh2D.svg?label=PyPI" alt="PyPI version"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
+  <a href="https://github.com/domattioli/ADMESH/releases/tag/v0.1.0"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases" alt="Latest Release"></a>
+</p>
+
+<p align="center">
+  <img src="papers/fig8_admesh_wnat.png" alt="ADMESH mesh of Western North Atlantic, Gulf of Mexico, Caribbean Sea." width="100%">
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/admesh2D/"><img alt="PyPI" src="https://img.shields.io/pypi/v/admesh2D.svg?style=flat-square"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-beta-yellow?style=flat-square">
 </p>
 
 ---
 
 ## Install
 
-> 🚧 **0.1.0 in progress.** Spec 002 lands the default size-field stack
-> + ADCIRC paired-edge BC support; the first PyPI tag follows when the
-> Tier-2 / WNAT structural-validity gate is green
-> ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
-> Until then, install from source.
+> 🚧 **0.1.0 in progress.** Spec 002 lands default size-field stack + ADCIRC paired-edge BC support; first PyPI tag follows when Tier-2 / WNAT structural-validity gate green ([issue #10](https://github.com/domattioli/ADMESH/issues/10)). Until then, install from source.
 
 ```bash
 pip install admesh2D            # core (when 0.1.0 ships)
@@ -37,17 +45,13 @@ cd ADMESH
 pip install -e ".[dev]"
 ```
 
-Requires Python ≥ 3.10. Core dependencies: NumPy, SciPy, Numba, Shapely.
+Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely.
 
 ---
 
 ## Quickstart
 
-> 🚧 The `triangulate()` defaults are stabilizing across spec 002.
-> The 3-line idiom below works today; advanced kwargs
-> (`enable_curvature`, `enable_medial_axis`, `bathymetry`,
-> `tide_period`, `default_depth`, …) are documented in
-> `specs/002-size-field-defaults/contracts/python-api-default-stack.md`.
+> 🚧 `triangulate()` defaults stabilizing across spec 002. 3-line idiom below works today; advanced kwargs (`enable_curvature`, `enable_medial_axis`, `bathymetry`, `tide_period`, `default_depth`, …) documented in `specs/002-size-field-defaults/contracts/python-api-default-stack.md`.
 
 ```python
 import admesh
@@ -57,8 +61,7 @@ mesh = admesh.triangulate(domain)
 mesh.to_fort14("out.14")
 ```
 
-`mesh` is a frozen `Mesh` dataclass — typed nodes, elements, boundary
-segments (with `BoundaryType` codes), and per-element quality.
+`mesh` = frozen `Mesh` dataclass — typed nodes, elements, boundary segments (with `BoundaryType` codes), per-element quality.
 
 ### Round-trip with ADCIRC `fort.14`
 
@@ -77,52 +80,32 @@ def refine_near_breaker(pts):
 mesh = admesh.triangulate(domain, user_contribs=[refine_near_breaker])
 ```
 
-Built-in size-field stages (curvature, medial axis, bathymetry, tide)
-`min`-stack identically to MATLAB. User contributions compose on top via
-a user-chosen combiner (default elementwise minimum).
+Built-in size-field stages (curvature, medial axis, bathymetry, tide) `min`-stack identically to MATLAB. User contributions compose on top via user-chosen combiner (default elementwise minimum).
 
 ---
 
 ## Status
 
-Under construction. The v1 plan and task list live in
-`specs/001-pythonize-and-fort14-integration/` (shipped) and
-`specs/002-size-field-defaults/` (in progress — wires the
-MATLAB-faithful size-field stack as the default Phase-1 in
-`triangulate()` + extends fort.14 for IBTYPE 3 / 4 / 13 / 24
-paired-edge BC records). The faithful Python port of the original
-13-stage pipeline is the production path (now 250+ tests passing);
-the Pythonic API + fort.14 I/O are the 0.1.0 deliverables.
+Under construction. v1 plan + task list live in `specs/001-pythonize-and-fort14-integration/` (shipped) + `specs/002-size-field-defaults/` (in progress — wires MATLAB-faithful size-field stack as default Phase-1 in `triangulate()` + extends fort.14 for IBTYPE 3 / 4 / 13 / 24 paired-edge BC records). Faithful Python port of original 13-stage pipeline = production path (now 250+ tests passing); Pythonic API + fort.14 I/O = 0.1.0 deliverables.
 
 ## Upstream
 
-The reference MATLAB implementation is
-[`coltonjconroy/ADMESH`](https://github.com/coltonjconroy/ADMESH),
-maintained by the original author. That repository may carry features
-beyond what this port currently covers; new functionality is adopted
-here as it's pulled across.
+Reference MATLAB implementation = [`coltonjconroy/ADMESH`](https://github.com/coltonjconroy/ADMESH), maintained by original author. That repo may carry features beyond what this port currently covers; new functionality adopted here as it's pulled across.
 
 ## Related projects
 
-- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** —
-  federated registry of ADCIRC-compatible meshes (domains) for
-  discovery, lineage tracking, and community contribution. Built as a
-  companion to this library.
+- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** — federated registry of ADCIRC-compatible meshes (domains) for discovery, lineage tracking, community contribution. Built as companion to this library.
 
 ## Citation
 
-> Conroy, C.J., Kubatko, E.J., West, D.W. (2012). ADMESH: an advanced,
-> automatic unstructured mesh generator for shallow water models.
-> *Ocean Dynamics* 62, 1503–1517. <https://doi.org/10.1007/s10236-012-0574-0>
+> Conroy, C.J., Kubatko, E.J., West, D.W. (2012). ADMESH: an advanced, automatic unstructured mesh generator for shallow water models. *Ocean Dynamics* 62, 1503–1517. <https://doi.org/10.1007/s10236-012-0574-0>
 
-A copy is included at [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+Copy included at [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
 
 ## Contact
 
-- **Theory** (algorithm, size-field formulation, ADCIRC integration):
-  Ethan J. Kubatko — [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu)
-- **Code** (this repository): Dominik Mattioli —
-  [github.com/domattioli](https://github.com/domattioli)
+- **Theory** (algorithm, size-field formulation, ADCIRC integration): Ethan J. Kubatko — [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu)
+- **Code** (this repository): Dominik Mattioli — [github.com/domattioli](https://github.com/domattioli)
 
 ## License
 

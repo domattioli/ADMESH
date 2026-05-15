@@ -1,8 +1,6 @@
 # ADMESH Project Plan
 
-Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to
-Python. Governance rules in `CONSTITUTION.md`; code layout in
-`CLAUDE.md`.
+Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Governance rules in `CONSTITUTION.md`; code layout in `CLAUDE.md`.
 
 ---
 
@@ -10,311 +8,122 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 **Shipped this session (spec 002 — default size-field stack, implementation phase):**
 - All 41 tasks from `specs/002-size-field-defaults/tasks.md` walked through. T001-T015 + T018-T028 + T032-T037 done; T016/T017 (Tier-1 / Tier-2 acceptance) marked `xfail` pending issue #10; T029-T031 (Shinnecock fixture) deferred (network-dependent, not gating 0.1.0).
-- **Headline behavior change**: `admesh.triangulate(domain)` with no size-field arguments now invokes the default Phase-1 stack (curvature + medial-axis always-on; bathymetry + tide opt-in via `Domain` fields). The spec-001 uniform-`h` fallback is reachable via `enable_curvature=False, enable_medial_axis=False`.
+- **Headline behavior change**: `admesh.triangulate(domain)` with no size-field arguments now invokes default Phase-1 stack (curvature + medial-axis always-on; bathymetry + tide opt-in via `Domain` fields). Spec-001 uniform-`h` fallback reachable via `enable_curvature=False, enable_medial_axis=False`.
 - `admesh/api.py` extended: `Domain.bathymetry`, `Domain.tide_period`, `Domain.polygons`, `Domain.from_mesh(...)` classmethod, `_build_default_size_field(...)` private helper, new `triangulate()` kwargs (`h_target`, `enable_curvature`, `enable_medial_axis`, `default_depth`, `tide_elements_per_wavelength`), extended `Mesh.equals` for paired-edge + barrier_data.
 - `admesh/boundary_types.py` extended: `EXTERNAL_BARRIER=3`, `EXTERNAL_BARRIER_FLUX=4`, `INTERNAL_BARRIER_PIPE=13`, `INTERNAL_BARRIER=24`.
-- `admesh/fort14.py` extended: paired-edge / single-node-barrier reader/writer for IBTYPE 3 / 4 / 13 / 23 / 24 / 25 with column-agnostic `barrier_data` (real fixtures vary in trailing-float count). Open- and land-segment header parsers tolerate inline `=` comments. The `wetting_and_drying_test.14` corpus round-trip went from RED → GREEN.
-- New tests: `test_default_size_field.py` (Tier 0/1/2 + 3 US2 bathymetry/tide tests, 8 tests total), `test_fort14_paired.py` (5 tests), `test_backward_compat.py` (4 tests), `tests/_structural_validity.py` (the `assert_structurally_valid` helper). Final suite: **259 passed, 8 skipped, 2 xfailed**.
-- Constitution amendment v1.0.2 (T023): documents the spec-002 default stack as the precondition for fort.14-contract release readiness.
+- `admesh/fort14.py` extended: paired-edge / single-node-barrier reader/writer for IBTYPE 3 / 4 / 13 / 23 / 24 / 25 with column-agnostic `barrier_data`. Open- and land-segment header parsers tolerate inline `=` comments. `wetting_and_drying_test.14` corpus round-trip went RED → GREEN.
+- New tests: `test_default_size_field.py` (8 tests), `test_fort14_paired.py` (5 tests), `test_backward_compat.py` (4 tests), `tests/_structural_validity.py`. Final suite: **259 passed, 8 skipped, 2 xfailed**.
+- Constitution amendment v1.0.2 (T023): documents spec-002 default stack as precondition for fort.14-contract release readiness.
 - README "0.1.0 in progress" callouts restored (T024/T025); ADCIRC compatibility tagline preserved.
 - Cleanup (T026/T027/T028): `papers/wnat_admesh.png`, `dist/`, `build/`, 3 stale diagnostic PNGs under `tests/output/` removed.
-- `scripts/pre_tag_check.sh` (T032): 5-gate pre-tag verification script. Currently PASSES (constitution version, README callout, no stray artefacts).
-- `docs/PORTING_NOTES.md` (T019): new entry "fort.14 — paired-edge / barrier BC records (spec 002)" documenting the deliberate column-agnostic divergence from ADCIRC v55 grammar.
-- `requirements.txt` cleanup: removed accidentally-duplicated matplotlib (it's correctly under `[viz]` extras in pyproject.toml).
-- New quality-comparison artifacts in `tests/output/`: `wnat_quality.png` (4-panel histogram of the source WNAT mesh, the ADMESH-pedigree quality bar) and `tier1_source_vs_fresh.png` (side-by-side comparison of the wetting_and_drying source mesh vs. our Python `triangulate()` output — proves the FRESH mesh is a real Python-pipeline product, with shape-q-mean 0.92 vs source 0.99).
+- `scripts/pre_tag_check.sh` (T032): 5-gate pre-tag verification script. Currently PASSES.
+- `docs/PORTING_NOTES.md` (T019): new entry for fort.14 paired-edge / barrier BC records.
+- `requirements.txt` cleanup: removed accidentally-duplicated matplotlib.
+- New quality-comparison artifacts in `tests/output/`: `wnat_quality.png` (4-panel histogram) and `tier1_source_vs_fresh.png` (side-by-side comparison, shape-q-mean 0.92 vs source 0.99).
 
-**Open follow-up issues** (filed this session, all on origin):
-- #8 — GPU + CPU-parallel acceleration for the size-field stack (post-v1).
+**Open follow-up issues** (filed this session):
+- #8 — GPU + CPU-parallel acceleration for size-field stack (post-v1).
 - #9 — admesh-segmenter sibling project (post-v1).
-- #10 — **Default size-field stack overshoots domain on real-world coastal fixtures** (severity:high). The Tier-1/Tier-2 acceptance gates are blocked on this. The 0.1.0 tag is contingent on resolving #10.
-- #11 — `Domain.from_mesh` picks wrong outer ring on WNAT (sorts by node count, not area). Independently breaks the Tier-2 path; resolution is mechanical (~M effort).
+- #10 — **Default size-field stack overshoots domain on real-world coastal fixtures** (severity:high). Tier-1/Tier-2 acceptance gates blocked. 0.1.0 tag contingent on resolving #10.
+- #11 — `Domain.from_mesh` picks wrong outer ring on WNAT (sorts by node count, not area). Independently breaks Tier-2 path; resolution is mechanical (~M effort).
 
 **Branch state**: `002-size-field-defaults` on origin, head `1149adf`. Spec-001 branch (`001-pythonize-and-fort14-integration`, head `f1ce987`) preserved for archive.
 
-**Path to 0.1.0**: resolve #11 (mechanical) + #10 (tuning), un-xfail the Tier-1/Tier-2 tests, run `bash scripts/pre_tag_check.sh`, tag.
+**Path to 0.1.0**: resolve #11 (mechanical) + #10 (tuning), un-xfail Tier-1/Tier-2 tests, run `bash scripts/pre_tag_check.sh`, tag.
 
 ---
 
 ## Where we are today (2026-04-25, post-spec-001)
 
 **Shipped (spec 001 — Pythonic API + fort.14 I/O):**
-- v1 Pythonic surface in `admesh/api.py`, `admesh/fort14.py`,
-  `admesh/boundary_types.py`, `admesh/size_field.py`, `admesh/viz.py`
-  — strictly additive over the 13 faithful-port stage modules
-  (Constitution Principle I unbroken). The 142-test faithful-port
-  baseline still passes, with `tests/test_smoke.py` the only
-  test-tree edit (taught to skip class re-exports).
-- 3-line happy path runs end-to-end on all 5 MVP domains:
-  `domain_from_polygon([ring])` → `triangulate(domain)` →
-  `mesh.to_fort14(path)`. Round-trip equal at `atol=1e-5` on
-  `unit_square`, `l_shape`, `unit_disk`, `annulus`,
-  `notched_rectangle`. Evidence in
-  `output/quickstart_validation.txt`.
-- ADCIRC v55 fort.14 reader/writer with ``Fort14ParseError``
-  carrying ``line_no/expected/actual``. Open-segments / land-
-  segments round-trip; named (`OPEN/MAINLAND/ISLAND/MAINLAND_FLUX`)
-  and unmapped numeric BC codes both preserved.
-- Real-world stress test: `tests/fixtures/fort14/adcirc_examples/
-  wnat_test.14` (1.2 MB, 9,934 nodes, US East Coast + Gulf of
-  Mexico + Caribbean) parses, round-trips, and re-triangulates via
-  `scripts/wnat_demo.py`.
-- chilmesh round-trip: 8 compat tests cover BC label preservation
-  across the fort.14 boundary; a separate gated smoke test exercises
-  `chilmesh.ChilMesh.from_fort14` when chilmesh is installed.
-- Two-phase size-field composer (`compose_size_field`): Phase-1
-  builtins always min-stack (Constitution Principle I); Phase-2
-  user contributions combine via caller-chosen reduction. Demo
-  shrinks mean edge length 44 % near a wave-breaker line
-  (`scripts/size_field_extension_demo.py`).
-- Test totals: 239 passed / 6 skipped (matplotlib path tested with
-  `Agg` backend; chilmesh + 5 MATLAB fixtures absent locally).
-- Constitution PATCH amendment removes `ADCIRC .fort.14 I/O` from
-  the deferred-list (T050 below); version bumped to 1.0.1.
-- Sibling-feature follow-ups parked: GH issue
-  [#5](https://github.com/domattioli/ADMESH/issues/5) for Gmsh
-  `.msh` I/O as feature 003; reserved feature 002 for performance
-  optimization.
+- v1 Pythonic surface in `admesh/api.py`, `admesh/fort14.py`, `admesh/boundary_types.py`, `admesh/size_field.py`, `admesh/viz.py` — strictly additive over 13 faithful-port stage modules. 142-test faithful-port baseline still passes.
+- 3-line happy path runs end-to-end on all 5 MVP domains: `domain_from_polygon([ring])` → `triangulate(domain)` → `mesh.to_fort14(path)`. Round-trip equal at `atol=1e-5`.
+- ADCIRC v55 fort.14 reader/writer with `Fort14ParseError` carrying `line_no/expected/actual`. Open-segments / land-segments round-trip; named and unmapped numeric BC codes both preserved.
+- Real-world stress test: `tests/fixtures/fort14/adcirc_examples/wnat_test.14` (1.2 MB, 9,934 nodes) parses, round-trips, and re-triangulates.
+- chilmesh round-trip: 8 compat tests cover BC label preservation across fort.14 boundary.
+- Two-phase size-field composer (`compose_size_field`): Phase-1 builtins always min-stack (Principle I); Phase-2 user contributions combine via caller-chosen reduction.
+- Test totals: 239 passed / 6 skipped.
+- Constitution PATCH amendment removes `ADCIRC .fort.14 I/O` from deferred-list; version bumped to 1.0.1.
 
-Open work in spec 001: T027 (≥ 3 community fixtures, needs external
-acquisition). All other tasks in
-`specs/001-pythonize-and-fort14-integration/tasks.md` complete.
+Open work in spec 001: T027 (≥ 3 community fixtures, needs external acquisition).
 
 ---
 
 ## Where we are today (2026-04-24, post-session 6)
 
 **Shipped (session 6 — faithful-port completion across all 13 stages):**
-- **`admesh/boundary.py`** rewritten as faithful port of
-  `08_Enforce_Boundary_Conditions/{EnforceBoundaryConditions,
-  create_polygon_structure}.m`. New ``BCSegment`` dataclass +
-  ``PolygonStructure`` + ``create_polygon_structure`` + MATLAB-
-  faithful ``enforce_boundary_conditions(h_ic, X, Y, D, IB, pts,
-  hmax, hmin)``. Session-3 node-labelling function preserved as
-  ``classify_nodes_against_pts``; ``admesh/distmesh.py`` call sites
-  updated. **Retires the last clean-room stage.**
-- **`admesh/inpaint.py`** rewritten as faithful port of MATLAB
-  ``inpaint_nans.m`` method 0 (default). Column-major sparse del²
-  operator + lsqr solve. Methods 1-5 raise ``NotImplementedError``
-  (deferred polish).
-- **`admesh/bathymetry.py`** rewritten as faithful port of
-  ``06_Bathymetry_Function/{BathymetryFunction,CreateElevationGrid}.m``.
-  Formula ``h_bathy = s·|Z|/|∇Z|`` with 4th-order interior ∇Z
-  stencil; ``D ≥ -4·hmin`` band masked to ``hmax`` when curvature
-  stage active (MATLAB line 121).
-- **`admesh/dominate_tide.py`** rewritten as faithful port of
-  ``07_Dominate_Tide/Dominate_tide.m``. ``h_tide = (T/sz)·√(g·|Z|)``
-  with ``g = 9.81``; land cells (Z==0) pinned to hmax before clip.
-- **`admesh.mesh_size.build_h`** extended with ``bathymetry``,
-  ``bathy_scale``, ``tide_period``, ``tide_scale`` kwargs routing
-  to the faithful ports (additive — existing callers unaffected).
-- **4 new PORTING_NOTES entries** (boundary, inpaint, bathymetry,
-  tide).
-- **`scripts/export_matlab_fixtures.m`** gains emitter blocks for
-  inpaint, bathymetry, dominate_tide, boundary (4 new fixtures;
-  existing 5 unchanged).
-- **`tests/test_matlab_port.py`** extended — 8 new port-correctness
-  tests for boundary + 1 MATLAB-fixture parity skip;
-  ``tests/test_inpaint.py`` (7), ``tests/test_bathymetry.py`` (7),
-  ``tests/test_dominate_tide.py`` (6), ``tests/test_boundary.py``
-  gains 9 new cases — total test count **131 → 134 passing**
-  (adds bathymetry + tide routing via ``build_h``), 5 skipped
-  (MATLAB fixtures).
-- **All 13 ADMESH library stages now on faithful ports.**
-  Article II.1 compliance restored; the PROJECT_PLAN line
-  "Faithful-port backfill remaining" is retired.
+- **`admesh/boundary.py`** rewritten as faithful port of `08_Enforce_Boundary_Conditions/`. New `BCSegment` + `PolygonStructure` + `create_polygon_structure` + MATLAB-faithful `enforce_boundary_conditions`. **Retires last clean-room stage.**
+- **`admesh/inpaint.py`** rewritten as faithful port of MATLAB `inpaint_nans.m` method 0 (default). Column-major sparse del² operator + lsqr solve.
+- **`admesh/bathymetry.py`** rewritten as faithful port of `06_Bathymetry_Function/`. Formula `h_bathy = s·|Z|/|∇Z|` with 4th-order interior ∇Z stencil.
+- **`admesh/dominate_tide.py`** rewritten as faithful port of `07_Dominate_Tide/Dominate_tide.m`. `h_tide = (T/sz)·√(g·|Z|)` with `g = 9.81`.
+- **`admesh.mesh_size.build_h`** extended with `bathymetry`, `bathy_scale`, `tide_period`, `tide_scale` kwargs routing to faithful ports.
+- **4 new PORTING_NOTES entries**, **`scripts/export_matlab_fixtures.m`** gains 4 new fixture emitter blocks.
+- Test count: **131 → 134 passing**, 5 skipped (MATLAB fixtures).
+- **All 13 ADMESH library stages now on faithful ports.** Article II.1 compliance restored.
 
-**Slipped to session 7:** WS2 notched_rect demo polish
-(``min_q`` still 0.162 on Domain-path — PTS-path reroute deferred
-to session 7 since P3 orchestration work will exercise the PTS
-path end-to-end anyway).
-
-**Next entry point:** session 7 — Phase P3, full
-``01_ADMESH_Routine/ADmeshRoutine.m`` + ``ADmeshSubMeshRoutine.m``
-orchestration. All individual stages are now directly callable on
-faithful ports; session 7 composes them into the top-level
-pipeline.
+**Next entry point:** session 7 — Phase P3, full `01_ADMESH_Routine/ADmeshRoutine.m` + `ADmeshSubMeshRoutine.m` orchestration.
 
 ## Where we are today (2026-04-23, post-session 5)
 
-**Shipped (session 5 — faithful port of `04_Curvature_Function/` +
-`05_Medial_Axis/`):**
-- **`admesh/curvature.py`** rewritten as faithful port of
-  `CurvatureFunction.m`. New ``apply_curvature`` uses MATLAB's
-  narrow-band formula ``h_curve = (1+κ|D|)/((K/π)κ) − g·D`` with
-  ``|D| ≤ 2·hmin`` band-gating.
-- **`admesh/medial_axis.py`** rewritten as faithful port of
-  `MedialAxisFunction.m`. New ``apply_medial_axis`` +
-  ``_average_outward_flux`` + ``_skeletonize_zhang_suen``
-  (vectorized) + ``_remove_isolated`` replace the session-2
-  scipy-EDT-only clean-room.
-- **`admesh.mesh_size.build_h`** routes ``curvature_scale`` /
-  ``medial_scale`` kwargs to the faithful ports; preserved
-  backward-compat for the zero-enrichment MVP path.
-- **`admesh.distmesh.distmesh2d`** (canonical MVP path) gains a
-  final ``_boundary_cleanup(p, t, None)`` call — MATLAB ADMESH's
-  ``distmesh2d.m`` does this; Persson's reference doesn't.
-  Pragmatic hybrid; MVP M.4 gate regression-clean.
-- **`scripts/export_matlab_fixtures.m`** gains curvature + medial
-  emitter blocks (previously ``[defer]`` stubs).
-- **`tests/test_matlab_port.py`** extended — 5 new port-correctness
-  tests (apply_curvature band-only + on-boundary formula; AOF
-  positivity; medial_axis_mask on annulus; LFS constancy).
-- **Quality payoff on Domain-path medial demo:**
-  unit_disk min_q 0.378 → **0.695**; notched_rect 0.020 → 0.162
-  (still below 0.30 gate — session 6 target: PTS-path retarget
-  + curvature composition).
-- **95 pytest tests passing, 4 skipped** (MATLAB fixtures); MVP
-  M.4 gate regression-clean.
-
-**Faithful-port backfill remaining (as of S5):**
-`08_Enforce_Boundary_Conditions/` (session-3 clean-room in
-``admesh/boundary.py``). **Retired in session 6.**
-
-**Next entry point (as of S5):** session 6 — Phase P2 (bathymetry
-+ tide + inpaint) + boundary backfill.
+**Shipped (session 5 — faithful port of `04_Curvature_Function/` + `05_Medial_Axis/`):**
+- **`admesh/curvature.py`** rewritten as faithful port. New `apply_curvature` uses MATLAB's narrow-band formula.
+- **`admesh/medial_axis.py`** rewritten as faithful port. New `apply_medial_axis` + `_average_outward_flux` + `_skeletonize_zhang_suen` (vectorized) + `_remove_isolated`.
+- **`admesh.mesh_size.build_h`** routes `curvature_scale` / `medial_scale` kwargs to faithful ports.
+- **`admesh.distmesh.distmesh2d`** gains final `_boundary_cleanup(p, t, None)` call (MATLAB does this; Persson's reference doesn't).
+- **95 pytest tests passing, 4 skipped** (MATLAB fixtures); MVP M.4 gate regression-clean.
 
 ## Where we are today (2026-04-23, post-session 4)
 
 **Shipped (session 4 — faithful port of `10_Distmesh_2d/`):**
-- MATLAB reference clone at `/workspace/QuADMesh-MATLAB` @ `19b2eb9`
-  (Constitution Article I pin); unblocks Article II.1 faithful-port
-  rule for all subsequent work.
-- **`admesh.distmesh.distmesh2d_admesh`** rewritten as a faithful
-  port of MATLAB `distmesh2d.m` (params + density control + best-q
-  tracking). Clean-room session-3 version retired.
-- **`admesh.distmesh._boundary_cleanup`** rewritten as faithful port
-  of `BoundaryCleanUp.m` (free-boundary edge detection + q<0.15 +
-  constraint preservation). Signature changed `(p, t, pts)` →
-  `(p, t, C)` to match MATLAB.
-- **`admesh.distmesh._project_back_to_boundary`** new port of
-  `projectBackToBoundary.m` — projects all points with
-  `d > -geps*100`, not just outside points.
-- **`scripts/export_matlab_fixtures.m`** populated with emitter
-  blocks for the three ported functions + stubbed sections for
-  upcoming curvature/medial ports. `scripts/mat_to_npz.py` handles
-  `.mat → .npz` with 1-based → 0-based index fixup.
-- **`tests/test_matlab_port.py`** (11 tests): 7 hand-derived port-
-  correctness + 4 MATLAB-fixture parity tests (skip until the user
-  runs the MATLAB export).
-- **Quality payoff**: annulus PTS demo `min_q` 0.120 → 0.343
-  (crosses the ≥0.30 gate); mean_q 0.842 → 0.880.
-- **90 pytest tests passing, 4 skipped** (waiting on MATLAB
-  fixtures); MVP M.4 gate regression-clean.
-
-**Next entry point:** session 5 — port `04_Curvature_Function/` +
-`05_Medial_Axis/` faithfully, replacing the session-2 clean-room
-implementations.
+- MATLAB reference clone at `/workspace/QuADMesh-MATLAB` @ `19b2eb9` — unblocks Article II.1 faithful-port rule.
+- **`admesh.distmesh.distmesh2d_admesh`** rewritten as faithful port. Clean-room session-3 version retired.
+- **`admesh.distmesh._boundary_cleanup`** rewritten as faithful port of `BoundaryCleanUp.m`. Signature changed `(p, t, pts)` → `(p, t, C)`.
+- **`admesh.distmesh._project_back_to_boundary`** new port of `projectBackToBoundary.m`.
+- **90 pytest tests passing, 4 skipped**; MVP M.4 gate regression-clean.
 
 ## Where we are today (2026-04-23, post-session 3)
 
 **Shipped (session 3 — P3 core-algorithm lift; still clean-room):**
-- **`admesh/boundary.py`** — clean-room `PTS` dataclass +
-  `BoundaryType` (OPEN/WALL) + `PTS.from_polygons` +
-  `PTS.from_domain` (marching-squares contour extractor with
-  fencepost-safe sampling) + `enforce_boundary_conditions`. 8
-  tests.
-- **`admesh.mesh_size.build_h` extended** with `pts=` +
-  `boundary_scale=` kwargs; composes elementwise with existing
-  `curvature_scale` / `medial_scale`. `boundary_scale` accepts
-  float or per-BC-type dict. 3 new tests (6 total + 7 solver).
-- **`admesh.distmesh.distmesh2d_admesh`** ADMESH-variant path:
-  PTS-seeded `pfix`, polygon-SDF synthesis from PTS,
-  `_boundary_cleanup` sliver pass, typed `MeshOutput` dataclass
-  with `node_bc` + `ring_id` labels.
-- **`admesh.routine.triangulate` dispatcher**: `Domain` → MVP
-  tuple path (unchanged); `PTS` → `MeshOutput` path. 6 new
-  tests in `tests/test_distmesh_admesh.py`.
-- **3 PORTING_NOTES entries** (boundary / build_h-PTS /
-  distmesh-admesh) with deferred-faithful-port flags.
-- **82 pytest tests passing** (65 → 82 = +8 boundary + 3 build_h
-  PTS + 6 distmesh-admesh). MVP M.4 gate regression-clean.
-- **2nd `SOURCE_UNAVAILABLE`** logged; one more recurrence
-  triggers a Constitution-amendment proposal.
-
-**Next entry point:** `docs/sessions/session_4_plan.md` — Phase P2
-(bathymetry + tide + inpaint) now that the PTS structure can
-carry per-segment physical data.
+- `admesh/boundary.py` — clean-room `PTS` dataclass + `BoundaryType` + `PTS.from_polygons` + `PTS.from_domain` + `enforce_boundary_conditions`.
+- `admesh.mesh_size.build_h` extended with `pts=` + `boundary_scale=` kwargs.
+- `admesh.distmesh.distmesh2d_admesh` ADMESH-variant path: PTS-seeded `pfix`, polygon-SDF synthesis, typed `MeshOutput` dataclass.
+- **82 pytest tests passing** (65 → 82). MVP M.4 gate regression-clean.
 
 ## Where we are today (2026-04-23, post-session 2)
 
 **Shipped (session 2 — Phase P1 opened; faithful-port pass deferred):**
-- **Clean-room `admesh/curvature.py`** — 4th-order ``κ = ∇·(∇f/|∇f|)``
-  grid computation. 3 analytic-reference tests.
-- **Clean-room `admesh/medial_axis.py`** — scipy EDT + gradient
-  threshold + EDT for medial distance. 4 analytic-reference tests.
-- **`admesh.mesh_size.build_h` composer** — wires curvature +
-  medial optional contributions, gradient-limits via `solve_iter`,
-  returns `RegularGridInterpolator`-backed `fh`. Zero-enrichment
-  path preserves MVP uniform-size default. 4 new tests incl.
-  end-to-end `triangulate(..., fh=build_h(...))`.
-- **3 PORTING_NOTES entries** with explicit deferred-faithful-port
-  flags — MATLAB clone was not available in session-2 environment
-  (`SOURCE_UNAVAILABLE` trigger class added to persistence journal).
-- **65 pytest tests passing** (54 → 65 = +3 curvature + 4 medial
-  + 4 composer).
-
-**Next entry point:** `docs/sessions/session_3_plan.md` WS0 — if MATLAB
-clone is present, backfill faithful-port passes of session-2
-modules (Branch A); else continue clean-room with Phase P2
-(bathymetry + tide + inpaint, Branch B).
+- Clean-room `admesh/curvature.py` — 4th-order `κ = ∇·(∇f/|∇f|)` grid computation. 3 analytic-reference tests.
+- Clean-room `admesh/medial_axis.py` — scipy EDT + gradient threshold + EDT for medial distance. 4 analytic-reference tests.
+- **`admesh.mesh_size.build_h` composer** — wires curvature + medial optional contributions, gradient-limits via `solve_iter`. 4 new tests.
+- 3 PORTING_NOTES entries with deferred-faithful-port flags.
+- **65 pytest tests passing** (54 → 65).
 
 ## Where we are today (2026-04-21, post-session 1)
 
 **Shipped (session 0 + session 1 — MVP complete):**
 - Repo live at `domattioli/ADMESH` (private, Apache-2.0).
-- Governance: `CONSTITUTION.md` (now 7 articles — added Article VII,
-  persistent-session cadence), `PROJECT_PLAN.md`, `CLAUDE.md`,
-  `README.md`, full session 0 + session 1 artifact set under `docs/`.
-- Persistence skills: `.claude/skills/{log-issue,log-interrupt,
-  list-issues,session-handoff}/SKILL.md` + `docs/persistence_journal.md`.
-- **M.0** scaffold (S0): 14-module `admesh/` package, `pyproject.toml`,
-  `requirements.txt` + `requirements-dev.txt`, smoke test.
-- **M.1** leaf utilities (S0): `in_polygon.py`, `quality.py`,
-  `domains.py` (5 MVP SDFs).
-- **M.2** distance + mesh_size (S0): `distance.py` (grid-eval +
-  4th-order `grad_sdf`), `mesh_size.py` (pure-Python + Numba
-  solver, parity to `atol=1e-10`).
-- **M.3** distmesh + driver (S0): `distmesh.py` (canonical Persson
-  DistMesh2D + `fixmesh`), `routine.py::triangulate()`.
-- **M.4** end-to-end validation + PNGs (S1): `tests/test_mvp_domains.py`
-  parametrized over all 5 domains; `tests/conftest.py` with shared
-  `assert_valid_mesh` helper; PNGs committed at
-  `output/mvp_<name>.png`; quality metrics
-  (`min_q ≥ 0.30, mean_q ≥ 0.60`) met on every domain.
-- **Correctness bugfix in `distmesh2d`** (S1): added a final Delaunay
-  + centroid-filter step after the iteration loop to eliminate
-  stale triangles from post-trigger node motion. Raised
-  `unit_square` min_q from `0.000 → 0.804`; see
-  `docs/PORTING_NOTES.md` 2026-04-21 entry.
-- **`docs/PORTING_NOTES.md` populated** (S1) with five retroactive
-  MATLAB→Python divergence entries.
-- 54 pytest tests passing (49 from S0 + 5 new MVP-domain cases).
-- Local MATLAB reference clone at `/workspace/QuADMesh-MATLAB`.
-
-**Next entry point:** Phase P1 — sizing enrichments
-(`04_Curvature_Function` + `05_Medial_Axis`), per session 2 plan.
-
-**Not shipped (post-MVP):** any of Phases P1–P4.
+- Governance: `CONSTITUTION.md` (7 articles), `PROJECT_PLAN.md`, `CLAUDE.md`, `README.md`, full session artifact set under `docs/`.
+- **M.0** scaffold: 14-module `admesh/` package, `pyproject.toml`, `requirements.txt` + `requirements-dev.txt`, smoke test.
+- **M.1** leaf utilities: `in_polygon.py`, `quality.py`, `domains.py` (5 MVP SDFs).
+- **M.2** distance + mesh_size: `distance.py`, `mesh_size.py` (pure-Python + Numba solver, parity to `atol=1e-10`).
+- **M.3** distmesh + driver: `distmesh.py` (Persson DistMesh2D + `fixmesh`), `routine.py::triangulate()`.
+- **M.4** end-to-end validation + PNGs: `tests/test_mvp_domains.py` parametrized over all 5 domains; quality metrics (`min_q ≥ 0.30, mean_q ≥ 0.60`) met on every domain.
+- **Correctness bugfix in `distmesh2d`** (S1): added final Delaunay + centroid-filter step after iteration loop. Raised `unit_square` min_q from `0.000 → 0.804`.
+- 54 pytest tests passing.
 
 ---
 
 ## North star
 
-A Python package that reproduces the MATLAB ADMESH pipeline on the
-reference test domains within documented floating-point tolerance,
-installs without a C toolchain, and exposes each of the 13 stages as
-an independently-callable function.
+Python package reproducing MATLAB ADMESH pipeline on reference test domains within documented floating-point tolerance, installs without C toolchain, exposes each of the 13 stages as independently-callable function.
 
 ---
 
 ## MVP — Triangulation on well-planned test domains
 
-**Goal**: given a 2D domain polygon (straight-edge, possibly non-convex,
-possibly multiply-connected), produce a triangular mesh. This is the
-first deliverable of several.
+**Goal**: given 2D domain polygon (straight-edge, possibly non-convex, possibly multiply-connected), produce triangular mesh.
 
-**In scope for MVP** — the minimum subset of the 13 stages needed to
-triangulate:
+**In scope for MVP:**
 
 | Stage | MATLAB source | Python module |
 |---|---|---|
@@ -326,109 +135,69 @@ triangulate:
 
 **Explicitly OUT of MVP scope** (deferred to post-MVP phases):
 - Quad conversion (`tri2quad`) and mixed-element output.
-- Bathymetry-driven sizing (`06_Bathymetry_Function`).
-- Tidal-wavelength sizing (`07_Dominate_Tide`).
-- Medial-axis sizing (`05_Medial_Axis`) — MVP uses uniform or
-  curvature-based mesh-size by default.
-- Curvature field (`04_Curvature_Function`) — defer; MVP starts with
-  uniform size, adds curvature later if needed for quality gates.
-- Boundary-condition enforcement (`08_Enforce_Boundary_Conditions`).
-- NaN in-painting (`13_In_Paint_NaNs`) — only needed for grid fields
-  that MVP doesn't yet construct.
+- Bathymetry-driven sizing, tidal-wavelength sizing, medial-axis sizing, curvature field.
+- Boundary-condition enforcement, NaN in-painting.
 - Full `ADmeshRoutine.m` + `ADmeshSubMeshRoutine.m` orchestration.
 
-### Test domains (the "well-planned" part)
-
-Design these before porting code; they are the acceptance gate for MVP.
+### Test domains
 
 1. **Unit square** `[0,1]²` — trivial sanity; uniform mesh size.
 2. **L-shape** — non-convex re-entrant corner.
-3. **Unit disk** (curved) — tests boundary resolution with a
-   non-polygonal signed-distance function.
+3. **Unit disk** (curved) — tests boundary resolution with non-polygonal SDF.
 4. **Annulus** — doubly-connected topology.
-5. **Notched rectangle** (figure-8 or keyhole) — tight pinch point,
-   mirrors MADMESHR's `pinch_figure8` as a stress test.
+5. **Notched rectangle** — tight pinch point, mirrors MADMESHR's `pinch_figure8`.
 
-Each domain is defined in `admesh/domains.py` as a `(signed_distance_fn,
-bounding_box, fixed_points)` tuple. Tests in `tests/test_mvp_*.py`
-generate a mesh on each and assert: completion (no orphaned regions),
-element-count within ±15% of a target, and min-quality ≥ 0.30 (loose
-gate — we tighten once the port is validated against MATLAB).
+Each domain in `admesh/domains.py` as `(signed_distance_fn, bounding_box, fixed_points)`. Tests assert: completion (no orphaned regions), element-count within ±15% of target, min-quality ≥ 0.30.
 
 ### MVP acceptance criteria
 
-- `admesh.triangulate(domain, params)` returns `(vertices, triangles)`
-  for all 5 test domains.
+- `admesh.triangulate(domain, params)` returns `(vertices, triangles)` for all 5 test domains.
 - `pytest tests/test_mvp_*.py` all green.
-- At least one rendered PNG per domain committed to
-  `output/mvp_<domain>.png` as visual evidence.
-- Runtime ≤ 60 s per domain on a laptop (the Numba size-field solver
-  must not be a wall-clock blocker).
+- At least one rendered PNG per domain committed to `output/mvp_<domain>.png`.
+- Runtime ≤ 60 s per domain on laptop.
 
 ---
 
 ## MVP phasing (sub-steps)
 
-**M.0 — Scaffold** (this session).
-- Package layout, docs, empty stubs, passing import-smoke test.
+**M.0 — Scaffold** — Package layout, docs, empty stubs, passing import-smoke test.
 
-**M.1 — Leaf utilities + domain registry**.
-- Port `in_polygon.py`, `quality.py`.
-- Define the 5 test domains as signed-distance functions in
-  `admesh/domains.py`.
+**M.1 — Leaf utilities + domain registry** — Port `in_polygon.py`, `quality.py`. Define 5 test domains in `admesh/domains.py`.
 
-**M.2 — Signed distance + mesh-size solver**.
-- Port `distance.py` (grid evaluation of a domain sdf).
-- Port `mesh_size.py` including the Numba solver (with pure-Python
-  parity reference).
+**M.2 — Signed distance + mesh-size solver** — Port `distance.py`. Port `mesh_size.py` including Numba solver.
 
-**M.3 — DistMesh triangulation + driver**.
-- Port `distmesh2d.m` → `distmesh.py::distmesh2d()`, plus `fixmesh`.
-- Wire the top-level `admesh.triangulate()` that composes M.1–M.3.
+**M.3 — DistMesh triangulation + driver** — Port `distmesh2d.m` → `distmesh.py::distmesh2d()`. Wire top-level `admesh.triangulate()`.
 
-**M.4 — Validate + visualize**.
-- Run on all 5 test domains; generate PNGs; tune tolerances.
-- If Numba solver is slow, profile; consider Cython fallback per
-  constitution Article II.2.
+**M.4 — Validate + visualize** — Run on all 5 test domains; generate PNGs; tune tolerances.
 
 ---
 
 ## Post-MVP phases
 
-Once triangulation works, the remaining stages port in this order.
-**Quad conversion (`tri2quad.m`, `distquadmesh2d.m`) is out of scope
-for ADMESH** (user decision, 2026-04-18). ADMESH is a triangulation
-library; any quadrangulation work happens in a separate project.
-
 **Phase P1 — Sizing enrichments.**
-- `04_Curvature_Function` → `curvature.py`.
-- `05_Medial_Axis` → `medial_axis.py` (FMM + heap helper).
+- `04_Curvature_Function` → `curvature.py`
+- `05_Medial_Axis` → `medial_axis.py` (FMM + heap helper)
 - Integrate into `mesh_size.py` size-field composition.
 
 **Phase P2 — Physical-field sizing.**
-- `06_Bathymetry_Function` → `bathymetry.py`.
-- `07_Dominate_Tide` → `dominate_tide.py`.
-- `13_In_Paint_NaNs` → `inpaint.py` (prerequisite for sparse field
-  interpolation).
+- `06_Bathymetry_Function` → `bathymetry.py`
+- `07_Dominate_Tide` → `dominate_tide.py`
+- `13_In_Paint_NaNs` → `inpaint.py`
 
 **Phase P3 — Boundary + full routine.**
-- `08_Enforce_Boundary_Conditions` → `boundary.py`.
-- `01_ADMESH_Routine/ADmeshRoutine.m` + `ADmeshSubMeshRoutine.m`
-  → full `routine.py`.
+- `08_Enforce_Boundary_Conditions` → `boundary.py`
+- `01_ADMESH_Routine/ADmeshRoutine.m` + `ADmeshSubMeshRoutine.m` → full `routine.py`
 
 **Phase P4 — Polish & release.**
-- Public API review, type hints, optional PyPI publish, flip repo to
-  public.
+- Public API review, type hints, optional PyPI publish, flip repo to public.
 
 ---
 
 ## Deferred / parking lot
 
-- **GUI / visualization.** The MATLAB repo has a GUI (not in
-  `01_ADMESH_Library`); not in scope here.
+- **GUI / visualization.** MATLAB repo has GUI (not in `01_ADMESH_Library`); not in scope.
 - **ADCIRC `.fort.14` I/O.** Downstream concern.
-- **Zero-C-extension permanence.** Article II.2 permits a fallback to
-  Cython/C if Numba underperforms.
+- **Zero-C-extension permanence.** Article II.2 permits Cython/C fallback if Numba underperforms.
 
 ---
 
@@ -436,7 +205,4 @@ library; any quadrangulation work happens in a separate project.
 
 ### 2026-04-18 — Initial plan; MVP = triangulation
 
-Adopted at session 0. MVP defined as triangulation-only on 5 test
-domains, deferring quad conversion and advanced sizing to post-MVP
-phases. Rationale: get an end-to-end "polygon → mesh" pipeline
-working before broadening stage coverage.
+Adopted at session 0. MVP defined as triangulation-only on 5 test domains, deferring quad conversion and advanced sizing to post-MVP phases.
