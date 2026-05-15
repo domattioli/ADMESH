@@ -39,6 +39,8 @@ class Domain:
         default_factory=lambda: np.empty((0, 2), dtype=float)
     )
     """Points pinned into the mesh (e.g. reentrant corners)."""
+    boundary_polygon: NDArray[np.float64] | None = field(default=None)
+    """Ordered boundary vertices ``(M, 2)`` for 1-D edge seeding; ``None`` disables."""
 
     def __call__(self, p: ArrayLike) -> NDArray[np.float64]:
         p = np.asarray(p, dtype=float)
@@ -122,6 +124,13 @@ NOTCHED_RECTANGLE = Domain(
         [
             [-1, -0.5], [1, -0.5], [1, 0.5], [0.05, 0.5], [0.05, 0.25],
             [-0.05, 0.25], [-0.05, 0.5], [-1, 0.5],
+        ],
+        dtype=float,
+    ),
+    boundary_polygon=np.array(
+        [
+            [-1.0, -0.5], [1.0, -0.5], [1.0, 0.5], [0.05, 0.5],
+            [0.05, 0.25], [-0.05, 0.25], [-0.05, 0.5], [-1.0, 0.5],
         ],
         dtype=float,
     ),

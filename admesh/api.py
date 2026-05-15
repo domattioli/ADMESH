@@ -290,62 +290,95 @@ class Domain:
             float(mesh.nodes[:, 1].max()),
         )
 
-        # Create an SDF from the mesh boundary and (optionally) bathymetry
-        # For now, use a simple LinearNDInterpolator-based approach
-        # The outer ring (bc_segments[0]) defines the outer boundary
-        try:
-            # If mesh has elevation data, use it for bathymetry-aware SDF
-            if hasattr(mesh, "elevation") and mesh.elevation is not None:
-                z = mesh.elevation
-            else:
-                # Otherwise, use a constant elevation
-                z = np.zeros(len(mesh.nodes))
+        # Build SDF using:
+        #  1. Dense-sampled boundary polyline for accurate distance (fixes #38 gradient spikes)
+        #  2. in_polygon winding test for correct sign — enabled by the junction-aware ring
+        #     walk in _derive_boundary_segments which now produces closed rings even for
+        #     real-world ADCIRC meshes with pinch-point boundary nodes.
+        from scipy.spatial import cKDTree
+        from admesh.in_polygon import in_polygon as _in_polygon
 
-            # Build SDF as distance to nearest boundary point, signed by bathymetry
-            from scipy.spatial import cKDTree
+        outer_ring_nodes = bc_segments[0].node_ids
+        outer_ring_pts = mesh.nodes[outer_ring_nodes]
+        hole_rings_pts = [mesh.nodes[seg.node_ids] for seg in bc_segments[1:]]
 
-            outer_ring_nodes = bc_segments[0].node_ids
-            outer_ring_pts = mesh.nodes[outer_ring_nodes]
-            tree = cKDTree(outer_ring_pts)
+        diag = float(np.hypot(bbox[2] - bbox[0], bbox[3] - bbox[1]))
+        h_samp = max(diag / 500, 1e-8)
 
-            def sdf(points: np.ndarray) -> np.ndarray:
-                """Compute signed distance: negative inside, positive outside."""
-                distances, indices = tree.query(points)
-                # Simple heuristic: points inside the bbox are negative, outside positive
-                # (This is a rough approximation; for production, use proper winding number)
-                inside = (
-                    (points[:, 0] >= bbox[0])
-                    & (points[:, 0] <= bbox[2])
-                    & (points[:, 1] >= bbox[1])
-                    & (points[:, 1] <= bbox[3])
+        def _dense_sample_ring(ring_pts: np.ndarray, h: float) -> np.ndarray:
+            segs = []
+            n = len(ring_pts)
+            for i in range(n):
+                a = ring_pts[i]
+                b = ring_pts[(i + 1) % n]
+                seg_len = float(np.linalg.norm(b - a))
+                n_samp = max(2, int(np.ceil(seg_len / h)))
+                ts = np.linspace(0.0, 1.0, n_samp)[:-1]
+                segs.append(a + ts[:, None] * (b - a))
+            return np.vstack(segs) if segs else ring_pts
+
+        dense_parts = [_dense_sample_ring(outer_ring_pts, h_samp)]
+        for hr in hole_rings_pts:
+            dense_parts.append(_dense_sample_ring(hr, h_samp))
+        tree = cKDTree(np.vstack(dense_parts))
+
+        def sdf(points: np.ndarray) -> np.ndarray:
+            distances, _ = tree.query(points)
+            in_outer, _ = _in_polygon(
+                points[:, 0], points[:, 1],
+                outer_ring_pts[:, 0], outer_ring_pts[:, 1],
+            )
+            in_hole = np.zeros(len(points), dtype=bool)
+            for hr in hole_rings_pts:
+                ih, _ = _in_polygon(
+                    points[:, 0], points[:, 1],
+                    hr[:, 0], hr[:, 1],
                 )
-                signed_distances = np.where(inside, -distances, distances)
-                return signed_distances
-
-        except Exception:
-            # Fallback: use a simple distance-to-bbox heuristic
-            def sdf(points: np.ndarray) -> np.ndarray:
-                xmin, ymin, xmax, ymax = bbox
-                dx = np.minimum(points[:, 0] - xmin, xmax - points[:, 0])
-                dy = np.minimum(points[:, 1] - ymin, ymax - points[:, 1])
-                inside_dist = np.minimum(dx, dy)
-                outside_dist = np.sqrt(
-                    np.maximum(xmin - points[:, 0], 0) ** 2
-                    + np.maximum(points[:, 0] - xmax, 0) ** 2
-                    + np.maximum(ymin - points[:, 1], 0) ** 2
-                    + np.maximum(points[:, 1] - ymax, 0) ** 2
-                )
-                signed = np.where(
-                    (points[:, 0] >= xmin)
-                    & (points[:, 0] <= xmax)
-                    & (points[:, 1] >= ymin)
-                    & (points[:, 1] <= ymax),
-                    -inside_dist,
-                    outside_dist,
-                )
-                return signed
+                in_hole |= ih
+            inside = in_outer & ~in_hole
+            return np.where(inside, -distances, distances)
 
         return cls(sdf=sdf, bbox=bbox, bc_segments=bc_segments)
+
+
+# ---------------------------------------------------------------------------
+# Boundary seeding helper (issue #2).
+# ---------------------------------------------------------------------------
+
+
+def _seed_boundary_1d(
+    pts: np.ndarray,
+    fh: "Callable[[np.ndarray], np.ndarray] | None",
+    h0: float,
+) -> np.ndarray:
+    """Sample a closed boundary polygon at adaptive spacing.
+
+    For each edge ``pts[i] -> pts[(i+1) % n]``, inserts intermediate points
+    at spacing ``fh(midpoint)`` (or ``h0`` when ``fh`` is None).  The
+    interior samples become extra ``pfix`` entries so that short boundary
+    segments — e.g. the notch walls in ``NOTCHED_RECTANGLE`` — are seeded
+    with enough nodes even when the 2-D lattice is coarse.
+
+    Endpoints are excluded from the returned array (they should already be
+    in ``domain.pfix``).
+    """
+    seeds: list[np.ndarray] = []
+    n = len(pts)
+    for i in range(n):
+        p0 = pts[i]
+        p1 = pts[(i + 1) % n]
+        edge_vec = p1 - p0
+        edge_len = float(np.linalg.norm(edge_vec))
+        if edge_len < 1e-14:
+            continue
+        midpoint = (p0 + p1) / 2.0
+        h_edge = float(fh(midpoint[None, :])[0]) if fh is not None else h0
+        h_edge = max(h_edge, h0 * 0.1)
+        n_interior = max(int(np.floor(edge_len / h_edge)) - 1, 0)
+        if n_interior > 0:
+            ts = np.linspace(0.0, 1.0, n_interior + 2)[1:-1]
+            seeds.append(p0[None, :] + ts[:, None] * edge_vec[None, :])
+    return np.vstack(seeds) if seeds else np.empty((0, 2), dtype=np.float64)
 
 
 # ---------------------------------------------------------------------------
@@ -405,38 +438,74 @@ def _derive_boundary_segments(
     if not boundary_edges:
         return ()
 
-    # Build a directed-edge map restricted to boundary edges using the
-    # directed traversals we collected above. For each boundary undirected
-    # edge {u,v}, we want the *one* triangle's directed edge u→v that
-    # actually appeared (so the ring is consistently oriented).
-    next_node: dict[int, int] = {}
+    # Build a directed-edge adjacency restricted to boundary edges.
+    # Use a list per node so junction nodes (where ≥2 boundary rings
+    # share a vertex, e.g. where open-ocean meets land boundary in ADCIRC
+    # meshes) don't silently overwrite each other.
+    next_nodes: dict[int, list[int]] = {}
     for u, vs in directed.items():
         for v in vs:
             key = (u, v) if u < v else (v, u)
             if key in boundary_edges:
-                next_node[u] = v
+                next_nodes.setdefault(u, []).append(v)
 
-    # Walk rings.
+    def _pick_next(cur: int, prev: int | None, candidates: list[int]) -> int | None:
+        """At junction nodes pick the successor that turns most left.
+
+        For non-junction nodes (len==1) just returns the single candidate.
+        For junctions, uses the signed angle of the turn prev→cur→cand to
+        select the leftmost (counter-clockwise) continuation, keeping each
+        ring consistently oriented.
+        """
+        if not candidates:
+            return None
+        if len(candidates) == 1:
+            return candidates[0]
+        if prev is None:
+            return candidates[0]
+        p_prev = nodes[prev]
+        p_cur = nodes[cur]
+        v_in = p_cur - p_prev
+        best, best_angle = None, float("inf")
+        for c in candidates:
+            v_out = nodes[c] - p_cur
+            angle = float(np.arctan2(
+                v_in[0] * v_out[1] - v_in[1] * v_out[0],
+                v_in[0] * v_out[0] + v_in[1] * v_out[1],
+            ))
+            if angle < best_angle:
+                best_angle, best = angle, c
+        return best
+
+    # Walk rings, tracking both visited nodes and used directed edges so a
+    # shared junction node doesn't block a second ring from starting there.
+    used_edges: set[tuple[int, int]] = set()
     visited: set[int] = set()
     rings: list[list[int]] = []
-    for start in next_node:
-        if start in visited:
-            continue
-        if start not in next_node:
-            continue
-        ring = [start]
-        visited.add(start)
-        cur = next_node[start]
-        guard = len(next_node) + 2
-        while cur != start and guard > 0:
-            ring.append(cur)
-            visited.add(cur)
-            if cur not in next_node:
-                break
-            cur = next_node[cur]
-            guard -= 1
-        if len(ring) >= 3:
-            rings.append(ring)
+    for start in sorted(next_nodes):
+        # Try each outgoing edge from start as a potential ring entry.
+        for first_step in list(next_nodes.get(start, [])):
+            if (start, first_step) in used_edges:
+                continue
+            ring = [start]
+            prev, cur = start, first_step
+            used_edges.add((start, first_step))
+            guard = len(next_nodes) + 2
+            while cur != start and guard > 0:
+                ring.append(cur)
+                candidates = [
+                    v for v in next_nodes.get(cur, [])
+                    if (cur, v) not in used_edges
+                ]
+                nxt = _pick_next(cur, prev, candidates)
+                if nxt is None:
+                    break
+                used_edges.add((cur, nxt))
+                prev, cur = cur, nxt
+                guard -= 1
+            if cur == start and len(ring) >= 3:
+                rings.append(ring)
+                visited.update(ring)
 
     # Order rings by signed area, largest first — the outer ring of a
     # multiply-connected polygon always has the largest area, independent of
@@ -623,9 +692,12 @@ def triangulate(
     #      done their own composition; we use it as-is. If they ALSO
     #      passed `user_contribs=` we warn — those would be ignored
     #      otherwise, which silently violates the contract.
-    #   2. Caller passed `user_contribs=` or `h_min`/`h_max` bounds.
-    #      Compose via `compose_size_field`.
-    #   3. Neither — uniform sizing falls through (`fh=None`).
+    #   2. Caller passed `user_contribs=`. Wrap them via
+    #      `compose_size_field` with `size_field` (if any) as the sole
+    #      Phase-1 builtin. Default combiner is `np.minimum.reduce`.
+    #   3. Caller passed h_min or h_max but no user_contribs — auto-create
+    #      a uniform clamping size field so the bounds are not silently ignored.
+    #   4. Neither — uniform sizing falls through (`fh=None`).
     if size_field is not None and user_contribs:
         warnings.warn(
             "triangulate: both `size_field` and `user_contribs` were "
@@ -664,8 +736,40 @@ def triangulate(
             hmin=h_min,
             hmax=h_max,
         )
+    elif size_field is None and (h_min is not None or h_max is not None):
+        # Fix #37: h_min/h_max were silently ignored when no user_contribs
+        # provided. Auto-compose a uniform field that clamps to [h_min, h_max].
+        from admesh.size_field import compose_size_field
+
+        _h_max_val = h_max if h_max is not None else h0
+        _uniform = lambda pts: np.full(len(pts), _h_max_val, dtype=float)  # noqa: E731
+        fh = compose_size_field(
+            builtins=(_uniform,),
+            user_contribs=(),
+            combine=combine,
+            hmin=h_min,
+            hmax=h_max,
+        )
     else:
         fh = size_field  # may still be None — uniform sizing
+
+    # Issue #2: if the domain carries explicit boundary vertices (pts), seed
+    # intermediate points along each edge so short boundary segments get
+    # adequate coverage even when the 2-D lattice is coarse.
+    if domain.pts is not None:
+        boundary_seeds = _seed_boundary_1d(
+            np.asarray(domain.pts, dtype=np.float64), fh, h0
+        )
+        if boundary_seeds.size:
+            pfix = (
+                np.vstack([pfix, boundary_seeds]) if pfix.size else boundary_seeds
+            )
+            port_domain = _PortDomain(
+                name="api_v1",
+                fd=domain.sdf,
+                bbox=domain.bbox,
+                fixed_points=pfix,
+            )
 
     p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
     nodes = np.asarray(p, dtype=np.float64)
