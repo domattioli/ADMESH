@@ -33,7 +33,7 @@ from admesh.valence import (
     get_valence_report,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.1.0"
 
 __all__ = [
     # v1 public API surface (additive layer over the faithful port).

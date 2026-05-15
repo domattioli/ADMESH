@@ -597,6 +597,7 @@ def triangulate(
     combine: Callable[[list[np.ndarray]], np.ndarray] = np.minimum.reduce,
     seed: int | None = None,
     max_iter: int | None = None,
+    initial_points: "np.ndarray | None" = None,
     quality_gate: tuple[float, float] = (0.30, 0.60),
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
@@ -674,6 +675,8 @@ def triangulate(
         opts["seed"] = int(seed)
     if max_iter is not None:
         opts["niter"] = int(max_iter)
+    if initial_points is not None:
+        opts["initial_points"] = np.asarray(initial_points, dtype=np.float64)
 
     # Resolve the size field. Three cases:
     #
