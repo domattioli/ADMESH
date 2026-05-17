@@ -45,11 +45,16 @@ else
     pass "constitution version $constitution_version >= 1.0.2"
 fi
 
-# 2. README "0.1.0 in progress" callout -----------------------------------
+# 2. README status reflects shipping reality ----------------------------
+# Pre-ship: README carries "0.1.0 in progress" callout.
+# Ship-ready: README mentions the tag version explicitly.
+# Either state is acceptable; the gate fails only when both are absent.
 if grep -q '0\.1\.0 in progress' README.md; then
-    pass "README has '0.1.0 in progress' callout"
+    pass "README in pre-ship state ('0.1.0 in progress' callout present)"
+elif grep -qE '\*\*0\.1\.0\*\*|^# .*0\.1\.0|admesh2D==0\.1\.0' README.md; then
+    pass "README in ship-ready state (0.1.0 version mentioned)"
 else
-    fail "README missing '0.1.0 in progress' callout (spec FR-018)"
+    fail "README must reference 0.1.0 either as 'in progress' or as a shipped version"
 fi
 
 # 3. No papers/wnat_admesh.png in the working tree ------------------------
