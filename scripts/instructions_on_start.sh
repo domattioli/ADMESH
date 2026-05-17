@@ -9,6 +9,27 @@ echo "=== Session Start: ADMESH ==="
 echo "Branch: $(git rev-parse --abbrev-ref HEAD 2>/dev/null) | Dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') files"
 echo ""
 
+# Bootstrap DomI contract plugins (idempotent; fast no-op on warm containers)
+if command -v claude &>/dev/null; then
+  set +e
+  if [ ! -d "$HOME/.claude/plugins/marketplaces/DomI" ]; then
+    echo "Adding DomI marketplace..."
+    claude plugin marketplace add domattioli/DomI >/dev/null 2>&1 \
+      && echo "  ✓ DomI marketplace added" \
+      || echo "  ✗ DomI marketplace add failed (network?)"
+  fi
+  for plugin in sync-from-domi introspect request-from-domi; do
+    if [ ! -d "$HOME/.claude/plugins/cache/DomI/$plugin" ]; then
+      echo "Installing $plugin@DomI..."
+      claude plugin install "$plugin@DomI" >/dev/null 2>&1 \
+        && echo "  ✓ $plugin@DomI installed" \
+        || echo "  ✗ $plugin@DomI install failed"
+    fi
+  done
+  set -e
+fi
+echo ""
+
 # DomI drift check (plugin cache → skills marketplace → vendored)
 _find_check_pin() {
   for d in "$HOME/.claude/plugins/cache/DomI/sync-from-domi" \
