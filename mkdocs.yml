@@ -1,0 +1,85 @@
+site_name: ADMESH
+site_description: Advanced, automatic unstructured mesh generator for 2D shallow-water domains.
+site_url: https://domattioli.github.io/ADMESH/
+repo_url: https://github.com/domattioli/ADMESH
+repo_name: domattioli/ADMESH
+edit_uri: edit/daily-issue-fixing/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.tracking
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - API Reference:
+      - Triangulation: api/triangulate.md
+      - Mesh + Domain: api/types.md
+      - I/O: api/io.md
+      - Size fields: api/size_field.md
+      - Quality + smoothing: api/quality.md
+      - Domain loaders: api/loaders.md
+      - Valence balancing: api/valence.md
+  - Project:
+      - admesh-domains contract: ADMESH_DOMAINS_CONTRACT.md
+      - Porting notes: PORTING_NOTES.md
+      - Contributing: contributing.md
+      - Testing: testing.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: numpy
+            show_source: true
+            show_root_heading: true
+            show_root_toc_entry: false
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/domattioli/ADMESH
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/admesh2D/
