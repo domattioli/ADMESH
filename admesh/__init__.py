@@ -17,7 +17,7 @@ from admesh.loaders import (
     load_domain_from_toml,
 )
 from admesh.quad_prep import smooth_for_quadrangulation
-from admesh.quality import mesh_quality, right_iso_quality
+from admesh._stages.quality import mesh_quality, right_iso_quality
 from admesh.registry import (
     list_available_domains,
     load_domain_from_registry,
@@ -41,7 +41,7 @@ __version__ = "0.1.0"
 # routine, etc.) are NOT listed here -- they are internal-by-convention per
 # Constitution Article II.1 (and the proposed Article VIII in
 # specs/009-release-readiness-for-0.1.0/CONSTITUTION-AMENDMENT.md). Direct
-# imports such as `from admesh.curvature import apply_curvature` continue to
+# imports such as `from admesh._stages.curvature import apply_curvature` continue to
 # work but carry no semver guarantee on the inner signature.
 __all__ = [
     # --- Mesh + domain primitives ---

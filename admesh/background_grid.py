@@ -1,7 +1,16 @@
-"""background_grid — port of 02_Create_Background_Grid/CreateBackgroundGrid.m.
+"""Backward-compatibility shim for spec 009 R3 reorg.
 
-MATLAB source: github.com/domattioli/QuADMesh-MATLAB @ 19b2eb9,
-path 01_ADMESH_Library/.
+The canonical source lives at `admesh._stages.background_grid`. This stub re-exports
+the full module surface (including underscore-prefixed helpers used by
+existing tests) so legacy imports `from admesh.background_grid import <name>`
+continue to work until ADMESH 1.0.0.
 
-Status: stub. See PROJECT_PLAN.md for the phase that implements this.
+New code SHOULD import from `admesh._stages.background_grid` directly.
 """
+from admesh._stages.background_grid import *  # noqa: F401,F403
+
+# Also expose underscore-prefixed names (private helpers) for legacy
+# imports. 1.0.0 will drop this stub; canonical path is admesh._stages.background_grid.
+from admesh._stages import background_grid as _src
+globals().update({k: v for k, v in vars(_src).items() if not k.startswith('__')})
+del _src
