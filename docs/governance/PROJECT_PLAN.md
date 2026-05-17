@@ -6,11 +6,26 @@ Python. Governance rules in `CONSTITUTION.md`; code layout in
 
 ---
 
+## Where we are today (2026-05-17, spec 009 release-readiness-for-0.1.0 COMPLETE — tag push pending)
+
+**Spec 009 R1–R4 implemented; awaiting maintainer `git tag v0.1.0 && git push origin v0.1.0`.**
+
+- All 4 phases done on branch `009-release-readiness-for-0.1.0` (PR #63):
+  - R1: version reconciled (`pyproject.toml` and `__init__.py` both `0.1.0`); `scripts/pre_tag_check.sh` extended with 4 new gates (version-match, plan staleness, coverage artifact, durations artifact); `output/coverage.json` + `output/durations.txt` committed; TEST-AUDIT B-04/B-06 closed.
+  - R2: `.github/workflows/tests.yml` (Python 3.10/3.11/3.12, `not slow`) + `tests-slow.yml` (weekly + on-tag); `CONTRIBUTING.md` + `TESTING.md`; `docs/ADMESH_DOMAINS_CONTRACT.md`; pin tightened to `admesh-domains>=0.3.0,<0.4`; `tests/test_admesh_domains_contract.py` (6 tests). Drift discovered: `admesh/registry.py` adapter is broken against `admesh-domains` 0.3.x — filed as #64 (post-0.1.0 rewrite).
+  - R3: Constitution amendment (proposed Article VIII) — `admesh/_stages/` subpackage created; 14 faithful-port modules moved with backward-compat stubs preserving both public and private-name imports; `__all__` cleaned (25 public symbols, no stage-module noise); `mkdocs-material` + `mkdocstrings` site (`docs/index.md`, `docs/quickstart.md`, 7 API ref pages, `.github/workflows/docs.yml` deploys to GitHub Pages); `tests/test_docstring_completeness.py` (3 tests, 2 callables soft-flagged).
+  - R4: Tier-1 + Tier-2 + Tier-0 structural-validity tests already green (no `xfail`); README ship-ready; pre_tag_check gate 2 inverted to accept either pre-ship or ship-ready README state; **issue #10 closed**; quality-improvement follow-up filed as #65 (3-step plan from #10's May 13 planning comment, scoped post-0.1.0).
+- **366 tests** pass (slow lane included), **9/9 pre_tag_check gates** green.
+- Path to tag: maintainer runs `git tag -a v0.1.0 -m "Release 0.1.0" && git push origin v0.1.0` → `publish.yml` ships `admesh2D==0.1.0` to PyPI.
+- Bonus fixes during spec 009 R1 (pre-existing regressions from user commit `072d669`): restored 530 lines of `admesh/_stages/distmesh.py` (`fixmesh`, `MeshOutput`, `distmesh2d_admesh`) that had been accidentally dropped; threaded `initial_points` through `api.py::triangulate()` → `opts` → `distmesh2d` so the issue-#45 warm-start path works end-to-end.
+
+---
+
 ## Where we are today (2026-05-15, sub-plan: spec 009 release-readiness-for-0.1.0)
 
 **Status snapshot (3 weeks since the 2026-04-26 entry):**
 - Issue **#11** (`Domain.from_mesh` outer-ring sort) — **closed 2026-05-06**. The mechanical half of the "Path to 0.1.0" gate is done. Got its own spec `003-fix-outer-ring-sorting`.
-- Issue **#10** (default size-field overshoots domain on real-world coastal fixtures) — **still open**, still severity:high. This remains the lone numerics blocker on the 0.1.0 tag.
+- Issue **#10** (default size-field overshoots domain on real-world coastal fixtures) — **closed 2026-05-17** against structural-validity gate as part of spec 009 R4; quality-improvement follow-up filed as #65.
 - Six new specs landed that this plan did not previously mention:
   - `003-fix-outer-ring-sorting` (closed #11)
   - `004-quad-prep-smoother` (issue #15, right-isosceles smoother for quad fusion prep — shipped, lives in `admesh/quad_prep.py`)
