@@ -39,6 +39,9 @@ dev = [
 viz = [
     "matplotlib>=3.7",
 ]
+registry = [
+    "huggingface_hub>=0.20",
+]
 
 [project.urls]
 Source = "https://github.com/domattioli/ADMESH"
