@@ -1,0 +1,46 @@
+name: docs
+
+on:
+  push:
+    branches:
+      - daily-issue-fixing
+      - main
+  workflow_dispatch:
+
+# Allow only one concurrent deployment, cancel runs already in progress.
+concurrency:
+  group: docs
+  cancel-in-progress: true
+
+permissions:
+  contents: write  # for mkdocs gh-deploy to push to gh-pages
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # mkdocs needs full history for the "edit this page" link
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install package + dev extras (includes mkdocs-material, mkdocstrings)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Build docs
+        # --strict disabled until pre-existing docs/ link warnings are
+        # repaired (PFIX_CONTRACT.md, PUBLISH_RELEASE.md broken `../`
+        # links; tracked separately).
+        run: mkdocs build
+
+      - name: Deploy to gh-pages (daily-issue-fixing or main only)
+        if: github.ref == 'refs/heads/daily-issue-fixing' || github.ref == 'refs/heads/main'
+        run: mkdocs gh-deploy --force

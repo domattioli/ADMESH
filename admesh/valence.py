@@ -184,7 +184,7 @@ def balance_valence_triangles(
     stats_after = _valence_stats(valence, ideal, interior_idx)
 
     from admesh.api import Mesh
-    from admesh.quality import mesh_quality
+    from admesh._stages.quality import mesh_quality
     _, _, q = mesh_quality(nodes, elems)
     new_mesh = Mesh(
         nodes=mesh.nodes,

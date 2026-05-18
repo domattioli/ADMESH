@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 # Pre-tag verification — gates the 0.1.0 release tag.
 #
-# Asserts spec FR-017 through FR-019 plus the spec-002 release-readiness
-# rider:
-#   - constitution version >= 1.0.2 (T023)
-#   - README has the "0.1.0 in progress" callout (T024/T025)
-#   - no papers/wnat_admesh.png in the working tree (T026)
-#   - no dist/ or build/ directories (T027)
-#   - tier-2 release-gate test passes OR is documented as xfail (issue #10)
+# Gates:
+#   1. constitution version >= 1.0.2
+#   2. README has the "0.1.0 in progress" callout
+#   3. no papers/wnat_admesh.png in the working tree
+#   4. no dist/ or build/ directories
+#   5. tier-2 release-gate test passes OR is documented as xfail (issue #10)
+#   6. pyproject.toml version == admesh/__init__.py __version__  (spec 009 FR-001)
+#   7. PROJECT_PLAN.md has an entry dated within 30 days of HEAD  (spec 009 FR-002)
+#   8. output/coverage.json exists and is < 30 days old            (spec 009 FR-004/005)
+#   9. output/durations.txt exists and is < 30 days old            (spec 009 FR-004/005)
 #
 # Usage: bash scripts/pre_tag_check.sh
 #
@@ -42,11 +45,16 @@ else
     pass "constitution version $constitution_version >= 1.0.2"
 fi
 
-# 2. README "0.1.0 in progress" callout -----------------------------------
+# 2. README status reflects shipping reality ----------------------------
+# Pre-ship: README carries "0.1.0 in progress" callout.
+# Ship-ready: README mentions the tag version explicitly.
+# Either state is acceptable; the gate fails only when both are absent.
 if grep -q '0\.1\.0 in progress' README.md; then
-    pass "README has '0.1.0 in progress' callout"
+    pass "README in pre-ship state ('0.1.0 in progress' callout present)"
+elif grep -qE '\*\*0\.1\.0\*\*|^# .*0\.1\.0|admesh2D==0\.1\.0' README.md; then
+    pass "README in ship-ready state (0.1.0 version mentioned)"
 else
-    fail "README missing '0.1.0 in progress' callout (spec FR-018)"
+    fail "README must reference 0.1.0 either as 'in progress' or as a shipped version"
 fi
 
 # 3. No papers/wnat_admesh.png in the working tree ------------------------
@@ -76,6 +84,80 @@ if grep -q '@pytest\.mark\.xfail' tests/test_default_size_field.py \
     pass "Tier-2 release gate: documented xfail (issue #10)"
 else
     pass "Tier-2 release gate: not xfailed — verify it passes via pytest"
+fi
+
+# 6. Version string consistency -----------------------------------------------
+pyproject_version=$(
+    grep -E '^version\s*=' pyproject.toml \
+        | head -1 \
+        | sed -E 's/^version\s*=\s*"([^"]+)".*/\1/'
+)
+init_version=$(
+    grep -E '^__version__\s*=' admesh/__init__.py \
+        | head -1 \
+        | sed -E 's/^__version__\s*=\s*"([^"]+)".*/\1/'
+)
+if [[ -z "$pyproject_version" || -z "$init_version" ]]; then
+    fail "VERSION_MISSING: could not parse version from pyproject.toml or admesh/__init__.py"
+elif [[ "$pyproject_version" != "$init_version" ]]; then
+    fail "VERSION_MISMATCH: pyproject.toml=$pyproject_version admesh/__init__.py=$init_version"
+else
+    pass "version strings agree: $pyproject_version"
+fi
+
+# 7. PROJECT_PLAN.md staleness (most recent entry within 30 days of HEAD) -----
+plan_date=$(
+    grep -oE 'Where we are today \([0-9]{4}-[0-9]{2}-[0-9]{2}' \
+        docs/governance/PROJECT_PLAN.md \
+        | sort -r \
+        | head -1 \
+        | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+)
+if [[ -z "$plan_date" ]]; then
+    fail "PLAN_STALE: no 'Where we are today (YYYY-MM-DD' entry found in PROJECT_PLAN.md"
+else
+    delta_days=$(python3 -c "
+from datetime import date
+delta = (date.today() - date.fromisoformat('$plan_date')).days
+print(delta)
+" 2>/dev/null || echo 999)
+    if [[ "$delta_days" -gt 30 ]]; then
+        fail "PLAN_STALE: last_entry=$plan_date delta=${delta_days}_days (threshold: 30)"
+    else
+        pass "PROJECT_PLAN.md entry $plan_date is ${delta_days} day(s) old"
+    fi
+fi
+
+# 8. output/coverage.json exists and is < 30 days old ------------------------
+if [[ ! -f output/coverage.json ]]; then
+    fail "COVERAGE_MISSING: output/coverage.json not found — run: pytest --cov=admesh --cov-report=json"
+else
+    cov_age=$(python3 -c "
+import os, time
+age = (time.time() - os.path.getmtime('output/coverage.json')) / 86400
+print(int(age))
+" 2>/dev/null || echo 999)
+    if [[ "$cov_age" -gt 30 ]]; then
+        fail "COVERAGE_STALE: output/coverage.json is ${cov_age} day(s) old (threshold: 30)"
+    else
+        pass "output/coverage.json is ${cov_age} day(s) old"
+    fi
+fi
+
+# 9. output/durations.txt exists and is < 30 days old ------------------------
+if [[ ! -f output/durations.txt ]]; then
+    fail "DURATIONS_MISSING: output/durations.txt not found — run: pytest --durations=10 -q"
+else
+    dur_age=$(python3 -c "
+import os, time
+age = (time.time() - os.path.getmtime('output/durations.txt')) / 86400
+print(int(age))
+" 2>/dev/null || echo 999)
+    if [[ "$dur_age" -gt 30 ]]; then
+        fail "DURATIONS_STALE: output/durations.txt is ${dur_age} day(s) old (threshold: 30)"
+    else
+        pass "output/durations.txt is ${dur_age} day(s) old"
+    fi
 fi
 
 # Summary -----------------------------------------------------------------

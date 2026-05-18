@@ -211,6 +211,8 @@ output/*
 !output/*.png
 !output/quickstart_validation.txt
 !output/quad_prep_block_o/
+!output/coverage.json
+!output/durations.txt
 *.mexw64
 *.mexmaci64
 *.mexa64
