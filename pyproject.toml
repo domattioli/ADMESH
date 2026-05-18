@@ -53,7 +53,7 @@ include = ["admesh*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra -m 'not slow'"
 markers = [
     "slow: tests requiring real coastal fixtures (>=1 MB) or long wall-clock; deselect with -m 'not slow'",
 ]
