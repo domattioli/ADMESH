@@ -750,10 +750,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-drift-as-of-2026-05-15" class="md-nav__link">
+  <a href="#network-fetch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known drift (as of 2026-05-15)
+        Network fetch
       
     </span>
   </a>
@@ -959,10 +959,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-drift-as-of-2026-05-15" class="md-nav__link">
+  <a href="#network-fetch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Known drift (as of 2026-05-15)
+        Network fetch
       
     </span>
   </a>
@@ -1079,24 +1079,17 @@ from the upstream HuggingFace mirror if missing (requires the optional
 <li><strong>Major</strong> (<code>0.x</code> → <code>1.0</code>): treat as a minor bump; the contract may
    stabilize entirely.</li>
 </ol>
-<h2 id="known-drift-as-of-2026-05-15">Known drift (as of 2026-05-15)<a class="headerlink" href="#known-drift-as-of-2026-05-15" title="Permanent link">&para;</a></h2>
-<p><strong><code>admesh/registry.py</code> is broken against <code>admesh-domains</code> 0.3.x.</strong> The
-adapter was written against an older API that used a registry-object
-pattern (<code>admesh_domains.load_default_registry().get_domain(...)</code>); the
-0.3.x API uses top-level functions (<code>admesh_domains.get_domain(...)</code>)
-and returns a different <code>Domain</code> shape (no <code>.rings</code> or <code>.fixed_points</code>
-attributes; instead a <code>.meshes</code> list of <code>Mesh</code> references with downloadable
-<code>.path</code>).</p>
-<p>Calling <code>admesh.load_domain_from_registry()</code> against the installed 0.3.2
-raises <code>AttributeError: module 'admesh_domains' has no attribute
-'load_default_registry'</code>.</p>
-<p>Tracking issue: <a href="https://github.com/domattioli/ADMESH/issues/64">#64</a>.</p>
-<p>The registry-rewrite work is post-spec-009 because it needs:
-- A new optional <code>huggingface_hub</code> dependency (for <code>Mesh.load()</code> downloads).
-- A redesigned adapter mapping <code>admesh_domains.Domain</code> → <code>admesh.Domain</code>
-  via <code>read_fort14(Mesh.path)</code> + <code>admesh.Domain.from_mesh()</code>.
-- New end-to-end tests that exercise the download path (likely behind
-  a <code>slow</code> marker since they hit the network).</p>
+<h2 id="network-fetch">Network fetch<a class="headerlink" href="#network-fetch" title="Permanent link">&para;</a></h2>
+<p><code>admesh_domains.Mesh.load()</code> downloads the underlying fort.14 from the
+upstream HuggingFace mirror. ADMESH treats this as opt-in: install with
+<code>pip install admesh2D[registry]</code> to pull in <code>huggingface_hub&gt;=0.20</code>.
+Without the extra, <code>admesh.load_domain_from_registry</code> raises a clear
+<code>ImportError</code> before any network call is made — only the local
+<code>list_available_domains()</code> path stays usable.</p>
+<p>The slow CI lane (<code>pytest -m slow</code>) exercises the full chain on the
+smallest fixture (<code>BaranjaHill</code>, ~0.08 MB), covering
+<code>load_domain_from_registry</code>, <code>load_domain_with_metadata</code>, and the
+end-to-end contract test below.</p>
 <h2 id="contract-validation">Contract validation<a class="headerlink" href="#contract-validation" title="Permanent link">&para;</a></h2>
 <p><code>tests/test_admesh_domains_contract.py</code> asserts:</p>
 <ol>
@@ -1105,6 +1098,9 @@ raises <code>AttributeError: module 'admesh_domains' has no attribute
 <li>Every symbol in the "Consumed API surface" table above resolves.</li>
 <li><code>admesh_domains.list_domains()</code> runs without raising.</li>
 <li>Each <code>Domain</code> returned exposes the attributes ADMESH reads.</li>
+<li><code>test_end_to_end_load_domain_from_registry</code> (slow lane) exercises
+   the full <code>get_domain → Mesh.load → read_fort14 → Domain.from_mesh</code>
+   chain.</li>
 </ol>
 <p>This test is part of the standard CI lane. A contract drift caught by
 this test is a release-blocking signal.</p>
