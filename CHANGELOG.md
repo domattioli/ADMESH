@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2026-05-18
+
+### Documentation
+- README overhaul (issue #66): Why-ADMESH section, 13-stage pipeline table, `BoundaryType` IBTYPE table, 3-line Status snapshot, single deduplicated badge row, table of contents, absolute image URL for PyPI rendering.
+- Quickstart API correction: `admesh.domain_from_polygon(...)` (did not exist) replaced with the real surface — `admesh.domains.UNIT_DISK`, `admesh.api.Domain(sdf=..., bbox=...)`, `Domain.from_mesh(...)`, and the `triangulate("path.14", ...)` string overload.
+- `CITATION.cff` added at repo root. Software-release citation via Zenodo DOI `10.5281/zenodo.20264101`; algorithm citation via preferred-citation block pointing at the 2012 Ocean Dynamics paper.
+- README Citation section now distinguishes algorithm-paper vs software-release citations.
+
+### Fixed
+- Resync `admesh/__init__.py` `__version__` to match `pyproject.toml` (drifted to `0.1.0` during the spec-009 R1 tag-gate hygiene pass).
+- `.github/workflows/publish.yml` referenced `secrets.PYPI_TOKEN` but the repo secret is named `PYPI_API_TOKEN`; the empty-password substitution caused twine 403 on the v0.2.0 release. Now references the correct name. (Landed in 0.2.0 hotfix during the release; recorded here for the changelog trail.)
+
+No code changes vs 0.2.0 — drop-in safe for existing callers.
+
 ## [0.2.0] - 2026-05-18
 
 ### Added
