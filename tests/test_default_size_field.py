@@ -84,6 +84,7 @@ class TestTier0PolygonDomains:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 class TestTier1WettingAndDrying:
     """SC-T1: Domain.from_mesh(wnd) → triangulate() stays within domain."""
 
@@ -133,6 +134,7 @@ class TestTier1WettingAndDrying:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.slow
 class TestTier2WNAT:
     """SC-T2 (0.1.0 release gate): WNAT triangulation within 60 s."""
 

@@ -177,9 +177,9 @@ Each backlog item is a follow-up issue candidate. Tied back to a finding.
 | B-01 | Add `ci.yml` workflow: run `pytest` + `ruff` + `mypy` on PR and push | S | F-CRIT-01 |
 | B-02 | Verify issue #10 status: confirm `test_default_size_field.py` passes without xfail | XS | F-HIGH-01 |
 | B-03 | Declare `[tool.pytest.ini_options].markers` and tag `slow`/`integration` tests | S | F-HIGH-02, F-MED-02 |
-| B-04 | Run `pytest --cov` once; report per-module % and add lowest-10 to backlog | S | §3 |
+| B-04 | ~~Run `pytest --cov` once; report per-module % and add lowest-10 to backlog~~ **DONE 2026-05-15** — 89% total coverage; see `output/coverage.json`. Lowest-10 by miss count: `viz.py` (60 missed, 17%), `api.py` (79 missed, 73%), `distmesh.py` (53 missed, 79%), `boundary.py` (32 missed, 87%), `fort14.py` (15 missed, 94%), `mesh_size.py` (14 missed, 95%), `medial_axis.py` (10 missed, 95%), `routine.py` (8 missed, 94%), `valence.py` (5 missed, 96%), `inpaint.py` (5 missed, 96%). | S | §3 |
 | B-05 | Add direct unit tests for `admesh/background_grid.py` | M | F-MED-01 |
-| B-06 | Run `pytest --durations=10` and document Tier-2 wall-clock budget (FR-016) | XS | §6 |
+| B-06 | ~~Run `pytest --durations=10` and document Tier-2 wall-clock budget (FR-016)~~ **DONE 2026-05-15** — see `output/durations.txt`. Top-5: `test_tier1_wetting_and_drying_round_trip` (1.93s), `test_distmesh2d_admesh_annulus_has_two_rings` (1.20s), `test_collected_tests_at_or_above_baseline` (0.93s), `test_triangulate_boundary_pts_seeds_notch_walls` (0.67s), `test_connectivity_preserved[annulus]` (0.67s). Suite total ≈28s. Tier-2 WNAT test not in top-10 (currently xfailed). | XS | §6 |
 | B-07 | Extract MVP-domain list into a shared `conftest.py` parametrize fixture | XS | F-LOW-02 |
 | B-08 | Write `TESTING.md`: cold-clone `pytest` recipe, marker cheat-sheet, fixture map | S | F-LOW-03 |
 | B-09 | Audit `test_fort14_chilmesh_smoke.py` vs `_compat.py` for staleness | XS | F-MED-03 |

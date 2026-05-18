@@ -19,7 +19,7 @@ maintainers = [
     { name = "Dominik Mattioli" },
 ]
 dependencies = [
-    "admesh-domains>=0.1.0",
+    "admesh-domains>=0.3.0,<0.4",
     "numpy>=1.24",
     "scipy>=1.11",
     "numba>=0.58",
@@ -33,6 +33,8 @@ dev = [
     "pytest-cov",
     "ruff",
     "mypy",
+    "mkdocs-material>=9",
+    "mkdocstrings[python]>=0.24",
 ]
 viz = [
     "matplotlib>=3.7",
@@ -49,6 +51,9 @@ include = ["admesh*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+markers = [
+    "slow: tests requiring real coastal fixtures (>=1 MB) or long wall-clock; deselect with -m 'not slow'",
+]
 
 [tool.ruff]
 line-length = 100

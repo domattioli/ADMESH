@@ -25,24 +25,33 @@ def test_all_includes_v1_types():
     assert expected.issubset(set(admesh.__all__))
 
 
-def test_faithful_port_modules_still_exposed():
-    """Constitution Principle I — the 13 stage modules stay accessible."""
-    import admesh
+def test_faithful_port_modules_still_importable():
+    """Constitution Article II.1 — the 13 stage modules remain accessible.
 
-    faithful = {
-        "background_grid",
-        "bathymetry",
-        "boundary",
-        "curvature",
-        "distance",
-        "distmesh",
-        "domains",
-        "dominate_tide",
-        "in_polygon",
-        "inpaint",
-        "medial_axis",
-        "mesh_size",
-        "quality",
-        "routine",
-    }
-    assert faithful.issubset(set(admesh.__all__))
+    Spec 009 R3 (Constitution Amendment, proposed Article VIII) removes the
+    stage module names from ``admesh.__all__`` to clarify the public /
+    internal split. The numerical-port invariant is preserved by keeping
+    every stage module importable at its existing path, not by listing
+    them in ``__all__``.
+    """
+    import importlib
+
+    faithful = (
+        "admesh.background_grid",
+        "admesh.bathymetry",
+        "admesh.boundary",
+        "admesh.curvature",
+        "admesh.distance",
+        "admesh.distmesh",
+        "admesh.domains",
+        "admesh.dominate_tide",
+        "admesh.in_polygon",
+        "admesh.inpaint",
+        "admesh.medial_axis",
+        "admesh.mesh_size",
+        "admesh.quality",
+        "admesh.routine",
+    )
+    for modname in faithful:
+        mod = importlib.import_module(modname)
+        assert mod.__name__ == modname

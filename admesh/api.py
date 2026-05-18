@@ -296,7 +296,7 @@ class Domain:
         #     walk in _derive_boundary_segments which now produces closed rings even for
         #     real-world ADCIRC meshes with pinch-point boundary nodes.
         from scipy.spatial import cKDTree
-        from admesh.in_polygon import in_polygon as _in_polygon
+        from admesh._stages.in_polygon import in_polygon as _in_polygon
 
         outer_ring_nodes = bc_segments[0].node_ids
         outer_ring_pts = mesh.nodes[outer_ring_nodes]
@@ -597,7 +597,7 @@ def triangulate(
     combine: Callable[[list[np.ndarray]], np.ndarray] = np.minimum.reduce,
     seed: int | None = None,
     max_iter: int | None = None,
-    initial_points: np.ndarray | None = None,
+    initial_points: "np.ndarray | None" = None,
     quality_gate: tuple[float, float] = (0.30, 0.60),
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
@@ -643,9 +643,9 @@ def triangulate(
     """
     # Lazy imports — keeps `import admesh` cheap and avoids a hard
     # dependency cycle with the faithful-port modules at import time.
-    from admesh.domains import Domain as _PortDomain
-    from admesh.quality import mesh_quality
-    from admesh.routine import triangulate as _routine_triangulate
+    from admesh._stages.domains import Domain as _PortDomain
+    from admesh._stages.quality import mesh_quality
+    from admesh._stages.routine import triangulate as _routine_triangulate
 
     # Load domain from file or registry if it's a string; adapt if it's a port Domain.
     api_domain = None  # Track whether we have an api.Domain (may have bc_segments)

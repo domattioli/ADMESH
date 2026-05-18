@@ -31,14 +31,12 @@
 
 ## Install
 
-> 🚧 **0.1.0 in progress.** Spec 002 lands default size-field stack + ADCIRC paired-edge BC support; first PyPI tag follows when Tier-2 / WNAT structural-validity gate green ([issue #10](https://github.com/domattioli/ADMESH/issues/10)). Until then, install from source.
-
 ```bash
-pip install admesh2D            # core (when 0.1.0 ships)
+pip install admesh2D            # core
 pip install admesh2D[viz]       # adds matplotlib for mesh.plot()
 ```
 
-From source (current):
+Or from source:
 
 ```bash
 git clone https://github.com/domattioli/ADMESH.git
@@ -46,23 +44,26 @@ cd ADMESH
 pip install -e ".[dev]"
 ```
 
-Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely.
+Requires Python ≥ 3.10. Core dependencies: NumPy, SciPy, Numba, Shapely, `admesh-domains`.
 
 ---
 
 ## Quickstart
 
-> 🚧 `triangulate()` defaults stabilizing across spec 002. 3-line idiom below works today; advanced kwargs (`enable_curvature`, `enable_medial_axis`, `bathymetry`, `tide_period`, `default_depth`, …) documented in `specs/002-size-field-defaults/contracts/python-api-default-stack.md`.
-
 ```python
 import admesh
 
-domain = admesh.domain_from_polygon([outer_ring_xy, hole_ring_xy])
+domain = admesh.load_domain_from_fort14("coast.14")
 mesh = admesh.triangulate(domain)
 mesh.to_fort14("out.14")
 ```
 
-`mesh` = frozen `Mesh` dataclass — typed nodes, elements, boundary segments (with `BoundaryType` codes), per-element quality.
+See [`docs/quickstart.md`](docs/quickstart.md) for a full walk-through:
+custom size-field contributions, registry loading, quality gates,
+pre-quad smoothing, valence balancing.
+
+`mesh` is a frozen `Mesh` dataclass — typed nodes, elements, boundary
+segments (with `BoundaryType` codes), and per-element quality.
 
 ### Round-trip with ADCIRC `fort.14`
 
@@ -87,7 +88,14 @@ Built-in size-field stages (curvature, medial axis, bathymetry, tide) `min`-stac
 
 ## Status
 
-Under construction. v1 plan + task list live in `specs/001-pythonize-and-fort14-integration/` (shipped) + `specs/002-size-field-defaults/` (in progress — wires MATLAB-faithful size-field stack as default Phase-1 in `triangulate()` + extends fort.14 for IBTYPE 3 / 4 / 13 / 24 paired-edge BC records). Faithful Python port of original 13-stage pipeline = production path (now 250+ tests passing); Pythonic API + fort.14 I/O = 0.1.0 deliverables.
+**0.1.0** ships the v1 Pythonic API + ADCIRC `fort.14` round-trip,
+the default size-field stack (curvature + medial axis + bathymetry +
+tide), the ADMESH-Domains registry adapter, the pre-quadrangulation
+smoother (spec 004), and valence balancing (issue #27). 366 tests
+green (358 standard + 4 Tier-1/Tier-2 slow + 4 contract); structural
+validity holds on the WNAT and wetting-and-drying ADCIRC reference
+fixtures. See [`docs/governance/PROJECT_PLAN.md`](docs/governance/PROJECT_PLAN.md)
+for the full history and post-0.1.0 roadmap.
 
 ## Upstream
 
