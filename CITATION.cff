@@ -12,16 +12,16 @@ abstract: >-
 authors:
   - family-names: Mattioli
     given-names: Dominik
-    affiliation: The Pennsylvania State University
+    affiliation: Unaffiliated
   - family-names: Conroy
     given-names: Colton J.
-    affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
+    affiliation: Columbia University
   - family-names: Kubatko
     given-names: Ethan J.
     affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
   - family-names: West
     given-names: Dustin W.
-    affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
+    affiliation: ?
 repository-code: "https://github.com/domattioli/ADMESH"
 url: "https://github.com/domattioli/ADMESH"
 license: Apache-2.0
