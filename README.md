@@ -14,7 +14,8 @@
   <a href="https://pypi.org/project/admesh2D/"><img src="https://img.shields.io/pypi/v/admesh2D.svg?label=PyPI" alt="PyPI version"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
-  <a href="https://github.com/domattioli/ADMESH/releases/tag/v0.1.0"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases" alt="Latest Release"></a>
+  <a href="https://github.com/domattioli/ADMESH/releases/latest"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases" alt="Latest Release"></a>
+  <a href="https://doi.org/10.5281/zenodo.20264101"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20264101.svg" alt="DOI"></a>
 </p>
 
 <p align="center">
@@ -98,9 +99,17 @@ Reference MATLAB implementation = [`coltonjconroy/ADMESH`](https://github.com/co
 
 ## Citation
 
+**Algorithm / theory** (cite the original paper):
+
 > Conroy, C.J., Kubatko, E.J., West, D.W. (2012). ADMESH: an advanced, automatic unstructured mesh generator for shallow water models. *Ocean Dynamics* 62, 1503–1517. <https://doi.org/10.1007/s10236-012-0574-0>
 
-Copy included at [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+**This software** (cite the archived release):
+
+> Mattioli, D., Conroy, C.J., Kubatko, E.J., West, D.W. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
+
+The DOI `10.5281/zenodo.20264101` resolves to the latest release; version-specific DOIs are available on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A `CITATION.cff` is provided at the repo root for tools that consume it (GitHub's "Cite this repository" button, Zotero, etc.).
+
+Paper copy included at [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
 
 ## Contact
 
