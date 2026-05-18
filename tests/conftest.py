@@ -5,6 +5,20 @@ from __future__ import annotations
 import numpy as np
 
 
+# MVP domain triangulate(...) config shared by Pythonic-API tests
+# (test_api_triangulate.py, test_fort14_roundtrip.py). Single source of
+# truth — when an MVP domain is added/removed, parametrization tracks
+# automatically. Keep keys aligned with ``admesh.domains.ALL``.
+MVP_TRIANGULATE_CONFIG: dict[str, dict[str, float | int]] = {
+    "unit_square":       {"h_max": 0.12, "max_iter": 200},
+    "l_shape":           {"h_max": 0.15, "max_iter": 200},
+    "unit_disk":         {"h_max": 0.15, "max_iter": 200},
+    "annulus":           {"h_max": 0.12, "max_iter": 200},
+    "notched_rectangle": {"h_max": 0.08, "max_iter": 200},
+}
+MVP_DOMAIN_NAMES: tuple[str, ...] = tuple(MVP_TRIANGULATE_CONFIG)
+
+
 def assert_valid_mesh(
     p: np.ndarray, t: np.ndarray, fd, geps: float, min_n: int = 4
 ) -> None:
