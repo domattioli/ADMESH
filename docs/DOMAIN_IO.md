@@ -1,6 +1,6 @@
 # Domain I/O and Registry Integration
 
-This guide covers loading mesh domains from files and the ADMESH-Domains registry.
+Guide for loading mesh domains from files and the ADMESH-Domains registry.
 
 ## Quick Start
 
@@ -113,10 +113,7 @@ mesh = admesh.triangulate(domain, h0=0.1)
 
 ### Fort.14 Format
 
-Extract domain boundary from ADCIRC v55 fort.14 mesh files. Useful for:
-- Re-triangulating existing meshes at different resolutions
-- Refining or coarsening mesh density
-- Domain validation from existing reference meshes
+Extract domain boundary from ADCIRC v55 fort.14 mesh files. Useful for re-triangulating at different resolutions, refining/coarsening, domain validation.
 
 **Loading:**
 ```python
@@ -131,14 +128,14 @@ fine_mesh = admesh.triangulate(domain, h0=0.02)
 ```
 
 **What gets extracted:**
-- Outer boundary polygon from the first land boundary segment
+- Outer boundary polygon from first land boundary segment
 - Interior islands (holes) from additional segments
 - Bounding box computed from node coordinates
 - Corner vertices marked as fixed points
 
 ## Registry Integration
 
-Requires the `admesh-domains` package:
+Requires `admesh-domains` package:
 
 ```bash
 pip install admesh-domains
@@ -184,7 +181,7 @@ print(f"Mesh ID: {meta.get('mesh_id')}")
 import admesh
 import numpy as np
 
-# Load a domain from the registry
+# Load domain from registry
 domain = admesh.load_domain_from_registry("noaa-hsofs-v20")
 
 # Triangulate with custom parameters
@@ -202,7 +199,7 @@ print(f"Nodes: {mesh.n_nodes}")
 print(f"Elements: {mesh.n_elements}")
 print(f"Quality: {mesh.quality}")
 
-# Re-triangulate the boundary at finer resolution
+# Re-triangulate boundary at finer resolution
 finer_mesh = admesh.triangulate(domain, h0=0.05)
 print(f"Finer mesh: {finer_mesh.n_nodes} nodes")
 ```
@@ -221,7 +218,7 @@ print(f"Finer mesh: {finer_mesh.n_nodes} nodes")
 - Constructed from polygon rings using Shapely
 
 ### Fixed Points
-- Pinned vertices that the triangulator must preserve
+- Pinned vertices the triangulator must preserve
 - Useful for re-entrant corners, domain features
 - Optional; omit if not needed
 
@@ -253,7 +250,7 @@ except ValueError:
 
 ## Migration from admesh.domains
 
-The old hardcoded test domains are still available:
+Old hardcoded test domains still available:
 
 ```python
 import admesh.domains
@@ -265,7 +262,7 @@ from admesh.api import domain_from_sdf
 domain = domain_from_sdf(domain_obj.fd, bbox=domain_obj.bbox)
 ```
 
-For new code, prefer the file-based or registry-based loaders.
+For new code, prefer file-based or registry-based loaders.
 
 ## See Also
 

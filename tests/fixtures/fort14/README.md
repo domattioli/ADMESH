@@ -1,37 +1,25 @@
 # fort.14 test fixtures
 
-This directory holds ADCIRC fort.14 mesh files used by the
-`tests/test_fort14_*.py` suites. Three subdirectories, three roles.
+Holds ADCIRC fort.14 mesh files used by `tests/test_fort14_*.py` suites. Three subdirectories, three roles.
 
 ## Layout
 
 | Directory | Purpose | Min files | Size budget (combined) |
 |-----------|---------|----------:|-----------------------:|
-| `adcirc_examples/` | Public ADCIRC documentation example meshes (e.g. Shinnecock Inlet). Source of truth for the v55 grammar. | 2 | 500 KB |
+| `adcirc_examples/` | Public ADCIRC documentation example meshes (e.g. Shinnecock Inlet). Source of truth for v55 grammar. | 2 | 500 KB |
 | `community/` | Real-world ADCIRC meshes from public sources. Excerpts allowed when full meshes exceed budget. | 3 | 1 MB |
 | `malformed/` | Hand-crafted negative-test inputs. Each file violates exactly one grammar rule. | 10 | 100 KB |
 
-Total directory budget: **< 2 MB** combined. Reject contributions that
-push past it; trim or excerpt instead.
+Total directory budget: **< 2 MB** combined. Reject contributions that push past it; trim or excerpt instead.
 
 ## Rules for adding fixtures
 
-1. **Plain text only.** No binary, no compressed archives. fort.14 is
-   ASCII; the suite parses files as text.
-2. **No PII or proprietary geometry.** Only public-domain or
-   permissively-licensed meshes. Document provenance below for every
-   non-trivial file.
-3. **Excerpts must round-trip structurally.** If you trim a community
-   mesh to fit the budget, the trimmed file must still parse and
-   round-trip via `read_fort14` → `write_fort14`.
-4. **`malformed/` files violate exactly one rule each.** The negative
-   tests parametrize over them; one-rule-per-file keeps failures
-   diagnosable.
+1. **Plain text only.** No binary, no compressed archives. fort.14 is ASCII; suite parses files as text.
+2. **No PII or proprietary geometry.** Only public-domain or permissively-licensed meshes. Document provenance below for every non-trivial file.
+3. **Excerpts must round-trip structurally.** Trimmed community mesh must still parse and round-trip via `read_fort14` → `write_fort14`.
+4. **`malformed/` files violate exactly one rule each.** Negative tests parametrize over them; one-rule-per-file keeps failures diagnosable.
 
 ## Provenance
-
-Add an entry under the appropriate heading whenever you check in a new
-fixture.
 
 ### `adcirc_examples/`
 
@@ -43,8 +31,7 @@ fixture.
   Originally derived from Hagen et al.'s WNAT meshes; this is the
   small (~10K-node) variant redistributed widely with ADMESH and
   ADCIRC tutorials. Public domain. Used by
-  `tests/test_fort14_reference_corpus.py` and the
-  `scripts/wnat_demo.py` end-to-end demo.
+  `tests/test_fort14_reference_corpus.py` and `scripts/wnat_demo.py`.
 
 ### `community/`
 
@@ -52,13 +39,11 @@ _(none yet — populated by T027)_
 
 ### `malformed/`
 
-Ten hand-crafted negative-test fixtures, each violating exactly one
-fort.14 grammar rule. Source: hand-authored in this repo by T025; no
-external provenance required.
+Ten hand-crafted negative-test fixtures, each violating exactly one fort.14 grammar rule. Hand-authored in this repo by T025; no external provenance required.
 
 - `element_node_out_of_range.14` — element references vertex id beyond NN
 - `invalid_nodes_per_element.14` — element line declares 4 nodes (not 3)
-- `missing_open_boundary_block.14` — file ends after the element block
+- `missing_open_boundary_block.14` — file ends after element block
 - `negative_node_count.14` — counts line has negative NN
 - `non_integer_node_id.14` — node id token is `2.5`
 - `non_monotonic_node_ids.14` — second node has id 5 instead of 2
