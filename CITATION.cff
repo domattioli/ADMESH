@@ -25,7 +25,7 @@ authors:
 repository-code: "https://github.com/domattioli/ADMESH"
 url: "https://github.com/domattioli/ADMESH"
 license: Apache-2.0
-version: 0.2.0
+version: 0.2.1
 date-released: "2026-05-18"
 doi: 10.5281/zenodo.20264101
 keywords:
