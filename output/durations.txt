@@ -1,0 +1,30 @@
+........................................................................ [ 19%]
+........................................................................ [ 39%]
+........................................................ssss............ [ 58%]
+s......................................................................s [ 78%]
+ss...................................................................... [ 97%]
+.....ss.                                                                 [100%]
+============================= slowest 10 durations =============================
+3.84s call     tests/test_default_size_field.py::TestTier2WNAT::test_tier2_wnat_bbox_coverage
+3.73s call     tests/test_issue_11_ring_sorting.py::TestWnatRoundTrip::test_wnat_triangulate_non_empty
+3.61s call     tests/test_default_size_field.py::TestTier2WNAT::test_tier2_wnat_release_gate
+1.93s call     tests/test_default_size_field.py::TestTier1WettingAndDrying::test_tier1_wetting_and_drying_round_trip
+1.20s call     tests/test_distmesh_admesh.py::test_distmesh2d_admesh_annulus_has_two_rings
+0.93s call     tests/test_backward_compat_full_suite.py::test_collected_tests_at_or_above_baseline
+0.67s call     tests/test_api_triangulate.py::test_triangulate_boundary_pts_seeds_notch_walls
+0.67s call     tests/test_quad_prep.py::test_connectivity_preserved[annulus-_annulus_rings-0.3]
+0.65s call     tests/test_quad_prep.py::test_right_iso_quality_lift[annulus-_annulus_rings-0.3]
+0.65s call     tests/test_quad_prep.py::test_boundary_fidelity[annulus-_annulus_rings-0.3]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_fort14_chilmesh_smoke.py:22: could not import 'chilmesh': No module named 'chilmesh'
+SKIPPED [1] tests/test_matlab_port.py:296: MATLAB fixture not available: collinear_sliver.npz
+SKIPPED [1] tests/test_matlab_port.py:296: MATLAB fixture not available: collinear_sliver_constrained.npz
+SKIPPED [1] tests/test_matlab_port.py:309: MATLAB fixture not available: project_back/unit_disk.npz
+SKIPPED [1] tests/test_matlab_port.py:320: MATLAB fixture not available: initial_points/unit_square_coarse.npz
+SKIPPED [1] tests/test_matlab_port.py:552: MATLAB fixture not available: boundary/enforce_bc_simple.npz
+SKIPPED [1] tests/test_registry.py:20: admesh-domains is installed; skipping import error test
+SKIPPED [1] tests/test_registry.py:30: admesh-domains is installed; skipping import error test
+SKIPPED [1] tests/test_registry.py:40: admesh-domains is installed; skipping import error test
+SKIPPED [1] tests/test_viz.py:27: could not import 'matplotlib': No module named 'matplotlib'
+SKIPPED [1] tests/test_viz.py:40: could not import 'matplotlib': No module named 'matplotlib'
+358 passed, 11 skipped in 27.98s
