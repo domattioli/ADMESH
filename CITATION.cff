@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the algorithm paper and the archived software release."
+type: software
+title: "ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port)"
+abstract: >-
+  Python port of the ADMESH library originally developed in MATLAB at The Ohio
+  State University Computational Hydrodynamics and Informatics Lab. Implements
+  the 13-stage ADMESH pipeline (distance, curvature, medial axis, bathymetry,
+  dominant-tide, boundary-condition enforcement, mesh-size solver, distmesh2d,
+  mesh-quality, boundary cleanup, valence balancing) with fort.14 round-trip
+  I/O for ADCIRC compatibility.
+authors:
+  - family-names: Mattioli
+    given-names: Dominik
+    affiliation: The Pennsylvania State University
+  - family-names: Conroy
+    given-names: Colton J.
+    affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
+  - family-names: Kubatko
+    given-names: Ethan J.
+    affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
+  - family-names: West
+    given-names: Dustin W.
+    affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
+repository-code: "https://github.com/domattioli/ADMESH"
+url: "https://github.com/domattioli/ADMESH"
+license: Apache-2.0
+version: 0.2.0
+date-released: "2026-05-18"
+doi: 10.5281/zenodo.20264101
+keywords:
+  - unstructured-mesh
+  - shallow-water
+  - ADCIRC
+  - distmesh
+  - finite-element
+  - coastal-modeling
+  - python
+preferred-citation:
+  type: article
+  title: "ADMESH: an advanced, automatic unstructured mesh generator for shallow water models"
+  authors:
+    - family-names: Conroy
+      given-names: Colton J.
+    - family-names: Kubatko
+      given-names: Ethan J.
+    - family-names: West
+      given-names: Dustin W.
+  journal: "Ocean Dynamics"
+  year: 2012
+  volume: 62
+  issue: 10
+  start: 1503
+  end: 1517
+  doi: 10.1007/s10236-012-0574-0
