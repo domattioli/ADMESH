@@ -764,6 +764,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1023,6 +1034,17 @@
 
 <h1 id="admesh-project-plan">ADMESH Project Plan<a class="headerlink" href="#admesh-project-plan" title="Permanent link">&para;</a></h1>
 <p>Phased roadmap for porting <code>QuADMesh-MATLAB/01_ADMESH_Library</code> to Python. Governance rules in <code>CONSTITUTION.md</code>; code layout in <code>CLAUDE.md</code>.</p>
+<hr />
+<h2 id="where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete">Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)<a class="headerlink" href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" title="Permanent link">&para;</a></h2>
+<p><strong>Spec 012 (<code>specs/012-background-grid-stage-tests/</code>) planning shipped on <code>daily-issue-fixing</code>.</strong></p>
+<ul>
+<li>Tracks issue #73 (TEST-AUDIT.md backlog B-05 / finding F-MED-01) — <code>admesh/_stages/background_grid.py</code> has no eponymous test file.</li>
+<li>Planning surfaced that the canonical module is a 7-line stub; the original issue's parity-test proposal cannot satisfy at <code>atol=1e-10</code> until the MATLAB port lands.</li>
+<li>Resolution: two-track spec. Track A (test scaffold + smoke + <code>xfail(strict=True)</code> parity scaffolds) closes the audit gap immediately without the port. Track B (numerical parity at <code>atol=1e-10</code>) gates on the new follow-up impl issue #78.</li>
+<li>Issue #78 opened to track the actual port of <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code>. Verified: <code>scripts/export_matlab_fixtures.m</code> does not yet export a stage-02 fixture (OQ-1 resolved → fixture work belongs to #78).</li>
+<li>Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on <code>daily-issue-fixing</code>.</li>
+<li>Spec 012 deliverables landing this run: <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>, issue #78, plus this PROJECT_PLAN entry. Track A implementation (T-012-2 / T-012-3) deferred to next run per the planning-mode mandate.</li>
+</ul>
 <hr />
 <h2 id="where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending">Where we are today (2026-05-17, spec 009 release-readiness-for-0.1.0 COMPLETE — tag push pending)<a class="headerlink" href="#where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending" title="Permanent link">&para;</a></h2>
 <p><strong>Spec 009 R1–R4 implemented; awaiting maintainer <code>git tag v0.1.0 &amp;&amp; git push origin v0.1.0</code>.</strong></p>
