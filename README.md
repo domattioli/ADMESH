@@ -17,7 +17,7 @@
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
   <br>
-  <em>Western North Atlantic / Gulf / Caribbean — meshed with curvature-driven sizing and dominant-tide refinement.</em>
+  <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
 
 ---
@@ -81,7 +81,7 @@ mesh = admesh.triangulate(domains.UNIT_DISK, h_max=0.1)
 mesh.to_fort14("disk.14")
 ```
 
-`mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`.
+`mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`. Regenerate the hero animation via `python scripts/render_annulus_animation.py` (needs `matplotlib` + `pillow`; optional `ffmpeg` for MP4).
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Triangulation of the notched_rectangle MVP domain at h=0.04." width="60%">
