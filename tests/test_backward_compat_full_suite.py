@@ -28,13 +28,15 @@ def test_collected_tests_at_or_above_baseline():
     # Exit code 0 even when collection only.
     assert result.returncode == 0, result.stdout + result.stderr
     # The tail line of `-q` collect-only is "<N>/<M> tests collected" or
-    # "<N> tests collected"; parse the first int we find on it.
+    # "<N> tests collected"; the first token may carry a "/" when marker
+    # filters deselect tests — split on "/" to pick the collected count.
     tail_lines = [
         ln for ln in result.stdout.strip().splitlines() if "test" in ln
     ]
     assert tail_lines, f"could not parse collect output:\n{result.stdout}"
     summary = tail_lines[-1]
-    n_collected = int(summary.split()[0])
+    first_token = summary.split()[0]
+    n_collected = int(first_token.split("/")[0])
     assert n_collected >= 142, (
         f"expected ≥ 142 collected tests, got {n_collected}\n{summary}"
     )

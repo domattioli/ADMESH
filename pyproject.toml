@@ -39,6 +39,9 @@ dev = [
 viz = [
     "matplotlib>=3.7",
 ]
+registry = [
+    "huggingface_hub>=0.20",
+]
 
 [project.urls]
 Source = "https://github.com/domattioli/ADMESH"
@@ -50,7 +53,7 @@ include = ["admesh*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra -m 'not slow'"
 markers = [
     "slow: tests requiring real coastal fixtures (>=1 MB) or long wall-clock; deselect with -m 'not slow'",
 ]

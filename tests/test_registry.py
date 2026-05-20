@@ -96,3 +96,41 @@ def test_convert_to_admesh_domain_auto_bbox():
     domain = _convert_to_admesh_domain(mock_domain)
 
     assert domain.bbox == (0, 0, 2, 2)
+
+
+# ---------------------------------------------------------------------------
+# Spec 010 — positive-path tests against admesh-domains 0.3.x
+# ---------------------------------------------------------------------------
+
+
+def test_list_available_domains_nonempty():
+    """`list_available_domains()` returns a non-empty mapping (offline-safe)."""
+    pytest.importorskip("admesh_domains")
+    domains = list_available_domains()
+    assert isinstance(domains, dict)
+    assert len(domains) > 0
+    assert all(isinstance(k, str) for k in domains.keys())
+    assert all(isinstance(v, str) for v in domains.values())
+
+
+@pytest.mark.slow
+def test_load_domain_from_registry_baranja_hill():
+    """End-to-end: registry lookup → download → fort.14 → Domain."""
+    pytest.importorskip("admesh_domains")
+    pytest.importorskip("huggingface_hub")
+    domain = load_domain_from_registry("BaranjaHill")
+    assert isinstance(domain, Domain)
+    assert isinstance(domain.bbox, tuple)
+    assert len(domain.bbox) == 4
+    assert callable(domain.sdf)
+
+
+@pytest.mark.slow
+def test_load_domain_with_metadata_baranja_hill():
+    """`load_domain_with_metadata` returns `(Domain, dict)` with provenance."""
+    pytest.importorskip("admesh_domains")
+    pytest.importorskip("huggingface_hub")
+    domain, meta = load_domain_with_metadata("BaranjaHill")
+    assert isinstance(domain, Domain)
+    assert isinstance(meta, dict)
+    assert "bounding_box" in meta

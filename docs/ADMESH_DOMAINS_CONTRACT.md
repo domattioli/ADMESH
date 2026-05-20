@@ -57,28 +57,19 @@ When `admesh-domains` ships a new version:
 3. **Major** (`0.x` → `1.0`): treat as a minor bump; the contract may
    stabilize entirely.
 
-## Known drift (as of 2026-05-15)
+## Network fetch
 
-**`admesh/registry.py` is broken against `admesh-domains` 0.3.x.** The
-adapter was written against an older API that used a registry-object
-pattern (`admesh_domains.load_default_registry().get_domain(...)`); the
-0.3.x API uses top-level functions (`admesh_domains.get_domain(...)`)
-and returns a different `Domain` shape (no `.rings` or `.fixed_points`
-attributes; instead a `.meshes` list of `Mesh` references with downloadable
-`.path`).
+`admesh_domains.Mesh.load()` downloads the underlying fort.14 from the
+upstream HuggingFace mirror. ADMESH treats this as opt-in: install with
+`pip install admesh2D[registry]` to pull in `huggingface_hub>=0.20`.
+Without the extra, `admesh.load_domain_from_registry` raises a clear
+`ImportError` before any network call is made — only the local
+`list_available_domains()` path stays usable.
 
-Calling `admesh.load_domain_from_registry()` against the installed 0.3.2
-raises `AttributeError: module 'admesh_domains' has no attribute
-'load_default_registry'`.
-
-Tracking issue: [#64](https://github.com/domattioli/ADMESH/issues/64).
-
-The registry-rewrite work is post-spec-009 because it needs:
-- A new optional `huggingface_hub` dependency (for `Mesh.load()` downloads).
-- A redesigned adapter mapping `admesh_domains.Domain` → `admesh.Domain`
-  via `read_fort14(Mesh.path)` + `admesh.Domain.from_mesh()`.
-- New end-to-end tests that exercise the download path (likely behind
-  a `slow` marker since they hit the network).
+The slow CI lane (`pytest -m slow`) exercises the full chain on the
+smallest fixture (`BaranjaHill`, ~0.08 MB), covering
+`load_domain_from_registry`, `load_domain_with_metadata`, and the
+end-to-end contract test below.
 
 ## Contract validation
 
@@ -89,6 +80,9 @@ The registry-rewrite work is post-spec-009 because it needs:
 3. Every symbol in the "Consumed API surface" table above resolves.
 4. `admesh_domains.list_domains()` runs without raising.
 5. Each `Domain` returned exposes the attributes ADMESH reads.
+6. `test_end_to_end_load_domain_from_registry` (slow lane) exercises
+   the full ``get_domain → Mesh.load → read_fort14 → Domain.from_mesh``
+   chain.
 
 This test is part of the standard CI lane. A contract drift caught by
 this test is a release-blocking signal.
