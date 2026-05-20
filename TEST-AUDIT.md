@@ -1,9 +1,35 @@
 # ADMESH Test Suite Audit
 
-**Audit date:** 2026-05-15
+**Audit date:** 2026-05-15 (refreshed 2026-05-18)
 **Branch:** `daily-issue-fixing`
-**Issue:** [#59](https://github.com/domattioli/ADMESH/issues/59)
+**Issue:** [#59](https://github.com/domattioli/ADMESH/issues/59), [#60](https://github.com/domattioli/ADMESH/issues/60)
 **Audit type:** Read-only, holistic. No code changes.
+
+## Refresh log
+
+### 2026-05-18
+
+- **F-CRIT-01 — RESOLVED.** `.github/workflows/tests.yml` and
+  `tests-slow.yml` now run `pytest` on push / PR. The 2026-05-15
+  audit's claim that "Tests have been written for 278+ commits
+  without anyone running them on push" no longer holds.
+- **F-MED-02 — PARTIALLY RESOLVED.** `[tool.pytest.ini_options].markers`
+  now declares `slow` (spec 009). Remaining gap: no `network` /
+  `integration` markers — see ADMESH session 2026-05-18 follow-up F1
+  (new addopts proposal).
+- **F-HIGH-01 — RESOLVED.** `test_default_size_field.py` carries no
+  `xfail` markers; Tier-1/Tier-2 tests pass green as of `5cdfecf`.
+- **F1 (new, session 2026-05-18) — OPEN.** `addopts = "-ra"` runs
+  `slow` tests by default; sandboxed sessions hit
+  `huggingface_hub.errors.LocalEntryNotFoundError`. Fix: change to
+  `addopts = "-ra -m 'not slow'"`. Cross-posted to
+  [domattioli/DomI#63](https://github.com/domattioli/DomI/issues/63)
+  comment + [domattioli/DomI#74](https://github.com/domattioli/DomI/issues/74).
+- **F-LOW-04 (anatomical-fixture template drift) — REPORTED upstream
+  on DomI#63.**
+
+Upstream findings batch (5 items U1–U5) posted to DomI#63
+2026-05-18; routing requirement of issue #60 satisfied.
 
 ## Executive Summary
 

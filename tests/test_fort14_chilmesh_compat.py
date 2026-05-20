@@ -6,6 +6,10 @@ unmapped code. The hypothesis: if admesh2D's own reader reproduces
 the segment list bit-for-bit, then any well-behaved third-party
 reader (chilmesh, OceanMesh, etc.) reading the same file will see
 the same structure.
+
+Sibling: ``test_fort14_chilmesh_smoke.py`` exercises the second leg
+of that hypothesis against a real ``chilmesh`` install. Keep both
+(per audit #75); they cover complementary failure modes.
 """
 
 from __future__ import annotations

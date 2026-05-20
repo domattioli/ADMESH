@@ -93,3 +93,16 @@ def test_mesh_has_expected_attrs() -> None:
     # exists() and load() should be callable, even if load() requires network.
     assert callable(getattr(m, "exists")), "Mesh.exists is not callable"
     assert callable(getattr(m, "load")), "Mesh.load is not callable"
+
+
+@pytest.mark.slow
+def test_end_to_end_load_domain_from_registry() -> None:
+    """Spec 010: full chain `get_domain → Mesh.load → read_fort14 → Domain`."""
+    pytest.importorskip("huggingface_hub")
+    from admesh import load_domain_from_registry
+    from admesh.api import Domain
+
+    domain = load_domain_from_registry("BaranjaHill")
+    assert isinstance(domain, Domain)
+    assert isinstance(domain.bbox, tuple) and len(domain.bbox) == 4
+    assert callable(domain.sdf)

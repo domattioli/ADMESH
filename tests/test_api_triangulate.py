@@ -15,22 +15,15 @@ import admesh
 from admesh import BoundaryType, Domain
 from admesh.domains import ALL as DOMAIN_REGISTRY
 
-
-_MVP = {
-    "unit_square":       {"h_max": 0.12, "max_iter": 200},
-    "l_shape":           {"h_max": 0.15, "max_iter": 200},
-    "unit_disk":         {"h_max": 0.15, "max_iter": 200},
-    "annulus":           {"h_max": 0.12, "max_iter": 200},
-    "notched_rectangle": {"h_max": 0.08, "max_iter": 200},
-}
+from conftest import MVP_DOMAIN_NAMES, MVP_TRIANGULATE_CONFIG
 
 
-@pytest.mark.parametrize("name", list(_MVP))
+@pytest.mark.parametrize("name", MVP_DOMAIN_NAMES)
 def test_triangulate_mvp_domain(name: str) -> None:
     port_dom = DOMAIN_REGISTRY[name]
     pfix = port_dom.fixed_points if port_dom.fixed_points.size else None
     domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=pfix)
-    mesh = admesh.triangulate(domain, seed=0, **_MVP[name])
+    mesh = admesh.triangulate(domain, seed=0, **MVP_TRIANGULATE_CONFIG[name])
 
     assert mesh.n_nodes > 0
     assert mesh.n_elements > 0

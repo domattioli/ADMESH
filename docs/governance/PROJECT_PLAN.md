@@ -4,6 +4,19 @@ Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Govern
 
 ---
 
+## Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)
+
+**Spec 012 (`specs/012-background-grid-stage-tests/`) planning shipped on `daily-issue-fixing`.**
+
+- Tracks issue #73 (TEST-AUDIT.md backlog B-05 / finding F-MED-01) — `admesh/_stages/background_grid.py` has no eponymous test file.
+- Planning surfaced that the canonical module is a 7-line stub; the original issue's parity-test proposal cannot satisfy at `atol=1e-10` until the MATLAB port lands.
+- Resolution: two-track spec. Track A (test scaffold + smoke + `xfail(strict=True)` parity scaffolds) closes the audit gap immediately without the port. Track B (numerical parity at `atol=1e-10`) gates on the new follow-up impl issue #78.
+- Issue #78 opened to track the actual port of `02_Create_Background_Grid/CreateBackgroundGrid.m`. Verified: `scripts/export_matlab_fixtures.m` does not yet export a stage-02 fixture (OQ-1 resolved → fixture work belongs to #78).
+- Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on `daily-issue-fixing`.
+- Spec 012 deliverables landing this run: `spec.md`, `plan.md`, `tasks.md`, issue #78, plus this PROJECT_PLAN entry. Track A implementation (T-012-2 / T-012-3) deferred to next run per the planning-mode mandate.
+
+---
+
 ## Where we are today (2026-05-17, spec 009 release-readiness-for-0.1.0 COMPLETE — tag push pending)
 
 **Spec 009 R1–R4 implemented; awaiting maintainer `git tag v0.1.0 && git push origin v0.1.0`.**
