@@ -216,3 +216,7 @@ output/*
 *.mexw64
 *.mexmaci64
 *.mexa64
+
+# Rust port build artifacts
+admesh-rs/target/
+admesh-rs/**/target/
