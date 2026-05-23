@@ -26,6 +26,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parent.parent.parent
 DOMAINS = ROOT.parent / "ADMESH-Domains" / "registry_data" / "meshes"
 CPP_BIN = ROOT / "admesh-cpp" / "distmesh"
+CPP_CHILMESH_BIN = ROOT / "admesh-cpp" / "chilmesh"
 sys.path.insert(0, str(ROOT))
 
 
@@ -89,6 +90,37 @@ def run_cpp(xs, ys, sdf_g, h0, bbox, niter, seed=42):
         }
     except Exception as e:
         return {"error": str(e)[:60]}
+
+
+def run_cpp_chilmesh(nodes, elems, n_iter=20, omega=0.5):
+    """Drive admesh-cpp/chilmesh via stdin protocol."""
+    if not CPP_CHILMESH_BIN.exists():
+        return {"error": "chilmesh binary not found"}
+    n_nodes = len(nodes)
+    n_elems_c = len(elems)
+    lines = [f"{n_nodes} {n_elems_c} {n_iter} {omega}"]
+    for xy in nodes:
+        lines.append(f"{float(xy[0]):.10g} {float(xy[1]):.10g}")
+    for tri in elems:
+        lines.append(f"{int(tri[0])} {int(tri[1])} {int(tri[2])}")
+    payload = "\n".join(lines) + "\n"
+    try:
+        result = subprocess.run(
+            [str(CPP_CHILMESH_BIN)], input=payload, capture_output=True,
+            text=True, timeout=120)
+        if result.returncode != 0:
+            return {"error": result.stderr[:80]}
+        parts = result.stdout.split()
+        return {
+            "smooth_time_s": float(parts[0]),
+            "quality_time_s": float(parts[1]),
+            "n_nodes": int(parts[2]),
+            "n_elems": int(parts[3]),
+            "mean_q": float(parts[4]),
+            "min_q": float(parts[5]),
+        }
+    except Exception as e:
+        return {"error": str(e)[:80]}
 
 
 def chilmesh_smooth_and_quality(nodes, elems, n_iter=20):
@@ -200,6 +232,18 @@ def bench_one(path, niter, n_target):
     else:
         result["chil_err"] = smooth["error"]
 
+    # ── C++ chilmesh smooth + quality ──────────────────────────────────
+    cpp_chil = run_cpp_chilmesh(p_rs, t_rs, n_iter=20, omega=0.5)
+    if "error" not in cpp_chil:
+        result.update({
+            "cpp_chil_smooth_s": round(cpp_chil["smooth_time_s"], 4),
+            "cpp_chil_quality_s": round(cpp_chil["quality_time_s"], 4),
+            "cpp_chil_mean_q": round(cpp_chil["mean_q"], 4),
+            "cpp_chil_min_q": round(cpp_chil["min_q"], 4),
+        })
+    else:
+        result["cpp_chil_err"] = cpp_chil["error"]
+
     return result
 
 
@@ -213,8 +257,10 @@ def main():
     args = ap.parse_args()
 
     if not CPP_BIN.exists():
-        print(f"ERROR: C++ binary not built. Run: cd admesh-cpp && g++ -std=c++17 -O3 distmesh.cpp -o distmesh")
+        print(f"ERROR: C++ distmesh not built. Run: cd admesh-cpp && g++ -std=c++17 -O3 distmesh.cpp -o distmesh")
         return 1
+    if not CPP_CHILMESH_BIN.exists():
+        print(f"ERROR: C++ chilmesh not built. Run: cd admesh-cpp && g++ -std=c++17 -O3 -march=native chilmesh.cpp -o chilmesh")
 
     meshes = sorted(DOMAINS.glob("*.14"), key=lambda p: p.stat().st_size)
     if args.largest:
@@ -223,27 +269,33 @@ def main():
         meshes = meshes[:args.limit]
 
     print(f"Pipeline bench: {len(meshes)} meshes, niter={args.niter}, n_target={args.n_target}")
-    print("=" * 120)
+    print("=" * 150)
     hdr = (f"{'mesh':35s} {'fileMB':>7s} {'py_s':>7s} {'rs_s':>7s} {'cpp_s':>7s} "
-           f"{'rs/py':>6s} {'cpp/py':>7s} {'smooth_s':>9s} {'qual_s':>7s} "
-           f"{'py_q':>6s} {'rs_q':>6s} {'cpp_q':>6s} {'chil_q':>6s}")
+           f"{'rs/py':>6s} {'cpp/py':>7s} "
+           f"{'py_chil_s':>10s} {'cpp_chil_s':>11s} {'chil_sp':>8s} "
+           f"{'py_q':>6s} {'rs_q':>6s} {'cpp_q':>6s} "
+           f"{'pychil_q':>9s} {'cppchil_q':>10s}")
     print(hdr)
-    print("-" * 120)
+    print("-" * 150)
 
     results = []
     for path in meshes:
         try:
             r = bench_one(path, args.niter, args.n_target)
             results.append(r)
+            py_chil_s = r.get('chil_smooth_s', '?')
+            cpp_chil_s = r.get('cpp_chil_smooth_s', '?')
+            chil_sp = (round(r['chil_smooth_s'] / r['cpp_chil_smooth_s'], 1)
+                       if r.get('chil_smooth_s') and r.get('cpp_chil_smooth_s') else '?')
             print(f"{path.name:35s} {r['file_size_mb']:>7.2f} "
                   f"{r['py_distmesh_s']:>7.3f} {r['rs_distmesh_s']:>7.3f} "
                   f"{str(r.get('cpp_distmesh_s','?')):>7s} "
                   f"{str(r.get('rs_vs_py','?')):>6s} {str(r.get('cpp_vs_py','?')):>7s} "
-                  f"{str(r.get('chil_smooth_s','?')):>9s} "
-                  f"{str(r.get('chil_quality_s','?')):>7s} "
+                  f"{str(py_chil_s):>10s} {str(cpp_chil_s):>11s} {str(chil_sp):>8s} "
                   f"{r['py_mean_q']:>6.3f} {r['rs_mean_q']:>6.3f} "
                   f"{str(r.get('cpp_mean_q','?')):>6s} "
-                  f"{str(r.get('chil_mean_q','?')):>6s}")
+                  f"{str(r.get('chil_mean_q','?')):>9s} "
+                  f"{str(r.get('cpp_chil_mean_q','?')):>10s}")
         except Exception as e:
             print(f"{path.name:35s} ERR: {type(e).__name__}: {str(e)[:80]}")
 
