@@ -12,12 +12,14 @@ pub mod delaunay;
 pub mod distmesh;
 pub mod quality;
 pub mod sdf;
+pub mod size_field;
 pub mod stages;
 
 pub use delaunay::delaunay_triangulate;
 pub use distmesh::{distmesh2d, Diagnostic, DistmeshConfig, Mesh};
 pub use quality::mesh_quality;
 pub use sdf::{RasterSdf, Sdf, SdfFn};
+pub use size_field::{apply_bathymetry, apply_curvature, apply_tide, curvature_grid};
 pub use stages::{
     create_background_grid, eval_sdf_grid, grad_sdf, in_polygon, inpaint_nans, solve_iter,
 };
