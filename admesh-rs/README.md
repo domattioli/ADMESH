@@ -82,6 +82,22 @@ Real-world corpus: 39 ADCIRC `.14` meshes from `domattioli/ADMESH-Domains`
 3. Regenerate mesh with h₀ chosen for ~2000-node target, niter=25, seed=42.
 4. Compare Python `admesh._stages.distmesh.distmesh2d` vs Rust `distmesh2d_rs`.
 
+### Full pipeline — 4 largest meshes (Python / Rust / C++ × distmesh + smoother)
+
+| mesh | py dm | rs dm | **cpp dm** | rs/py | cpp/py | py chil | **cpp chil** | **chil sp** | pychil q | cppchil q |
+|---|---|---|---|---|---|---|---|---|---|---|
+| WNAT_Hagen.14 | 0.310 s | 0.147 s | **0.045 s** | 2.11× | **6.84×** | 10.69 s | **0.070 s** | **153.8×** | 0.954 | 0.961 |
+| Chesapeake_Bay.14 | 0.482 s | 0.189 s | **0.037 s** | 2.56× | **12.9×** | 10.46 s | **0.071 s** | **148.4×** | 0.940 | 0.950 |
+| Great_Lakes.14 | 0.453 s | 0.183 s | **0.060 s** | 2.47× | **7.58×** | 7.75 s | **0.050 s** | **155.2×** | 0.941 | 0.944 |
+| WNAT_Onur.14 | 0.317 s | 0.126 s | **0.061 s** | 2.52× | **5.22×** | 10.74 s | **0.070 s** | **153.0×** | 0.955 | 0.963 |
+
+**Geo-mean distmesh speedup: Rust 2.41× | C++ 7.69×**
+**Geo-mean CHILmesh smoother speedup: C++ vs Python ≈ 152.6×**
+
+All-C++ end-to-end pipeline (distmesh + smoother + quality) is **~91× faster**
+than all-Python. See [`PIPELINE-BENCHMARKS.md`](PIPELINE-BENCHMARKS.md) for
+full column definitions, design notes, and recommendations.
+
 ### Path A: Python SDF callback (shapely)
 
 `bench_vs_python.py` — both implementations call back into Python shapely
