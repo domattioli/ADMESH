@@ -216,3 +216,7 @@ output/*
 *.mexw64
 *.mexmaci64
 *.mexa64
+
+# manim render artifacts + generated viz data
+media/
+scripts/viz_data/
