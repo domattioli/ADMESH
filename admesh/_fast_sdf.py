@@ -109,13 +109,76 @@ if _HAVE_NUMBA:
         return out
 
 
-def fast_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
-    """Build a vectorized SDF closure over polygon rings (outer first, holes after)."""
+if _HAVE_NUMBA:
+
+    @njit(parallel=True, fastmath=True, cache=True)
+    def _dist_knn_numba(px, py, ax, ay, bx, by, cand):  # pragma: no cover
+        # exact min point-segment distance over k candidate segments per point;
+        # full even-odd ray cast over all segments for the sign.
+        n = px.shape[0]
+        m = ax.shape[0]
+        k = cand.shape[1]
+        out = np.empty(n, dtype=np.float64)
+        for i in prange(n):
+            qx = px[i]
+            qy = py[i]
+            dmin = 1e300
+            for c in range(k):
+                j = cand[i, c]
+                axj = ax[j]
+                ayj = ay[j]
+                ex = bx[j] - axj
+                ey = by[j] - ayj
+                seg2 = ex * ex + ey * ey
+                if seg2 == 0.0:
+                    t = 0.0
+                else:
+                    t = ((qx - axj) * ex + (qy - ayj) * ey) / seg2
+                    if t < 0.0:
+                        t = 0.0
+                    elif t > 1.0:
+                        t = 1.0
+                ddx = qx - (axj + t * ex)
+                ddy = qy - (ayj + t * ey)
+                d = (ddx * ddx + ddy * ddy) ** 0.5
+                if d < dmin:
+                    dmin = d
+            crossings = 0
+            for j in range(m):
+                ayj = ay[j]
+                byj = by[j]
+                if (ayj > qy) != (byj > qy):
+                    xint = (bx[j] - ax[j]) * (qy - ayj) / (byj - ayj) + ax[j]
+                    if qx < xint:
+                        crossings += 1
+            out[i] = -dmin if (crossings & 1) else dmin
+        return out
+
+
+def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], np.ndarray]:
+    """Build a vectorized SDF closure over polygon rings (outer first, holes after).
+
+    When SciPy + Numba are available and the boundary has many segments, the
+    distance term is pruned with a cKDTree over segment midpoints: only the
+    ``knn`` nearest segments per query point are tested exactly. The sign uses
+    a full even-odd ray cast. Falls back to the brute kernel otherwise.
+    """
     edges = _pack_edges(rings)
     ax = np.ascontiguousarray(edges[:, 0])
     ay = np.ascontiguousarray(edges[:, 1])
     bx = np.ascontiguousarray(edges[:, 2])
     by = np.ascontiguousarray(edges[:, 3])
+    nseg = ax.shape[0]
+
+    tree = None
+    if _HAVE_NUMBA and nseg > 4 * knn:
+        try:
+            from scipy.spatial import cKDTree
+
+            mid = np.column_stack([(ax + bx) * 0.5, (ay + by) * 0.5])
+            tree = cKDTree(mid)
+        except ImportError:
+            tree = None
 
     def sdf(p: np.ndarray) -> np.ndarray:
         pts = np.asarray(p, dtype=np.float64)
@@ -123,6 +186,11 @@ def fast_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
             pts = pts[None, :]
         px = np.ascontiguousarray(pts[:, 0])
         py = np.ascontiguousarray(pts[:, 1])
+        if tree is not None:
+            k = min(knn, nseg)
+            _, cand = tree.query(pts, k=k)
+            cand = np.ascontiguousarray(np.atleast_2d(cand).astype(np.int64))
+            return _dist_knn_numba(px, py, ax, ay, bx, by, cand)
         if _HAVE_NUMBA:
             return _sdf_numba(px, py, ax, ay, bx, by)
         return _sdf_numpy(px, py, ax, ay, bx, by)
