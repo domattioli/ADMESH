@@ -72,6 +72,14 @@ h_min=0.08, 1418 nodes, warmup excluded, seed=0.
 | 2 | cKDTree distance prune | 23.8s | baseline for loop |
 | 3 | **uniform-grid SDF (distance ring + row-bucketed sign)** | **7.85s** | **3.0x vs step 2** |
 
+| 4 | **packed-int bar dedup + drop redundant SDF gradient calls** | **5.89s** | **1.41x vs step 3** |
+
+Step 4 (distmesh.py): (a) bar extraction `np.unique(..., axis=0)` 2D lexsort →
+1D `np.unique` on packed key `a*n+b` (a<b guaranteed, so order matches);
+(b) projection recomputed `fd(po)` twice though `d[outside]` already held it —
+reuse it. Output bit-identical to step 3, deterministic, 126 tests green.
+SDF-sort cost 1.72s → ~0.2s.
+
 Step 3: replaced scipy cKDTree + O(N·M) ray-cast with a single numba-parallel
 grid kernel. Distance = expanding Chebyshev cell-ring search; sign = even-odd
 ray cast over segments bucketed per grid row (each seg once/row → safe parity).

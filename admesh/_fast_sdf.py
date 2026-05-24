@@ -289,7 +289,7 @@ if _HAVE_NUMBA:
         return out
 
 
-def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], np.ndarray]:
+def fast_sdf(rings: list[np.ndarray], knn: int = 32, grid_density: float = 1.0) -> Callable[[np.ndarray], np.ndarray]:
     """Build a vectorized SDF closure over polygon rings (outer first, holes after).
 
     When SciPy + Numba are available and the boundary has many segments, the
@@ -309,7 +309,7 @@ def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], n
         # uniform grid sized to ~1 segment per cell; prunes BOTH the distance
         # term (2D cell ring search) and the sign term (row-bucketed ray cast),
         # entirely inside one numba-parallel kernel (no scipy per-call overhead).
-        ncell = max(1, int(np.sqrt(nseg)))
+        ncell = max(8, int(np.sqrt(nseg) * grid_density))
         grid = _build_grid(ax, ay, bx, by, ncell, ncell)
 
     def sdf(p: np.ndarray) -> np.ndarray:
