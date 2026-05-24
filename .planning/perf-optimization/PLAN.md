@@ -86,6 +86,34 @@ ray cast over segments bucketed per grid row (each seg once/row → safe parity)
 SDF cost 19.0s → 3.3s. Output bit-identical to brute kernel (max diff 0.0,
 100% sign agreement), deterministic, 126 tests green.
 
+### Loop stopped — diminishing returns (stop condition 3)
+
+After step 4 the headline sat at ~5.9s with two co-dominant hotspots: the SDF
+sign ray-cast (~3.3s, 51%) and the per-iteration distmesh python/numpy force
+work (~2.3s, 36%). Three consecutive bit-identical attempts each yielded <10%:
+
+- **force-loop → numba kernel:** no speedup (the distmesh tottime is array
+  churn + Delaunay, not the truss arithmetic) and broke bit-identity (numpy
+  `.sum()` is pairwise, a sequential numba reduction diverges). Reverted.
+- **sign-only SDF for the interior mask:** bit-identical, 0% — disproved the
+  "distance ring dominates" guess; query points sit near the boundary so the
+  ring search is already cheap and the *sign* ray-cast is the real SDF cost.
+- **left-of-point segment skip in the sign cast:** bit-identical, ~0% (the
+  per-segment branch costs as much as the skipped division and breaks SIMD).
+  Reverted.
+
+Both remaining hotspots resist further *bit-identical* speedup, and the test
+suite asserts exact golden-mesh + integer-connectivity equality, so anything
+that perturbs the result (fastmath reductions, float32, fewer iterations,
+different integrator) would fail the fidelity gate. The next real lever is
+structural and large: a Rust/PyO3 incremental-Delaunay + half-edge kernel to
+drop the per-iteration `O(N log N)` full-Qhull rebuild toward `O(N)` (research
+ranked it highest-effort, do-last). Flagged for a human decision rather than
+sunk into autonomously — it is a new toolchain + multi-hour build.
+
+Net loop result: headline 23.8s → 5.9s (4.0x); vs the original shapely SDF the
+end-to-end win is ~15x at h_max=0.6 and far larger at h_max=0.15.
+
 ## 1. Hotspots (original static ranking — kept for reference)
 
 | # | Stage | Location | Why slow | Better data structure | Lang verdict | Fidelity risk |
