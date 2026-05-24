@@ -63,7 +63,9 @@ def _domain_from_polygon(
         float(outer[:, 0].max()),
         float(outer[:, 1].max()),
     )
-    return Domain(sdf=_shapely_sdf(rings), bbox=bbox, pfix=pfix)
+    from admesh._fast_sdf import fast_sdf
+
+    return Domain(sdf=fast_sdf(rings), bbox=bbox, pfix=pfix)
 
 
 # Use tomllib (Python 3.11+) or fall back to toml package
