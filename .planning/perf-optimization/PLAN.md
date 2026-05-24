@@ -1,35 +1,66 @@
 # ADMESH Performance Optimization — Phase Plan
 
-Benchmark target: Western North Atlantic ~3M-node mesh ("wnat-admesh-3m").
-Goal: best-fit language + data structures per hotspot, without breaking
-MATLAB fidelity or the no-C-toolchain install north star.
+Benchmark target: **`WNAT_Onur.14`** — largest available Western North
+Atlantic mesh (127K nodes, richest boundary granularity). The original
+"wnat-admesh-3m" 3M target is deferred (no such asset exists).
+Goal: **fastest possible CPU ADMESH.**
 
 Authored by a 6-perspective planning crew (ADMESH core, language/profiling,
 fidelity, registry, governance, benchmark/QA) under PM synthesis.
 
----
+## Locked decisions (2026-05-24)
 
-## 0. Blockers to resolve first
-
-- **wnat-admesh-3m asset does not exist in any repo.** Largest real domain is
-  `WNAT_Onur.14` (127K nodes). Largest registry assets:
-  `WNAT_Hagen.14` 52K, `WNAT_Onur.14` 127K, `WNAT_Test.14` 10K,
-  `nc_inundation_v6c.grd` 31K (all under
-  `ADMESH-Domains/registry_data/meshes/`).
-  Decision required: source a real 3M ADCIRC grid (NOAA HSOFS/ESTOFS) OR
-  generate a deterministic synthetic 3M domain. Recommended: synthetic
-  `seed=42`, stored as `tests/fixtures/fort14/wnat_synthetic_3m.14`, with a
-  real-grid run as a stretch validation.
-- **Env not provisioned:** `numba` not installed. Prereq:
-  `pip install -e ".[dev]"`. No benchmarks runnable until then.
-- **Cross-AI convergence review unavailable in sandbox:** only `claude` CLI
-  present (no codex/gemini/opencode); local model servers down. The
-  external-reviewer convergence loop must run where those CLIs exist, OR use
-  `--claude` reviewer only.
+1. **Headline domain = `WNAT_Onur.14`** (127K nodes), under
+   `ADMESH-Domains/registry_data/meshes/`. Smaller tiers: `WNAT_Test.14` 10K
+   (CI), `WNAT_Hagen.14` 52K (mid). 3M deferred until a real/synthetic asset
+   is provisioned.
+2. **Constraints relaxed — fastest CPU wins.** The no-C-toolchain north star
+   and Constitution Art. II language gate are SUSPENDED for this phase;
+   constitution will be amended afterward. Permitted now: mandatory compiled
+   extensions (Rust/Cython/C), `numba parallel`/`fastmath`, multi-core,
+   float32 where it helps. Only hard rule kept: **mesh output stays correct**
+   (fidelity tested, but bit-exact tolerance may loosen — see §3).
+3. **Review = Claude-only.** No external CLIs; the 6-agent crew formulates,
+   PM (Claude) has final say. No convergence loop.
+4. **Build now.** Proceed through §6 execution order.
+5. **in_polygon OOM (`in_polygon.py:74-103`)** fixed opportunistically — only
+   if it blocks the Onur benchmark from completing.
 
 ---
 
-## 1. Hotspots (ranked for 3M nodes)
+## 0. Prerequisites
+
+- **Env:** `pip install -e ".[dev]"` (numba/scipy). In progress.
+- **Headline asset present:** `WNAT_Onur.14` (127K) in ADMESH-Domains
+  registry — confirm loadable via `triangulate()` before baselining.
+
+---
+
+## Empirical findings (supersede the crew's static guess)
+
+Profiling `triangulate` on the Onur coastline (5108-vert outer + 143 islands)
+flipped the predicted ranking:
+
+- **#1 real bottleneck was the domain SDF, not distmesh internals.**
+  `loaders._shapely_sdf` evaluated shapely `distance` to a 9296-vertex
+  boundary + a **Python loop calling `prepared.contains` per point**
+  (1.2M calls) every distmesh iteration → 64s of a 77s run (84%).
+- **Fix landed:** `admesh/_fast_sdf.py` — Numba `parallel+fastmath` kernel
+  (min point-to-segment distance + even-odd ray cast). Matches shapely to
+  7e-15, 100% inside-sign agreement, deterministic.
+  Result: h_max=1.0/h_min=0.5 run **89.4s → 15.9s (5.6x)**, same 929 nodes,
+  105 SDF/loader/triangulate tests green. (Mesh diverges ~0.1 from the
+  shapely mesh — force-balance chaos amplifying machine-eps SDF differences,
+  not an SDF error; both meshes valid + deterministic.)
+- **New #1 bottleneck:** the SDF kernel is still 60s/72s — brute
+  O(N_pts x 9296 segs) per call, called ~2854x (once per distmesh iter).
+  Next lever = spatial pruning (cKDTree / uniform cell grid) so each point
+  tests only nearby segments → target another 5-10x. distmesh `np.unique`
+  bar-extraction (`sort` 4.2s) is the distant #2.
+
+---
+
+## 1. Hotspots (original static ranking — kept for reference)
 
 | # | Stage | Location | Why slow | Better data structure | Lang verdict | Fidelity risk |
 |---|-------|----------|----------|------------------------|--------------|---------------|
