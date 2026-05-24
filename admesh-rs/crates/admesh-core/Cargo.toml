@@ -1,0 +1,23 @@
+[package]
+name = "admesh-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "ADMESH 2D unstructured-mesh generator — Rust port of the faithful Python port."
+
+[dependencies]
+ndarray.workspace = true
+rayon.workspace = true
+spade.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rand_pcg.workspace = true
+
+[dev-dependencies]
+criterion = "0.5"
+approx = "0.5"
+
+[[bench]]
+name = "distmesh_bench"
+harness = false
