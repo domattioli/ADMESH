@@ -1,0 +1,31 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/admesh-core",
+    "crates/admesh-py",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["ADMESH contributors"]
+license = "MIT"
+repository = "https://github.com/domattioli/admesh"
+
+[workspace.dependencies]
+ndarray = "0.16"
+rayon = "1.10"
+spade = "2.12"
+thiserror = "1.0"
+rand = "0.8"
+rand_pcg = "0.3"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+debug = false
+
+[profile.bench]
+inherits = "release"
+debug = true

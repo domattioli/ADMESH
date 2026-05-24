@@ -1,0 +1,91 @@
+name: Bug Report
+description: A regression, error, or numerical-identity failure in ADMESH.
+title: "[bug] "
+labels: ["type:bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. ADMESH's headline invariant is
+        **MATLAB-numerical-identity** for the faithful-port stage modules.
+        If your report is a parity failure (NumPy diverges from the MATLAB
+        reference at `atol=1e-10`), please call that out in the "Severity"
+        and "Constitution principle" sections below.
+
+  - type: input
+    id: module
+    attributes:
+      label: Affected module / stage
+      description: |
+        Python module path (`admesh/...`) or stage name (e.g. `CreateBackgroundGrid`).
+      placeholder: "e.g. admesh/_stages/curvature.py or admesh.api.triangulate"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly. Paste the full error / traceback.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+      description: Reference the MATLAB source, spec, or prior commit where the
+        expected behavior is defined, if known.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. `pytest tests/test_<file>.py::<test> -v`
+        2. Or: `python -c "import admesh; admesh.triangulate(...)"`
+        3. Observe error / mismatch
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "severity:low"
+        - "severity:medium"
+        - "severity:high"
+        - "severity:critical"
+      default: 1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: constitution-principle
+    attributes:
+      label: Constitution principle violated
+      description: If this bug breaks one of the project Constitution principles,
+        identify which. "none" is a fine answer for non-principle bugs.
+      options:
+        - "none"
+        - "Principle I — MATLAB numerical identity (atol=1e-10)"
+        - "Principle II — Spec-first development"
+        - "Principle III — Public API stability"
+        - "Principle IV — Test-gate parity (CI must catch regressions)"
+        - "Principle V — Cross-repo contract preservation"
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      placeholder: |
+        - ADMESH version / commit:
+        - Python version:
+        - OS:
+        - Optional extras installed (registry / gpu):

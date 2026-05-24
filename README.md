@@ -1,8 +1,7 @@
 <h1 align="center">ADMESH</h1>
 
 <p align="center">
-  <strong>An advanced, automatic unstructured mesh generator for 2D shallow-water models.</strong><br>
-  Python port of the MATLAB ADMESH library, with native ADCIRC <code>fort.14</code> round-trip and a Pythonic API.
+  <strong>Build and re-mesh ADCIRC domains — size-field-driven unstructured mesh generation with <code>fort.14</code> round-tripping.</strong>
 </p>
 
 <p align="center">
@@ -19,22 +18,6 @@
   <br>
   <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
-
----
-
-## Contents
-
-- [Why ADMESH](#why-admesh)
-- [Install](#install)
-- [Quickstart](#quickstart)
-- [The pipeline](#the-pipeline)
-- [Boundary types](#boundary-types)
-- [Status &amp; roadmap](#status--roadmap)
-- [Documentation](#documentation)
-- [Citation](#citation)
-- [Upstream &amp; related projects](#upstream--related-projects)
-- [Contact](#contact)
-- [License](#license)
 
 ---
 
@@ -71,8 +54,6 @@ Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely. The import na
 
 ## Quickstart
 
-### Built-in domain
-
 ```python
 import admesh
 from admesh import domains
@@ -89,58 +70,17 @@ mesh.to_fort14("disk.14")
   <em>Notched-rectangle domain, meshed at <code>h=0.04</code> with the default curvature + medial-axis size-field stack.</em>
 </p>
 
-### Round-trip with ADCIRC `fort.14`
+See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
 
-```python
-import admesh
+## Pipeline
 
-mesh = admesh.read_fort14("input.14")
-mesh.to_fort14("output.14")
-assert mesh.equals(admesh.read_fort14("output.14"))     # bit-faithful
+```mermaid
+flowchart LR
+    A["SDF / fort.14"] --> B["Domain"]
+    B --> C["Size field\n(curvature + medial axis\n+ bathy + tide)"]
+    C --> D["distmesh2d\n(truss equilibrium)"]
+    D --> E["Mesh\n(fort.14 out)"]
 ```
-
-### Re-mesh an existing fort.14
-
-```python
-import admesh
-from admesh.api import Domain
-
-source = admesh.read_fort14("coarse.14")
-domain = Domain.from_mesh(source)
-refined = admesh.triangulate(domain, h_max=500.0, h_min=50.0)
-refined.to_fort14("refined.14")
-```
-
-### Custom size-field contribution
-
-```python
-import numpy as np
-import admesh
-
-def refine_near_breaker(pts: np.ndarray) -> np.ndarray:
-    return 50.0 + 0.2 * np.abs(pts[:, 0] - 1500.0)
-
-mesh = admesh.triangulate(
-    "coast.14",
-    user_contribs=(refine_near_breaker,),
-)
-```
-
-Built-in size-field stages (curvature, medial axis, bathymetry, tide) `min`-stack identically to MATLAB. User contributions compose on top via `combine=` (default: elementwise minimum).
-
-### Build a `Domain` directly from an SDF
-
-```python
-import numpy as np
-from admesh.api import Domain, triangulate
-
-def sdf_disk(p: np.ndarray) -> np.ndarray:
-    return np.linalg.norm(p, axis=1) - 1.0
-
-mesh = triangulate(Domain(sdf=sdf_disk, bbox=(-1, -1, 1, 1)), h_max=0.1)
-```
-
-## The pipeline
 
 Each call to `triangulate(...)` flows through the 13-stage ADMESH pipeline (faithful port of the MATLAB modules under `01_ADMESH_Library`):
 
@@ -162,8 +102,6 @@ Each call to `triangulate(...)` flows through the 13-stage ADMESH pipeline (fait
 
 The Numba-JIT iterative solver replaces the C MEX from the MATLAB original — no compile step at install time.
 
-## Boundary types
-
 `BoundaryType` is an `IntEnum` over the ADCIRC `IBTYPE` codes that the fort.14 reader/writer names. Unmapped codes round-trip as plain `int` on `BoundarySegment.bc_type`.
 
 | Code | Name | Meaning |
@@ -183,6 +121,19 @@ for seg in mesh.boundaries:
     if seg.bc_type == BoundaryType.ISLAND:
         ...
 ```
+
+## Ecosystem
+
+| Repo | Role |
+|---|---|
+| [CHILmesh](https://github.com/domattioli/CHILmesh) | Core engine — ADMESH consumes it for adjacency, smoothing, and quality analysis |
+| [ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) | Curated ADCIRC mesh registry; pairs with ADMESH for discovery and contribution |
+| [QuADMesh](https://github.com/domattioli/QuADMesh) | Quad counterpart — converts ADMESH triangulations to quadrilateral meshes |
+| [MADMESHing](https://github.com/domattioli/MADMESHing) | Benchmark harness comparing ADMESH (control tri) vs quad generators |
+
+**Upstream MATLAB reference**: [coltonjconroy/ADMESH](https://github.com/coltonjconroy/ADMESH) — maintained by the original authors; new functionality pulled across as it lands.
+
+*[DomI](https://github.com/domattioli/DomI) provides dev-session skills and governance for all repos.*
 
 ## Status & roadmap
 
@@ -212,15 +163,11 @@ Open epics live as labeled issues — see [planning-required](https://github.com
 
 The DOI `10.5281/zenodo.20264101` resolves to the latest release; version-specific DOIs are listed on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) is provided at the repo root for tools that consume it (GitHub's "Cite this repository" button, Zotero, etc.). Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
 
-## Upstream & related projects
+## Contributing
 
-- **[coltonjconroy/ADMESH](https://github.com/coltonjconroy/ADMESH)** — reference MATLAB implementation, maintained by the original author. New functionality is pulled across as it lands upstream.
-- **[ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains)** — federated registry of ADCIRC-compatible meshes for discovery, lineage tracking, and community contribution. Built as a companion to this library.
+Contributions and bug reports are welcome — open an issue or pull request on [GitHub](https://github.com/domattioli/ADMESH).
 
-## Contact
-
-- **Theory** (algorithm, size-field formulation, ADCIRC integration): Ethan J. Kubatko — [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu)
-- **Python port** (this repository): Dominik Mattioli — [github.com/domattioli](https://github.com/domattioli)
+**Theory** (algorithm, size-field formulation, ADCIRC integration): Ethan J. Kubatko — [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu) / **Python port** (this repository): Dominik Mattioli — [github.com/domattioli](https://github.com/domattioli)
 
 ## License
 
