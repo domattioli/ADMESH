@@ -599,6 +599,8 @@ def triangulate(
     max_iter: int | None = None,
     initial_points: "np.ndarray | None" = None,
     quality_gate: tuple[float, float] = (0.30, 0.60),
+    ttol: float | None = None,
+    dptol: float | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -623,6 +625,10 @@ def triangulate(
         Maximum iterations for mesh generation.
     quality_gate : tuple[float, float]
         Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).
+    ttol : float or None
+        Relative displacement threshold for Delaunay rebuild. Default: 0.27.
+    dptol : float or None
+        Interior node movement tolerance for convergence. Default: 2e-3.
 
     Returns
     -------
@@ -686,6 +692,10 @@ def triangulate(
         opts["seed"] = int(seed)
     if max_iter is not None:
         opts["niter"] = int(max_iter)
+    if ttol is not None:
+        opts["ttol"] = float(ttol)
+    if dptol is not None:
+        opts["dptol"] = float(dptol)
     if initial_points is not None:
         opts["initial_points"] = np.asarray(initial_points, dtype=np.float64)
 

@@ -32,6 +32,20 @@ SDF = Callable[[Points], NDArray[np.float64]]
 SizeFn = Callable[[Points], NDArray[np.float64]]
 
 
+def _unique_bars(t: NDArray[np.int64], n: int) -> NDArray[np.int64]:
+    """Unique sorted bars (a<b) from row-sorted triangles.
+
+    Equivalent to ``np.unique(vstack(edges), axis=0)`` but dedups on a packed
+    1D integer key (``a*n + b``) so it is an int64 sort instead of a 2D lexsort.
+    With a<b guaranteed (``t`` is row-sorted) the key order matches lexicographic
+    row order, so the output is bit-identical to the axis=0 unique.
+    """
+    e = np.vstack([t[:, [0, 1]], t[:, [0, 2]], t[:, [1, 2]]])
+    key = e[:, 0].astype(np.int64) * n + e[:, 1]
+    uk = np.unique(key)
+    return np.column_stack([uk // n, uk % n]).astype(e.dtype)
+
+
 def _initial_distribution(bbox: tuple[float, float, float, float], h0: float) -> Points:
     """Equilateral-triangle lattice covering the bounding box."""
     xmin, ymin, xmax, ymax = bbox
@@ -62,8 +76,8 @@ def distmesh2d(
     pfix: ArrayLike | None = None,
     *,
     initial_points: ArrayLike | None = None,
-    dptol: float = 1e-3,
-    ttol: float = 0.1,
+    dptol: float = 2e-3,
+    ttol: float = 0.27,
     Fscale: float = 1.2,
     deltat: float = 0.2,
     geps_factor: float = 1e-3,
@@ -167,9 +181,7 @@ def distmesh2d(
             centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
             keep = fd(centroids) < -geps
             t = np.sort(t_all[keep], axis=1)
-            bars = np.unique(
-                np.vstack([t[:, [0, 1]], t[:, [0, 2]], t[:, [1, 2]]]), axis=0
-            )
+            bars = _unique_bars(t, len(p))
 
         if bars.size == 0:
             break
@@ -198,11 +210,11 @@ def distmesh2d(
         outside = d > 0
         if outside.any():
             po = p_new[outside]
-            dx = (fd(po + np.array([deps, 0.0])) - fd(po)) / deps
-            dy = (fd(po + np.array([0.0, deps])) - fd(po)) / deps
+            d_o = d[outside]
+            dx = (fd(po + np.array([deps, 0.0])) - d_o) / deps
+            dy = (fd(po + np.array([0.0, deps])) - d_o) / deps
             denom = dx * dx + dy * dy
             safe = denom > 0
-            d_o = d[outside]
             shift = np.zeros_like(po)
             shift[safe, 0] = d_o[safe] * dx[safe] / denom[safe]
             shift[safe, 1] = d_o[safe] * dy[safe] / denom[safe]
