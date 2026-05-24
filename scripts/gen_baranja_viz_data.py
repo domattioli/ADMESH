@@ -90,18 +90,18 @@ def size_components(p: np.ndarray, ring: np.ndarray, hmin: float, hmax: float) -
     dmin = np.sqrt(dist2[np.arange(len(p)), nearest])
     cnear = curv[nearest]
     decay = np.exp(-(dmin / 0.30) ** 2)
-    h_curv = hmax / (1.0 + 3.0 * cnear * decay)
+    h_curv = hmax / (1.0 + 1.2 * cnear * decay)
 
     # --- bathymetric gradient factor
     eps = 1e-3
     zx = (fake_bathymetry(x + eps, y) - fake_bathymetry(x - eps, y)) / (2 * eps)
     zy = (fake_bathymetry(x, y + eps) - fake_bathymetry(x, y - eps)) / (2 * eps)
     grad = np.hypot(zx, zy)
-    h_grad = hmax / (1.0 + 6.0 * grad)
+    h_grad = hmax / (1.0 + 2.5 * grad)
 
     # --- bathymetric depth (value) factor
     depth = np.clip(-fake_bathymetry(x, y), 0.0, None)
-    h_depth = hmax / (1.0 + 2.5 * depth)
+    h_depth = hmax / (1.0 + 1.0 * depth)
 
     h = np.clip(np.minimum.reduce([h_curv, h_grad, h_depth]), hmin, hmax)
     return {
@@ -185,7 +185,7 @@ def instrumented_distmesh(rings, bbox, hmin, hmax, *, niter=120, seed=0):
 
 def main():
     rings, bbox = load_normalized_rings()
-    hmin, hmax = 0.07, 0.22
+    hmin, hmax = 0.05, 0.18
     print(f"Baranja domain bbox={tuple(round(b,2) for b in bbox)}  hmin={hmin} hmax={hmax}")
 
     # bathymetry + size-field grids for the heatmap backgrounds
