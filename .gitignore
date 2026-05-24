@@ -170,3 +170,10 @@ output/*
 !output/quad_prep_block_o/
 !output/coverage.json
 !output/durations.txt
+*.mexw64
+*.mexmaci64
+*.mexa64
+
+# manim render artifacts + generated viz data
+media/
+scripts/viz_data/
