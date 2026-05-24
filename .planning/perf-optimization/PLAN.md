@@ -60,6 +60,24 @@ flipped the predicted ranking:
 
 ---
 
+## Optimization log (autonomous loop)
+
+Headline = Great Lakes coastline (M=13769 segs), `triangulate` h_max=0.15/
+h_min=0.08, 1418 nodes, warmup excluded, seed=0.
+
+| Step | Change | Headline wall | Speedup (cum vs shapely) |
+|------|--------|---------------|--------------------------|
+| 0 | shapely per-point SDF | ~89s (h=1.0) / 23.8s here | 1.0x |
+| 1 | Numba brute SDF kernel | 55.7s | — |
+| 2 | cKDTree distance prune | 23.8s | baseline for loop |
+| 3 | **uniform-grid SDF (distance ring + row-bucketed sign)** | **7.85s** | **3.0x vs step 2** |
+
+Step 3: replaced scipy cKDTree + O(N·M) ray-cast with a single numba-parallel
+grid kernel. Distance = expanding Chebyshev cell-ring search; sign = even-odd
+ray cast over segments bucketed per grid row (each seg once/row → safe parity).
+SDF cost 19.0s → 3.3s. Output bit-identical to brute kernel (max diff 0.0,
+100% sign agreement), deterministic, 126 tests green.
+
 ## 1. Hotspots (original static ranking — kept for reference)
 
 | # | Stage | Location | Why slow | Better data structure | Lang verdict | Fidelity risk |

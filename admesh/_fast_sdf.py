@@ -155,6 +155,140 @@ if _HAVE_NUMBA:
         return out
 
 
+def _build_grid(ax, ay, bx, by, nx, ny):
+    """Bucket segments into a uniform grid (2D cells for distance, rows for sign).
+
+    Returns grid metadata plus CSR arrays:
+      cell_indptr/cell_segs : segments overlapping each of nx*ny cells
+      row_indptr/row_segs   : segments overlapping each of ny rows (each seg
+                              listed once per row -> safe parity count)
+    """
+    xmin = min(ax.min(), bx.min())
+    xmax = max(ax.max(), bx.max())
+    ymin = min(ay.min(), by.min())
+    ymax = max(ay.max(), by.max())
+    xspan = xmax - xmin or 1.0
+    yspan = ymax - ymin or 1.0
+    # pad so points on the max edge land in the last cell
+    xmax += xspan * 1e-9
+    ymax += yspan * 1e-9
+    inv_cx = nx / (xmax - xmin)
+    inv_cy = ny / (ymax - ymin)
+    m = ax.shape[0]
+
+    sx0 = np.clip(((np.minimum(ax, bx) - xmin) * inv_cx).astype(np.int64), 0, nx - 1)
+    sx1 = np.clip(((np.maximum(ax, bx) - xmin) * inv_cx).astype(np.int64), 0, nx - 1)
+    sy0 = np.clip(((np.minimum(ay, by) - ymin) * inv_cy).astype(np.int64), 0, ny - 1)
+    sy1 = np.clip(((np.maximum(ay, by) - ymin) * inv_cy).astype(np.int64), 0, ny - 1)
+
+    cell_lists: list[list[int]] = [[] for _ in range(nx * ny)]
+    row_lists: list[list[int]] = [[] for _ in range(ny)]
+    for j in range(m):
+        for ry in range(sy0[j], sy1[j] + 1):
+            row_lists[ry].append(j)
+            base = ry * nx
+            for rx in range(sx0[j], sx1[j] + 1):
+                cell_lists[base + rx].append(j)
+
+    def _csr(lists):
+        counts = np.array([len(c) for c in lists], dtype=np.int64)
+        indptr = np.zeros(len(lists) + 1, dtype=np.int64)
+        np.cumsum(counts, out=indptr[1:])
+        segs = np.empty(int(indptr[-1]), dtype=np.int64)
+        for i, c in enumerate(lists):
+            if c:
+                segs[indptr[i] : indptr[i + 1]] = c
+        return np.ascontiguousarray(indptr), np.ascontiguousarray(segs)
+
+    cell_indptr, cell_segs = _csr(cell_lists)
+    row_indptr, row_segs = _csr(row_lists)
+    meta = np.array([xmin, ymin, inv_cx, inv_cy, float(nx), float(ny)], dtype=np.float64)
+    return meta, cell_indptr, cell_segs, row_indptr, row_segs
+
+
+if _HAVE_NUMBA:
+
+    @njit(parallel=True, fastmath=True, cache=True)
+    def _grid_sdf_numba(px, py, ax, ay, bx, by, meta,
+                        cell_indptr, cell_segs, row_indptr, row_segs):  # pragma: no cover
+        xmin = meta[0]
+        ymin = meta[1]
+        inv_cx = meta[2]
+        inv_cy = meta[3]
+        nx = int(meta[4])
+        ny = int(meta[5])
+        cw = 1.0 / inv_cx
+        ch = 1.0 / inv_cy
+        cell_min = cw if cw < ch else ch
+        n = px.shape[0]
+        out = np.empty(n, dtype=np.float64)
+        for i in prange(n):
+            qx = px[i]
+            qy = py[i]
+            cx = int((qx - xmin) * inv_cx)
+            cy = int((qy - ymin) * inv_cy)
+            if cx < 0:
+                cx = 0
+            elif cx >= nx:
+                cx = nx - 1
+            if cy < 0:
+                cy = 0
+            elif cy >= ny:
+                cy = ny - 1
+            # distance: expanding Chebyshev ring over 2D cells
+            dmin = 1e300
+            rmax = nx if nx > ny else ny
+            for r in range(rmax + 1):
+                if r > 0 and (r - 1) * cell_min > dmin:
+                    break
+                x0 = cx - r
+                x1 = cx + r
+                y0 = cy - r
+                y1 = cy + r
+                for gy in range(y0, y1 + 1):
+                    if gy < 0 or gy >= ny:
+                        continue
+                    for gx in range(x0, x1 + 1):
+                        if gx < 0 or gx >= nx:
+                            continue
+                        # ring shell only
+                        if r > 0 and gx != x0 and gx != x1 and gy != y0 and gy != y1:
+                            continue
+                        cidx = gy * nx + gx
+                        for p in range(cell_indptr[cidx], cell_indptr[cidx + 1]):
+                            j = cell_segs[p]
+                            axj = ax[j]
+                            ayj = ay[j]
+                            ex = bx[j] - axj
+                            ey = by[j] - ayj
+                            seg2 = ex * ex + ey * ey
+                            if seg2 == 0.0:
+                                t = 0.0
+                            else:
+                                t = ((qx - axj) * ex + (qy - ayj) * ey) / seg2
+                                if t < 0.0:
+                                    t = 0.0
+                                elif t > 1.0:
+                                    t = 1.0
+                            ddx = qx - (axj + t * ex)
+                            ddy = qy - (ayj + t * ey)
+                            d = (ddx * ddx + ddy * ddy) ** 0.5
+                            if d < dmin:
+                                dmin = d
+            # sign: even-odd ray cast over segments bucketed into this row
+            crossings = 0
+            for p in range(row_indptr[cy], row_indptr[cy + 1]):
+                j = row_segs[p]
+                ayj = ay[j]
+                byj = by[j]
+                if (ayj > qy) != (byj > qy):
+                    xint = (bx[j] - ax[j]) * (qy - ayj) / (byj - ayj) + ax[j]
+                    if qx < xint:
+                        crossings += 1
+            out[i] = -dmin if (crossings & 1) else dmin
+        return out
+
+
 def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], np.ndarray]:
     """Build a vectorized SDF closure over polygon rings (outer first, holes after).
 
@@ -170,15 +304,13 @@ def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], n
     by = np.ascontiguousarray(edges[:, 3])
     nseg = ax.shape[0]
 
-    tree = None
+    grid = None
     if _HAVE_NUMBA and nseg > 4 * knn:
-        try:
-            from scipy.spatial import cKDTree
-
-            mid = np.column_stack([(ax + bx) * 0.5, (ay + by) * 0.5])
-            tree = cKDTree(mid)
-        except ImportError:
-            tree = None
+        # uniform grid sized to ~1 segment per cell; prunes BOTH the distance
+        # term (2D cell ring search) and the sign term (row-bucketed ray cast),
+        # entirely inside one numba-parallel kernel (no scipy per-call overhead).
+        ncell = max(1, int(np.sqrt(nseg)))
+        grid = _build_grid(ax, ay, bx, by, ncell, ncell)
 
     def sdf(p: np.ndarray) -> np.ndarray:
         pts = np.asarray(p, dtype=np.float64)
@@ -186,11 +318,12 @@ def fast_sdf(rings: list[np.ndarray], knn: int = 32) -> Callable[[np.ndarray], n
             pts = pts[None, :]
         px = np.ascontiguousarray(pts[:, 0])
         py = np.ascontiguousarray(pts[:, 1])
-        if tree is not None:
-            k = min(knn, nseg)
-            _, cand = tree.query(pts, k=k)
-            cand = np.ascontiguousarray(np.atleast_2d(cand).astype(np.int64))
-            return _dist_knn_numba(px, py, ax, ay, bx, by, cand)
+        if grid is not None:
+            meta, cell_indptr, cell_segs, row_indptr, row_segs = grid
+            return _grid_sdf_numba(
+                px, py, ax, ay, bx, by, meta,
+                cell_indptr, cell_segs, row_indptr, row_segs,
+            )
         if _HAVE_NUMBA:
             return _sdf_numba(px, py, ax, ay, bx, by)
         return _sdf_numpy(px, py, ax, ay, bx, by)
