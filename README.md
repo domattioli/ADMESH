@@ -148,17 +148,17 @@ for seg in mesh.boundaries:
 
 Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). The size-field floor `hmax=0.967` and grading `g` are seeded from the original ADCIRC mesh (`wnat_test.14`), and `hmin=0.05` / `g=0.10` is the published operating point: `hmin=0.05` resolves the small islands (e.g. Bermuda, ~0.06 wide) that the original mesh's coarser floor left as sub-resolution slivers, and `g=0.10` is the grading limit that keeps the coast→shelf transition smooth. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
 
-| Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | speedup |
+| Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | v1.0.0alpha-preview (C++ distmesh) |
 |---|---|---|---|
-| domain load + SDF build | 0.018 | 0.017 | 1.0x |
-| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 5.4x |
-| curvature (`apply_curvature`) | 0.003 | 0.003 | 1.0x |
-| medial axis (`apply_medial_axis`) | 0.462 | 0.416 | 1.1x |
-| grading solve (`solve_iter`, g) | 0.496 | 0.005 | 97.2x |
-| size-field build (subtotal) | 2.425 | 0.695 | 3.5x |
-| distmesh (point gen + relax) | 1255.0 | 46.5 | 27.0x |
-| quality (`mesh_quality`) | 0.009 | 0.009 | 1.1x |
-| **TOTAL** | **1257.5 s** | **47.2 s** | **26.6x** |
+| domain load + SDF build | 0.018 | 0.017 | 0.017 |
+| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 0.271 |
+| curvature (`apply_curvature`) | 0.003 | 0.003 | 0.003 |
+| medial axis (`apply_medial_axis`) | 0.462 | 0.416 | 0.416 |
+| grading solve (`solve_iter`, g) | 0.496 | 0.005 | 0.005 |
+| size-field build (subtotal) | 2.425 | 0.695 | 0.695 |
+| distmesh (point gen + relax) | 1255.0 | 46.5 | 12.0 |
+| quality (`mesh_quality`) | 0.009 | 0.009 | 0.009 |
+| **TOTAL** | **1257.5 s** | **47.2 s** | **12.7 s** |
 
 |  | v0.2.1 | v0.5.0 |
 |---|---|---|
@@ -168,9 +168,7 @@ Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North At
 | Mean Elem Quality | 0.963 | 0.962 |
 | StDev Elem Quality | 0.055 | 0.057 |
 
-Output meshes are statistically identical (same node count, same mean quality) — the optimization is speed-only. The low min-quality outlier is a geometry-inherent sliver at Bermuda, where the island is near the `hmin` floor; it does not move the mean (0.962):
-
-![WNAT re-mesh quality comparison](output/wnat_quality_comparison.png)
+Output meshes are statistically identical (same node count, same mean quality) — the optimization is speed-only. The low min-quality outlier is a geometry-inherent sliver at Bermuda, where the island is near the `hmin` floor; it does not move the mean (0.962).
 
 Reproduce or extend across new versions:
 
