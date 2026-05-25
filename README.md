@@ -164,7 +164,7 @@ for seg in mesh.boundaries:
 
 Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). The size-field floor `hmax=0.967` and grading `g` are seeded from the original ADCIRC mesh (`wnat_test.14`), and `hmin=0.05` / `g=0.10` is the published operating point: `hmin=0.05` resolves the small islands (e.g. Bermuda, ~0.06 wide) that the original mesh's coarser floor left as sub-resolution slivers, and `g=0.10` is the grading limit that keeps the coast→shelf transition smooth. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
 
-| Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | v1.0.0alpha-preview (C++ distmesh) |
+| Algorithm step | v0.2.1 | v0.5.0 (Numba) | v1.0.0alpha (C++) |
 |---|---|---|---|
 | domain load + SDF build | 0.018 | 0.017 | 0.017 |
 | SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 0.271 |
