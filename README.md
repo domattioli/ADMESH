@@ -1,7 +1,13 @@
 <h1 align="center">ADMESH</h1>
 
 <p align="center">
-  <strong>Build and re-mesh ADCIRC domains — size-field-driven unstructured mesh generation with <code>fort.14</code> round-tripping.</strong>
+  <strong>An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</strong><br>
+  Python port of the MATLAB ADMESH library and a Pythonic API.
+</p>
+
+<p align="center">
+  <strong><a href="https://scholar.google.com/citations?user=IBFSkOcAAAAJ&hl=en">Dominik Mattioli</a><sup>1†</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan Kubatko</a><sup>2</sup></strong><br>
+  <sup>†</sup>Corresponding author | <sup>1</sup>Unaffiliated | <sup>2</sup>Ohio State University (CHIL)
 </p>
 
 <p align="center">
@@ -18,6 +24,23 @@
   <br>
   <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
+
+> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase. That original code (no longer maintained) is frozen at [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) (`01_ADMESH_Library`), itself derived from the original [`coltonjconroy/ADMESH`](https://github.com/coltonjconroy/ADMESH). Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
+
+---
+
+## Table of Contents
+
+- [Why ADMESH](#why-admesh)
+- [Install](#install)
+- [Quickstart](#quickstart)
+- [Pipeline](#pipeline)
+- [Performance](#performance)
+- [Status & roadmap](#status--roadmap)
+- [Documentation](#documentation)
+- [Citation](#citation)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
