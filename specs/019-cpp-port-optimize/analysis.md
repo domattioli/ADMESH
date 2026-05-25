@@ -38,10 +38,9 @@ foundational): audit `tests/fixtures/<stage>/*.npz` for collinear slivers +
 zero-area triangles, extend from the MATLAB oracle where nominal-only. T012
 blocks the parity gates so every stage is exercised against degenerate cases.
 
-**A3 — spec text stale vs plan / low.** Spec still marks FR-006 and FR-010
-"[DEFERRED to plan]"; research.md R2/R5 now resolves both. Harmless (plan is
-allowed to resolve deferrals) but the spec could be back-annotated. *Fix:
-optional.*
+**A3 — RESOLVED.** Spec FR-006/FR-010 back-annotated from "[DEFERRED to plan]"
+to "[RESOLVED in plan: research R2/R5]". No stale deferral markers remain except
+the operator-owned Art II.2 (correctly still open).
 
 **A4 — phase ordering note / informational.** tasks.md Phase 3=US1, Phase 4=US3,
 Phase 5=US2 — not in numeric US order. **Intentional**: US1 (native lib) is MVP;
@@ -50,10 +49,10 @@ in Dependencies. No action.
 
 **A5 — unresolved operator gate / high (carried, not a defect).** Two items are
 explicitly operator-blocked, correctly surfaced in both plan and tasks:
-- **Article II.2** amendment (T043) — required before merge to `main`; deferred
+- **Article II.2** amendment (T044) — required before merge to `main`; deferred
   this iteration by user direction. Plan Constitution Check marks it ⚠️ DEFERRED,
   not silently passed. Consistent across artifacts.
-- **R7 Triangle license** (T042) — Apache-2.0 redistribution vs Triangle's
+- **R7 Triangle license** (T043) — Apache-2.0 redistribution vs Triangle's
   non-commercial terms; gate as optional, default `delaunator` (MIT). Needs
   operator/legal call before wheel publish.
 
@@ -62,8 +61,8 @@ explicitly operator-blocked, correctly surfaced in both plan and tasks:
 | Principle | Verdict |
 |---|---|
 | I — faithful-port identity | ✅ per-stage parity gate is the spine of the plan |
-| Art II.2 — no C/C++ first cut | ⚠️ DEFERRED (operator), tracked T043 — not waived |
-| Art IV.4 — leaf→integrator order | ✅ tasks T018–T030 ordered leaves first, routine last |
+| Art II.2 — no C/C++ first cut | ⚠️ DEFERRED (operator), tracked T044 — not waived |
+| Art IV.4 — leaf→integrator order | ✅ tasks T019–T031 ordered leaves first, routine last |
 | Art IV.6 — divergence is a bug | ✅ parity-gate contract forbids widening bit-parity tol |
 | Art V — every stage a ref test | ✅ existing fixtures reused as oracle, both backends |
 | Art VI.7 — reuse branch | ✅ rides on `cpp-distmesh`, no new branch |
@@ -71,8 +70,10 @@ explicitly operator-blocked, correctly surfaced in both plan and tasks:
 
 ## Verdict
 
-Artifacts are **internally consistent and execution-ready**. A1 + A2 closed in
-the regenerated tasks.md (FR tags + T012 degenerate fixtures). Two **operator
-gates** remain (**A5**: Art II.2 amendment for merge, Triangle license for
-publish) — neither blocks Phase 1 start. No conflicting or duplicated
-requirements, no ambiguous tasks.
+Artifacts are **internally consistent and execution-ready**. Second-pass
+analyze: A1/A2/A3 all closed (FR tags + req→task map; T012 degenerate fixtures;
+spec deferrals back-annotated to R2/R5). All 10 FR / 5 SC / 4 US trace to tasks;
+all 5 spec edge cases now covered (degenerate T012, sdist-fallback T039, float-repro
+T004, callback bridge T009, file-domain T014). T001–T044 contiguous, no gaps/dups.
+Only **A5 operator gates** remain (Art II.2 amendment for merge T044, Triangle
+license for publish T043) — neither blocks Phase 1. No conflicts, no ambiguous tasks.

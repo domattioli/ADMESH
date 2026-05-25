@@ -176,8 +176,8 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
 - **FR-005**: Where a stage targets bit-parity, the build MUST forbid
   `-ffast-math` (and equivalents) and pin reduction/iteration order.
 - **FR-006**: The release pipeline MUST publish prebuilt wheels and a buildable
-  sdist + standalone CMake source distribution. [DEFERRED to plan: exact
-  platform/Python matrix.]
+  sdist + standalone CMake source distribution. [RESOLVED in plan: research R2 —
+  linux/macos/windows × CPython 3.10–3.13, cibuildwheel.]
 - **FR-007**: Python callbacks (custom `size_field`, custom SDF) MUST work
   unchanged when the surrounding stage runs in C++.
 - **FR-008**: fort.14 round-trip in C++ MUST be byte-faithful, including
@@ -185,7 +185,8 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
 - **FR-009**: The benchmark harness MUST gain a C++ column so per-stage and
   end-to-end speedup over the Numba baseline is tracked.
 - **FR-010**: A user MUST be able to select the active backend (C++ vs Python)
-  for debugging. [DEFERRED to plan: env var / kwarg / build flag.]
+  for debugging. [RESOLVED in plan: research R5 — kwarg > `ADMESH_BACKEND` env >
+  auto; explicit `backend="cpp"` with no module raises.]
 
 ### Key Entities
 
