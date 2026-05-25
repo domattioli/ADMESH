@@ -49,8 +49,8 @@
 For shallow-water modelers who need ADCIRC-ready meshes from Python:
 
 - **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with a 250+ test suite tracking numerical agreement — switching from MATLAB does not change your meshes.
-- **Native ADCIRC `fort.14` I/O.** Bit-faithful read/mesh/write round-trip, including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
-- **Physics-driven sizing.** The size field is a `min`-stack of curvature, medial-axis, bathymetry, and tide drivers — not a hand-tuned scalar. Custom contributions compose on top.
+- **Native ADCIRC `fort.14` I/O.** ADCIRC mesh format only (not gmsh, not generic). Bit-faithful read/mesh/write round-trip, including paired-edge records (IBTYPE 3/4/13/24).
+- **Physics-driven sizing.** Element size adapts to boundary curvature, shallow channels, bathymetric gradients, and tidal wavelength via automatic `min`-stack composition. No hand-tuned scalar; custom contributions layer on top.
 - **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen, typed dataclasses; the numerics stay inside the locked faithful-port modules.
 
 Not the right tool if you need 3-D, anisotropic, or non-triangular elements — use `gmsh` for those.
@@ -94,7 +94,7 @@ mesh.to_fort14("notched.14")
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.20</code>, <code>g=0.15</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
+  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.20</code>, <code>g=0.15</code> — elements refine at the sharp notch and corners, coarsen through the interior.</em>
 </p>
 
 **Domain-specific hyperparameters:**
