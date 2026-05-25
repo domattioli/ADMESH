@@ -16,6 +16,16 @@ Template:
 
 ---
 
+## 2026-05-25 — stage 02 — CreateBackgroundGrid
+
+**MATLAB**: `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)` in `02_Create_Background_Grid/CreateBackgroundGrid.m`
+**Python**: `admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1) -> BackgroundGrid`
+**Substitution**: MATLAB `vertcat(PTS.Points{:})` + min/max → `domain.bbox`. `meshgrid(xmin:delta:xmax, ...)` → `np.arange(xmin, xmax + 0.5*delta, delta)` + `np.meshgrid(..., indexing="xy")`. The bare `[X,Y,delta]` tuple is packaged as a frozen `BackgroundGrid` (fields `X`, `Y`, `delta`, `bbox`).
+**Behavior diff**: MATLAB pads the box by `hmax`; this signature carries no separate coarse size, so `padding` defaults to `h0` (one cell) and is overridable. Spacing maps `hmin → h0`, so `delta = h0 / res`. The `arange` half-open upper bound `xmax + 0.5*delta` reproduces MATLAB colon inclusivity and matches `eval_sdf_grid`.
+**Impact**: New callable surface only; routine.py still builds its grid via `eval_sdf_grid` (delegation deferred to a MATLAB-equipped parity run per spec 013 FR-013-5). `tests/test_background_grid.py` locks five property/contract tests now; the `atol=1e-10` MATLAB-fixture parity test stays `xfail(strict)` until the stage-02 fixture is exported (spec 013 T-013-B5). Shim `admesh/background_grid.py` re-exports both new names.
+
+---
+
 ## Issue #11 — Ring sorting by signed area (2026-04-26)
 
 **Fix**: `_derive_boundary_segments()` now sorts rings by **signed area** (shoelace formula) instead of **node count**.
