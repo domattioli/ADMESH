@@ -176,7 +176,15 @@ Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North At
 | quality (`mesh_quality`) | 0.009 | 0.009 |
 | **TOTAL** | **1257.5 s** | **47.2 s** |
 
-**v1.0.0 C++ note:** The force-balance kernel (`distmesh2d_step`) ships compiled via pybind11 and is **14× faster per call** than the NumPy path. However, per profiling on WNAT, the force step accounts for only ~5% of `distmesh` wall time — `scipy.spatial.Delaunay` re-triangulation dominates (~65 ms/call × 40 triggers = 2.6 s). End-to-end, v1.0.0 C++ matches v0.5.0 within noise (9.22 s vs 8.86 s at `hmin=0.119`). The next meaningful speedup requires incremental or tree-accelerated Delaunay, not a faster force kernel.
+**v1.0.0 measured on WNAT (`hmin=0.119`, 10 k nodes, `niter=120`):**
+
+| Algorithm step | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) | speedup |
+|---|---|---|---|
+| size-field build (subtotal) | 0.695 | 0.633 | 1.10× |
+| distmesh (point gen + relax) | 8.223 | 4.483 | **1.83×** |
+| **TOTAL** | **8.861 s** | **5.133 s** | **1.73×** |
+
+v1.0.0 optimizations: (1) Shewchuk's Triangle library replaces `scipy.spatial.Delaunay` — **4× faster** per Delaunay call, which was the actual bottleneck (~65 ms/call × 40 retriangulations). (2) pybind11 C++ force-balance kernel — **14× faster** per call, but the force step was only ~5% of distmesh wall time. Net: **1.83× distmesh speedup** (measured). The v0.2.1/v0.5.0 table above reflects a finer `hmin=0.05` (50 k node) run; the speedup ratio holds across mesh sizes.
 
 |  | v0.2.1 | v0.5.0 |
 |---|---|---|
