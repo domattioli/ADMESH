@@ -5,6 +5,26 @@
 **Status**: Draft
 **Input**: User description: "entirely port and optimize admesh in cpp" + "i want it all in cpp"
 
+## Clarifications
+
+### Session 2026-05-25
+
+- Q: Python bindings fate? → A: Retain pybind11 bindings as a drop-in facade
+  for current PyPI users (C++ core, Python surface preserved).
+- Q: Numba fallback lifecycle? → A: Keep the Python/Numba path **permanently**
+  as a no-toolchain fallback (not removed after the port). This preserves the
+  "no compile step at install" north star — wheels accelerate, but a
+  toolchain-free pure-Python install still meshes.
+- Q: Parity strategy vs MATLAB fixtures? → A: Per-stage — hold bit-parity
+  (`atol=1e-8`, forbid `-ffast-math`, pin reduction order) where cheap;
+  relax tolerance with a documented per-stage rationale where bit-parity is
+  costly. No single global tolerance.
+- Q: SC-003 speedup target over Numba (WNAT)? → A: No fixed multiple — measure
+  and report per-stage + end-to-end speedup; do not gate on a threshold.
+- Deferred to plan phase: wheel platform/Python matrix, backend-select
+  mechanism (env var / kwarg / build flag), and the Article II.2 Constitution
+  amendment authorizing a full C++ backend.
+
 ## Overview
 
 Rewrite ADMESH **entirely in C++** — all 13 pipeline stages, the public API
@@ -17,30 +37,27 @@ keep working, but the source of truth is C++.
 This extends the partial C++ work on `cpp-distmesh` (PR #103: distmesh force
 kernel + Triangle Delaunay) into a complete native port.
 
-## Governance Tensions *(MUST resolve before plan)*
+## Governance Tensions
 
-A full C++ rewrite collides with binding Constitution rules. The plan phase
-cannot proceed until these are dispositioned via amendment.
+Most tensions resolved in clarify (see Clarifications). One operator decision
+remains and blocks the plan phase.
 
-- **[NEEDS CLARIFICATION] Article II.2 — "No C/C++ extensions in first cut."**
-  C/C++ is permitted only where Numba underperforms > 2× per-stage. A
-  blanket rewrite needs an explicit Constitution amendment authorizing C++
-  as the primary backend.
-- **[NEEDS CLARIFICATION] Principle I — faithful-port numerical identity.**
-  The 13 stages MUST stay numerically identical to MATLAB (`atol=1e-8`). The
-  C++ implementation MUST pass the same `.npz` MATLAB-fixture parity tests.
-  `-ffast-math` / FMA / reduction order can break bit-parity — the build must
-  forbid fast-math and match reduction order, or the tolerance is formally
-  relaxed.
-- **[NEEDS CLARIFICATION] Distribution north star.** "No compile step at
-  install" (pure Python + Numba) breaks if C++ is primary. Decide the binary
-  story: prebuilt wheels via cibuildwheel across {linux, macos-arm64,
-  macos-x86, windows} × supported Python, plus standalone C++ build
-  (CMake) for non-Python consumers.
-- **[NEEDS CLARIFICATION] Python parity surface.** "All in C++" means the
-  Python layer (`api.py`, `fort14.py`, `loaders.py`, etc.) is reimplemented
-  in C++ and re-exposed via bindings. Confirm Python bindings are retained
-  (drop-in for current PyPI users) versus dropped (C++/CLI only).
+- **[DEFERRED — operator] Article II.2 — "No C/C++ extensions in first cut."**
+  C/C++ is permitted only where Numba underperforms > 2× per-stage. A blanket
+  rewrite needs an explicit Constitution amendment authorizing C++ as the
+  primary backend. Retained Numba fallback (Q2) softens the conflict but does
+  not remove it — amendment still required before `/speckit-plan`.
+- **[RESOLVED] Principle I — faithful-port numerical identity.** Per-stage
+  parity (clarify Q3): hold bit-parity (`atol=1e-8`, forbid `-ffast-math`,
+  pin reduction order) where cheap; relax tolerance with documented per-stage
+  rationale where bit-parity is costly. Each stage records its parity mode.
+- **[RESOLVED] Distribution north star.** The Python/Numba path is retained
+  **permanently** as a no-toolchain fallback (clarify Q2), so "no compile step
+  at install" holds. Prebuilt wheels (cibuildwheel) + a standalone CMake build
+  accelerate; absent a wheel/toolchain, the pure-Python path still meshes.
+- **[RESOLVED] Python parity surface.** pybind11 bindings retained as a
+  drop-in facade for current PyPI users (clarify Q1); C++ is the source of
+  truth, Python API surface unchanged.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -151,15 +168,16 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
   pybind11 bindings — no signature or observable-behavior change for current
   users.
 - **FR-003**: Each C++ stage MUST pass the existing MATLAB `.npz` fixture
-  parity test for that stage at a documented tolerance.
-- **FR-004**: During incremental porting, the pipeline MUST run end-to-end at
-  all times — a stage not yet in C++ falls back to the Python/Numba path
-  (until the corresponding C++ stage is parity-green).
-- **FR-005**: The build MUST forbid `-ffast-math` (and equivalents) and pin
-  reduction/iteration order where required to preserve fixture parity.
-- **FR-006**: The release pipeline MUST publish prebuilt wheels
-  [NEEDS CLARIFICATION: exact platform/Python matrix] and a buildable sdist /
-  source distribution for the standalone C++ library.
+  parity test. Parity mode is per-stage (Q3): bit-parity (`atol=1e-8`) where
+  cheap; relaxed tolerance with documented rationale where costly.
+- **FR-004**: The Python/Numba path MUST be retained **permanently** as a
+  no-toolchain fallback (Q2). Any stage without a C++ implementation, or any
+  install without a wheel/toolchain, falls back to it — pipeline always runs.
+- **FR-005**: Where a stage targets bit-parity, the build MUST forbid
+  `-ffast-math` (and equivalents) and pin reduction/iteration order.
+- **FR-006**: The release pipeline MUST publish prebuilt wheels and a buildable
+  sdist + standalone CMake source distribution. [DEFERRED to plan: exact
+  platform/Python matrix.]
 - **FR-007**: Python callbacks (custom `size_field`, custom SDF) MUST work
   unchanged when the surrounding stage runs in C++.
 - **FR-008**: fort.14 round-trip in C++ MUST be byte-faithful, including
@@ -167,7 +185,7 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
 - **FR-009**: The benchmark harness MUST gain a C++ column so per-stage and
   end-to-end speedup over the Numba baseline is tracked.
 - **FR-010**: A user MUST be able to select the active backend (C++ vs Python)
-  for debugging [NEEDS CLARIFICATION: env var, kwarg, or build flag?].
+  for debugging. [DEFERRED to plan: env var / kwarg / build flag.]
 
 ### Key Entities
 
@@ -188,9 +206,10 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
   (parity + API + fort.14 round-trip), zero regressions.
 - **SC-002**: A standalone C++ test target (no Python) meshes the MVP domains
   and WNAT, asserting quality within parity tolerance.
-- **SC-003**: End-to-end `triangulate` on WNAT (~49k nodes) is at least
-  [NEEDS CLARIFICATION: target multiple, e.g. ≥ 2×] faster than the Numba
-  baseline at the same operating point and seed.
+- **SC-003**: End-to-end `triangulate` on WNAT (~49k nodes) is benchmarked
+  against the Numba baseline at the same operating point and seed; per-stage
+  and end-to-end speedup is measured and reported. No fixed threshold gates
+  acceptance (Q4) — the requirement is the measurement, not a target multiple.
 - **SC-004**: Importable wheels + a building standalone C++ library exist for
   every declared target and pass an install/build-and-mesh smoke test in a
   clean environment.
@@ -205,8 +224,9 @@ wheels on linux/macos/windows × supported Python; smoke tests pass on each.
 - "All in C++" means the numerical core AND the API/IO are reimplemented in
   C++; Python is a thin binding layer over the C++ library, retained for
   backward compatibility.
-- The Numba path is retained until every stage has a green C++ parity test,
-  to keep the pipeline always-runnable during the port.
+- The Numba path is retained **permanently** as a no-toolchain fallback (not
+  removed post-port), keeping the pipeline always-runnable and the
+  "no compile step at install" north star intact.
 
 ## Out of Scope
 
