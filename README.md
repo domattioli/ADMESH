@@ -80,8 +80,13 @@ Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely. The import na
 import admesh
 from admesh import domains
 
+# Simple domain: uniform sizing
 mesh = admesh.triangulate(domains.UNIT_DISK, h_max=0.1)
 mesh.to_fort14("disk.14")
+
+# Complex domain: adaptive grading (notched rectangle)
+mesh = admesh.triangulate(domains.NOTCHED_RECTANGLE, h_max=0.2, g=0.15)
+mesh.to_fort14("notched.14")
 ```
 
 `mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`. Regenerate the hero animation via `python scripts/render_annulus_animation.py` (needs `matplotlib` + `pillow`; optional `ffmpeg` for MP4).
@@ -89,8 +94,19 @@ mesh.to_fort14("disk.14")
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.10</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
+  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.20</code>, <code>g=0.15</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
 </p>
+
+**Domain-specific hyperparameters:**
+```python
+# Simple domains (convex, smooth boundaries)
+admesh.triangulate(domains.ANNULUS, h_max=0.05)           # fine mesh
+admesh.triangulate(domains.UNIT_DISK, h_max=0.10)
+
+# Complex domains (sharp features, narrow channels)
+admesh.triangulate(domains.NOTCHED_RECTANGLE, h_max=0.20, g=0.15)  # coarser but graded
+admesh.triangulate(domains.L_SHAPE, h_max=0.08, g=0.12)
+```
 
 See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
 
