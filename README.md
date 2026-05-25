@@ -25,11 +25,10 @@
 
 For shallow-water modelers who need ADCIRC-ready meshes from Python:
 
-- **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with numerical agreement tracked by a 250+ test suite. Switching from MATLAB to this library does not change your meshes.
-- **Native ADCIRC `fort.14` I/O.** Read, mesh, write — bit-faithful round-trip including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
-- **Curvature + medial-axis + bathymetry + tide-aware sizing.** Size field is a `min`-stack of physical drivers, not a hand-tuned scalar. Custom contributions compose on top.
-- **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen dataclasses with typed fields; the gnarly numerics stay inside the faithful-port modules and stay testable.
-- **Cross-repo by design.** Pairs with [ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) (mesh registry) and the upstream MATLAB reference for lineage tracking.
+- **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with a 250+ test suite tracking numerical agreement — switching from MATLAB does not change your meshes.
+- **Native ADCIRC `fort.14` I/O.** Bit-faithful read/mesh/write round-trip, including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
+- **Physics-driven sizing.** The size field is a `min`-stack of curvature, medial-axis, bathymetry, and tide drivers — not a hand-tuned scalar. Custom contributions compose on top.
+- **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen, typed dataclasses; the numerics stay inside the locked faithful-port modules.
 
 Not the right tool if you need 3-D, anisotropic, or non-triangular elements — use `gmsh` for those.
 
@@ -65,9 +64,9 @@ mesh.to_fort14("disk.14")
 `mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`. Regenerate the hero animation via `python scripts/render_annulus_animation.py` (needs `matplotlib` + `pillow`; optional `ffmpeg` for MP4).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Triangulation of the notched_rectangle MVP domain at h=0.04." width="60%">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain, meshed at <code>h=0.04</code> with the default curvature + medial-axis size-field stack.</em>
+  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.10</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
 </p>
 
 See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
@@ -163,24 +162,11 @@ python benchmarks/compare_versions.py \
 
 Add a `--ref <tag>="<label>"` per version to compare; the table writes to `benchmarks/results/version_comparison.md`.
 
-## Ecosystem
-
-| Repo | Role |
-|---|---|
-| [CHILmesh](https://github.com/domattioli/CHILmesh) | Core engine — ADMESH consumes it for adjacency, smoothing, and quality analysis |
-| [ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) | Curated ADCIRC mesh registry; pairs with ADMESH for discovery and contribution |
-| [QuADMesh](https://github.com/domattioli/QuADMesh) | Quad counterpart — converts ADMESH triangulations to quadrilateral meshes |
-| [MADMESHing](https://github.com/domattioli/MADMESHing) | Benchmark harness comparing ADMESH (control tri) vs quad generators |
-
-**Upstream MATLAB reference**: [coltonjconroy/ADMESH](https://github.com/coltonjconroy/ADMESH) — maintained by the original authors; new functionality pulled across as it lands.
-
-*[DomI](https://github.com/domattioli/DomI) provides dev-session skills and governance for all repos.*
-
 ## Status & roadmap
 
 - **Shipped (v0.2.1).** Pythonic API + fort.14 round-trip + 13-stage faithful port + valence balancing + custom size-field hooks. Published to [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
 - **In flight.** Spec 009 release-readiness (CI workflows, mkdocs site, stage-module reorg into `admesh/_stages/`). Spec 008 Gmsh I/O.
-- **Next.** Default size-field stack consolidation, paired-edge IBTYPE 3 / 4 / 13 / 24 promoted to named `BoundaryType` members, downstream consumer migration (`MADMESHR`, `CHILMESH`).
+- **Next.** Default size-field stack consolidation; paired-edge IBTYPE 3 / 4 / 13 / 24 promoted to named `BoundaryType` members.
 
 Open epics live as labeled issues — see [planning-required](https://github.com/domattioli/ADMESH/issues?q=is%3Aissue+label%3Aplanning-required).
 
@@ -202,7 +188,7 @@ Open epics live as labeled issues — see [planning-required](https://github.com
 
 > Mattioli, D., Conroy, C.J., Kubatko, E.J., West, D.W. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
 
-The DOI `10.5281/zenodo.20264101` resolves to the latest release; version-specific DOIs are listed on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) is provided at the repo root for tools that consume it (GitHub's "Cite this repository" button, Zotero, etc.). Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+The DOI resolves to the latest release; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) at the repo root feeds GitHub's "Cite this repository" button. Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
 
 ## Contributing
 

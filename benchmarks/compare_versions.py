@@ -203,6 +203,9 @@ def main() -> None:
                     help="git ref (or 'current') = column label; repeatable")
     ap.add_argument("--niter", type=int, default=120)
     ap.add_argument("--hist", action="store_true", help="CHILmesh quality histograms")
+    ap.add_argument("--hmin", type=float, help="override derived hmin (e.g. to resolve sub-feature islands)")
+    ap.add_argument("--hmax", type=float, help="override derived hmax")
+    ap.add_argument("--g", type=float, help="override derived grading limit g")
     ap.add_argument("--out-md", default=str(REPO / "benchmarks" / "results" / "version_comparison.md"))
     args = ap.parse_args()
 
@@ -212,6 +215,10 @@ def main() -> None:
         refs.append((ref.strip(), (label.strip() or ref.strip())))
 
     params = derive_params(args.mesh)
+    for k in ("hmin", "hmax", "g"):  # explicit overrides win over derivation
+        v = getattr(args, k)
+        if v is not None:
+            params[k] = v
     print(f"Params from {pathlib.Path(args.mesh).name}: "
           f"hmin={params['hmin']:.4f} hmax={params['hmax']:.4f} g={params['g']:.3f}")
 
