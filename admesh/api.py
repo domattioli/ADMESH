@@ -771,7 +771,8 @@ def triangulate(
     # intermediate points along each edge so short boundary segments get
     # adequate coverage even when the 2-D lattice is coarse.
     # Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.
-    domain_pts = getattr(domain, "pts", None) or getattr(domain, "boundary_polygon", None)
+    _pts = getattr(domain, "pts", None)
+    domain_pts = _pts if _pts is not None else getattr(domain, "boundary_polygon", None)
     if domain_pts is not None:
         boundary_seeds = _seed_boundary_1d(
             np.asarray(domain_pts, dtype=np.float64), fh, h0
