@@ -25,7 +25,7 @@
   <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
 
-> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase, by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
+> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is archived in-repo at [`archive/matlab/`](archive/matlab/) for provenance. Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
 
 ---
 
