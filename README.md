@@ -124,27 +124,27 @@ for seg in mesh.boundaries:
 
 ## Performance
 
-Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). Size-field parameters are derived from the original ADCIRC mesh (`wnat_test.14`): `hmin=0.133`, `hmax=0.967`, `g=0.21`. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
+Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). Size-field parameters are derived from the original ADCIRC mesh (`wnat_test.14`): `hmin=0.119`, `hmax=0.967`, `g=0.21`. `hmin` is the *finest real element* — the minimum edge length after dropping the bottom 0.1% as sliver outliers — so the re-mesh resolves the coast/shelf to the same floor the original mesh was built to (these params reproduce its ~18.8k-element count, mean quality 0.94). Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
 
 | Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | speedup |
 |---|---|---|---|
-| domain load + SDF build | 0.018 | 0.017 | 1.0x |
-| SDF grid eval (`eval_sdf_grid`) | 1.558 | 0.271 | 5.8x |
+| domain load + SDF build | 0.018 | 0.018 | 1.0x |
+| SDF grid eval (`eval_sdf_grid`) | 1.497 | 0.277 | 5.4x |
 | curvature (`apply_curvature`) | 0.002 | 0.003 | 0.9x |
-| medial axis (`apply_medial_axis`) | 0.477 | 0.425 | 1.1x |
-| grading solve (`solve_iter`, g) | 0.498 | 0.007 | 75.6x |
-| size-field build (subtotal) | 2.536 | 0.705 | 3.6x |
-| distmesh (point gen + relax) | 246.9 | 7.662 | 32.2x |
-| quality (`mesh_quality`) | 0.002 | 0.001 | 1.1x |
-| **TOTAL** | **249.5 s** | **8.4 s** | **29.8x** |
+| medial axis (`apply_medial_axis`) | 0.466 | 0.423 | 1.1x |
+| grading solve (`solve_iter`, g) | 0.484 | 0.006 | 75.4x |
+| size-field build (subtotal) | 2.450 | 0.709 | 3.5x |
+| distmesh (point gen + relax) | 292.0 | 9.077 | 32.2x |
+| quality (`mesh_quality`) | 0.002 | 0.002 | 1.0x |
+| **TOTAL** | **294.5 s** | **9.8 s** | **30.0x** |
 
 |  | v0.2.1 | v0.5.0 |
 |---|---|---|
-| nodes | 8736 | 8735 |
-| elements | 15654 | 15644 |
-| Min. Elem Quality | 0.017 | 0.009 |
-| Mean Elem Quality | 0.931 | 0.932 |
-| StDev Elem Quality | 0.100 | 0.099 |
+| nodes | 10473 | 10473 |
+| elements | 18843 | 18845 |
+| Min. Elem Quality | 0.020 | 0.023 |
+| Mean Elem Quality | 0.940 | 0.940 |
+| StDev Elem Quality | 0.088 | 0.087 |
 
 Output meshes are statistically identical (same node count, same quality distribution) — the optimization is speed-only:
 

@@ -67,8 +67,21 @@ def parse_fort14_geometry(path: str) -> tuple[np.ndarray, np.ndarray]:
 
 
 def derive_params(mesh_path: str) -> dict[str, float]:
-    """hmin/hmax = 1st/99th edge-length percentiles; g = 95th pctile of the
-    per-edge local-size gradient |h_i - h_j| / L_ij. Robust to outliers."""
+    """Recover the size-field targets the original mesh was built to.
+
+    hmin = the finest *real* element, i.e. the minimum edge length after
+    dropping the bottom 0.1% as sliver/degenerate outliers. Using the 1st
+    percentile (the previous rule) sat *above* the mesh's true resolution
+    floor and under-resolved the coast/shelf, clipping the size field and
+    piling distorted elements into the steep-gradient transition zone. The
+    trimmed minimum reproduces the original element count instead.
+
+    hmax = 99th edge-length percentile (coarsest interior, outliers trimmed).
+    g    = 95th percentile of the per-edge local-size gradient
+           |h_i - h_j| / L_ij (h = per-node mean edge length). The grading
+           limit the original mesh actually uses; quality is insensitive to
+           it here, so the derived value is kept.
+    """
     xy, tri = parse_fort14_geometry(mesh_path)
     e = np.vstack([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]])
     e.sort(axis=1)
@@ -82,8 +95,9 @@ def derive_params(mesh_path: str) -> dict[str, float]:
         np.add.at(cnt, e[:, k], 1)
     hnode /= np.maximum(cnt, 1)
     grad = np.abs(hnode[e[:, 0]] - hnode[e[:, 1]]) / L
+    sliver_floor = np.percentile(L, 0.1)
     return {
-        "hmin": float(np.percentile(L, 1)),
+        "hmin": float(L[L >= sliver_floor].min()),
         "hmax": float(np.percentile(L, 99)),
         "g": float(np.percentile(grad, 95)),
     }
