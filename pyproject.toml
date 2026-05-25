@@ -20,7 +20,6 @@ maintainers = [
 ]
 dependencies = [
     "admesh-domains>=0.3.0,<0.4",
-    "chilmesh>=1.2,<2",
     "numpy>=1.24",
     "scipy>=1.11",
     "numba>=0.58",
@@ -39,6 +38,7 @@ dev = [
 ]
 viz = [
     "matplotlib>=3.7",
+    "chilmesh>=1.1,<2",
 ]
 registry = [
     "huggingface_hub>=0.20",
