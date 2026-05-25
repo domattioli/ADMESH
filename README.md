@@ -122,6 +122,47 @@ for seg in mesh.boundaries:
         ...
 ```
 
+## Performance
+
+Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). Size-field parameters are derived from the original ADCIRC mesh (`wnat_test.14`): `hmin=0.133`, `hmax=0.967`, `g=0.21`. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
+
+| Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | speedup |
+|---|---|---|---|
+| domain load + SDF build | 0.018 | 0.017 | 1.0x |
+| SDF grid eval (`eval_sdf_grid`) | 1.558 | 0.271 | 5.8x |
+| curvature (`apply_curvature`) | 0.002 | 0.003 | 0.9x |
+| medial axis (`apply_medial_axis`) | 0.477 | 0.425 | 1.1x |
+| grading solve (`solve_iter`, g) | 0.498 | 0.007 | 75.6x |
+| size-field build (subtotal) | 2.536 | 0.705 | 3.6x |
+| distmesh (point gen + relax) | 246.9 | 7.662 | 32.2x |
+| quality (`mesh_quality`) | 0.002 | 0.001 | 1.1x |
+| **TOTAL** | **249.5 s** | **8.4 s** | **29.8x** |
+
+|  | v0.2.1 | v0.5.0 |
+|---|---|---|
+| nodes | 8736 | 8735 |
+| elements | 15654 | 15644 |
+| Min. Elem Quality | 0.017 | 0.009 |
+| Mean Elem Quality | 0.931 | 0.932 |
+| StDev Elem Quality | 0.100 | 0.099 |
+
+Output meshes are statistically identical (same node count, same quality distribution) — the optimization is speed-only:
+
+![WNAT re-mesh quality comparison](output/wnat_quality_comparison.png)
+
+Reproduce or extend across new versions:
+
+```bash
+python benchmarks/compare_versions.py \
+    --mesh tests/fixtures/fort14/adcirc_examples/wnat_test.14 \
+    --domain benchmarks/data/wnat_onur_boundary.json \
+    --ref v0.2.1="v0.2.1 (original Python)" \
+    --ref current="v0.5.0 (Numba-optimized Python)" \
+    --niter 120 --hist
+```
+
+Add a `--ref <tag>="<label>"` per version to compare; the table writes to `benchmarks/results/version_comparison.md`.
+
 ## Ecosystem
 
 | Repo | Role |
