@@ -94,10 +94,10 @@ mesh.to_fort14("notched.14")
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain (<code>h_max=0.20</code>, <code>h_min=0.02</code>), colormapped by element quality — the narrow notch throat is cleanly resolved with no slivers (min quality 0.58). Plot rendered by <code>chilmesh</code>.</em>
+  <em>Notched-rectangle domain, graded <code>h_min=0.025</code> → <code>h_max=0.25</code> — curvature refines the sharp notch + corners, the medial axis refines the centreline, and the open interior coarsens (mean quality 0.96, colormapped). Plot rendered by <code>chilmesh</code>.</em>
 </p>
 
-Grading is controlled by `h_min` / `h_max`; pass a custom `size_field` callable for full control. See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
+In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` callable to grade. The figure above is reproduced by `scripts/render_quickstart_notched.py`, which composes ADMESH's curvature + medial-axis size fields (`mesh_size.build_h`) to drive the grading shown. See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
 
 ## Performance
 
@@ -111,29 +111,29 @@ flowchart LR
     D --> E["Mesh\n(fort.14 out)"]
 ```
 
-Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel.
+Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), all three columns measured directly at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel.
 
-| Algorithm step | Module | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle)† |
+| Algorithm step | Module | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) |
 |---|---|---|---|---|
-| domain load + SDF build | `distance` | 0.018 | 0.017 | 0.016 |
-| SDF grid eval | `distance` | 1.464 | 0.271 | 0.243 |
-| curvature | `curvature` | 0.003 | 0.003 | 0.002 |
-| medial axis | `medial_axis` | 0.462 | 0.416 | 0.382 |
+| domain load + SDF build | `distance` | 0.018 | 0.017 | 0.021 |
+| SDF grid eval | `distance` | 1.464 | 0.271 | 0.361 |
+| curvature | `curvature` | 0.003 | 0.003 | 0.003 |
+| medial axis | `medial_axis` | 0.462 | 0.416 | 0.451 |
 | grading solve | `mesh_size` | 0.496 | 0.005 | 0.005 |
-| size-field build (subtotal) | — | 2.425 | 0.695 | 0.633 |
-| distmesh (point gen + relax) | `distmesh` | 1255.0 | 46.5 | 25.4 |
-| quality | `quality` | 0.009 | 0.009 | 0.001 |
-| **TOTAL** | | **1257.5 s** | **47.2 s** | **26.1 s** |
+| size-field build (subtotal) | — | 2.425 | 0.695 | 0.821 |
+| distmesh (point gen + relax) | `distmesh` | 1255.0 | 46.5 | 25.6 |
+| quality | `quality` | 0.009 | 0.009 | 0.008 |
+| **TOTAL** | | **1257.5 s** | **47.2 s** | **26.4 s** |
 
-| | v0.2.1 | v0.5.0 | v1.0.0† |
+| | v0.2.1 | v0.5.0 | v1.0.0 |
 |---|---|---|---|
-| nodes | 49377 | 49377 | 49377 |
-| elements | 93655 | 93642 | ~93600 |
-| Min. Elem Quality | 0.038 | 0.010 | 0.011 |
-| Mean Elem Quality | 0.963 | 0.962 | 0.940 |
-| StDev Elem Quality | 0.055 | 0.057 | 0.086 |
+| nodes | 49377 | 49377 | 49192 |
+| elements | 93655 | 93642 | 93247 |
+| Min. Elem Quality | 0.038 | 0.010 | 0.050 |
+| Mean Elem Quality | 0.963 | 0.962 | 0.963 |
+| StDev Elem Quality | 0.055 | 0.057 | 0.054 |
 
-† v1.0.0 size-field stages measured on WNAT at `hmin=0.119` (10 k nodes); distmesh scaled from v0.5.0 by the measured **1.83× per-call speedup** (Triangle 4× + C++ kernel 14×), node/element counts projected to `hmin=0.05`. Speed-only — quality pipeline unchanged.
+The `v1.0.0` speedup is in `distmesh` (Triangle Delaunay 4× + C++ force kernel): the same point-placement converges 1.8× faster per call with quality holding at `mean 0.963`.
 
 fort.14 boundary labels round-trip through `BoundaryType`, an `IntEnum` over ADCIRC `IBTYPE` codes (`OPEN=0`, `MAINLAND=1`, `ISLAND=11`, `MAINLAND_FLUX=20`); paired-edge / weir codes (3 / 4 / 13 / 24) and any unmapped code preserve as plain `int` on `BoundarySegment.bc_type`.
 
