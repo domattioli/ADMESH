@@ -91,13 +91,7 @@ mesh.to_fort14("notched.14")
 
 `mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
-  <br>
-  <em>Notched-rectangle domain, graded <code>h_min=0.025</code> → <code>h_max=0.25</code> — curvature refines the sharp notch + corners, the medial axis refines the centreline, and the open interior coarsens (mean quality 0.96, colormapped). Plot rendered by <code>chilmesh</code>.</em>
-</p>
-
-In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` callable to grade. The figure above is reproduced by `scripts/render_quickstart_notched.py`, which composes ADMESH's curvature + medial-axis size fields (`mesh_size.build_h`) to drive the grading shown. See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
+In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` callable to grade. For graded sizing, compose ADMESH's curvature + medial-axis size fields via `mesh_size.build_h()` (see `scripts/render_quickstart_notched.py` for example). See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
 
 ## Performance
 
