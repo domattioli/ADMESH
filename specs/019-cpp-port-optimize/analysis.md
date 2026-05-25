@@ -30,18 +30,13 @@ All 10 FRs, 5 SCs, 4 user stories trace to ≥1 task.
 
 ## Findings
 
-**A1 — minor / traceability.** FR-001 (standalone C++ library) is the only
-requirement without an explicit `FR-001` tag in a task. It is fully covered by
-the US1 phase (T002 build, T014 triangulate, T016 no-Python ctest, T017
-find_package consumer) but a reader grepping `FR-001` finds nothing. *Fix:
-optional — add the tag to T002/T017. Not blocking.*
+**A1 — RESOLVED.** FR-001 now tagged on T002/T006/T015/T018; every req carries
+an inline tag + a coverage map appended to tasks.md.
 
-**A2 — coverage gap / medium.** Spec edge case — "parity fixtures must cover
-degenerate input (collinear slivers, zero-area triangles), not just nominal" —
-has **no dedicated task**. The parity gate (T018–T030) asserts against existing
-`.npz` fixtures, which may be nominal-only. *Fix: add a task to verify/extend
-degenerate-input fixture coverage, or fold into each relaxed-stage task. Recommend
-adding before execution.*
+**A2 — RESOLVED.** Degenerate-input fixture coverage is now **T012** (Phase 2
+foundational): audit `tests/fixtures/<stage>/*.npz` for collinear slivers +
+zero-area triangles, extend from the MATLAB oracle where nominal-only. T012
+blocks the parity gates so every stage is exercised against degenerate cases.
 
 **A3 — spec text stale vs plan / low.** Spec still marks FR-006 and FR-010
 "[DEFERRED to plan]"; research.md R2/R5 now resolves both. Harmless (plan is
@@ -76,8 +71,8 @@ explicitly operator-blocked, correctly surfaced in both plan and tasks:
 
 ## Verdict
 
-Artifacts are **internally consistent and execution-ready**, with one medium
-gap to close before execution (**A2**: degenerate-input parity fixtures) and two
-**operator gates** (**A5**: Art II.2 amendment for merge, Triangle license for
-publish). No conflicting or duplicated requirements. No ambiguous/underspecified
-tasks blocking start of Phase 1.
+Artifacts are **internally consistent and execution-ready**. A1 + A2 closed in
+the regenerated tasks.md (FR tags + T012 degenerate fixtures). Two **operator
+gates** remain (**A5**: Art II.2 amendment for merge, Triangle license for
+publish) — neither blocks Phase 1 start. No conflicting or duplicated
+requirements, no ambiguous tasks.
