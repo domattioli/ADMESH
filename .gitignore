@@ -173,6 +173,11 @@ output/*
 *.mexw64
 *.mexmaci64
 *.mexa64
+# keep the vendored MATLAB MEX binaries in the archived reference library
+# (mex-only routines have no .m/.c source — this is their only copy)
+!archive/matlab/**/*.mexw64
+!archive/matlab/**/*.mexmaci64
+!archive/matlab/**/*.mexa64
 
 # manim render artifacts + generated viz data
 media/

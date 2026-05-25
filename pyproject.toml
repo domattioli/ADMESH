@@ -38,6 +38,7 @@ dev = [
 ]
 viz = [
     "matplotlib>=3.7",
+    "chilmesh>=1.1,<2",
 ]
 registry = [
     "huggingface_hub>=0.20",

@@ -1,7 +1,13 @@
 <h1 align="center">ADMESH</h1>
 
 <p align="center">
-  <strong>Build and re-mesh ADCIRC domains — size-field-driven unstructured mesh generation with <code>fort.14</code> round-tripping.</strong>
+  <strong>An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</strong><br>
+  Python port of the MATLAB ADMESH library and a Pythonic API.
+</p>
+
+<p align="center">
+  <strong><a href="https://scholar.google.com/citations?user=IBFSkOcAAAAJ&hl=en">Dominik Mattioli</a><sup>1†</sup>, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan Kubatko</a><sup>2</sup></strong><br>
+  <sup>†</sup>Corresponding author | <sup>1</sup>Unaffiliated | <sup>2</sup>Ohio State University (CHIL)
 </p>
 
 <p align="center">
@@ -19,17 +25,33 @@
   <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
 
+> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is archived in-repo at [`archive/matlab/`](archive/matlab/) for provenance. Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
+
+---
+
+## Table of Contents
+
+- [Why ADMESH](#why-admesh)
+- [Install](#install)
+- [Quickstart](#quickstart)
+- [Pipeline](#pipeline)
+- [Performance](#performance)
+- [Status & roadmap](#status--roadmap)
+- [Documentation](#documentation)
+- [Citation](#citation)
+- [Contributing](#contributing)
+- [License](#license)
+
 ---
 
 ## Why ADMESH
 
 For shallow-water modelers who need ADCIRC-ready meshes from Python:
 
-- **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with numerical agreement tracked by a 250+ test suite. Switching from MATLAB to this library does not change your meshes.
-- **Native ADCIRC `fort.14` I/O.** Read, mesh, write — bit-faithful round-trip including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
-- **Curvature + medial-axis + bathymetry + tide-aware sizing.** Size field is a `min`-stack of physical drivers, not a hand-tuned scalar. Custom contributions compose on top.
-- **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen dataclasses with typed fields; the gnarly numerics stay inside the faithful-port modules and stay testable.
-- **Cross-repo by design.** Pairs with [ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) (mesh registry) and the upstream MATLAB reference for lineage tracking.
+- **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with a 250+ test suite tracking numerical agreement — switching from MATLAB does not change your meshes.
+- **Native ADCIRC `fort.14` I/O.** Bit-faithful read/mesh/write round-trip, including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
+- **Physics-driven sizing.** The size field is a `min`-stack of curvature, medial-axis, bathymetry, and tide drivers — not a hand-tuned scalar. Custom contributions compose on top.
+- **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen, typed dataclasses; the numerics stay inside the locked faithful-port modules.
 
 Not the right tool if you need 3-D, anisotropic, or non-triangular elements — use `gmsh` for those.
 
@@ -65,9 +87,9 @@ mesh.to_fort14("disk.14")
 `mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`. Regenerate the hero animation via `python scripts/render_annulus_animation.py` (needs `matplotlib` + `pillow`; optional `ffmpeg` for MP4).
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Triangulation of the notched_rectangle MVP domain at h=0.04." width="60%">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain, meshed at <code>h=0.04</code> with the default curvature + medial-axis size-field stack.</em>
+  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.10</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
 </p>
 
 See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
@@ -124,29 +146,29 @@ for seg in mesh.boundaries:
 
 ## Performance
 
-Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). Size-field parameters are derived from the original ADCIRC mesh (`wnat_test.14`): `hmin=0.133`, `hmax=0.967`, `g=0.21`. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
+Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). The size-field floor `hmax=0.967` and grading `g` are seeded from the original ADCIRC mesh (`wnat_test.14`), and `hmin=0.05` / `g=0.10` is the published operating point: `hmin=0.05` resolves the small islands (e.g. Bermuda, ~0.06 wide) that the original mesh's coarser floor left as sub-resolution slivers, and `g=0.10` is the grading limit that keeps the coast→shelf transition smooth. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
 
 | Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | speedup |
 |---|---|---|---|
 | domain load + SDF build | 0.018 | 0.017 | 1.0x |
-| SDF grid eval (`eval_sdf_grid`) | 1.558 | 0.271 | 5.8x |
-| curvature (`apply_curvature`) | 0.002 | 0.003 | 0.9x |
-| medial axis (`apply_medial_axis`) | 0.477 | 0.425 | 1.1x |
-| grading solve (`solve_iter`, g) | 0.498 | 0.007 | 75.6x |
-| size-field build (subtotal) | 2.536 | 0.705 | 3.6x |
-| distmesh (point gen + relax) | 246.9 | 7.662 | 32.2x |
-| quality (`mesh_quality`) | 0.002 | 0.001 | 1.1x |
-| **TOTAL** | **249.5 s** | **8.4 s** | **29.8x** |
+| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 5.4x |
+| curvature (`apply_curvature`) | 0.003 | 0.003 | 1.0x |
+| medial axis (`apply_medial_axis`) | 0.462 | 0.416 | 1.1x |
+| grading solve (`solve_iter`, g) | 0.496 | 0.005 | 97.2x |
+| size-field build (subtotal) | 2.425 | 0.695 | 3.5x |
+| distmesh (point gen + relax) | 1255.0 | 46.5 | 27.0x |
+| quality (`mesh_quality`) | 0.009 | 0.009 | 1.1x |
+| **TOTAL** | **1257.5 s** | **47.2 s** | **26.6x** |
 
 |  | v0.2.1 | v0.5.0 |
 |---|---|---|
-| nodes | 8736 | 8735 |
-| elements | 15654 | 15644 |
-| Min. Elem Quality | 0.017 | 0.009 |
-| Mean Elem Quality | 0.931 | 0.932 |
-| StDev Elem Quality | 0.100 | 0.099 |
+| nodes | 49377 | 49377 |
+| elements | 93655 | 93642 |
+| Min. Elem Quality | 0.038 | 0.010 |
+| Mean Elem Quality | 0.963 | 0.962 |
+| StDev Elem Quality | 0.055 | 0.057 |
 
-Output meshes are statistically identical (same node count, same quality distribution) — the optimization is speed-only:
+Output meshes are statistically identical (same node count, same mean quality) — the optimization is speed-only. The low min-quality outlier is a geometry-inherent sliver at Bermuda, where the island is near the `hmin` floor; it does not move the mean (0.962):
 
 ![WNAT re-mesh quality comparison](output/wnat_quality_comparison.png)
 
@@ -158,29 +180,16 @@ python benchmarks/compare_versions.py \
     --domain benchmarks/data/wnat_onur_boundary.json \
     --ref v0.2.1="v0.2.1 (original Python)" \
     --ref current="v0.5.0 (Numba-optimized Python)" \
-    --niter 120 --hist
+    --hmin 0.05 --g 0.10 --niter 120 --hist
 ```
 
 Add a `--ref <tag>="<label>"` per version to compare; the table writes to `benchmarks/results/version_comparison.md`.
-
-## Ecosystem
-
-| Repo | Role |
-|---|---|
-| [CHILmesh](https://github.com/domattioli/CHILmesh) | Core engine — ADMESH consumes it for adjacency, smoothing, and quality analysis |
-| [ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) | Curated ADCIRC mesh registry; pairs with ADMESH for discovery and contribution |
-| [QuADMesh](https://github.com/domattioli/QuADMesh) | Quad counterpart — converts ADMESH triangulations to quadrilateral meshes |
-| [MADMESHing](https://github.com/domattioli/MADMESHing) | Benchmark harness comparing ADMESH (control tri) vs quad generators |
-
-**Upstream MATLAB reference**: [coltonjconroy/ADMESH](https://github.com/coltonjconroy/ADMESH) — maintained by the original authors; new functionality pulled across as it lands.
-
-*[DomI](https://github.com/domattioli/DomI) provides dev-session skills and governance for all repos.*
 
 ## Status & roadmap
 
 - **Shipped (v0.2.1).** Pythonic API + fort.14 round-trip + 13-stage faithful port + valence balancing + custom size-field hooks. Published to [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
 - **In flight.** Spec 009 release-readiness (CI workflows, mkdocs site, stage-module reorg into `admesh/_stages/`). Spec 008 Gmsh I/O.
-- **Next.** Default size-field stack consolidation, paired-edge IBTYPE 3 / 4 / 13 / 24 promoted to named `BoundaryType` members, downstream consumer migration (`MADMESHR`, `CHILMESH`).
+- **Next.** Default size-field stack consolidation; paired-edge IBTYPE 3 / 4 / 13 / 24 promoted to named `BoundaryType` members.
 
 Open epics live as labeled issues — see [planning-required](https://github.com/domattioli/ADMESH/issues?q=is%3Aissue+label%3Aplanning-required).
 
@@ -202,7 +211,7 @@ Open epics live as labeled issues — see [planning-required](https://github.com
 
 > Mattioli, D., Conroy, C.J., Kubatko, E.J., West, D.W. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
 
-The DOI `10.5281/zenodo.20264101` resolves to the latest release; version-specific DOIs are listed on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) is provided at the repo root for tools that consume it (GitHub's "Cite this repository" button, Zotero, etc.). Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+The DOI resolves to the latest release; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) at the repo root feeds GitHub's "Cite this repository" button. Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
 
 ## Contributing
 

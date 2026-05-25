@@ -295,6 +295,30 @@ No mandatory session reports, no 4-agent planning, no dispatch queue — this = 
 
 ---
 
+## Repo-local labels (issue #87 triage)
+
+These labels are ADMESH-specific — they have no equivalent in DomI's
+canonical `.github/labels.yml` and are intentionally kept repo-local
+(not promoted to canon, which would require a DomI upstream change via
+`request-from-domi`). Future sessions should recognize them:
+
+| Label | Meaning |
+|---|---|
+| `numerics` | Faithful-port numerical-identity / size-field math concerns |
+| `performance` | Runtime / benchmark / optimization work |
+| `roadmap` | Strategic / milestone-tracking issues |
+| `domi-sync` | DomI upstream sync chores (`chore: sync DomI@<sha>`) |
+| `post-0.1.0` / `post-v1` | Deferred past the 0.1.0 / 1.0 milestones |
+| `io` | fort.14 / Gmsh / format-bridge I/O |
+| `gpu` | GPU / parallel-acceleration investigations |
+| `integration` | Cross-stage / cross-repo integration work |
+| `pypi` | PyPI packaging / distribution |
+
+The non-canon `tests` label was deleted in the #87 sweep — use the
+canonical `scope: testing` instead.
+
+---
+
 ## Branching (operational)
 
 See **Constitution Article VI rules 5–8** for binding rules. Quick operational summary:
