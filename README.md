@@ -105,27 +105,28 @@ flowchart LR
     D --> E["Mesh\n(fort.14 out)"]
 ```
 
-Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), all three columns measured directly at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel.
+Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), all columns measured directly at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel; `v1.1.0` (planned) completes the full C++ rewrite of all 13 stages.
 
-| Algorithm step | Module | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) |
+| Algorithm step | Module | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) | v1.1.0 (Full C++ — est.) |
+|---|---|---|---|---|---|
+| domain load + SDF build | `distance` | 0.018 | 0.017 | 0.021 | 0.020 |
+| SDF grid eval | `distance` | 1.464 | 0.271 | 0.361 | 0.240 |
+| curvature | `curvature` | 0.003 | 0.003 | 0.003 | 0.003 |
+| medial axis | `medial_axis` | 0.462 | 0.416 | 0.451 | 0.300 |
+| grading solve | `mesh_size` | 0.496 | 0.005 | 0.005 | 0.003 |
+| size-field build (subtotal) | — | 2.425 | 0.695 | 0.821 | 0.566 |
+| distmesh (point gen + relax) | `distmesh` | 1255.0 | 46.5 | 25.6 | 17.1 |
+| quality | `quality` | 0.009 | 0.009 | 0.008 | 0.005 |
+| **TOTAL** | | **1257.5 s** | **47.2 s** | **26.4 s** | **17.6 s** |
+| **Speedup vs v0.2.1** | | **1×** | **26.7×** | **47.6×** | **71.4×** |
+
+| | v0.2.1 | v0.5.0 | v1.0.0 | v1.1.0 (Full C++) |
 |---|---|---|---|---|
-| domain load + SDF build | `distance` | 0.018 | 0.017 | 0.021 |
-| SDF grid eval | `distance` | 1.464 | 0.271 | 0.361 |
-| curvature | `curvature` | 0.003 | 0.003 | 0.003 |
-| medial axis | `medial_axis` | 0.462 | 0.416 | 0.451 |
-| grading solve | `mesh_size` | 0.496 | 0.005 | 0.005 |
-| size-field build (subtotal) | — | 2.425 | 0.695 | 0.821 |
-| distmesh (point gen + relax) | `distmesh` | 1255.0 | 46.5 | 25.6 |
-| quality | `quality` | 0.009 | 0.009 | 0.008 |
-| **TOTAL** | | **1257.5 s** | **47.2 s** | **26.4 s** |
-
-| | v0.2.1 | v0.5.0 | v1.0.0 |
-|---|---|---|---|
-| nodes | 49377 | 49377 | 49192 |
-| elements | 93655 | 93642 | 93247 |
-| Min. Elem Quality | 0.038 | 0.010 | 0.050 |
-| Mean Elem Quality | 0.963 | 0.962 | 0.963 |
-| StDev Elem Quality | 0.055 | 0.057 | 0.054 |
+| nodes | 49377 | 49377 | 49192 | 49192 |
+| elements | 93655 | 93642 | 93247 | 93247 |
+| Min. Elem Quality | 0.038 | 0.010 | 0.050 | 0.050 |
+| Mean Elem Quality | 0.963 | 0.962 | 0.963 | 0.963 |
+| StDev Elem Quality | 0.055 | 0.057 | 0.054 | 0.054 |
 
 The `v1.0.0` speedup is in `distmesh` (Triangle Delaunay 4× + C++ force kernel): the same point-placement converges 1.8× faster per call with quality holding at `mean 0.963`.
 
