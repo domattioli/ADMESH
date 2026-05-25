@@ -59,7 +59,7 @@ Not the right tool if you need 3-D, anisotropic, or non-triangular elements — 
 
 ```bash
 pip install admesh2D            # core
-pip install admesh2D[viz]       # adds matplotlib for mesh.plot()
+pip install admesh2D[viz]       # adds chilmesh for mesh.plot() / plot_quality()
 ```
 
 From source:
@@ -94,7 +94,7 @@ mesh.to_fort14("notched.14")
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
   <br>
-  <em>Notched-rectangle domain graded from <code>h_min=0.02</code> to <code>h_max=0.20</code> — elements refine at the sharp notch and corners, coarsen through the interior.</em>
+  <em>Notched-rectangle domain (<code>h_max=0.20</code>, <code>h_min=0.02</code>), colormapped by element quality — the narrow notch throat is cleanly resolved with no slivers (min quality 0.58). Plot rendered by <code>chilmesh</code>.</em>
 </p>
 
 Grading is controlled by `h_min` / `h_max`; pass a custom `size_field` callable for full control. See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.

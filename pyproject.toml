@@ -37,7 +37,6 @@ dev = [
     "mkdocstrings[python]>=0.24",
 ]
 viz = [
-    "matplotlib>=3.7",
     "chilmesh>=1.1,<2",
 ]
 registry = [

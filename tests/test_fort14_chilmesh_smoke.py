@@ -56,25 +56,17 @@ def _hand_built_mesh() -> Mesh:
 
 
 def test_chilmesh_can_read_admesh_output(tmp_path):
-    """admesh writes → chilmesh reads → segment counts agree."""
+    """admesh writes → chilmesh reads → node/element counts agree."""
     mesh = _hand_built_mesh()
     out = tmp_path / "admesh_out.14"
     mesh.to_fort14(out)
 
-    cm = chilmesh.ChilMesh.from_fort14(str(out))
-    # The exact attribute names depend on chilmesh's API; we probe a
-    # couple of likely shapes and accept whichever exists.
-    if hasattr(cm, "boundaries"):
-        assert len(cm.boundaries) == len(mesh.boundaries)
-    elif hasattr(cm, "boundary_segments"):
-        assert len(cm.boundary_segments) == len(mesh.boundaries)
-    else:
-        pytest.fail(
-            "chilmesh.ChilMesh exposes neither .boundaries nor "
-            ".boundary_segments — update this smoke test to its API"
-        )
+    cm = chilmesh.CHILmesh.read_from_fort14(str(out))
 
-    # Total node / element counts.
-    if hasattr(cm, "n_nodes") and hasattr(cm, "n_elements"):
-        assert cm.n_nodes == mesh.n_nodes
-        assert cm.n_elements == mesh.n_elements
+    points = np.asarray(cm.points)
+    connectivity = np.asarray(cm.connectivity_list)
+    assert points.shape[0] == mesh.n_nodes
+    assert connectivity.shape[0] == mesh.n_elements
+
+    # Node coordinates round-trip (first two columns are x, y).
+    np.testing.assert_allclose(points[:, :2], mesh.nodes, atol=1e-9)

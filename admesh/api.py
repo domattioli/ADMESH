@@ -116,27 +116,46 @@ class Mesh:
         write_fort14(self, path)
 
     def plot(self, ax=None, **kwargs):
-        """Draw the mesh using matplotlib.
+        """Draw the mesh wireframe via chilmesh.
 
-        Implementation lands in T028 (``admesh.viz.plot_mesh``).
+        Delegates to ``admesh.viz.plot_mesh`` → ``chilmesh.CHILmesh.plot``.
 
         Raises
         ------
         ImportError
-            If matplotlib is not installed. Install with
+            If chilmesh is not installed. Install with
             ``pip install admesh2D[viz]``.
         """
         from admesh.viz import plot_mesh
 
         return plot_mesh(self, ax=ax, **kwargs)
 
-    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
-        """Draw mesh layers (onion-peel BFS from boundary) with colors.
+    def plot_quality(self, ax=None, cmap="cool", **kwargs):
+        """Colormap elements by shape quality via chilmesh.
+
+        Delegates to ``admesh.viz.plot_mesh_quality`` →
+        ``chilmesh.CHILmesh.plot_quality``.
 
         Raises
         ------
         ImportError
-            If matplotlib is not installed. Install with
+            If chilmesh is not installed. Install with
+            ``pip install admesh2D[viz]``.
+        """
+        from admesh.viz import plot_mesh_quality
+
+        return plot_mesh_quality(self, ax=ax, cmap=cmap, **kwargs)
+
+    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
+        """Color mesh elements by onion-peel layer via chilmesh.
+
+        Delegates to ``admesh.viz.plot_mesh_layers`` →
+        ``chilmesh.CHILmesh.plot_layer``.
+
+        Raises
+        ------
+        ImportError
+            If chilmesh is not installed. Install with
             ``pip install admesh2D[viz]``.
         """
         from admesh.viz import plot_mesh_layers
