@@ -661,6 +661,7 @@ def triangulate(
         bbox = domain.bbox
         h0_default = max(_bbox_diag(bbox) / 20.0, 1e-6)
         h0 = float(h_max) if h_max is not None else h0_default
+        pfix = np.asarray(domain.fixed_points, dtype=np.float64) if domain.fixed_points is not None else np.empty((0, 2), dtype=np.float64)
     else:
         # Input should be an api.Domain or a file/registry path
         if not isinstance(domain, Domain):
@@ -770,7 +771,7 @@ def triangulate(
     # intermediate points along each edge so short boundary segments get
     # adequate coverage even when the 2-D lattice is coarse.
     # Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.
-    domain_pts = getattr(domain, "pts", None)
+    domain_pts = getattr(domain, "pts", None) or getattr(domain, "boundary_polygon", None)
     if domain_pts is not None:
         boundary_seeds = _seed_boundary_1d(
             np.asarray(domain_pts, dtype=np.float64), fh, h0
@@ -779,9 +780,11 @@ def triangulate(
             pfix = (
                 np.vstack([pfix, boundary_seeds]) if pfix.size else boundary_seeds
             )
+            # _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.
+            _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
             port_domain = _PortDomain(
                 name="api_v1",
-                fd=domain.sdf,
+                fd=_sdf,
                 bbox=domain.bbox,
                 fixed_points=pfix,
             )

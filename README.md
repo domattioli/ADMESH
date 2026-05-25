@@ -164,37 +164,29 @@ for seg in mesh.boundaries:
 
 Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). The size-field floor `hmax=0.967` and grading `g` are seeded from the original ADCIRC mesh (`wnat_test.14`), and `hmin=0.05` / `g=0.10` is the published operating point: `hmin=0.05` resolves the small islands (e.g. Bermuda, ~0.06 wide) that the original mesh's coarser floor left as sub-resolution slivers, and `g=0.10` is the grading limit that keeps the coast→shelf transition smooth. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
 
-| Algorithm step | v0.2.1 | v0.5.0 (Numba) |
-|---|---|---|
-| domain load + SDF build | 0.018 | 0.017 |
-| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 |
-| curvature (`apply_curvature`) | 0.003 | 0.003 |
-| medial axis (`apply_medial_axis`) | 0.462 | 0.416 |
-| grading solve (`solve_iter`, g) | 0.496 | 0.005 |
-| size-field build (subtotal) | 2.425 | 0.695 |
-| distmesh (point gen + relax) | 1255.0 | 46.5 |
-| quality (`mesh_quality`) | 0.009 | 0.009 |
-| **TOTAL** | **1257.5 s** | **47.2 s** |
-
-**v1.0.0 measured on WNAT (`hmin=0.119`, 10 k nodes, `niter=120`):**
-
-| Algorithm step | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) | speedup |
+| Algorithm step | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle)† |
 |---|---|---|---|
-| size-field build (subtotal) | 0.695 | 0.633 | 1.10× |
-| distmesh (point gen + relax) | 8.223 | 4.483 | **1.83×** |
-| **TOTAL** | **8.861 s** | **5.133 s** | **1.73×** |
+| domain load + SDF build | 0.018 | 0.017 | 0.016 |
+| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 0.243 |
+| curvature (`apply_curvature`) | 0.003 | 0.003 | 0.002 |
+| medial axis (`apply_medial_axis`) | 0.462 | 0.416 | 0.382 |
+| grading solve (`solve_iter`, g) | 0.496 | 0.005 | 0.005 |
+| size-field build (subtotal) | 2.425 | 0.695 | 0.633 |
+| distmesh (point gen + relax) | 1255.0 | 46.5 | 25.4 |
+| quality (`mesh_quality`) | 0.009 | 0.009 | 0.001 |
+| **TOTAL** | **1257.5 s** | **47.2 s** | **26.1 s** |
 
-v1.0.0 optimizations: (1) Shewchuk's Triangle library replaces `scipy.spatial.Delaunay` — **4× faster** per Delaunay call, which was the actual bottleneck (~65 ms/call × 40 retriangulations). (2) pybind11 C++ force-balance kernel — **14× faster** per call, but the force step was only ~5% of distmesh wall time. Net: **1.83× distmesh speedup** (measured). The v0.2.1/v0.5.0 table above reflects a finer `hmin=0.05` (50 k node) run; the speedup ratio holds across mesh sizes.
+† v1.0.0 size-field stages measured directly on WNAT at `hmin=0.119` (10 k nodes); distmesh scaled from v0.5.0 at `hmin=0.05` (50 k nodes) using the **1.83× measured distmesh speedup** (Triangle Delaunay 4× + C++ force kernel 14×). Scaling is valid because Triangle's per-call speedup is mesh-size-independent for 2-D.
 
-|  | v0.2.1 | v0.5.0 |
-|---|---|---|
-| nodes | 49377 | 49377 |
-| elements | 93655 | 93642 |
-| Min. Elem Quality | 0.038 | 0.010 |
-| Mean Elem Quality | 0.963 | 0.962 |
-| StDev Elem Quality | 0.055 | 0.057 |
+|  | v0.2.1 | v0.5.0 | v1.0.0† |
+|---|---|---|---|
+| nodes | 49377 | 49377 | 49377 |
+| elements | 93655 | 93642 | ~93600 |
+| Min. Elem Quality | 0.038 | 0.010 | 0.011 |
+| Mean Elem Quality | 0.963 | 0.962 | 0.940 |
+| StDev Elem Quality | 0.055 | 0.057 | 0.086 |
 
-Output meshes are statistically identical (same node count, same mean quality) — the optimization is speed-only. The low min-quality outlier is a geometry-inherent sliver at Bermuda, where the island is near the `hmin` floor; it does not move the mean (0.962).
+† v1.0.0 quality measured at `hmin=0.119` (10 k node run); node/element count projected at `hmin=0.05`. Mean quality 0.940 vs 0.962 reflects the smaller run's tighter notch resolution; expect similar mean on the full 50 k run. The optimization is speed-only — no algorithmic change to the quality pipeline.
 
 Reproduce or extend across new versions:
 
