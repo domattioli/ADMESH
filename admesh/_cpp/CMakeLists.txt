@@ -14,5 +14,11 @@ pybind11_add_module(_distmesh_cpp
 
 target_link_libraries(_distmesh_cpp PRIVATE Eigen3::Eigen)
 
+# Optimisation flags (release build)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+target_compile_options(_distmesh_cpp PRIVATE -O3 -march=native -funroll-loops)
+
 # Install target: placed in admesh/_cpp/ for import
 install(TARGETS _distmesh_cpp DESTINATION admesh/_cpp)

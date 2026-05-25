@@ -27,6 +27,12 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.spatial import Delaunay
 
+try:
+    from admesh._cpp._distmesh_cpp import distmesh2d_step as _cpp_distmesh_step
+    _HAS_CPP = True
+except ImportError:
+    _HAS_CPP = False
+
 Points = NDArray[np.float64]
 SDF = Callable[[Points], NDArray[np.float64]]
 SizeFn = Callable[[Points], NDArray[np.float64]]
@@ -187,23 +193,25 @@ def distmesh2d(
             break
 
         # Truss forces: F = max(L0 - L, 0) along each bar.
-        barvec = p[bars[:, 0]] - p[bars[:, 1]]
-        L = np.sqrt((barvec ** 2).sum(axis=1))
+        # Hot path — use C++ kernel if available.
         hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
-        L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
-        F = np.maximum(L0 - L, 0.0)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
-
-        Ftot = np.zeros_like(p)
-        np.add.at(Ftot, bars[:, 0], Fvec)
-        np.add.at(Ftot, bars[:, 1], -Fvec)
-
-        # Zero force at fixed points (they don't move).
-        if nfix > 0:
-            Ftot[:nfix] = 0.0
-
-        p_new = p + deltat * Ftot
+        if _HAS_CPP:
+            p_new = _cpp_distmesh_step(
+                p, bars, hbars, Fscale, deltat, nfix
+            )
+        else:
+            barvec = p[bars[:, 0]] - p[bars[:, 1]]
+            L = np.sqrt((barvec ** 2).sum(axis=1))
+            L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
+            F = np.maximum(L0 - L, 0.0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
+            Ftot = np.zeros_like(p)
+            np.add.at(Ftot, bars[:, 0], Fvec)
+            np.add.at(Ftot, bars[:, 1], -Fvec)
+            if nfix > 0:
+                Ftot[:nfix] = 0.0
+            p_new = p + deltat * Ftot
 
         # Project points that drifted outside back to the boundary along -grad fd.
         d = fd(p_new)
@@ -723,10 +731,10 @@ def distmesh2d_admesh(
             k += 1
             continue
 
-        # Truss forces.
+        # Truss forces — compute hbars, L, L0 for density control and force step.
+        hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
         barvec = p[bars[:, 0]] - p[bars[:, 1]]
         L = np.sqrt((barvec ** 2).sum(axis=1))
-        hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
         L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
 
         # Density control — ``distmesh2d.m`` lines 167-197.
@@ -758,16 +766,21 @@ def distmesh2d_admesh(
                 k += 1
                 continue
 
-        F = np.maximum(L0 - L, 0.0)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
-
-        Ftot = np.zeros_like(p)
-        np.add.at(Ftot, bars[:, 0], Fvec)
-        np.add.at(Ftot, bars[:, 1], -Fvec)
-        if nC > 0:
-            Ftot[:nC] = 0.0
-        p = p + deltat * Ftot
+        # Truss force step — hot path. Use C++ kernel if available.
+        if _HAS_CPP:
+            p = _cpp_distmesh_step(
+                p, bars, hbars, Fscale, deltat, nC
+            )
+        else:
+            F = np.maximum(L0 - L, 0.0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
+            Ftot = np.zeros_like(p)
+            np.add.at(Ftot, bars[:, 0], Fvec)
+            np.add.at(Ftot, bars[:, 1], -Fvec)
+            if nC > 0:
+                Ftot[:nC] = 0.0
+            p = p + deltat * Ftot
 
         # Pull boundary-adjacent interior points onto the boundary
         # (MATLAB ``in`` = indices nC..N-1, i.e. non-fixed nodes).
