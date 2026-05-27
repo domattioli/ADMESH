@@ -116,27 +116,46 @@ class Mesh:
         write_fort14(self, path)
 
     def plot(self, ax=None, **kwargs):
-        """Draw the mesh using matplotlib.
+        """Draw the mesh wireframe via chilmesh.
 
-        Implementation lands in T028 (``admesh.viz.plot_mesh``).
+        Delegates to ``admesh.viz.plot_mesh`` → ``chilmesh.CHILmesh.plot``.
 
         Raises
         ------
         ImportError
-            If matplotlib is not installed. Install with
+            If chilmesh is not installed. Install with
             ``pip install admesh2D[viz]``.
         """
         from admesh.viz import plot_mesh
 
         return plot_mesh(self, ax=ax, **kwargs)
 
-    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
-        """Draw mesh layers (onion-peel BFS from boundary) with colors.
+    def plot_quality(self, ax=None, cmap="cool", **kwargs):
+        """Colormap elements by shape quality via chilmesh.
+
+        Delegates to ``admesh.viz.plot_mesh_quality`` →
+        ``chilmesh.CHILmesh.plot_quality``.
 
         Raises
         ------
         ImportError
-            If matplotlib is not installed. Install with
+            If chilmesh is not installed. Install with
+            ``pip install admesh2D[viz]``.
+        """
+        from admesh.viz import plot_mesh_quality
+
+        return plot_mesh_quality(self, ax=ax, cmap=cmap, **kwargs)
+
+    def plot_layers(self, ax=None, cmap="viridis", **kwargs):
+        """Color mesh elements by onion-peel layer via chilmesh.
+
+        Delegates to ``admesh.viz.plot_mesh_layers`` →
+        ``chilmesh.CHILmesh.plot_layer``.
+
+        Raises
+        ------
+        ImportError
+            If chilmesh is not installed. Install with
             ``pip install admesh2D[viz]``.
         """
         from admesh.viz import plot_mesh_layers
@@ -661,6 +680,7 @@ def triangulate(
         bbox = domain.bbox
         h0_default = max(_bbox_diag(bbox) / 20.0, 1e-6)
         h0 = float(h_max) if h_max is not None else h0_default
+        pfix = np.asarray(domain.fixed_points, dtype=np.float64) if domain.fixed_points is not None else np.empty((0, 2), dtype=np.float64)
     else:
         # Input should be an api.Domain or a file/registry path
         if not isinstance(domain, Domain):
@@ -770,7 +790,8 @@ def triangulate(
     # intermediate points along each edge so short boundary segments get
     # adequate coverage even when the 2-D lattice is coarse.
     # Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.
-    domain_pts = getattr(domain, "pts", None)
+    _pts = getattr(domain, "pts", None)
+    domain_pts = _pts if _pts is not None else getattr(domain, "boundary_polygon", None)
     if domain_pts is not None:
         boundary_seeds = _seed_boundary_1d(
             np.asarray(domain_pts, dtype=np.float64), fh, h0
@@ -779,9 +800,11 @@ def triangulate(
             pfix = (
                 np.vstack([pfix, boundary_seeds]) if pfix.size else boundary_seeds
             )
+            # _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.
+            _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
             port_domain = _PortDomain(
                 name="api_v1",
-                fd=domain.sdf,
+                fd=_sdf,
                 bbox=domain.bbox,
                 fixed_points=pfix,
             )

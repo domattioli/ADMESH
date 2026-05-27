@@ -122,15 +122,21 @@ NOTCHED_RECTANGLE = Domain(
     bbox=(-1.0, -0.5, 1.0, 0.5),
     fixed_points=np.array(
         [
-            [-1, -0.5], [1, -0.5], [1, 0.5], [0.05, 0.5], [0.05, 0.25],
-            [-0.05, 0.25], [-0.05, 0.5], [-1, 0.5],
+            # Outer corners
+            [-1, -0.5], [1, -0.5], [1, 0.5], [-1, 0.5],
+            # Notch corners
+            [0.05, 0.5], [0.05, 0.25], [-0.05, 0.25], [-0.05, 0.5],
+            # Notch wall midpoints — force seeding across the narrow throat
+            # (wall length=0.25; without these, h_max>=0.25 adds no interior points)
+            [0.05, 0.375], [-0.05, 0.375],
         ],
         dtype=float,
     ),
     boundary_polygon=np.array(
         [
             [-1.0, -0.5], [1.0, -0.5], [1.0, 0.5], [0.05, 0.5],
-            [0.05, 0.25], [-0.05, 0.25], [-0.05, 0.5], [-1.0, 0.5],
+            [0.05, 0.375], [0.05, 0.25], [-0.05, 0.25], [-0.05, 0.375],
+            [-0.05, 0.5], [-1.0, 0.5],
         ],
         dtype=float,
     ),

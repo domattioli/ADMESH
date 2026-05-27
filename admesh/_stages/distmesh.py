@@ -27,6 +27,32 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 from scipy.spatial import Delaunay
 
+try:
+    from admesh._cpp._distmesh_cpp import distmesh2d_step as _cpp_distmesh_step
+    _HAS_CPP = True
+except ImportError:
+    _HAS_CPP = False
+
+try:
+    import triangle as _triangle_lib
+    _HAS_TRIANGLE = True
+except ImportError:
+    _HAS_TRIANGLE = False
+
+
+def _delaunay(p: "Points") -> "NDArray[np.int64]":
+    """Delaunay triangulation returning (M, 3) int64 simplices.
+
+    Uses Shewchuk's Triangle library (4x faster) when available, falls back
+    to scipy.spatial.Delaunay.  Both return the same topology for general
+    position inputs; Triangle is faster because it is 2-D only (no QHull
+    general-dimension overhead).
+    """
+    if _HAS_TRIANGLE:
+        r = _triangle_lib.triangulate({"vertices": p})
+        return r["triangles"].astype(np.int64)
+    return Delaunay(p).simplices
+
 Points = NDArray[np.float64]
 SDF = Callable[[Points], NDArray[np.float64]]
 SizeFn = Callable[[Points], NDArray[np.float64]]
@@ -176,8 +202,7 @@ def distmesh2d(
         moved = np.sqrt(((p - pold) ** 2).sum(axis=1)) / h0
         if moved.max() > ttol:
             pold = p.copy()
-            tri = Delaunay(p)
-            t_all = tri.simplices
+            t_all = _delaunay(p)
             centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
             keep = fd(centroids) < -geps
             t = np.sort(t_all[keep], axis=1)
@@ -187,23 +212,25 @@ def distmesh2d(
             break
 
         # Truss forces: F = max(L0 - L, 0) along each bar.
-        barvec = p[bars[:, 0]] - p[bars[:, 1]]
-        L = np.sqrt((barvec ** 2).sum(axis=1))
+        # Hot path — use C++ kernel if available.
         hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
-        L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
-        F = np.maximum(L0 - L, 0.0)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
-
-        Ftot = np.zeros_like(p)
-        np.add.at(Ftot, bars[:, 0], Fvec)
-        np.add.at(Ftot, bars[:, 1], -Fvec)
-
-        # Zero force at fixed points (they don't move).
-        if nfix > 0:
-            Ftot[:nfix] = 0.0
-
-        p_new = p + deltat * Ftot
+        if _HAS_CPP:
+            p_new = _cpp_distmesh_step(
+                p, bars, hbars, Fscale, deltat, nfix
+            )
+        else:
+            barvec = p[bars[:, 0]] - p[bars[:, 1]]
+            L = np.sqrt((barvec ** 2).sum(axis=1))
+            L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
+            F = np.maximum(L0 - L, 0.0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
+            Ftot = np.zeros_like(p)
+            np.add.at(Ftot, bars[:, 0], Fvec)
+            np.add.at(Ftot, bars[:, 1], -Fvec)
+            if nfix > 0:
+                Ftot[:nfix] = 0.0
+            p_new = p + deltat * Ftot
 
         # Project points that drifted outside back to the boundary along -grad fd.
         d = fd(p_new)
@@ -250,8 +277,7 @@ def distmesh2d(
     # near-colinear slivers on straight boundaries. Re-Delaunay +
     # re-filter by centroid SDF before handing off to fixmesh.
     if len(p) >= 3:
-        tri = Delaunay(p)
-        t_all = tri.simplices
+        t_all = _delaunay(p)
         centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
         keep = fd(centroids) < -geps
         t = np.sort(t_all[keep], axis=1)
@@ -711,8 +737,7 @@ def distmesh2d_admesh(
         moved = np.sqrt(((p - pold) ** 2).sum(axis=1)) / h0
         if moved.max() > ttol:
             pold = p.copy()
-            tri = Delaunay(p)
-            t_all = tri.simplices
+            t_all = _delaunay(p)
             centroids = (p[t_all[:, 0]] + p[t_all[:, 1]] + p[t_all[:, 2]]) / 3.0
             t = np.sort(t_all[fd(centroids) < -geps], axis=1)
             bars = np.unique(
@@ -723,10 +748,10 @@ def distmesh2d_admesh(
             k += 1
             continue
 
-        # Truss forces.
+        # Truss forces — compute hbars, L, L0 for density control and force step.
+        hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
         barvec = p[bars[:, 0]] - p[bars[:, 1]]
         L = np.sqrt((barvec ** 2).sum(axis=1))
-        hbars = fh((p[bars[:, 0]] + p[bars[:, 1]]) / 2.0)
         L0 = hbars * Fscale * np.sqrt((L ** 2).sum() / (hbars ** 2).sum())
 
         # Density control — ``distmesh2d.m`` lines 167-197.
@@ -758,16 +783,21 @@ def distmesh2d_admesh(
                 k += 1
                 continue
 
-        F = np.maximum(L0 - L, 0.0)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
-
-        Ftot = np.zeros_like(p)
-        np.add.at(Ftot, bars[:, 0], Fvec)
-        np.add.at(Ftot, bars[:, 1], -Fvec)
-        if nC > 0:
-            Ftot[:nC] = 0.0
-        p = p + deltat * Ftot
+        # Truss force step — hot path. Use C++ kernel if available.
+        if _HAS_CPP:
+            p = _cpp_distmesh_step(
+                p, bars, hbars, Fscale, deltat, nC
+            )
+        else:
+            F = np.maximum(L0 - L, 0.0)
+            with np.errstate(divide="ignore", invalid="ignore"):
+                Fvec = np.where(L[:, None] > 0, (F / L)[:, None] * barvec, 0.0)
+            Ftot = np.zeros_like(p)
+            np.add.at(Ftot, bars[:, 0], Fvec)
+            np.add.at(Ftot, bars[:, 1], -Fvec)
+            if nC > 0:
+                Ftot[:nC] = 0.0
+            p = p + deltat * Ftot
 
         # Pull boundary-adjacent interior points onto the boundary
         # (MATLAB ``in`` = indices nC..N-1, i.e. non-fixed nodes).

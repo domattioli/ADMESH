@@ -1,4 +1,4 @@
-"""Tests for ``Mesh.plot`` and the matplotlib-import fallback (T018)."""
+"""Tests for ``Mesh.plot*`` delegation to chilmesh and the import fallback."""
 
 from __future__ import annotations
 
@@ -23,7 +23,8 @@ def _toy_mesh() -> Mesh:
     return Mesh(nodes=nodes, elements=elements, boundaries=(seg,))
 
 
-def test_plot_returns_axes_when_matplotlib_present():
+def test_plot_returns_axes_when_chilmesh_present():
+    pytest.importorskip("chilmesh")
     matplotlib = pytest.importorskip("matplotlib")
     matplotlib.use("Agg")  # non-interactive backend for CI
     import matplotlib.pyplot as plt
@@ -31,12 +32,13 @@ def test_plot_returns_axes_when_matplotlib_present():
     fig, ax = plt.subplots()
     result = _toy_mesh().plot(ax=ax)
     assert result is ax
-    # At least one Line2D / Triangulation artist was added.
-    assert len(ax.lines) > 0 or len(ax.collections) > 0
+    # chilmesh draws elements as a collection / patches.
+    assert len(ax.lines) > 0 or len(ax.collections) > 0 or len(ax.patches) > 0
     plt.close(fig)
 
 
 def test_plot_creates_axes_when_none_supplied():
+    pytest.importorskip("chilmesh")
     matplotlib = pytest.importorskip("matplotlib")
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -46,22 +48,31 @@ def test_plot_creates_axes_when_none_supplied():
     plt.close(ax.figure)
 
 
-def test_plot_raises_importerror_when_matplotlib_missing(monkeypatch):
-    """Simulate matplotlib-not-installed by intercepting the import."""
+def test_plot_quality_returns_axes():
+    pytest.importorskip("chilmesh")
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ax = _toy_mesh().plot_quality()
+    assert ax is not None
+    assert len(ax.collections) > 0 or len(ax.patches) > 0
+    plt.close(ax.figure)
+
+
+def test_plot_raises_importerror_when_chilmesh_missing(monkeypatch):
+    """Simulate chilmesh-not-installed by intercepting the import."""
     import builtins
 
     real_import = builtins.__import__
 
     def fake_import(name, *args, **kwargs):
-        if name == "matplotlib.pyplot":
-            raise ImportError("simulated missing matplotlib")
-        if name.startswith("matplotlib"):
-            raise ImportError("simulated missing matplotlib")
+        if name == "chilmesh" or name.startswith("chilmesh."):
+            raise ImportError("simulated missing chilmesh")
         return real_import(name, *args, **kwargs)
 
-    # Drop any cached matplotlib so the fresh import runs through fake_import.
     for key in list(sys.modules):
-        if key == "matplotlib" or key.startswith("matplotlib."):
+        if key == "chilmesh" or key.startswith("chilmesh."):
             monkeypatch.delitem(sys.modules, key, raising=False)
     monkeypatch.setattr(builtins, "__import__", fake_import)
 
