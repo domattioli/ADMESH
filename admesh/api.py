@@ -115,6 +115,12 @@ class Mesh:
 
         write_fort14(self, path)
 
+    def to_msh(self, path: "str | os.PathLike[str] | TextIO") -> None:
+        """Serialize this mesh to Gmsh ASCII v2.2 (``admesh.gmsh.write_msh``)."""
+        from admesh.gmsh import write_msh
+
+        write_msh(self, path)
+
     def plot(self, ax=None, **kwargs):
         """Draw the mesh wireframe via chilmesh.
 
