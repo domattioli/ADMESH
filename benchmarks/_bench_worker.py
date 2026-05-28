@@ -95,6 +95,13 @@ def main() -> None:
     qmin, qmean, q = _quality.mesh_quality(p, t)
     T["quality"] = time.perf_counter() - t0
 
+    # TODO: Apply quality gate (same as admesh.triangulate default).
+    # Benchmark bypasses the production size-field stack (spec-002), which limits mesh quality.
+    # On WNAT domain with correct derived params, minimum quality ~0.02 (severe sliver at Bermuda).
+    # Gate should be relaxed for benchmark-only domains, or benchmark should be routed through
+    # full triangulate() path with spec-002 size-field stack.
+    # See issue #101 for ongoing discussion.
+
     res = {
         "label": a.label,
         "params": {"hmin": a.hmin, "hmax": a.hmax, "g": a.g, "niter": a.niter},

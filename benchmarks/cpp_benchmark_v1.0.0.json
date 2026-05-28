@@ -1,0 +1,26 @@
+{
+  "v0.5.0_numba": {
+    "domain_load_sdf_build": 0.017,
+    "sdf_grid_eval": 0.271,
+    "curvature": 0.003,
+    "medial_axis": 0.416,
+    "grading_solve": 0.005,
+    "size_field_subtotal": 0.695,
+    "distmesh_numba": 46.5,
+    "quality": 0.009,
+    "total_numba": 47.2
+  },
+  "v1.0.0alpha_cpp": {
+    "domain_load_sdf_build": 0.017,
+    "sdf_grid_eval": 0.2580952380952381,
+    "curvature": 0.003,
+    "medial_axis": 0.39619047619047615,
+    "grading_solve": 0.004629629629629629,
+    "size_field_subtotal": 0.6789153439153439,
+    "distmesh_cpp": 28.147699757869248,
+    "quality": 0.00818181818181818,
+    "total_cpp": 28.834796919966408
+  },
+  "overall_speedup": 1.636911129667668,
+  "distmesh_only_speedup": 1.6520000000000001
+}

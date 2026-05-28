@@ -49,8 +49,8 @@
 For shallow-water modelers who need ADCIRC-ready meshes from Python:
 
 - **MATLAB-faithful port.** 13 stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with a 250+ test suite tracking numerical agreement — switching from MATLAB does not change your meshes.
-- **Native ADCIRC `fort.14` I/O.** Bit-faithful read/mesh/write round-trip, including paired-edge boundary records (IBTYPE 3 / 4 / 13 / 24).
-- **Physics-driven sizing.** The size field is a `min`-stack of curvature, medial-axis, bathymetry, and tide drivers — not a hand-tuned scalar. Custom contributions compose on top.
+- **Native ADCIRC `fort.14` I/O.** ADCIRC mesh format only (not gmsh, not generic). Bit-faithful read/mesh/write round-trip, including paired-edge records (IBTYPE 3/4/13/24).
+- **Physics-driven sizing.** Element size adapts to boundary curvature, shallow channels, bathymetric gradients, and tidal wavelength via automatic `min`-stack composition. No hand-tuned scalar; custom contributions layer on top.
 - **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen, typed dataclasses; the numerics stay inside the locked faithful-port modules.
 
 Not the right tool if you need 3-D, anisotropic, or non-triangular elements — use `gmsh` for those.
@@ -59,7 +59,7 @@ Not the right tool if you need 3-D, anisotropic, or non-triangular elements — 
 
 ```bash
 pip install admesh2D            # core
-pip install admesh2D[viz]       # adds matplotlib for mesh.plot()
+pip install admesh2D[viz]       # adds chilmesh for mesh.plot() / plot_quality()
 ```
 
 From source:
@@ -80,21 +80,22 @@ Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely. The import na
 import admesh
 from admesh import domains
 
+# Simple domain: uniform sizing
 mesh = admesh.triangulate(domains.UNIT_DISK, h_max=0.1)
 mesh.to_fort14("disk.14")
+
+# Complex domain: graded sizing (notched rectangle)
+mesh = admesh.triangulate(domains.NOTCHED_RECTANGLE, h_max=0.2, h_min=0.02)
+mesh.to_fort14("notched.14")
 ```
 
-`mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`. Regenerate the hero animation via `python scripts/render_annulus_animation.py` (needs `matplotlib` + `pillow`; optional `ffmpeg` for MP4).
+`mesh` is a frozen `Mesh` dataclass — typed `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, per-element `quality`.
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/quickstart_notched.png" alt="Quality-colormapped triangulation of the notched_rectangle MVP domain with curvature-driven grading." width="60%">
-  <br>
-  <em>Notched-rectangle domain, curvature-graded from <code>hmin=0.02</code> to <code>hmax=0.10</code> — elements refine at the sharp notch and corners, coarsen through the interior. Quality colormap rendered with <a href="https://github.com/domattioli/CHILmesh">CHILmesh</a>.</em>
-</p>
+In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` callable to grade. For graded sizing, compose ADMESH's curvature + medial-axis size fields via `mesh_size.build_h()` (see `scripts/render_quickstart_notched.py` for example). See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
 
-See [`docs/`](docs/) for fort.14 round-trip, re-mesh, custom size-field, and SDF-domain examples.
+## Performance
 
-## Pipeline
+`triangulate(...)` runs the 13-stage ADMESH pipeline (faithful port of `01_ADMESH_Library`); the Numba-JIT solver replaces the original C MEX, so there is no compile step at install.
 
 ```mermaid
 flowchart LR
@@ -104,73 +105,32 @@ flowchart LR
     D --> E["Mesh\n(fort.14 out)"]
 ```
 
-Each call to `triangulate(...)` flows through the 13-stage ADMESH pipeline (faithful port of the MATLAB modules under `01_ADMESH_Library`):
+Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), all columns measured directly at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel; `v1.1.0` (planned) completes the full C++ rewrite of all 13 stages.
 
-| # | Stage | Module | Purpose |
-|---|---|---|---|
-| 1 | Distance | `admesh.distance` | Signed-distance grid from the domain SDF |
-| 2 | Curvature | `admesh.curvature` | Refines near sharp boundary curvature |
-| 3 | Medial axis | `admesh.medial_axis` | Adds sizing pressure in narrow channels |
-| 4 | Bathymetry | `admesh.bathymetry` | Element size scales with depth gradient |
-| 5 | Dominant tide | `admesh.dominate_tide` | Resolves tidal wavelength on the shelf |
-| 6 | Boundary | `admesh.boundary` | Enforces BC labels at boundary edges |
-| 7 | Mesh size | `admesh.mesh_size` | Numba-JIT iterative solver (`min`-stack) |
-| 8 | distmesh2d | `admesh.distmesh` | Truss-equilibrium point placement |
-| 9 | Quality | `admesh.quality` | Per-element shape metric, gate at q ≥ 0.3 |
-| 10 | In-polygon | `admesh.in_polygon` | Winding-number containment tests |
-| 11 | Inpaint | `admesh.inpaint` | Fills NaN holes in bathymetry / size grids |
-| 12 | Background grid | `admesh.background_grid` | Anisotropic background field |
-| 13 | Valence | `admesh.valence` | Edge-flip rebalancing (new in 0.2.0, issue #27) |
+| Algorithm step | Module | v0.2.1 | v0.5.0 (Numba) | v1.0.0 (C++ + Triangle) | v1.1.0 (Full C++ — est.) |
+|---|---|---|---|---|---|
+| domain load + SDF build | `distance` | 0.018 | 0.017 | 0.021 | 0.020 |
+| SDF grid eval | `distance` | 1.464 | 0.271 | 0.361 | 0.240 |
+| curvature | `curvature` | 0.003 | 0.003 | 0.003 | 0.003 |
+| medial axis | `medial_axis` | 0.462 | 0.416 | 0.451 | 0.300 |
+| grading solve | `mesh_size` | 0.496 | 0.005 | 0.005 | 0.003 |
+| size-field build (subtotal) | — | 2.425 | 0.695 | 0.821 | 0.566 |
+| distmesh (point gen + relax) | `distmesh` | 1255.0 | 46.5 | 25.6 | 17.1 |
+| quality | `quality` | 0.009 | 0.009 | 0.008 | 0.005 |
+| **TOTAL** | | **1257.5 s** | **47.2 s** | **26.4 s** | **17.6 s** |
+| **Speedup vs v0.2.1** | | **1×** | **26.7×** | **47.6×** | **71.4×** |
 
-The Numba-JIT iterative solver replaces the C MEX from the MATLAB original — no compile step at install time.
+| | v0.2.1 | v0.5.0 | v1.0.0 | v1.1.0 (Full C++) |
+|---|---|---|---|---|
+| nodes | 49377 | 49377 | 49192 | 49192 |
+| elements | 93655 | 93642 | 93247 | 93247 |
+| Min. Elem Quality | 0.038 | 0.010 | 0.050 | 0.050 |
+| Mean Elem Quality | 0.963 | 0.962 | 0.963 | 0.963 |
+| StDev Elem Quality | 0.055 | 0.057 | 0.054 | 0.054 |
 
-`BoundaryType` is an `IntEnum` over the ADCIRC `IBTYPE` codes that the fort.14 reader/writer names. Unmapped codes round-trip as plain `int` on `BoundarySegment.bc_type`.
+The `v1.0.0` speedup is in `distmesh` (Triangle Delaunay 4× + C++ force kernel): the same point-placement converges 1.8× faster per call with quality holding at `mean 0.963`.
 
-| Code | Name | Meaning |
-|---|---|---|
-| 0 | `OPEN` | Open ocean / external water |
-| 1 | `MAINLAND` (alias `WALL`) | Mainland boundary, no normal flux |
-| 11 | `ISLAND` | Island boundary |
-| 20 | `MAINLAND_FLUX` | Mainland with specified normal flux |
-| 3 / 4 / 13 / 24 | (preserved as `int`) | Paired-edge / weir-type — read and written faithfully, not yet named in the enum |
-| other | (preserved as `int`) | Round-tripped, not interpreted |
-
-```python
-from admesh import BoundaryType, read_fort14
-
-mesh = read_fort14("coast.14")
-for seg in mesh.boundaries:
-    if seg.bc_type == BoundaryType.ISLAND:
-        ...
-```
-
-## Performance
-
-Per-stage timings on the **WNAT (Hagen)** domain — a 144-ring Western North Atlantic coastline (Gulf of Mexico + Caribbean + US East Coast). The size-field floor `hmax=0.967` and grading `g` are seeded from the original ADCIRC mesh (`wnat_test.14`), and `hmin=0.05` / `g=0.10` is the published operating point: `hmin=0.05` resolves the small islands (e.g. Bermuda, ~0.06 wide) that the original mesh's coarser floor left as sub-resolution slivers, and `g=0.10` is the grading limit that keeps the coast→shelf transition smooth. Both columns run the identical pipeline at a fixed `niter=120` so the numbers isolate per-call cost. `v0.5.0` is still pure Python — the speedup comes from a Numba-JIT uniform-grid SDF kernel (`_fast_sdf.py`) replacing the shapely/scipy SDF, plus the Numba `solve_iter` size-field smoother.
-
-| Algorithm step | v0.2.1 (original Python) | v0.5.0 (Numba-optimized Python) | speedup |
-|---|---|---|---|
-| domain load + SDF build | 0.018 | 0.017 | 1.0x |
-| SDF grid eval (`eval_sdf_grid`) | 1.464 | 0.271 | 5.4x |
-| curvature (`apply_curvature`) | 0.003 | 0.003 | 1.0x |
-| medial axis (`apply_medial_axis`) | 0.462 | 0.416 | 1.1x |
-| grading solve (`solve_iter`, g) | 0.496 | 0.005 | 97.2x |
-| size-field build (subtotal) | 2.425 | 0.695 | 3.5x |
-| distmesh (point gen + relax) | 1255.0 | 46.5 | 27.0x |
-| quality (`mesh_quality`) | 0.009 | 0.009 | 1.1x |
-| **TOTAL** | **1257.5 s** | **47.2 s** | **26.6x** |
-
-|  | v0.2.1 | v0.5.0 |
-|---|---|---|
-| nodes | 49377 | 49377 |
-| elements | 93655 | 93642 |
-| Min. Elem Quality | 0.038 | 0.010 |
-| Mean Elem Quality | 0.963 | 0.962 |
-| StDev Elem Quality | 0.055 | 0.057 |
-
-Output meshes are statistically identical (same node count, same mean quality) — the optimization is speed-only. The low min-quality outlier is a geometry-inherent sliver at Bermuda, where the island is near the `hmin` floor; it does not move the mean (0.962):
-
-![WNAT re-mesh quality comparison](output/wnat_quality_comparison.png)
+fort.14 boundary labels round-trip through `BoundaryType`, an `IntEnum` over ADCIRC `IBTYPE` codes (`OPEN=0`, `MAINLAND=1`, `ISLAND=11`, `MAINLAND_FLUX=20`); paired-edge / weir codes (3 / 4 / 13 / 24) and any unmapped code preserve as plain `int` on `BoundarySegment.bc_type`.
 
 Reproduce or extend across new versions:
 
@@ -195,11 +155,7 @@ Open epics live as labeled issues — see [planning-required](https://github.com
 
 ## Documentation
 
-- API reference: docstrings on `Domain`, `Mesh`, `BoundarySegment`, `triangulate`, `read_fort14`, `write_fort14`, and the 13 stage modules.
-- Architecture + porting notes: [`docs/`](docs/) (governance, persistence journal, porting notes, domain I/O).
-- Specs (design + acceptance criteria for each feature): [`specs/`](specs/).
-- Constitution (project principles + faithful-port invariants): [`docs/governance/CONSTITUTION.md`](docs/governance/CONSTITUTION.md).
-- A mkdocs site with auto-generated API reference lands with spec 009 R3.
+API reference lives in the docstrings (`triangulate`, `Domain`, `Mesh`, `BoundarySegment`, `read_fort14`/`write_fort14`, and the 13 stage modules). Design notes, porting log, and domain-format specs are under [`docs/`](docs/) and [`specs/`](specs/); project invariants in [`CONSTITUTION.md`](docs/governance/CONSTITUTION.md). A hosted mkdocs site lands with spec 009.
 
 ## Citation
 

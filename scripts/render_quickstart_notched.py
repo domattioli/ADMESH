@@ -30,7 +30,7 @@ matplotlib.use("Agg")
 
 OUT = Path(__file__).resolve().parent.parent / "papers" / "quickstart_notched.png"
 
-HMIN, HMAX = 0.02, 0.10
+HMIN, HMAX = 0.025, 0.25
 
 
 def main() -> None:
@@ -41,35 +41,31 @@ def main() -> None:
         fd = staticmethod(dom.fd)
         bbox = dom.bbox
 
-    # Curvature-driven grading: refine the notch, coarsen the interior.
-    # Medial-axis sizing is left off here so the rectangle's centreline
-    # doesn't flood the interior with uniform-fine elements.
+    # Graded size field: curvature refines the sharp notch + corners,
+    # medial-axis sizing refines along the centreline, and a 10x hmin->hmax
+    # range (g=0.2 gradient limit) coarsens the open interior. This shows the
+    # ADMESH size function actually grading, not a uniform fill.
     fh = mesh_size_stage.build_h(
-        _D, base=HMAX, hmin=HMIN, hmax=HMAX, g=0.15, curvature_scale=0.015,
+        _D, base=HMAX, hmin=HMIN, hmax=HMAX,
+        g=0.2, curvature_scale=0.04, medial_scale=0.08,
     )
-    p, t = triangulate(dom, h0=HMIN, fh=fh, niter=200, seed=0)
+    p, t = triangulate(dom, h0=HMIN, fh=fh, niter=500, seed=0)
     min_q, mean_q, _ = mesh_quality(p, t)
 
     # Render the element-quality colormap via CHILmesh so the figure shows
-    # both the curvature-driven grading and the resulting element quality.
+    # both the graded sizing and the resulting element quality.
     pts = np.column_stack([p[:, 0], p[:, 1], np.zeros(len(p))])
     cm = CHILmesh(connectivity=t, points=pts, compute_layers=False,
                   compute_adjacencies=True)
-    fig, ax = plt.subplots(figsize=(7.5, 4.5))
-    cm.plot_quality(ax=ax)
+    fig, ax = plt.subplots(figsize=(6.5, 3.4), constrained_layout=True)
+    cm.plot_quality(ax=ax, cmap="viridis")
     ax.set_aspect("equal")
-    ax.set_title(
-        f"notched_rectangle  |  N={len(p)}  T={len(t)}  "
-        f"min_q={min_q:.3f}  mean_q={mean_q:.3f}",
-        fontsize=10,
-    )
     ax.set_xticks([])
     ax.set_yticks([])
     for spine in ax.spines.values():
         spine.set_visible(False)
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    fig.tight_layout()
-    fig.savefig(OUT, dpi=140, bbox_inches="tight")
+    fig.savefig(OUT, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Wrote {OUT} (N={len(p)} T={len(t)} min_q={min_q:.3f} mean_q={mean_q:.3f})")
 

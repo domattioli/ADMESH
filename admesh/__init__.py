@@ -12,6 +12,7 @@ from admesh.api import (
 )
 from admesh.boundary_types import BoundaryType
 from admesh.fort14 import Fort14ParseError, read_fort14, write_fort14
+from admesh.gmsh import GmshParseError, read_msh, write_msh
 from admesh.loaders import (
     load_domain_from_fort14,
     load_domain_from_json,
@@ -56,6 +57,9 @@ __all__ = [
     "Fort14ParseError",
     "read_fort14",
     "write_fort14",
+    "GmshParseError",
+    "read_msh",
+    "write_msh",
     # --- Size-field composition ---
     "SizeFieldFn",
     "compose_size_field",
