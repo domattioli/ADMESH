@@ -18,9 +18,9 @@
 
 **Purpose**: Module scaffolding for the new octree substrate.
 
-- [ ] T001 Create `admesh/_stages/octree_grid.py` with `OctreeGrid` + `OctreeLeaf` dataclasses and public function stubs (`build_octree`, `locate`, `interpolate`, `leaf_graph`) per contracts/octree-size-field.md C2
-- [ ] T002 [P] Add `OctreeConstructionError` exception and a `_warn_under_resolved(...)` helper in `admesh/_stages/octree_grid.py`
-- [ ] T003 [P] Create test scaffold `tests/test_octree_grid.py` and fixture dir `tests/fixtures/multiscale/` with a `make_basin_inlet(L, W)` domain generator
+- [X] T001 Create `admesh/_stages/octree_grid.py` with `OctreeGrid` + `OctreeLeaf` dataclasses and public function stubs (`build_octree`, `locate`, `interpolate`, `leaf_graph`) per contracts/octree-size-field.md C2
+- [X] T002 [P] Add `OctreeConstructionError` exception and a `_warn_under_resolved(...)` helper in `admesh/_stages/octree_grid.py`
+- [X] T003 [P] Create test scaffold `tests/test_octree_grid.py` and fixture dir `tests/fixtures/multiscale/` with a `make_basin_inlet(L, W)` domain generator
 
 ---
 
@@ -30,11 +30,11 @@
 
 **⚠️ CRITICAL**: No user-story work begins until this phase is complete.
 
-- [ ] T004 Implement top-down quadtree construction in `build_octree(domain, *, h_min, h_max, size_oracle, padding=None, balance=True)` — subdivide each cell while `cell_size > size_oracle(center)` and `cell_size/2 >= h_min`; floor at `h_min` (research R2, FR-004) in `admesh/_stages/octree_grid.py`
-- [ ] T005 Implement the 2:1 neighbour-balance pass (FR-003, research R3) in `admesh/_stages/octree_grid.py`
-- [ ] T006 [P] Implement `locate(grid, p)` O(log) point-location in `admesh/_stages/octree_grid.py`
-- [ ] T007 [P] Implement `interpolate(grid, values, p)` within-leaf interpolation in `admesh/_stages/octree_grid.py`
-- [ ] T008 Implement `leaf_graph(grid) -> (edges, spacing)` edge-adjacency + centre-to-centre spacing in `admesh/_stages/octree_grid.py`
+- [X] T004 Implement top-down quadtree construction in `build_octree(domain, *, h_min, h_max, size_oracle, padding=None, balance=True)` — subdivide each cell while `cell_size > size_oracle(center)` and `cell_size/2 >= h_min`; floor at `h_min` (research R2, FR-004) in `admesh/_stages/octree_grid.py`
+- [X] T005 Implement the 2:1 neighbour-balance pass (FR-003, research R3) in `admesh/_stages/octree_grid.py`
+- [X] T006 [P] Implement `locate(grid, p)` O(log) point-location in `admesh/_stages/octree_grid.py`
+- [X] T007 [P] Implement `interpolate(grid, values, p)` within-leaf interpolation in `admesh/_stages/octree_grid.py`
+- [X] T008 Implement `leaf_graph(grid) -> (edges, spacing)` edge-adjacency + centre-to-centre spacing in `admesh/_stages/octree_grid.py`
 - [ ] T009 [P] Tests for construction (leaf size ∈ `[h_min, root]`, non-overlap tiling), 2:1 balance invariant, `locate`, `interpolate`, and `leaf_graph` in `tests/test_octree_grid.py`
 
 **Checkpoint**: octree primitives exist and are tested — stories can begin.
