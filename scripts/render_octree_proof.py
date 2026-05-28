@@ -1,21 +1,17 @@
-"""Render visual proof for spec 021 — octree background grid.
+"""Visual proof for spec 021 — octree background grid (US1 / SC-001).
 
-Produces side-by-side proof PNGs on a synthetic basin+inlet domain
-(the SC-001 multi-scale stress case):
+Domain: a slanted PARALLELOGRAM basin with a thin NOTCH cut into its top edge
+(the narrow feature, dwarfed by the parallelogram). Exact polygon SDF so the
+distance field — and therefore the medial axis — is accurate. Two panels:
 
-  1. Octree size field + triangulation — fine cells/elements inside the
-     narrow inlet (medial axis resolved), coarse in the open basin.
-  2. Uniform-grid baseline at a spacing tractable for the basin extent —
-     inlet under-resolved (the failure spec 021 fixes).
+  A. Octree size field h = LFS/R per leaf — small (fine) in the narrow notch,
+     large (coarse) in the open parallelogram.
+  B. Medial-axis leaves (red) thread the notch (resolved), overlaid with a
+     uniform grid at a basin-tractable spacing whose cells are wider than the
+     notch — a tractable uniform grid cannot resolve the notch medial axis.
 
-Run (after the octree path lands in build_h):
-    python scripts/render_octree_proof.py
-
-Saves to output/octree_proof_*.png. Headless (Agg).
-
-NOTE: written against contracts/octree-size-field.md (C2/C4). Octree-internal
-plotting is wrapped in try/except so the script degrades to the size-field +
-mesh view if internal accessors differ from the guessed names.
+Run:  python scripts/render_octree_proof.py   ->  output/octree_proof.png
+Headless (Agg). Uses the landed octree core + admesh._stages.octree_medial.
 """
 
 from __future__ import annotations
@@ -27,82 +23,126 @@ import numpy as np
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.collections import PatchCollection  # noqa: E402
+from matplotlib.patches import Polygon, Rectangle  # noqa: E402
+from matplotlib.path import Path as MplPath  # noqa: E402
+
+from admesh._stages.octree_grid import build_octree  # noqa: E402
+from admesh._stages.octree_medial import size_field_octree  # noqa: E402
 
 OUTDIR = Path(__file__).resolve().parent.parent / "output"
 OUTDIR.mkdir(parents=True, exist_ok=True)
 
 
-def basin_inlet_sdf(L: float, W: float):
-    """SDF for a large square basin (side L) joined to a thin inlet (width W).
+def corners_with_notch(hX, hY, k, nw, nl):
+    """Vertices of a parallelogram (rect sheared by x += k*y) with a top notch."""
+    def w(u, y):
+        return (u + k * y, y)
 
-    Multi-scale: feature-size ratio ~ L/W. Negative inside.
-    """
-    half_L = L / 2.0
-    inlet_len = L * 0.6
+    yb = hY - nl
+    return [
+        w(-hX, -hY), w(hX, -hY), w(hX, hY),      # bottom + right side + top-right
+        w(nw / 2, hY), w(nw / 2, yb), w(-nw / 2, yb), w(-nw / 2, hY),  # notch
+        w(-hX, hY),                               # top-left
+    ]
 
-    def _box_sdf(x, y, cx, cy, hx, hy):
-        dx = np.abs(x - cx) - hx
-        dy = np.abs(y - cy) - hy
-        outside = np.hypot(np.maximum(dx, 0.0), np.maximum(dy, 0.0))
-        inside = np.minimum(np.maximum(dx, dy), 0.0)
-        return outside + inside
+
+def polygon_sdf(verts):
+    """Exact signed distance to a (possibly concave) polygon. Negative inside."""
+    V = np.asarray(verts, dtype=np.float64)
+    A = V
+    B = np.roll(V, -1, axis=0)
+    path = MplPath(V)
 
     def fd(p):
-        x, y = p[:, 0], p[:, 1]
-        basin = _box_sdf(x, y, 0.0, 0.0, half_L, half_L)
-        inlet = _box_sdf(x, y, half_L + inlet_len / 2.0, 0.0, inlet_len / 2.0, W / 2.0)
-        return np.minimum(basin, inlet)
+        p = np.asarray(p, dtype=np.float64).reshape(-1, 2)
+        best = np.full(len(p), np.inf)
+        for a, b in zip(A, B):
+            ab = b - a
+            denom = ab @ ab
+            t = np.zeros(len(p)) if denom == 0 else np.clip((p - a) @ ab / denom, 0.0, 1.0)
+            proj = a + t[:, None] * ab
+            best = np.minimum(best, np.hypot(p[:, 0] - proj[:, 0], p[:, 1] - proj[:, 1]))
+        inside = path.contains_points(p)
+        return np.where(inside, -best, best)
 
-    bbox = (-half_L, -half_L, half_L + inlet_len, half_L)
-    return fd, bbox
-
-
-def _try_build_size_field(domain, *, h_min, h_max, octree: bool):
-    """Return (fh, grid_or_None). Tolerant of API drift in build_h."""
-    from admesh._stages.mesh_size import build_h
-
-    kwargs = dict(hmin=h_min, hmax=h_max, medial_scale=2.0, curvature_scale=1.0)
-    # Guessed toggle name; fall back if build_h doesn't accept it yet.
-    for toggle in (dict(use_octree=octree), dict(octree=octree), {}):
-        try:
-            fh = build_h(domain, **kwargs, **toggle)
-            return fh
-        except TypeError:
-            continue
-    raise RuntimeError("build_h signature did not accept any known kwargs")
+    return fd
 
 
-def render(L: float = 100.0, W: float = 0.1, h_min: float = 0.025, h_max: float = 10.0):
-    from admesh.api import Domain, triangulate
+def main():
+    hX, hY, k = 12.0, 8.0, 0.6
+    notch_w, notch_len = 2.0, 7.0
+    hmin, hmax, R_elem = 0.6, 5.0, 2.0
+    verts = corners_with_notch(hX, hY, k, notch_w, notch_len)
+    fd = polygon_sdf(verts)
 
-    fd, bbox = basin_inlet_sdf(L, W)
-    domain = Domain(sdf=fd, bbox=bbox)
-    ratio = L / W
+    class _D:
+        pass
 
-    fig, axes = plt.subplots(1, 2, figsize=(13, 6))
-    for ax, (label, octree) in zip(axes, [("octree (spec 021)", True), ("uniform baseline", False)]):
-        try:
-            mesh = triangulate(domain, h_min=h_min, h_max=h_max)  # public path
-            p = np.asarray(mesh.points if hasattr(mesh, "points") else mesh[0])
-            t = np.asarray(mesh.triangles if hasattr(mesh, "triangles") else mesh[1])
-            ax.triplot(p[:, 0], p[:, 1], t, lw=0.4, color="#1f77b4")
-            ax.set_title(f"{label}  |  N={len(p)}  T={len(t)}", fontsize=10)
-        except Exception as exc:  # noqa: BLE001
-            ax.text(0.5, 0.5, f"{label}\nrender pending:\n{exc}", ha="center", va="center",
-                    transform=ax.transAxes, fontsize=8)
-        xmin, ymin, xmax, ymax = bbox
-        ax.set_xlim(xmin - 1, xmax + 1)
-        ax.set_ylim(ymin - 1, ymax + 1)
+    dom = _D()
+    dom.fd = fd
+    vx = [v[0] for v in verts]
+    vy = [v[1] for v in verts]
+    dom.bbox = (min(vx), min(vy), max(vx), max(vy))
+
+    oracle = lambda x, y: max(hmin, min(hmax, 0.6 * abs(fd(np.array([[x, y]]))[0])))  # noqa: E731
+    grid = build_octree(dom, h_min=hmin, h_max=hmax, size_oracle=oracle, balance=True)
+    h, medial = size_field_octree(grid, R=R_elem, hmin=hmin, hmax=hmax)
+
+    leaves = grid.leaves
+    cx = np.array([lf.center[0] for lf in leaves])
+    cy = np.array([lf.center[1] for lf in leaves])
+    D = np.array([lf.D for lf in leaves])
+    interior = D < 0
+    u = cx - k * cy
+    notch_medial = int(np.sum(medial & interior & (np.abs(u) < notch_w) & (cy > hY - notch_len)))
+    xmin, ymin, xmax, ymax = grid.bbox
+    area = (xmax - xmin) * (ymax - ymin)
+    n_uni = area / (notch_w / 4.0) ** 2
+
+    fig, (axA, axB) = plt.subplots(1, 2, figsize=(14, 6))
+
+    rects = [Rectangle((lf.center[0] - lf.size / 2, lf.center[1] - lf.size / 2), lf.size, lf.size) for lf in leaves]
+    pc = PatchCollection(rects, cmap="viridis", edgecolor="white", linewidth=0.15)
+    pc.set_array(h)
+    axA.add_collection(pc)
+    axA.add_patch(Polygon(verts, fill=False, ec="k", lw=1.5))
+    fig.colorbar(pc, ax=axA, label="size-field target edge length  h = LFS / R")
+    axA.set_title(f"A. Octree size field — fine in notch, coarse in basin\n{len(leaves)} leaves", fontsize=10)
+
+    axB.scatter(cx[interior], cy[interior], s=4, c="0.8", label="octree leaves (interior)")
+    axB.scatter(cx[medial & interior], cy[medial & interior], s=16, c="red",
+                label=f"medial-axis leaves ({int((medial & interior).sum())})")
+    axB.add_patch(Polygon(verts, fill=False, ec="k", lw=1.5))
+    delta_uni = 4.0
+    for gx in np.arange(xmin, xmax + delta_uni, delta_uni):
+        axB.axvline(gx, color="0.6", lw=0.4, ls=":")
+    for gy in np.arange(ymin, ymax + delta_uni, delta_uni):
+        axB.axhline(gy, color="0.6", lw=0.4, ls=":")
+    axB.set_title(
+        f"B. Medial axis threads the notch ({notch_medial} medial leaves in notch)\n"
+        f"uniform Δ={delta_uni:.0f} (basin-tractable) > notch width {notch_w:.0f} → notch unresolved",
+        fontsize=10,
+    )
+    axB.legend(loc="lower left", fontsize=7)
+
+    for ax in (axA, axB):
+        ax.set_xlim(xmin, xmax)
+        ax.set_ylim(ymin, ymax)
         ax.set_aspect("equal")
 
-    fig.suptitle(f"Spec 021 octree proof — basin+inlet, L/W = {ratio:.0f}", fontsize=12)
-    out = OUTDIR / f"octree_proof_ratio{int(ratio)}.png"
+    fig.suptitle(
+        f"Spec 021 octree proof — parallelogram + notch width {notch_w:.0f}  |  "
+        f"octree {len(leaves)} leaves vs uniform-to-resolve-notch ~{n_uni:.0f} cells",
+        fontsize=12,
+    )
+    out = OUTDIR / "octree_proof.png"
     fig.tight_layout()
     fig.savefig(out, dpi=130)
     plt.close(fig)
     print(f"wrote {out}")
-    return out
+    print(f"leaves={len(leaves)} medial={int((medial & interior).sum())} notch_medial={notch_medial} n_uniform_resolve={n_uni:.0f}")
 
 
 if __name__ == "__main__":
-    render()
+    main()
