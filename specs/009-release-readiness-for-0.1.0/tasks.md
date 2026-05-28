@@ -63,7 +63,7 @@
 
 ### R2 — onboarding docs
 
-- [ ] T013 [P] [US3] Write `CONTRIBUTING.md` at repo root covering: (1) dev setup `git clone` + `pip install -e ".[dev]"`; (2) running tests `pytest -m "not slow" -q`; (3) branch contract — all work on `daily-issue-fixing`, no direct push to `main`; (4) DomI sync expectation — `.domi-pin` must match DomI HEAD before starting a write session; (5) how to file an issue (ADMESH or DomI).
+- [ ] T013 [P] [US3] Write `CONTRIBUTING.md` at repo root covering: (1) dev setup `git clone` + `pip install -e ".[dev]"`; (2) running tests `pytest -m "not slow" -q`; (3) branch contract — all work on `daily-maintenance`, no direct push to `main`; (4) DomI sync expectation — `.domi-pin` must match DomI HEAD before starting a write session; (5) how to file an issue (ADMESH or DomI).
 - [ ] T014 [P] [US3] Write `TESTING.md` at repo root covering: (1) pytest invocation patterns (standard, full, single file, single test, cov); (2) markers: `slow` (deselect by default), `requires_matlab` (MATLAB fixture skip), `requires_chilmesh` (chilmesh skip); (3) fixture-data locations under `tests/fixtures/`; (4) parity-test pattern (port-correctness tests vs. MATLAB golden fixtures); (5) the `assert_structurally_valid` helper in `tests/_structural_validity.py`.
 
 ### R2 — admesh-domains contract
@@ -109,7 +109,7 @@
 - [ ] T031 [US4] Write `mkdocs.yml` at repo root: `site_name: ADMESH`, nav covering index / quickstart / api-reference / porting-notes / constitution; `theme: material`; `plugins: [search, mkdocstrings]`.
 - [ ] T032 [P] [US4] Write `docs/index.md` (project overview, install, 3-line quickstart, links to API ref and porting notes).
 - [ ] T033 [P] [US4] Write `docs/quickstart.md` (end-to-end worked example: polygon → `triangulate` → `mesh.to_fort14`; plus round-trip with a real ADCIRC fixture; plus custom size-field contribution pattern).
-- [ ] T034 [US4] Write `.github/workflows/docs.yml`: steps checkout, setup-python, `pip install -e ".[dev]"`, `mkdocs gh-deploy --force`; triggers on push to `daily-issue-fixing` and `main`.
+- [ ] T034 [US4] Write `.github/workflows/docs.yml`: steps checkout, setup-python, `pip install -e ".[dev]"`, `mkdocs gh-deploy --force`; triggers on push to `daily-maintenance` and `main`.
 
 **Checkpoint**: `mkdocs build` succeeds locally; `mkdocs serve` shows the API reference page with all public symbols documented.
 

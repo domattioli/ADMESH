@@ -3,7 +3,7 @@
 **Status:** Planning-phase only. No code shipping in this commit (ADMESH planning profile).
 **Issue:** [#101 wnat mesh for the benchmark has far too many low quality elements](https://github.com/domattioli/ADMESH/issues/101) — `priority: critical`, `Executive: Approved`, `status: ready`.
 **Related:** [#65](https://github.com/domattioli/ADMESH/issues/65) / spec-017 (wire default size-field stack in `triangulate()`), [#86](https://github.com/domattioli/ADMESH/issues/86) (C++/Rust port), [#8](https://github.com/domattioli/ADMESH/issues/8) (size-field acceleration), PR [#103](https://github.com/domattioli/ADMESH/pull/103) (C++ distmesh — separate branch, does **not** address this).
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 **Target:** code-shipping session (this spec is the contract; implementation is out of scope here).
 **Token budget:** SMALL–MEDIUM (1 worker rewrite + 1 regression test + 1 driver touch).
 
@@ -13,7 +13,7 @@
 
 The WNAT version-comparison benchmark reports far too many low-quality / near-degenerate triangles. With params derived from `wnat_test.14` (hmin=0.119, hmax=0.967, g=0.209) the benchmark mesh hits `min_q=0.023` — well below the production floor — and its quality distribution does not match the WNAT (Onur/Hagen) source. The production `triangulate()` path yields WNAT `mean_q≈0.93`.
 
-## 2. Root cause (grounded in current `daily-issue-fixing` code)
+## 2. Root cause (grounded in current `daily-maintenance` code)
 
 The benchmark is a per-stage **timing** harness that bypasses `admesh.triangulate()` and calls locked stage modules directly with a **mis-parameterized, simplified size field**:
 

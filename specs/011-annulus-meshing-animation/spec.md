@@ -2,7 +2,7 @@
 
 **Status**: Planning
 **Tracks**: [#70](https://github.com/domattioli/ADMESH/issues/70)
-**Branch**: `daily-issue-fixing` (no new branch — per CORE MANDATE)
+**Branch**: `daily-maintenance` (no new branch — per CORE MANDATE)
 **Severity**: medium · **Type**: documentation · **Scope**: docs + scripts
 
 ## 1. Problem statement

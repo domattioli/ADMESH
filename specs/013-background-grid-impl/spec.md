@@ -3,7 +3,7 @@
 **Status**: Planning
 **Tracks**: [#78](https://github.com/domattioli/ADMESH/issues/78)
 **Companion**: [#73](https://github.com/domattioli/ADMESH/issues/73) (gap report); spec 012 (test contract)
-**Branch**: `daily-issue-fixing` (no new branch — per CORE MANDATE)
+**Branch**: `daily-maintenance` (no new branch — per CORE MANDATE)
 **Severity**: medium · **Type**: port · **Scope**: numerics
 **Constitution**: Principle I (MATLAB-numerical-identity) binds this port at `atol=1e-10`.
 

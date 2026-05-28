@@ -2,7 +2,7 @@
 
 **Status:** Planning-phase only. No code shipping.
 **Issue:** [#85 Cross-repo tracker: boundary tri-pair degeneracy (CHILmesh-side post-admesh protocol)](https://github.com/domattioli/ADMESH/issues/85)
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 **Token budget:** SMALL (analytical investigation + disposition write-up; no fixtures generated, no code in `admesh/`).
 
 ---

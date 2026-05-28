@@ -2,7 +2,7 @@
 
 **Spec**: `specs/012-background-grid-stage-tests/spec.md`
 **Plan**: `specs/012-background-grid-stage-tests/plan.md`
-**Branch**: `daily-issue-fixing`
+**Branch**: `daily-maintenance`
 
 Atomic, testable, ordered. Each task is tied to a spec acceptance
 criterion (AC) and/or a plan section.
@@ -129,7 +129,7 @@ T-012-6 ─┴─► T-012-7        │
   `atol=1e-10` against MATLAB-exported fixtures, matching the
   precedent set in spec 002 / spec 009.
 - **Principle II (no branch proliferation)**: all tasks land on
-  `daily-issue-fixing`.
+  `daily-maintenance`.
 - **Principle III (audit gates close)**: T-012-3 explicitly closes
   the F-MED-01 / B-05 entries in `TEST-AUDIT.md`.
 

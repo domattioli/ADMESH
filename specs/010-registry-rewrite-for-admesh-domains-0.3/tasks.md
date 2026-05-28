@@ -45,7 +45,7 @@ Each task is independently testable. Dependencies ordered top-down.
 
 - **Tasks T010-1..T010-7** — source-of-truth edits (adapter rewrite +
   contract-doc update). Shipped in commit `05fd02d` on
-  `daily-issue-fixing` (PR #72).
+  `daily-maintenance` (PR #72).
 - **Tasks T010-8..T010-13** — offline test surface and full local
   validation. Shipped in the same commit. Offline `pytest -q -m
   "not slow"` exit 0 (361 passed, 12 expected skips, 3 slow

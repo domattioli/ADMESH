@@ -1,6 +1,6 @@
 # Feature Specification: GitHub Issue Templates for ADMESH
 
-**Feature Branch**: `daily-issue-fixing` (no per-spec branch; per CLAUDE.md routine)
+**Feature Branch**: `daily-maintenance` (no per-spec branch; per CLAUDE.md routine)
 **Created**: 2026-05-20
 **Status**: Draft
 **Resolves**: [#83](https://github.com/domattioli/ADMESH/issues/83)
@@ -54,7 +54,7 @@ That divergence has concrete downstream cost:
 
 ### User Story 1 — File a bug against a port-stage module (Priority: P1)
 
-A user (or a future automated agent like CHILmesh's daily-issue-fixing routine)
+A user (or a future automated agent like CHILmesh's daily-maintenance routine)
 hits a numerical-identity regression in `admesh/_stages/curvature.py` against the
 MATLAB reference. They click "New issue" → "Bug Report" → fill in:
 - Affected module / stage (input)
@@ -173,7 +173,7 @@ the spec, per the CLAUDE.md routine's STEP 6 implementation branch.
       (verified post-merge).
 - [x] Each template's auto-applied labels match labels that already exist
       on the repo (no silent-drop failures); gaps surfaced in closure comment.
-- [x] Spec, plan, tasks land on `daily-issue-fixing`; commit references #83.
+- [x] Spec, plan, tasks land on `daily-maintenance`; commit references #83.
 
 ## Out of Scope
 

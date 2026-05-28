@@ -2,7 +2,7 @@
 
 **Status**: Planning
 **Tracks**: [#73](https://github.com/domattioli/ADMESH/issues/73)
-**Branch**: `daily-issue-fixing` (no new branch — per CORE MANDATE)
+**Branch**: `daily-maintenance` (no new branch — per CORE MANDATE)
 **Severity**: low · **Type**: enhancement · **Scope**: tests
 **Companion**: `TEST-AUDIT.md` backlog item B-05 (finding F-MED-01)
 
@@ -135,7 +135,7 @@ passing without `xfail`.
 - [x] Follow-up implementation issue opened, linked from spec 012
       (issue #78, opened 2026-05-19).
 - [ ] No code under `admesh/` is modified.
-- [ ] All work lands on `daily-issue-fixing`.
+- [ ] All work lands on `daily-maintenance`.
 
 ## 6. Risks and mitigations
 

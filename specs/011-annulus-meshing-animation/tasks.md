@@ -32,7 +32,7 @@
   spec ships **planning artifacts** in the current run (per CORE
   MANDATE). The implementation tasks live as a follow-up "implement
   spec 011" comment on issue #70 and execute in a subsequent session
-  on the same `daily-issue-fixing` branch.
+  on the same `daily-maintenance` branch.
 - T011-9 is optional — the script being checked in is itself the
   guard against artifact drift; a unit test that asserts the GIF
   exists is belt-and-braces.

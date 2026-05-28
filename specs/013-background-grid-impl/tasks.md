@@ -2,7 +2,7 @@
 
 **Spec**: `specs/013-background-grid-impl/spec.md`
 **Plan**: `specs/013-background-grid-impl/plan.md`
-**Branch**: `daily-issue-fixing`
+**Branch**: `daily-maintenance`
 
 Atomic, testable, ordered. Each task ties to a spec acceptance
 criterion (AC) and/or a plan pass.
@@ -35,7 +35,7 @@ criterion (AC) and/or a plan pass.
 - **Owner**: current run
 - **Inputs**: spec 013 URL
 - **Action**: Post a comment on #78 stating "Planning complete —
-  spec 013 landed on `daily-issue-fixing`. Implementation in a
+  spec 013 landed on `daily-maintenance`. Implementation in a
   follow-up run; resolves OQ-1..OQ-4 first." Link to spec / plan /
   tasks.
 - **Outputs**: comment posted.
@@ -177,7 +177,7 @@ T-013-B1 ─► T-013-B2 ─► T-013-B3 ─► T-013-B4
   enforce `atol=1e-10` against MATLAB fixture, matching the
   precedent of spec 002 / 009.
 - **Principle II (no branch proliferation)**: all tasks land on
-  `daily-issue-fixing`.
+  `daily-maintenance`.
 - **Principle III (audit gates close)**: T-013-B6 closes the
   Track B half of spec 012's audit ledger; #73 closes
   transitively when #78 closes.
@@ -190,4 +190,4 @@ T-013-B1 ─► T-013-B2 ─► T-013-B3 ─► T-013-B4
 - [ ] Comment on issue #78 — planning complete
 - [ ] Comment on issue #73 — cross-link
 - [ ] PROJECT_PLAN.md updated (if index exists)
-- [ ] Commit + push planning artifacts to `daily-issue-fixing`
+- [ ] Commit + push planning artifacts to `daily-maintenance`
