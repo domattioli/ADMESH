@@ -190,8 +190,8 @@
 ---
 
 ### Task 10: Cleanup & merge
-**Objective**: Finalize code, commit, push to `daily-issue-fixing` branch  
-**Acceptance**: All commits are on `daily-issue-fixing`; PR is ready  
+**Objective**: Finalize code, commit, push to `daily-maintenance` branch  
+**Acceptance**: All commits are on `daily-maintenance`; PR is ready  
 **Depends on**: All tasks 1–9  
 **Owner**: Implementation phase  
 **Effort**: 15 minutes  
@@ -206,7 +206,7 @@
   - Commit 2: admesh/api.py + admesh/__init__.py
   - Commit 3: docs/ updates
 - [ ] Commit messages reference issue #5: `Resolve #5: Implement Gmsh I/O (Feature 003)`
-- [ ] Push to origin/daily-issue-fixing
+- [ ] Push to origin/daily-maintenance
 - [ ] Create PR (draft) if one doesn't exist
 
 ---
