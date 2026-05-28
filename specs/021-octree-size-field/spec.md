@@ -11,6 +11,10 @@
 
 - Q: Constitution Principle I locks the faithful-port stage modules (including `background_grid.py`, `medial_axis.py`, and `mesh_size.py`) to numerical identity with MATLAB. Should the octree be a purely additive alternative that leaves those modules untouched, or may it modify the locked modules — which requires a Principle I exception? → A: The locked modules MAY be modified. The user granted explicit permission (2026-05-28) to create a feature branch that "unlocks the locked modules in order to implement this spec." This is a deliberate, scoped departure from Constitution Principle I and is ratified via a Constitution amendment delivered with this feature. The octree therefore supersedes the uniform cartesian grid as the substrate for size-function and medial-axis computation, rather than living purely in the additive layer.
 - Q: How is "feature" defined for the "four elements span every feature" rule? → A: Via local feature size (distance to the nearest boundary plus distance to the medial axis), consistent with the existing medial-axis `R` parameter ("elements per local-feature-size unit"). The four-element minimum is therefore contingent on the medial axis being resolved at that location — which is exactly what User Story 1 makes reliable.
+- Q: How is the "at least four elements span every feature" guarantee defined and verified? → A: Both the driver and the outcome. The size function targets an edge length no greater than one quarter of a feature's transverse width at the medial axis, AND an acceptance test counts at least four element edges across the feature's narrowest transverse extent in the output mesh.
+- Q: What bounds the smallest resolvable feature (the octree refinement floor)? → A: The existing minimum edge length `h_min` only. Leaf cells refine until their size reaches approximately `h_min` and no finer; there is no separate maximum-depth cap, and memory is bounded implicitly by `h_min` and the domain extent.
+- Q: Is the uniform/cartesian grid retained or fully replaced? → A: The octree is the default substrate, with an automatic fallback to the uniform grid if octree construction fails for a domain. The uniform path is retained as the fallback, not removed.
+- Q: What is the primary validation benchmark for the multi-scale medial-axis fix? → A: Both a new synthetic basin+inlet fixture with a controllable L/W ratio (deterministic; exercises the `h_min` floor) and a real ADCIRC multi-scale mesh (realism).
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -47,7 +51,7 @@ A modeller preparing a mesh for hydrodynamic simulation needs every resolved fea
 
 1. **Given** a domain with a channel of uniform width W (above the minimum resolvable size), **When** meshed via the octree size function, **Then** a transverse cut across the channel crosses at least four element edges.
 2. **Given** a domain with several features of different widths, **When** meshed, **Then** the four-element minimum holds for every feature simultaneously, without forcing a globally uniform fine mesh.
-3. **Given** a feature narrower than the configured minimum resolvable size (the octree's max-depth floor), **When** meshed, **Then** the system surfaces that the feature is below the resolution floor (documented warning) rather than silently producing fewer than four elements with no indication.
+3. **Given** a feature narrower than the configured minimum resolvable size (the `h_min` resolution floor), **When** meshed, **Then** the system surfaces that the feature is below the resolution floor (documented warning) rather than silently producing fewer than four elements with no indication.
 
 ### User Story 3 — Large multi-scale domains stay tractable (Priority: P3)
 
@@ -77,13 +81,13 @@ A maintainer needs the change in behaviour to be intentional and documented rath
 
 ### Edge Cases
 
-- **Feature below the resolution floor**: the octree has a maximum refinement depth; a feature narrower than the smallest leaf at that depth cannot be resolved. The system MUST surface this (documented warning identifying the under-resolved feature) rather than silently under-resolving it.
+- **Feature below the resolution floor**: the octree refines no finer than the minimum edge length `h_min`; a feature narrower than `h_min` cannot be resolved. The system MUST surface this (documented warning identifying the under-resolved feature) rather than silently under-resolving it.
 - **No multi-scale content** (a domain with no narrow features, or where the smallest and largest features are within a small ratio): the octree MUST degenerate to an essentially uniform grid and MUST NOT pay meaningful overhead versus a uniform grid — a uniform grid is just the no-refinement case of the octree.
 - **Adjacent cells of very different size**: octree leaves of differing depth meet at feature boundaries; the medial-axis detection (which on a uniform grid assumes equal neighbour spacing) MUST handle variable cell sizes without spurious or missed skeleton pixels.
 - **Smoothness of size transitions**: refinement level MUST change gradually (e.g. a 2:1 balance between neighbouring leaves) so the gradient-limited size field does not have to absorb abrupt jumps; gradient-limiting still applies on the octree.
 - **Multiply-connected domains**: narrow channels between island holes are exactly the features most likely to be dwarfed; each ring drives refinement and medial-axis evaluation.
 - **Reproducibility expectations**: because the octree grid differs from the previous uniform grid, the resulting size function (and therefore the final mesh) is intentionally not bit-identical to the prior cartesian/MATLAB output; this divergence is the authorized departure captured by the Constitution amendment, not a bug.
-- **Extreme scale ratio beyond the depth budget**: when the requested feature-size ratio exceeds what the maximum depth can represent, the system MUST behave predictably (resolve down to the floor and warn) rather than failing or allocating unbounded memory.
+- **Extreme scale ratio beyond the resolution floor**: when a domain's smallest feature is finer than `h_min`, the system MUST behave predictably (resolve down to the `h_min` floor and warn) rather than failing or allocating unbounded memory.
 
 ## Requirements *(mandatory)*
 
@@ -94,7 +98,7 @@ A maintainer needs the change in behaviour to be intentional and documented rath
 - **FR-001**: The system MUST compute the size function over a domain on an octree (hierarchically refined) background grid in place of the uniform cartesian background grid.
 - **FR-002**: Octree cells MUST refine locally based on local feature size and the other active size drivers (boundary proximity, curvature, and optional bathymetry/tide), so that cell size is small where features are small and large where the domain is open.
 - **FR-003**: The octree MUST enforce a bounded refinement transition between neighbouring leaf cells (e.g. a 2:1 size balance) so that size transitions are smooth.
-- **FR-004**: The octree MUST have a configurable maximum refinement depth that bounds the smallest leaf size (the resolution floor) and therefore bounds memory.
+- **FR-004**: The octree's refinement floor MUST be the existing minimum edge length `h_min`: leaf cells refine until their size reaches approximately `h_min` and no finer. There is no separate maximum-depth cap; memory is bounded implicitly by `h_min` and the domain extent.
 
 #### Medial axis on the octree
 
@@ -109,9 +113,9 @@ A maintainer needs the change in behaviour to be intentional and documented rath
 
 #### Four elements per feature
 
-- **FR-010**: The size function MUST yield at least four elements across the narrowest transverse extent of every feature that is at or above the resolution floor.
+- **FR-010**: The size function MUST target at least four elements across the narrowest transverse extent of every feature at or above the resolution floor — the medial-axis-derived target edge length there MUST be no greater than one quarter of the feature's transverse width — AND this MUST be verified by counting at least four element edges across that extent in the output mesh.
 - **FR-011**: The minimum-elements-per-feature target MUST be configurable (default at least four) and MUST be defined relative to the medial-axis-derived local feature size.
-- **FR-012**: When a feature cannot meet the minimum even at maximum depth (it is below the resolution floor), the system MUST emit a documented warning identifying the under-resolved feature rather than silently violating the minimum.
+- **FR-012**: When a feature is narrower than the resolution floor (`h_min`) and so cannot meet the four-element minimum, the system MUST emit a documented warning identifying the under-resolved feature rather than silently violating the minimum.
 
 #### Tractability
 
@@ -123,10 +127,11 @@ A maintainer needs the change in behaviour to be intentional and documented rath
 - **FR-015**: Modifying the locked faithful-port stage modules to implement the octree MUST be ratified by a dated Constitution amendment that names the stages exempted from Principle I and states the rationale.
 - **FR-016**: Numerical changes to any ported stage caused by the octree MUST be deliberate and captured by regenerated reference fixtures whose provenance documents the divergence from MATLAB; stages NOT involved in the octree path MUST remain numerically identical to MATLAB and their reference tests MUST continue to pass.
 - **FR-017**: When a domain has no meaningful multi-scale content, the octree MUST degenerate to an essentially uniform grid without meaningful overhead, so simple domains are unaffected in practice.
+- **FR-018**: The octree MUST be the default substrate, and the uniform grid MUST be retained as an automatic fallback: if octree construction fails for a domain, the system MUST fall back to the uniform grid (with a documented warning) and still produce a valid size function.
 
 ### Key Entities
 
-- **Octree Background Grid**: a hierarchically refined grid over the padded domain bounding box whose leaf cells vary in size; characterised by refinement criteria (local feature size plus the other size drivers), a maximum depth (resolution floor), and a neighbour balance constraint (smooth transitions). It replaces the single uniform-spacing grid as the substrate on which the size function and medial axis are computed.
+- **Octree Background Grid**: a hierarchically refined grid over the padded domain bounding box whose leaf cells vary in size; characterised by refinement criteria (local feature size plus the other size drivers), a resolution floor at the minimum edge length `h_min`, and a neighbour balance constraint (smooth transitions). It replaces the single uniform-spacing grid as the substrate on which the size function and medial axis are computed.
 - **Local Feature Size**: distance to the nearest boundary plus distance to the medial axis, evaluated on octree leaves; the quantity that drives feature-aware refinement and the four-elements-per-feature target.
 - **Feature-Size Ratio**: the ratio of the largest to the smallest feature in a domain; the multi-scale stress parameter that governs whether a uniform grid becomes intractable and whether the medial axis fails to resolve.
 - **Minimum-Elements-Per-Feature Target**: the configurable lower bound (default ≥ 4) on the number of elements spanning a feature's narrowest extent, defined relative to local feature size and contingent on the medial axis being resolved.
@@ -136,21 +141,22 @@ A maintainer needs the change in behaviour to be intentional and documented rath
 
 ### Measurable Outcomes
 
-- **SC-001**: On a multi-scale benchmark domain with feature-size ratio ≥ 1000, the octree path resolves the medial axis inside the narrowest feature (non-empty local feature size there), whereas a uniform grid at a tractable spacing for the domain extent does not.
+- **SC-001**: On a synthetic basin+inlet benchmark with feature-size ratio ≥ 1000, the octree path resolves the medial axis inside the narrowest feature (non-empty local feature size there), whereas a uniform grid at a tractable spacing for the domain extent does not.
 - **SC-002**: Across every benchmark domain, at least four element edges cross the narrowest transverse extent of every feature that is at or above the configured resolution floor.
 - **SC-003**: For features below the resolution floor, the system emits a documented warning identifying the under-resolved feature in 100% of cases (no silent violations).
 - **SC-004**: For a family of domains with feature-size ratios spanning at least 10×, 100×, and 1000×, the octree cell count grows sub-quadratically with the ratio and uses at least an order of magnitude fewer cells than the uniform-at-finest baseline at the 1000× ratio.
 - **SC-005**: A domain whose uniform-at-finest grid would exceed available memory is meshed to completion via the octree path within the same memory budget.
 - **SC-006**: Stages not involved in the octree path reproduce their MATLAB reference fixtures unchanged; stages changed by the octree assert against regenerated fixtures with documented provenance, and the full test suite passes.
-- **SC-007**: On the existing test ladder (MVP polygons → WNAT coastline → the new multi-scale synthetic domain), there are zero medial-axis resolution failures for features above the resolution floor.
+- **SC-007**: On the test ladder (MVP polygons → WNAT coastline → the new synthetic basin+inlet fixture → a real multi-scale ADCIRC mesh), there are zero medial-axis resolution failures for features above the resolution floor (`h_min`).
 - **SC-008**: When run on a domain with no multi-scale content, the octree path's wall-clock time is within a documented small margin of a uniform-grid run (no meaningful overhead).
 
 ## Assumptions
 
-- **The octree supersedes the uniform cartesian grid as the size-function/medial-axis substrate.** Per explicit user authorization (2026-05-28), the locked faithful-port stage modules (e.g. `background_grid.py`, `medial_axis.py`, and as needed `mesh_size.py`) MAY be modified to implement this, as a scoped exception to Constitution Principle I ratified by an amendment delivered with the feature. A uniform grid remains the degenerate (no-refinement) case of the octree, so simple domains are unaffected in practice.
+- **The octree is the default size-function/medial-axis substrate, with the uniform grid retained as an automatic fallback.** Per explicit user authorization (2026-05-28), the locked faithful-port stage modules (e.g. `background_grid.py`, `medial_axis.py`, and as needed `mesh_size.py`) MAY be modified to implement this, as a scoped exception to Constitution Principle I ratified by an amendment delivered with the feature. A uniform grid remains both the degenerate (no-refinement) case of the octree and the construction-failure fallback (FR-018), so simple domains are unaffected in practice and the legacy path stays available.
 - **"Feature" is defined via local feature size** (distance to boundary + distance to medial axis), consistent with the existing medial-axis `R` parameter ("elements per local-feature-size unit"). "Four elements span a feature" means: across a feature's narrowest transverse extent, the target edge length yields at least four element edges. The exact formula relating the elements-per-feature target to the size function is an implementation detail for `/speckit-plan`.
-- **Target multi-scale range**: the feature handles feature-size ratios up to roughly 10³–10⁴ before hitting the resolution floor; the exact maximum depth / floor is locked during `/speckit-plan`.
-- **Octree construction approach** (top-down refinement until the local target size is met or maximum depth is reached, with neighbour balancing) is an implementation detail; the spec fixes the required *properties* (feature-driven refinement, bounded transitions, bounded depth), not the algorithm.
+- **Target multi-scale range**: the resolution floor is the minimum edge length `h_min`; the feature is validated across feature-size ratios up to roughly 10³–10⁴ (set by `h_min` relative to domain extent).
+- **Validation benchmark set**: a new synthetic basin+inlet fixture with a controllable L/W ratio (deterministic; exercises the `h_min` floor) plus a real multi-scale ADCIRC mesh (realism). Both are required for SC-001/SC-007; the specific real mesh is selected during `/speckit-plan`.
+- **Octree construction approach** (top-down refinement until the local target size is met or the `h_min` floor is reached, with neighbour balancing) is an implementation detail; the spec fixes the required *properties* (feature-driven refinement, bounded transitions, floor at `h_min`), not the algorithm.
 - **Downstream stages are unchanged**: triangulation (distmesh), quality measurement, and fort.14 I/O consume the size function through the same query interface; the octree only changes how the size function and medial axis are computed and sampled.
 - **The Principle I exception is scoped, not blanket**: only the stages whose computation moves onto the octree are exempted; the remaining faithful-port stages stay numerically identical to MATLAB.
 - **Out of scope**: 3D meshing; changes to the distmesh force-balance algorithm itself; GPU acceleration; and the tri-to-quad path. Reproducing MATLAB bit-for-bit for the octree-affected stages is explicitly NOT a goal (it is the authorized departure).
