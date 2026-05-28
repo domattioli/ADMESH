@@ -1,6 +1,6 @@
 # Feature Specification: 1D Distmesh Boundary Seeding
 
-**Feature Branch**: `daily-issue-fixing`
+**Feature Branch**: `daily-maintenance`
 **Created**: 2026-05-07
 **Status**: Draft
 **Issue**: #2

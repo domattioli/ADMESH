@@ -63,4 +63,4 @@ Dependencies: G requires all of A–F complete.
 
 ## Definition of done
 
-All tasks above checked off, AC1–AC7 satisfied, follow-up issue numbers recorded in ADR-001, closing comment posted on #81. Branch `daily-issue-fixing` has new commits scoped to spec 015 files only — zero changes outside `specs/015-*/`, `docs/adr/`, and the single CLAUDE.md / README.md line.
+All tasks above checked off, AC1–AC7 satisfied, follow-up issue numbers recorded in ADR-001, closing comment posted on #81. Branch `daily-maintenance` has new commits scoped to spec 015 files only — zero changes outside `specs/015-*/`, `docs/adr/`, and the single CLAUDE.md / README.md line.

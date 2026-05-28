@@ -1,6 +1,6 @@
 # Tasks: 1D Boundary Seeding for Domain Path
 
-**Issue**: #2 | **Branch**: `daily-issue-fixing`
+**Issue**: #2 | **Branch**: `daily-maintenance`
 
 ## Phase 1: Setup
 - [x] T001 Baseline verification

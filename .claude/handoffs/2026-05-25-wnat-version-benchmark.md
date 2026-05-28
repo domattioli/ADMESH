@@ -1,6 +1,6 @@
 # Session Handoff: WNAT version-comparison benchmark + Performance README
 
-**Date:** 2026-05-25 **Project:** /home/user/ADMESH **Branch:** daily-issue-fixing (@30eb104)
+**Date:** 2026-05-25 **Project:** /home/user/ADMESH **Branch:** daily-maintenance (@30eb104)
 
 ## Current State
 
@@ -18,7 +18,7 @@ Built a version-agnostic per-stage timing harness, ran v0.2.1 (original Python) 
 - **Fixed niter=120 both runs** — isolates per-call cost; convergence-tuning benefit (ttol/dptol) deliberately excluded.
 - **Optimized code is still pure Python** — speedup = Numba-JIT uniform-grid SDF + Numba solve_iter, not C++.
 - **PR via curl+$GITHUB_TOKEN** — GitHub MCP OAuth endpoint was down (upstream connect error); used mcp-scope-preflight's documented api.github.com fallback.
-- **Commit target daily-issue-fixing** — operator-chosen (AskUserQuestion); where the optimization lives.
+- **Commit target daily-maintenance** — operator-chosen (AskUserQuestion); where the optimization lives.
 
 ## Code Changes
 

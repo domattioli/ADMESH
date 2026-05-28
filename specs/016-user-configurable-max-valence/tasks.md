@@ -2,7 +2,7 @@
 
 **Spec:** [spec.md](./spec.md) · **Plan:** [plan.md](./plan.md)
 **Issue:** [#84](https://github.com/domattioli/ADMESH/issues/84)
-**Branch (when implementing):** `daily-issue-fixing`
+**Branch (when implementing):** `daily-maintenance`
 
 Each task is atomic, testable, and references the acceptance criterion
 it satisfies. Tasks marked `[planning]` are complete with this commit.

@@ -6,13 +6,13 @@ Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Govern
 
 ## Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)
 
-**Spec 012 (`specs/012-background-grid-stage-tests/`) planning shipped on `daily-issue-fixing`.**
+**Spec 012 (`specs/012-background-grid-stage-tests/`) planning shipped on `daily-maintenance`.**
 
 - Tracks issue #73 (TEST-AUDIT.md backlog B-05 / finding F-MED-01) — `admesh/_stages/background_grid.py` has no eponymous test file.
 - Planning surfaced that the canonical module is a 7-line stub; the original issue's parity-test proposal cannot satisfy at `atol=1e-10` until the MATLAB port lands.
 - Resolution: two-track spec. Track A (test scaffold + smoke + `xfail(strict=True)` parity scaffolds) closes the audit gap immediately without the port. Track B (numerical parity at `atol=1e-10`) gates on the new follow-up impl issue #78.
 - Issue #78 opened to track the actual port of `02_Create_Background_Grid/CreateBackgroundGrid.m`. Verified: `scripts/export_matlab_fixtures.m` does not yet export a stage-02 fixture (OQ-1 resolved → fixture work belongs to #78).
-- Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on `daily-issue-fixing`.
+- Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on `daily-maintenance`.
 - Spec 012 deliverables landing this run: `spec.md`, `plan.md`, `tasks.md`, issue #78, plus this PROJECT_PLAN entry. Track A implementation (T-012-2 / T-012-3) deferred to next run per the planning-mode mandate.
 
 ---
@@ -45,7 +45,7 @@ Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Govern
   - `007-1d-boundary-seeding` (issue #2, in progress)
   - `008-gmsh-io-integration` (issue #5, planning)
 - ~20 ADMESH issues closed since the 2026-04-26 entry; issue #15 (right-isoceles smoother), #27 (valence balancing) and #36 (`distmesh2d` undefined `_boundary_cleanup`) are among the larger ones.
-- New "daily-issue-fixing" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit `ab5bb49e`, `manifest_sha256` recorded in `.domi-pin`).
+- New "daily-maintenance" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit `ab5bb49e`, `manifest_sha256` recorded in `.domi-pin`).
 - `TEST-AUDIT.md` shipped on 2026-05-15 (issue #59). Surfaced **F-CRIT-01**: only `publish.yml` exists, no CI workflow runs the 310 test functions. Sibling audit issues #60 (test surface, routes to DomI #63) and #61 (Claude Code hooks, routes to DomI #64) are open.
 - `admesh-domains>=0.1.0` is now a hard runtime dependency (`pyproject.toml:22`). The registry sibling is part of the public surface for 0.1.0.
 

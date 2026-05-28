@@ -3,7 +3,7 @@
 **Status:** Planning-phase only. No code shipping in this commit.
 **Issue:** [#65 Wire default size-field stack in triangulate() (3-step plan from #10) — fresh-mesh quality improvement](https://github.com/domattioli/ADMESH/issues/65)
 **Related:** [#10](https://github.com/domattioli/ADMESH/issues/10) (original report, retained for the quality concern; closes on #65 merge)
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 **Target:** post-0.1.0 (0.2.0 scope)
 **Token budget:** MEDIUM (1 dataclass field, 2 callsite edits, 4 acceptance tests already-green, 1 new bathymetry-path test, 1 visual gate, ~6 unit tests)
 

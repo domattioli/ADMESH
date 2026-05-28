@@ -1,6 +1,6 @@
 # Implementation Plan: 1D Boundary Seeding for Domain Path
 
-**Branch**: `daily-issue-fixing` | **Date**: 2026-05-07 | **Spec**: [spec.md](spec.md)
+**Branch**: `daily-maintenance` | **Date**: 2026-05-07 | **Spec**: [spec.md](spec.md)
 **Input**: Feature specification from `specs/007-1d-boundary-seeding/spec.md`
 
 ## Summary

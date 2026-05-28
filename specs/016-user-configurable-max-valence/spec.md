@@ -2,7 +2,7 @@
 
 **Status:** Planning-phase only. No code shipping in this commit.
 **Issue:** [#84 the admesh algorithm should allow users to set a max-valence for vertices](https://github.com/domattioli/ADMESH/issues/84)
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 **Token budget:** SMALL (single dataclass field + one gate condition + 3 tests)
 
 ---

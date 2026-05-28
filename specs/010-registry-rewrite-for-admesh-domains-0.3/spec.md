@@ -2,7 +2,7 @@
 
 **Status**: Planning
 **Tracks**: [#64](https://github.com/domattioli/ADMESH/issues/64)
-**Branch**: `daily-issue-fixing` (no new branch — per CORE MANDATE)
+**Branch**: `daily-maintenance` (no new branch — per CORE MANDATE)
 **Severity**: high · **Type**: bug · **Scope**: integration
 **Companion**: spec 009 R2 (contract surface), `docs/ADMESH_DOMAINS_CONTRACT.md`
 

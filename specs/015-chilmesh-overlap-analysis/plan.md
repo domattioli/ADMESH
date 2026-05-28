@@ -72,7 +72,7 @@ Post a single comment on issue #81 with:
 - Link to ADR-001
 - The disposition table (markdown)
 - List of follow-up issue numbers
-- Recommendation: close #81 once ADR is merged to `daily-issue-fixing`.
+- Recommendation: close #81 once ADR is merged to `daily-maintenance`.
 
 ## Architectural decisions to record up-front
 
