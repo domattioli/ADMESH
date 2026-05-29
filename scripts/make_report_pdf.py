@@ -1,4 +1,7 @@
-"""Generate a <=2-page PDF report for spec 021 octree work -> output/spec021_report.pdf."""
+"""Generate a <=2-page PDF report for spec 021 octree work -> output/spec021_report.pdf.
+
+Focus: HOW it was built, and whether it is currently SCALABLE (and why).
+"""
 
 from __future__ import annotations
 
@@ -12,101 +15,95 @@ import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
 
 OUT = Path(__file__).resolve().parent.parent / "output"
-IMG = OUT / "octree_meshcompare.png"
+IMG = OUT / "octree_sizefield_diff.png"
 
-PAGE1 = """ADMESH Spec 021 — Octree Background Grid for Multi-Scale Size-Function
-& Medial-Axis Robustness.  Implementation report.  Branch 021-octree-size-field, PR #113.
+PAGE1 = """ADMESH Spec 021 — Octree Background Grid for Multi-Scale Size-Function & Medial-Axis
+Robustness.  Implementation report (how it works + scalability).  Branch 021-octree-size-field, PR #113.
 
-WHAT I DID
-- Ran the full Spec Kit pipeline on the feature "compute the size function on an octree
-  grid instead of a cartesian grid": /specify -> /clarify -> /plan -> /tasks -> /analyze,
-  each committed to PR #113. Output: spec (4 user stories, 18 functional requirements,
-  8 success criteria), 4 recorded clarifications, an implementation plan, 32 ordered tasks,
-  and a cross-artifact analysis.
-- Key governance call: the change touches three LOCKED faithful-port stage modules
-  (background_grid, medial_axis, mesh_size), which violates Constitution Principle I
-  (numerical identity with MATLAB). You authorized unlocking them; the plan scopes a
-  Principle I exception to be ratified by a v2.0.0 Constitution amendment. Uniform grid is
-  kept as the fallback path.
-- Implementation (branch): an octree/quadtree core (construction, 2:1 balance, point
-  location, interpolation, leaf-adjacency graph) landed first. Then the medial axis was
-  moved onto the leaf graph: medial leaves are detected where the distance-field gradient
-  converges (|grad D| -> 0 between opposing walls), medial-axis distance is a Dijkstra
-  shortest path over the variable-spacing graph, and the size field is
-  h = clip((|D| + MAD)/R, hmin, hmax). A graph gradient-limiter smooths size jumps.
-- Validation domain: a parallelogram with a thin notch — a narrow feature dwarfed by the
-  domain (the exact regime where the medial axis fails today). Figure below: admesh node
-  resolution at the notch WITHOUT vs WITH the octree size field (zoom)."""
+HOW I DID IT
+Spec Kit pipeline (/specify -> /clarify -> /plan -> /tasks -> /analyze), then implementation on the
+branch. The change is scoped to three locked faithful-port stages (background_grid, medial_axis,
+mesh_size) under a Constitution Principle I exception (you authorized it; ratified by a v2.0.0
+amendment, not yet written). Method, bottom-up:
 
-PAGE2 = """SUCCESS / FAILURE ASSESSMENT  —  PARTIAL SUCCESS.
+1. Octree (2D quadtree) — admesh/_stages/octree_grid.py. build_octree() subdivides the padded
+   bounding box top-down: a cell splits while its size exceeds a sizing oracle and stays above the
+   h_min floor. The oracle here is 0.6*|signed distance|, so cells shrink toward the boundary. A
+   2:1 neighbour-balance pass smooths transitions. Output: leaves + an edge-adjacency graph with
+   centre-to-centre spacings.
 
-What works (evidence):
-- The octree resolves the medial axis inside the narrow notch where a tractable uniform
-  grid cannot. The original local-maximum-of-|D| medial test failed on elongated features
-  (|D| grows along a channel, so channel cells are not local maxima) — it found 1 medial
-  cell in the notch. Replacing it with a gradient-convergence (AOF-style) detector fixed
-  this.
-- The size field is correct: fine in the notch, coarse in the basin. In the with/without
-  comparison, nodes spanning the notch went from 1 (uniform) to 40 (octree). This is the
-  core spec claim (SC-001): a feature dwarfed by the domain is resolved.
+2. Medial axis on the leaf graph — admesh/_stages/octree_medial.py. Medial leaves are detected by
+   GRADIENT CONVERGENCE: the signed-distance gradient |grad D| (least-squares fit from each leaf's
+   neighbours) drops toward 0 between opposing walls. This finds the axis of ELONGATED features
+   (a river/notch); the original local-maximum-of-|D| test does not (|D| keeps growing along a
+   channel). Medial-axis distance (MAD) is a Dijkstra shortest path to the nearest medial leaf over
+   the variable-spacing graph. Size field h = clip((|D| + MAD)/R, hmin, hmax), with R=2 targeting
+   ~4 elements across a feature (FR-010/FR-011).
 
-What does NOT yet work / is incomplete:
-- The octree size field does not yet flow through admesh's distmesh: distmesh collapsed on
-  the raw graded field (large unsmoothed size ratios). The proof therefore places nodes
-  from the size field and triangulates by Delaunay (interior triangles only). This isolates
-  the size-field effect but is NOT the full mesher (tasks T015/T016).
-- The medial code lives in a new module (octree_medial.py), not folded into the locked
-  medial_axis.py as the plan requires.
-- Performance: octree adjacency, point-location, and balancing are O(N^2). ~2,700 leaves is
-  fine, but an early fine-inlet run timed out — this will not reach the 10^3-10^4
-  feature-size ratios the spec targets without O(N log N) structures.
-- US2 (>=4 elements verified on a real distmesh output), US3 (tractability + fallback
-  tests), and US4 (the v2.0.0 amendment) are not implemented.
-- The new medial detector is a proof of concept; it has not been validated against MATLAB
-  or the existing faithful-port tests.
+3. Meshing with admesh's own triangulate() — per-leaf h is rasterized to a fine grid, gradient-
+   limited by the existing faithful solver solve_iter (|grad h| <= g), wrapped in a
+   RegularGridInterpolator, and passed as size_field to admesh.triangulate(). The raw graded field
+   alone collapses distmesh, so distmesh is SEEDED with the octree leaf centres (initial_points=)
+   and the quality gate is relaxed. Domain: a narrow river entering a large bay (the physical
+   estuary case = the SC-001 "small feature dwarfed by large domain" regime).
 
-Why I judge it a partial success: the hardest, most uncertain part — making the medial axis
-resolve a dwarfed feature — is demonstrably solved at the size-field level, which is the
-quantity spec 021 actually changes. The remainder (distmesh wiring, scaling, governance) is
-known, bounded engineering rather than open research.
+Figure: size field (top) and admesh mesh (bottom), uniform grid vs octree, same algorithm."""
 
-FURTHER TESTS I WANT TO RUN
-1. Wire the field through distmesh using its gradient-limited solver on the leaf graph, then
-   assert >=4 element edges across the notch in the ACTUAL mesh (SC-002), not a Delaunay proxy.
-2. Agreement test: octree LFS vs the uniform result on a domain the uniform grid already
-   resolves (unit disk, annulus) to atol=1e-8/rtol=1e-6 (FR-007).
-3. Scaling: leaf count and wall-clock vs feature-size ratio 10/100/1000 — after replacing the
-   O(N^2) primitives — to confirm sub-quadratic growth and >=10x fewer cells than uniform (SC-004).
-4. Large-domain memory completion (SC-005) and degenerate no-multiscale overhead (SC-008).
-5. A real multi-scale ADCIRC mesh on the test ladder (SC-007).
-6. Numba parity (atol=1e-10) for the leaf-graph gradient limiter (Principle II).
-7. Faithful-port regression: confirm every non-octree stage stays numerically identical and
-   the suite passes (SC-006), before the v2.0.0 amendment lands."""
+PAGE2 = """IS IT CURRENTLY SCALABLE?  —  NO (correct, but prototype-grade). Why, concretely:
+
+- Construction is O(N^2) in leaf count. _build_adjacency() compares all leaf pairs (a double loop);
+  _balance_2to1() REBUILDS that O(N^2) adjacency inside its split loop, so balancing is up to
+  O(N^3) worst case.
+- Queries are O(N). locate() and interpolate() linear-scan every leaf per query point, so a
+  distmesh run that calls the size field many times is O(N * Q).
+- Net effect: a width-2 river in a 48x26 bay = ~2,900 leaves runs fine, but an earlier finer-inlet
+  attempt timed out. The spec targets feature-size ratios of 10^3-10^4; near the h_min floor that
+  is millions of leaves, where O(N^2)/O(N^3) construction and O(N) queries are intractable.
+- The distmesh coupling is fragile, not just slow. The graded field collapses the mesher unless it
+  is seeded with leaf centres, and the result needs the quality gate relaxed (min_q ~ 0.16, below
+  the 0.30 production gate). So even at small N the mesh is low quality.
+
+What it would take to scale (and why):
+- Pointer/hash quadtree with O(log N) point location (tree descent) instead of a linear scan.
+- O(N) construction: find neighbours via parent/sibling links during subdivision, not all-pairs;
+  balance with a work queue of split candidates, not a full adjacency rebuild per split.
+- Numba/vectorize the per-leaf Python loops (gradient fit, raster, balance).
+- A real distmesh size-field coupling: gradient-limit on the leaf graph natively and tune the force
+  balance so it converges WITHOUT seeding and passes the quality gate.
+
+VERDICT — PARTIAL SUCCESS. Correctness is demonstrated: the octree resolves the medial axis of a
+feature a tractable uniform grid misses, and admesh meshes ~4 elements across the river (108 river
+nodes vs 1 for uniform). Scalability is NOT there: the data structures are O(N^2)/O(N^3) prototypes
+and the distmesh coupling needs seeding + a relaxed quality gate. The hard idea works; the
+engineering to make it production- and scale-ready remains.
+
+FURTHER TESTS (scalability-focused)
+1. Leaf count + wall-clock vs feature-size ratio 10/100/1000 AFTER the O(N log N) rewrite (SC-004).
+2. distmesh convergence on the graded field WITHOUT seeding, with the 0.30 quality gate restored.
+3. Octree LFS vs uniform agreement where the uniform grid already resolves (disk/annulus), FR-007.
+4. Numba parity (atol=1e-10) for a native leaf-graph gradient limiter (Principle II).
+5. Faithful-port regression: non-octree stages unchanged; full suite green (SC-006)."""
 
 
 def render_text(ax, text, width):
-    wrapped = "\n".join(textwrap.fill(line, width=width) if line.strip() else "" for line in text.split("\n"))
+    wrapped = "\n".join(textwrap.fill(ln, width=width) if ln.strip() else "" for ln in text.split("\n"))
     ax.axis("off")
-    ax.text(0.0, 1.0, wrapped, va="top", ha="left", family="monospace", fontsize=8.0, linespacing=1.35)
+    ax.text(0.0, 1.0, wrapped, va="top", ha="left", family="monospace", fontsize=7.7, linespacing=1.3)
 
 
 def main():
     with PdfPages(OUT / "spec021_report.pdf") as pdf:
-        # Page 1: text (top) + figure (bottom)
         fig = plt.figure(figsize=(8.5, 11))
-        ax_txt = fig.add_axes([0.06, 0.55, 0.9, 0.42])
-        render_text(ax_txt, PAGE1, width=92)
+        render_text(fig.add_axes([0.06, 0.50, 0.9, 0.47]), PAGE1, width=95)
         if IMG.exists():
-            ax_img = fig.add_axes([0.06, 0.05, 0.9, 0.46])
+            ax_img = fig.add_axes([0.10, 0.04, 0.8, 0.42])
             ax_img.imshow(plt.imread(str(IMG)))
             ax_img.axis("off")
         pdf.savefig(fig)
         plt.close(fig)
 
-        # Page 2: text
         fig = plt.figure(figsize=(8.5, 11))
-        ax_txt = fig.add_axes([0.06, 0.03, 0.9, 0.94])
-        render_text(ax_txt, PAGE2, width=92)
+        render_text(fig.add_axes([0.06, 0.03, 0.9, 0.94]), PAGE2, width=95)
         pdf.savefig(fig)
         plt.close(fig)
     print(f"wrote {OUT / 'spec021_report.pdf'}")

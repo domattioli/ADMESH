@@ -27,6 +27,10 @@ from matplotlib.collections import PatchCollection  # noqa: E402
 from matplotlib.patches import Polygon, Rectangle  # noqa: E402
 from matplotlib.path import Path as MplPath  # noqa: E402
 
+from scipy.interpolate import RegularGridInterpolator  # noqa: E402
+
+from admesh.api import Domain, triangulate  # noqa: E402
+from admesh._stages.mesh_size import solve_iter  # noqa: E402
 from admesh._stages.octree_grid import build_octree  # noqa: E402
 from admesh._stages.octree_medial import size_field_octree  # noqa: E402
 
@@ -85,6 +89,62 @@ def panel(ax, grid, h, vmin, vmax, verts, title):
     return pc
 
 
+def _raster(grid, values, xmin, ymin, delta, nx, ny, hmax):
+    """Paint per-leaf values onto a fine regular grid (fast; leaves tile, no overlap)."""
+    H = np.full((ny, nx), np.nan)
+    for lf, val in zip(grid.leaves, values):
+        cx, cy = lf.center
+        s = lf.size / 2.0
+        ix0 = max(0, int((cx - s - xmin) / delta))
+        ix1 = min(nx, int(np.ceil((cx + s - xmin) / delta)))
+        iy0 = max(0, int((cy - s - ymin) / delta))
+        iy1 = min(ny, int(np.ceil((cy + s - ymin) / delta)))
+        H[iy0:iy1, ix0:ix1] = val
+    H[np.isnan(H)] = hmax
+    return H
+
+
+def admesh_mesh(fd, grid, h_leaf, hmin, hmax, g=0.2):
+    """Mesh with admesh's own triangulate(): rasterize octree h -> gradient-limit
+    (solve_iter) -> RegularGridInterpolator size field -> distmesh."""
+    xmin, ymin, xmax, ymax = grid.bbox
+    delta = hmin
+    nx = int(np.ceil((xmax - xmin) / delta)) + 1
+    ny = int(np.ceil((ymax - ymin) / delta)) + 1
+    xs = xmin + delta * np.arange(nx)
+    ys = ymin + delta * np.arange(ny)
+    X, Y = np.meshgrid(xs, ys)
+    H = np.clip(_raster(grid, h_leaf, xmin, ymin, delta, nx, ny, hmax), hmin, hmax)
+    Dabs = np.abs(fd(np.column_stack([X.ravel(), Y.ravel()])).reshape(ny, nx))
+    Hs = solve_iter(H, Dabs, hmax, hmin, g, delta)
+    interp = RegularGridInterpolator((ys, xs), Hs, method="linear", bounds_error=False, fill_value=hmax)
+
+    def fh(p):
+        p = np.asarray(p, dtype=float).reshape(-1, 2)
+        return interp(np.column_stack([p[:, 1], p[:, 0]]))
+
+    # Seed distmesh with interior octree leaf centers (dense in the river) — the raw
+    # graded field alone collapses distmesh; seeding + a relaxed quality gate lets
+    # admesh's own mesher resolve the channel. Low min_q is a known caveat (see report).
+    ctr = np.array([lf.center for lf in grid.leaves], dtype=np.float64)
+    Dl = np.array([lf.D for lf in grid.leaves])
+    ip = ctr[Dl < 0]
+    dom = Domain(sdf=fd, bbox=(xmin, ymin, xmax, ymax))
+    mesh = triangulate(dom, h_min=hmin, h_max=hmax, size_field=fh,
+                       initial_points=ip, quality_gate=(0.0, 0.0), max_iter=80, seed=0)
+    return np.asarray(mesh.nodes), np.asarray(mesh.elements)
+
+
+def mesh_panel(ax, p, tri, verts, title):
+    if len(tri):
+        ax.triplot(p[:, 0], p[:, 1], tri, lw=0.3, color="#1f77b4")
+    if len(p):
+        ax.plot(p[:, 0], p[:, 1], ".", ms=1.5, color="#d62728")
+    ax.add_patch(Polygon(verts, fill=False, ec="k", lw=1.4))
+    ax.set_title(title, fontsize=10)
+    ax.set_aspect("equal")
+
+
 def main():
     Hx, Hy, w, river_len = 24.0, 14.0, 2.0, 12.0
     hmin, hmax, R = 0.5, 5.0, 2.0
@@ -121,21 +181,39 @@ def main():
                 if roc == 0 else
                 f"river min h = {roh:.2f}  (~{w/roh:.1f} elems across, {roc} cells)")
 
-    fig, (axU, axO) = plt.subplots(1, 2, figsize=(14, 6))
+    def _safe_mesh(grid, hleaf):
+        try:
+            return admesh_mesh(fd, grid, hleaf, hmin, hmax)
+        except Exception as e:  # noqa: BLE001
+            print(f"admesh mesh failed: {type(e).__name__}: {e}")
+            return np.empty((0, 2)), np.empty((0, 3), dtype=int)
+
+    pu, tu = _safe_mesh(g_uni, h_uni)
+    po, to = _safe_mesh(g_oct, h_oct)
+
+    def in_river(p):
+        return (np.abs(p[:, 0]) < w / 2) & (p[:, 1] > 0) & (p[:, 1] < river_len) if len(p) else np.array([])
+    ru_n = int(in_river(pu).sum()) if len(pu) else 0
+    ro_n = int(in_river(po).sum()) if len(po) else 0
+
+    fig, ((axU, axO), (axMU, axMO)) = plt.subplots(2, 2, figsize=(14, 11))
     panel(axU, g_uni, h_uni, vmin, vmax, verts,
           f"UNIFORM Δ={delta_uni:.0f} ({len(g_uni.leaves)} cells)\n{uni_line}")
     pc = panel(axO, g_oct, h_oct, vmin, vmax, verts,
                f"OCTREE ({len(g_oct.leaves)} leaves)\n{oct_line}")
-    for ax in (axU, axO):
+    mesh_panel(axMU, pu, tu, verts, f"UNIFORM mesh — {len(tu)} elements\nriver nodes = {ru_n} (channel bridged / unresolved)")
+    mesh_panel(axMO, po, to, verts, f"OCTREE mesh — {len(to)} elements\nriver nodes = {ro_n} (channel resolved)")
+    for ax in (axU, axO, axMU, axMO):
         ax.set_xlim(dom.bbox[0], dom.bbox[2]); ax.set_ylim(dom.bbox[1], dom.bbox[3])
     fig.colorbar(pc, ax=(axU, axO), label="size-field target edge length  h = LFS / R", shrink=0.8)
-    fig.suptitle("Spec 021 — size field: uniform vs octree on a river-into-bay domain "
-                 "(same algorithm, grid differs)", fontsize=12)
+    fig.suptitle("Spec 021 — size field (top) and resulting mesh (bottom): uniform vs octree, "
+                 "river-into-bay (same algorithm, grid differs)", fontsize=12)
     out = OUTDIR / "octree_sizefield_diff.png"
     fig.savefig(out, dpi=130, bbox_inches="tight")
     plt.close(fig)
     print(f"wrote {out}")
-    print(f"uniform: river_min_h={ruh:.2f} cells_in_river={ruc} | octree: river_min_h={roh:.2f} cells_in_river={roc}")
+    print(f"uniform: river_min_h={ruh:.2f} river_cells={ruc} mesh_elems={len(tu)} river_nodes={ru_n}")
+    print(f"octree:  river_min_h={roh:.2f} river_cells={roc} mesh_elems={len(to)} river_nodes={ro_n}")
 
 
 if __name__ == "__main__":
