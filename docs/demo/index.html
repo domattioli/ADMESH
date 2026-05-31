@@ -118,6 +118,7 @@
         <span><i class="swatch" style="background:#ef5350"></i> low quality</span>
         <span><i class="swatch" style="background:#ffca28"></i> medium</span>
         <span><i class="swatch" style="background:#66bb6a"></i> near-equilateral</span>
+        <span><i class="swatch" style="background:rgba(255,255,255,0.6);border:1px dashed rgba(255,255,255,0.5)"></i> input boundary</span>
       </div>
     </div>
 
@@ -160,7 +161,7 @@ const restartBtn = document.getElementById("restart");
 const speedSel = document.getElementById("speed");
 const frameLabel = document.getElementById("frameLabel");
 
-let current = null;   // loaded domain {frames, bbox, ...}
+let current = null;   // loaded domain {frames, bbox, boundary, ...}
 let frameIdx = 0;
 let playing = false;
 let lastTs = 0;
@@ -219,6 +220,26 @@ function drawFrame(i) {
     mctx.fillStyle = qColor(q);
     mctx.globalAlpha = 0.85; mctx.fill(); mctx.globalAlpha = 1;
     mctx.strokeStyle = "rgba(28,39,44,0.9)"; mctx.lineWidth = 0.6; mctx.stroke();
+  }
+  // domain boundary rings — drawn on top of mesh so shape is always visible
+  if (current.boundary && current.boundary.length) {
+    mctx.save();
+    mctx.strokeStyle = "rgba(255,255,255,0.85)";
+    mctx.lineWidth = 1.8;
+    mctx.setLineDash([5, 4]);
+    for (const ring of current.boundary) {
+      if (!ring.length) continue;
+      mctx.beginPath();
+      const [rx0, ry0] = T(ring[0][0], ring[0][1]);
+      mctx.moveTo(rx0, ry0);
+      for (let ri = 1; ri < ring.length; ri++) {
+        const [rxi, ryi] = T(ring[ri][0], ring[ri][1]);
+        mctx.lineTo(rxi, ryi);
+      }
+      mctx.closePath();
+      mctx.stroke();
+    }
+    mctx.restore();
   }
   // stats
   document.getElementById("sIter").textContent = fr.iter < 0 ? "final" : fr.iter;
