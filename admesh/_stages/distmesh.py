@@ -110,6 +110,7 @@ def distmesh2d(
     niter: int = 500,
     seed: int = 0,
     return_diagnostics: bool = False,
+    on_iter: "Callable[[int, Points, NDArray[np.int64]], None] | None" = None,
 ) -> "tuple[Points, NDArray[np.int64]] | tuple[Points, NDArray[np.int64], list[dict]]":
     """Triangulate a 2-D domain defined by a signed distance function.
 
@@ -148,6 +149,12 @@ def distmesh2d(
     return_diagnostics : bool
         When True return a third element — a list of per-iteration dicts with
         keys ``iter``, ``n_pts``, ``n_elements``, ``max_disp``, ``n_outside``.
+    on_iter : callable ``(k, p, t) -> None`` or None
+        Optional per-keyframe callback fired once per Delaunay
+        retriangulation with the current iteration index ``k``, node
+        positions ``p`` (N, 2) and triangle indices ``t`` (M, 3). Default
+        ``None`` (no-op, zero behaviour change). Used by the GitHub Pages
+        demo to record truss-solver animation frames.
 
     Returns
     -------
@@ -263,6 +270,9 @@ def distmesh2d(
                 "max_disp": float(max_d / h0),
                 "n_outside": n_out,
             })
+
+        if on_iter is not None:
+            on_iter(_k, p_new, t)
 
         if nfix < len(p_new) and max_d / h0 < dptol:
             p = p_new
