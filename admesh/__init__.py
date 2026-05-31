@@ -18,6 +18,7 @@ from admesh.loaders import (
     load_domain_from_json,
     load_domain_from_toml,
 )
+from admesh.quad_intent import QuadIntentConfig
 from admesh.quad_prep import smooth_for_quadrangulation
 from admesh._stages.quality import mesh_quality, right_iso_quality
 from admesh.registry import (
@@ -68,6 +69,8 @@ __all__ = [
     "right_iso_quality",
     # --- Quad-prep smoother (spec 004) ---
     "smooth_for_quadrangulation",
+    # --- Quad-intent triangulation (opt-in) ---
+    "QuadIntentConfig",
     # --- Domain loaders (file + registry) ---
     "load_domain_from_fort14",
     "load_domain_from_json",

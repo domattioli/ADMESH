@@ -626,6 +626,8 @@ def triangulate(
     quality_gate: tuple[float, float] = (0.30, 0.60),
     ttol: float | None = None,
     dptol: float | None = None,
+    quad_intent: bool = False,
+    quad_config: "object | None" = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -654,6 +656,13 @@ def triangulate(
         Relative displacement threshold for Delaunay rebuild. Default: 0.27.
     dptol : float or None
         Interior node movement tolerance for convergence. Default: 2e-3.
+    quad_intent : bool
+        When True, use opt-in quad-intent triangulation path that biases
+        interior vertex valence toward 8 for better quad pairing. Default: False.
+        When False, uses the standard distmesh2d (unchanged behavior).
+    quad_config : object or None
+        Configuration object for quad-intent path (type :class:`QuadIntentConfig`).
+        Ignored when ``quad_intent=False``. If None, defaults to QuadIntentConfig().
 
     Returns
     -------
@@ -815,7 +824,14 @@ def triangulate(
                 fixed_points=pfix,
             )
 
-    p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
+    # Dispatch: quad_intent or standard triangulation
+    if quad_intent:
+        from admesh.quad_intent import distmesh2d_quad, QuadIntentConfig
+        cfg = quad_config if quad_config is not None else QuadIntentConfig()
+        _opts = {k: v for k, v in opts.items() if k in {"dptol", "ttol", "seed", "niter"}}
+        p, t = distmesh2d_quad(port_domain.fd, fh, h0, port_domain.bbox, pfix=port_domain.fixed_points, config=cfg, **_opts)
+    else:
+        p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
     nodes = np.asarray(p, dtype=np.float64)
     elements = np.asarray(t, dtype=np.int64)
 
