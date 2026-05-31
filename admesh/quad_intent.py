@@ -446,16 +446,21 @@ def distmesh2d_quad(
             # If quad_prep fails or degrades quality, use the original mesh
             pass
 
-    # Check fidelity: fraction of edges in the acceptable band
-    if len(bars) > 0:
-        bar_midpoints = (p_out[bars[:, 0]] + p_out[bars[:, 1]]) / 2.0
-        hbars = fh(bar_midpoints)
-        barvec = p_out[bars[:, 0]] - p_out[bars[:, 1]]
-        L_final = np.sqrt((barvec ** 2).sum(axis=1))
-        ratio = L_final / hbars
-        band_min, band_max = config.fidelity_band
-        in_band = (ratio >= band_min) & (ratio <= band_max)
-        fidelity = float(in_band.sum()) / len(in_band)
-        # Note: we record fidelity but don't reject based on it (optional gate)
+    # Check fidelity: fraction of edges in the acceptable band.
+    # Recompute bars from the FINAL connectivity — fixmesh / quad_prep may
+    # have changed the node count, so the loop's `bars` array is stale and
+    # would index out of bounds against the shrunken `p_out`.
+    if len(t_out) > 0:
+        fbars = _unique_bars(np.sort(t_out, axis=1), len(p_out))
+        if len(fbars) > 0:
+            bar_midpoints = (p_out[fbars[:, 0]] + p_out[fbars[:, 1]]) / 2.0
+            hbars = fh(bar_midpoints) if fh is not None else None
+            barvec = p_out[fbars[:, 0]] - p_out[fbars[:, 1]]
+            L_final = np.sqrt((barvec ** 2).sum(axis=1))
+            ratio = L_final / hbars if hbars is not None else L_final / np.median(L_final)
+            band_min, band_max = config.fidelity_band
+            in_band = (ratio >= band_min) & (ratio <= band_max)
+            fidelity = float(in_band.sum()) / len(in_band)
+            # Note: we record fidelity but don't reject based on it (optional gate)
 
     return p_out, t_out
