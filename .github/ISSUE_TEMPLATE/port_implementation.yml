@@ -1,16 +1,12 @@
 name: Port / Faithful Re-implementation
 description: Port a MATLAB stage module to NumPy under Constitution Principle I (atol=1e-10).
 title: "[port] "
-labels: ["type:port", "numerics"]
+labels: ["type: refactor", "priority: normal", "status: ready"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this for any new faithful-port of a MATLAB stage module
-        (one of the 13 stages in the ADMESH pipeline). Constitution
-        Principle I applies: numerical identity to MATLAB at
-        `atol=1e-10` against fixtures exported via
-        `scripts/export_matlab_fixtures.m`.
+        Use this for any new faithful-port of a MATLAB stage module (one of the 13 stages in the ADMESH pipeline). Constitution Principle I applies: numerical identity to MATLAB at `atol=1e-10` against fixtures exported via `scripts/export_matlab_fixtures.m`.
 
   - type: input
     id: matlab-source
@@ -26,8 +22,7 @@ body:
     attributes:
       label: QuADMesh-MATLAB commit SHA
       description: |
-        Pin the reference SHA so this port reproduces against an immutable
-        upstream snapshot. Find at https://github.com/domattioli/QuADMesh-MATLAB
+        Pin the reference SHA so this port reproduces against an immutable upstream snapshot. Find at https://github.com/domattioli/QuADMesh-MATLAB
       placeholder: "e.g. 19b2eb9"
     validations:
       required: true
@@ -46,34 +41,25 @@ body:
     attributes:
       label: Acceptance criteria
       description: |
-        Pre-populated with the Constitution Principle I parity boilerplate.
-        Adapt the fixture path and inputs to your stage; keep the parity gate.
+        Pre-populated with the Constitution Principle I parity boilerplate. Adapt the fixture path and inputs to your stage; keep the parity gate.
       value: |
-        - [ ] Target module ports the MATLAB source verbatim
-              (numpy idioms, snake_case names, 0-indexed math).
-        - [ ] A fixture has been added to
-              `scripts/export_matlab_fixtures.m`:
-              `tests/fixtures/matlab/<stage>_<scenario>.npz`
-              containing the MATLAB outputs at fixed inputs.
-        - [ ] A direct stage test in `tests/test_<stage>.py` asserts
-              parity at `atol=1e-10` against the fixture.
+        - [ ] Target module ports the MATLAB source verbatim (numpy idioms, snake_case names, 0-indexed math).
+        - [ ] A fixture has been added to `scripts/export_matlab_fixtures.m`: `tests/fixtures/matlab/<stage>_<scenario>.npz` containing the MATLAB outputs at fixed inputs.
+        - [ ] A direct stage test in `tests/test_<stage>.py` asserts parity at `atol=1e-10` against the fixture.
         - [ ] No regression in the broader suite (`pytest -q` exits 0).
-        - [ ] The shim at `admesh/<stage>.py` (if it exists) still
-              re-exports the canonical surface for back-compat.
-        - [ ] `docs/PORTING_NOTES.md` gets a port record for this stage
-              with the MATLAB ↔ NumPy idiom map.
+        - [ ] The shim at `admesh/<stage>.py` (if it exists) still re-exports the canonical surface for back-compat.
+        - [ ] `docs/PORTING_NOTES.md` gets a port record for this stage with the MATLAB ↔ NumPy idiom map.
     validations:
       required: true
 
   - type: dropdown
-    id: severity
+    id: priority
     attributes:
-      label: Severity
+      label: Priority
       options:
-        - "severity:low"
-        - "severity:medium"
-        - "severity:high"
-        - "severity:critical"
+        - "now"
+        - "normal"
+        - "someday"
       default: 1
     validations:
       required: true

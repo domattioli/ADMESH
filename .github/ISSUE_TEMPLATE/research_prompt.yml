@@ -1,17 +1,12 @@
 name: Research / Exploration
 description: An open-ended research question or roadmap prompt (no implementation acceptance gate).
 title: "[research] "
-labels: ["type:research", "roadmap", "severity:low"]
+labels: ["request: research", "type: feat", "priority: someday", "status: brainstorming"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this for exploratory prompts that don't yet have an acceptance
-        gate — e.g. "should we use attention-based facet unification?",
-        "when should we optimize for Python?", "is there a dimensional
-        remap that lets the existing solver achieve right-isosceles?".
-        For concrete features, use **Feature Request**. For port work,
-        use **Port / Faithful Re-implementation**.
+        Use this for exploratory prompts that don't yet have an acceptance gate — e.g. "should we use attention-based facet unification?", "when should we optimize for Python?", "is there a dimensional remap that lets the existing solver achieve right-isosceles?". For concrete features, use **Feature Request**. For port work, use **Port / Faithful Re-implementation**.
 
   - type: textarea
     id: question
@@ -26,9 +21,7 @@ body:
     attributes:
       label: Why now / why not yet
       description: |
-        Why surface this question today? What changes downstream if it gets
-        answered? What's stopping you from just doing it (cost, missing
-        evidence, blocked on another spec)?
+        Why surface this question today? What changes downstream if it gets answered? What's stopping you from just doing it (cost, missing evidence, blocked on another spec)?
     validations:
       required: true
 
@@ -37,17 +30,12 @@ body:
     attributes:
       label: Acceptance criteria for the AI agent
       description: |
-        What deliverables would count as "done"? Pre-populated with a
-        comparative-analysis / feasibility-study template borrowed from
-        issue #25. Adapt freely.
+        What deliverables would count as "done"? Pre-populated with a comparative-analysis / feasibility-study template. Adapt freely.
       value: |
-        - [ ] Comparative analysis of the proposed approach vs. the
-              current heuristic / baseline.
+        - [ ] Comparative analysis of the proposed approach vs. the current heuristic / baseline.
         - [ ] Data-pipeline or experiment plan (inputs, fixtures, metrics).
-        - [ ] Feasibility study covering runtime cost, dependency footprint,
-              and Constitution-principle compatibility.
-        - [ ] A spec / follow-up issue list if the research concludes
-              "yes, implement this."
+        - [ ] Feasibility study covering runtime cost, dependency footprint, and Constitution-principle compatibility.
+        - [ ] A spec / follow-up issue list if the research concludes "yes, implement this."
     validations:
       required: true
 
