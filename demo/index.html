@@ -46,7 +46,7 @@
   .stat { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--edge); font-size: .9rem; }
   .stat:last-child { border-bottom: none; }
   .stat b { color: var(--accent2); font-variant-numeric: tabular-nums; }
-  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); }
+  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); flex-wrap: wrap; }
   .legend span { display: inline-flex; align-items: center; gap: .35rem; }
   .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
   footer {
@@ -101,9 +101,13 @@
       <input type="number" id="inp-g" value="0.20" min="0.05" max="1.0" step="0.01"
              style="width:5.5rem;background:#37474f;color:var(--fg);border:1px solid var(--edge);border-radius:6px;padding:.5rem .6rem;font-size:.9rem">
     </div>
-    <div style="align-self:flex-end">
+    <div style="align-self:flex-end;display:flex;gap:.5rem;flex-wrap:wrap">
       <button id="play" class="primary">▶ Play</button>
       <button id="restart">⟲ Restart</button>
+    </div>
+    <div id="draw-controls" style="align-self:flex-end;display:none;gap:.5rem;flex-wrap:wrap">
+      <button id="close-poly" style="background:#66bb6a;color:#0d1b24;border-color:#66bb6a;font-weight:600">✓ Close polygon</button>
+      <button id="clear-draw">✗ Clear</button>
     </div>
   </div>
 
@@ -118,7 +122,7 @@
         <span><i class="swatch" style="background:#ef5350"></i> low quality</span>
         <span><i class="swatch" style="background:#ffca28"></i> medium</span>
         <span><i class="swatch" style="background:#66bb6a"></i> near-equilateral</span>
-        <span><i class="swatch" style="background:rgba(255,255,255,0.6);border:1px dashed rgba(255,255,255,0.5)"></i> input boundary</span>
+        <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:18px;height:0;border-top:2px dashed rgba(255,255,255,0.75);display:inline-block;margin-top:1px"></span> input boundary</span>
       </div>
     </div>
 
@@ -161,7 +165,7 @@ const restartBtn = document.getElementById("restart");
 const speedSel = document.getElementById("speed");
 const frameLabel = document.getElementById("frameLabel");
 
-let current = null;   // loaded domain {frames, bbox, boundary, ...}
+let current = null;   // loaded domain {frames, bbox, ...}
 let frameIdx = 0;
 let playing = false;
 let lastTs = 0;
@@ -221,7 +225,7 @@ function drawFrame(i) {
     mctx.globalAlpha = 0.85; mctx.fill(); mctx.globalAlpha = 1;
     mctx.strokeStyle = "rgba(28,39,44,0.9)"; mctx.lineWidth = 0.6; mctx.stroke();
   }
-  // domain boundary rings — drawn on top of mesh so shape is always visible
+  // domain boundary rings
   if (current.boundary && current.boundary.length) {
     mctx.save();
     mctx.strokeStyle = "rgba(255,255,255,0.85)";
@@ -299,6 +303,146 @@ async function loadDomain(key) {
   drawFrame(0);
 }
 
+// ── draw mode ────────────────────────────────────────────────────────────────
+const DRAW_BBOX = [-1.5, -1.5, 1.5, 1.5];
+const SNAP_PX = 14;
+let drawMode = false, drawVerts = [], drawClosed = false, drawMouse = null;
+let _lastAddTime = 0;
+
+function _dt(wx, wy) {
+  const [x0, y0, x1, y1] = DRAW_BBOX;
+  const w = meshCv.width, h = meshCv.height, pad = 24;
+  const sx = (w - 2*pad)/(x1-x0), sy = (h - 2*pad)/(y1-y0), s = Math.min(sx, sy);
+  const ox = pad + (w - 2*pad - s*(x1-x0))/2, oy = pad + (h - 2*pad - s*(y1-y0))/2;
+  return [ox + s*(wx-x0), h - (oy + s*(wy-y0))];
+}
+function _dti(cx, cy) {
+  const [x0, y0, x1, y1] = DRAW_BBOX;
+  const w = meshCv.width, h = meshCv.height, pad = 24;
+  const sx = (w - 2*pad)/(x1-x0), sy = (h - 2*pad)/(y1-y0), s = Math.min(sx, sy);
+  const ox = pad + (w - 2*pad - s*(x1-x0))/2, oy = pad + (h - 2*pad - s*(y1-y0))/2;
+  return [(cx - ox)/s + x0, (h - cy - oy)/s + y0];
+}
+function _cpx(evt) {
+  const r = meshCv.getBoundingClientRect();
+  return { x: (evt.clientX - r.left) * (meshCv.width / r.width),
+           y: (evt.clientY - r.top) * (meshCv.height / r.height) };
+}
+
+function renderDraw() {
+  const w = meshCv.width, h = meshCv.height;
+  mctx.clearRect(0, 0, w, h);
+  mctx.save();
+  mctx.textAlign = "center"; mctx.textBaseline = "top"; mctx.font = "13px sans-serif";
+  if (!drawClosed) {
+    mctx.fillStyle = "rgba(236,239,241,0.30)";
+    const hint = drawVerts.length === 0
+      ? "Click to place polygon vertices  ·  double-click or snap to first vertex to close"
+      : drawVerts.length < 3
+        ? `${drawVerts.length} vertex${drawVerts.length > 1 ? 'es' : ''}  ·  keep clicking to build polygon`
+        : "Click the first vertex (blue dot) or double-click to close the polygon";
+    mctx.fillText(hint, w/2, 10);
+  } else {
+    mctx.fillStyle = "rgba(102,187,106,0.85)";
+    mctx.fillText("Polygon closed  ·  Phase 2 in-browser compute will mesh this domain", w/2, 10);
+  }
+  if (drawVerts.length === 0) { mctx.restore(); return; }
+  // polygon edges
+  mctx.strokeStyle = "rgba(255,255,255,0.85)"; mctx.lineWidth = 1.8;
+  mctx.setLineDash([5, 4]); mctx.beginPath();
+  const [px0, py0] = _dt(drawVerts[0][0], drawVerts[0][1]);
+  mctx.moveTo(px0, py0);
+  for (let i = 1; i < drawVerts.length; i++) {
+    const [pxi, pyi] = _dt(drawVerts[i][0], drawVerts[i][1]);
+    mctx.lineTo(pxi, pyi);
+  }
+  if (drawClosed) { mctx.closePath(); }
+  mctx.stroke();
+  // rubber-band to cursor
+  if (!drawClosed && drawMouse) {
+    const [lx, ly] = _dt(drawVerts[drawVerts.length-1][0], drawVerts[drawVerts.length-1][1]);
+    mctx.setLineDash([3, 6]); mctx.strokeStyle = "rgba(255,255,255,0.30)";
+    mctx.beginPath(); mctx.moveTo(lx, ly); mctx.lineTo(drawMouse.x, drawMouse.y); mctx.stroke();
+  }
+  mctx.setLineDash([]);
+  // vertex dots
+  for (let i = 0; i < drawVerts.length; i++) {
+    const [vx, vy] = _dt(drawVerts[i][0], drawVerts[i][1]);
+    const r0 = i === 0 ? 6 : 4;
+    if (i === 0 && !drawClosed && drawVerts.length >= 3) {
+      mctx.strokeStyle = "rgba(66,165,245,0.45)"; mctx.lineWidth = 1.2;
+      mctx.beginPath(); mctx.arc(vx, vy, SNAP_PX, 0, 2*Math.PI); mctx.stroke();
+    }
+    mctx.beginPath(); mctx.arc(vx, vy, r0, 0, 2*Math.PI);
+    mctx.fillStyle = i === 0 ? "#42a5f5" : "#eceff1"; mctx.fill();
+    mctx.strokeStyle = "#1c272c"; mctx.lineWidth = 1;
+    mctx.beginPath(); mctx.arc(vx, vy, r0, 0, 2*Math.PI); mctx.stroke();
+  }
+  mctx.restore();
+}
+
+function closePoly() {
+  if (drawVerts.length < 3 || drawClosed) return;
+  drawClosed = true;
+  document.getElementById("close-poly").disabled = true;
+  document.getElementById("sNodes").textContent = drawVerts.length + " (boundary verts)";
+  document.getElementById("sIter").textContent = "—";
+  document.getElementById("sElems").textContent = "—";
+  document.getElementById("sQmin").textContent = "—";
+  document.getElementById("sQmean").textContent = "phase 2 required";
+  frameLabel.textContent = "—";
+  renderDraw();
+}
+
+function enterDrawMode() {
+  drawMode = true; drawVerts = []; drawClosed = false; drawMouse = null;
+  meshCv.style.cursor = "crosshair";
+  document.getElementById("draw-controls").style.display = "flex";
+  document.getElementById("close-poly").disabled = false;
+  playBtn.disabled = true; restartBtn.disabled = true; scrub.disabled = true;
+  document.getElementById("sTitle").textContent = "Custom domain";
+  document.getElementById("sIter").textContent = "—";
+  document.getElementById("sNodes").textContent = "0 vertices";
+  document.getElementById("sElems").textContent = "—";
+  document.getElementById("sQmin").textContent = "—";
+  document.getElementById("sQmean").textContent = "phase 2 required";
+  frameLabel.textContent = "—";
+  renderDraw();
+}
+
+function exitDrawMode() {
+  drawMode = false; drawVerts = []; drawClosed = false; drawMouse = null;
+  meshCv.style.cursor = "";
+  document.getElementById("draw-controls").style.display = "none";
+  playBtn.disabled = false; restartBtn.disabled = false; scrub.disabled = false;
+}
+
+meshCv.addEventListener("mousemove", evt => {
+  if (!drawMode || drawClosed) return;
+  drawMouse = _cpx(evt); renderDraw();
+});
+meshCv.addEventListener("mouseleave", () => {
+  if (!drawMode) return; drawMouse = null; renderDraw();
+});
+meshCv.addEventListener("click", evt => {
+  if (!drawMode || drawClosed) return;
+  const {x, y} = _cpx(evt);
+  if (drawVerts.length >= 3) {
+    const [fx, fy] = _dt(drawVerts[0][0], drawVerts[0][1]);
+    if (Math.hypot(x - fx, y - fy) < SNAP_PX) { closePoly(); return; }
+  }
+  const [wx, wy] = _dti(x, y);
+  drawVerts.push([wx, wy]); _lastAddTime = Date.now();
+  document.getElementById("sNodes").textContent = drawVerts.length + " vertices";
+  renderDraw();
+});
+meshCv.addEventListener("dblclick", evt => {
+  if (!drawMode || drawClosed) return;
+  // remove the vertex added by the second click of this double-click, then close
+  if (drawVerts.length > 0 && Date.now() - _lastAddTime < 400) drawVerts.pop();
+  closePoly();
+});
+
 async function init() {
   const res = await fetch(DATA_BASE + "manifest.json");
   const manifest = await res.json();
@@ -309,10 +453,24 @@ async function init() {
   }
   await loadDomain(manifest[0].key);
 
-  sel.addEventListener("change", async () => { setPlaying(false); await loadDomain(sel.value); });
+  const customOpt = document.createElement("option");
+  customOpt.value = "custom"; customOpt.textContent = "Custom — draw your own domain";
+  sel.appendChild(customOpt);
+
+  sel.addEventListener("change", async () => {
+    if (sel.value === "custom") { setPlaying(false); enterDrawMode(); return; }
+    exitDrawMode(); setPlaying(false); await loadDomain(sel.value);
+  });
   scrub.addEventListener("input", () => { setPlaying(false); frameIdx = parseInt(scrub.value, 10); drawFrame(frameIdx); });
   playBtn.addEventListener("click", () => setPlaying(!playing));
   restartBtn.addEventListener("click", () => { setPlaying(false); frameIdx = 0; drawFrame(0); });
+  document.getElementById("close-poly").addEventListener("click", closePoly);
+  document.getElementById("clear-draw").addEventListener("click", () => {
+    drawVerts = []; drawClosed = false; drawMouse = null;
+    document.getElementById("close-poly").disabled = false;
+    document.getElementById("sNodes").textContent = "0 vertices";
+    renderDraw();
+  });
 }
 
 init().catch(err => {
