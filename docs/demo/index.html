@@ -125,11 +125,12 @@
         <input type="range" id="scrub" min="0" max="0" value="0">
       </div>
       <div class="legend">
-        <span><i class="swatch" style="background:#ef5350"></i> low quality</span>
-        <span><i class="swatch" style="background:#ffca28"></i> medium</span>
-        <span><i class="swatch" style="background:#66bb6a"></i> near-equilateral</span>
+        <span><i class="swatch" style="background:#ff00ff"></i> low quality</span>
+        <span><i class="swatch" style="background:#00ffff"></i> high quality</span>
         <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:18px;height:0;border-top:2px dashed rgba(255,255,255,0.75);display:inline-block;margin-top:1px"></span> input boundary</span>
       </div>
+      <p style="color:var(--muted);font-size:.8rem;margin:.6rem 0 .3rem">Element size distribution</p>
+      <canvas id="histogram" width="800" height="120" style="background:#1c272c"></canvas>
     </div>
 
     <div class="card">
@@ -164,6 +165,8 @@ const meshCv = document.getElementById("mesh");
 const mctx = meshCv.getContext("2d");
 const chartCv = document.getElementById("chart");
 const cctx = chartCv.getContext("2d");
+const histCv = document.getElementById("histogram");
+const hctx = histCv.getContext("2d");
 const sel = document.getElementById("domain");
 const scrub = document.getElementById("scrub");
 const playBtn = document.getElementById("play");
@@ -190,11 +193,11 @@ function triQuality(ax, ay, bx, by, cx, cy) {
 }
 
 function qColor(q) {
-  // 0 -> red, 0.5 -> amber, 1 -> green
+  // cool colormap: 0 -> magenta, 1 -> cyan
   const t = Math.max(0, Math.min(1, q));
-  let r, g, b;
-  if (t < 0.5) { const u = t / 0.5; r = 239; g = Math.round(83 + u * (202 - 83)); b = Math.round(80 - u * 40); }
-  else { const u = (t - 0.5) / 0.5; r = Math.round(255 - u * (255 - 102)); g = Math.round(202 - u * (202 - 187)); b = Math.round(40 + u * (104 - 40)); }
+  const r = Math.round(255 * (1 - t));
+  const g = Math.round(255 * t);
+  const b = 255;
   return `rgb(${r},${g},${b})`;
 }
 
@@ -255,20 +258,17 @@ function drawFrame(i) {
     }
     mctx.restore();
   }
-  // scale bar (1 world unit)
+  // scale bar — element size range visualization
   mctx.save();
-  const [sx0, sy0] = T(current.bbox[0], current.bbox[1]);
-  const [sx1, sy1] = T(current.bbox[0] + 1, current.bbox[1]);
-  const scalePixels = Math.hypot(sx1 - sx0, sy1 - sy0);
-  if (scalePixels > 20) {
-    const barX = Math.max(8, w - 8 - scalePixels), barY = h - 16;
-    mctx.strokeStyle = "rgba(236,239,241,0.7)"; mctx.lineWidth = 1;
-    mctx.beginPath(); mctx.moveTo(barX, barY); mctx.lineTo(barX + scalePixels, barY); mctx.stroke();
-    mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
-    mctx.beginPath(); mctx.moveTo(barX + scalePixels, barY - 3); mctx.lineTo(barX + scalePixels, barY + 3); mctx.stroke();
-    mctx.fillStyle = "rgba(236,239,241,0.6)"; mctx.font = "9px monospace"; mctx.textAlign = "center";
-    mctx.fillText(\"1 unit\", barX + scalePixels / 2, barY + 10);
-  }
+  const scalePixels = 80;
+  const barX = w - 8 - scalePixels, barY = h - 16;
+
+  mctx.strokeStyle = "rgba(236,239,241,0.7)"; mctx.lineWidth = 1;
+  mctx.beginPath(); mctx.moveTo(barX, barY); mctx.lineTo(barX + scalePixels, barY); mctx.stroke();
+  mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
+  mctx.beginPath(); mctx.moveTo(barX + scalePixels, barY - 3); mctx.lineTo(barX + scalePixels, barY + 3); mctx.stroke();
+  mctx.fillStyle = "rgba(236,239,241,0.6)"; mctx.font = "9px monospace"; mctx.textAlign = "center";
+  mctx.fillText("h range", barX + scalePixels / 2, barY + 10);
   mctx.restore();
   // stats
   document.getElementById("sIter").textContent = fr.iter < 0 ? "final" : fr.iter;
@@ -279,6 +279,7 @@ function drawFrame(i) {
   frameLabel.textContent = `${i + 1} / ${current.frames.length}`;
   scrub.value = i;
   drawChart(i);
+  drawHistogram(i);
 }
 
 function drawChart(upto) {
@@ -295,11 +296,66 @@ function drawChart(upto) {
     const y = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[i].q_mean));
     if (i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
   }
-  cctx.strokeStyle = "#66bb6a"; cctx.lineWidth = 2; cctx.stroke();
+  cctx.strokeStyle = "#00ffff"; cctx.lineWidth = 2; cctx.stroke();
   // marker at current
   const mx = pad + (w - 2 * pad) * (upto / (fs.length - 1));
   const my = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[upto].q_mean));
   cctx.fillStyle = "#42a5f5"; cctx.beginPath(); cctx.arc(mx, my, 3.5, 0, 7); cctx.fill();
+}
+
+function drawHistogram(i) {
+  if (!current || !current.frames[i].t) return;
+  const w = histCv.width, h = histCv.height, pad = 6;
+  hctx.clearRect(0, 0, w, h);
+  const fr = current.frames[i];
+  const P = fr.p;
+  const TR = fr.t;
+
+  // compute edge lengths and quality
+  const edges = [];
+  for (let k = 0; k < TR.length; k++) {
+    const [ia, ib, ic] = TR[k];
+    const q = triQuality(P[ia][0], P[ia][1], P[ib][0], P[ib][1], P[ic][0], P[ic][1]);
+    const len_ab = Math.hypot(P[ib][0]-P[ia][0], P[ib][1]-P[ia][1]);
+    const len_bc = Math.hypot(P[ic][0]-P[ib][0], P[ic][1]-P[ib][1]);
+    const len_ca = Math.hypot(P[ia][0]-P[ic][0], P[ia][1]-P[ic][1]);
+    edges.push({len: len_ab, q});
+    edges.push({len: len_bc, q});
+    edges.push({len: len_ca, q});
+  }
+
+  if (edges.length === 0) return;
+
+  // create histogram bins
+  const minLen = Math.min(...edges.map(e => e.len));
+  const maxLen = Math.max(...edges.map(e => e.len));
+  const nbins = Math.min(30, Math.max(5, Math.ceil(Math.sqrt(edges.length))));
+  const binWidth = (maxLen - minLen) / nbins || 0.01;
+  const bins = Array(nbins).fill(null).map(() => ({count: 0, q: 0}));
+
+  for (const e of edges) {
+    const idx = Math.min(nbins - 1, Math.floor((e.len - minLen) / binWidth));
+    bins[idx].count++;
+    bins[idx].q += e.q;
+  }
+  bins.forEach(b => { if (b.count > 0) b.q /= b.count; });
+
+  const maxCount = Math.max(...bins.map(b => b.count));
+  const xStep = (w - 2*pad) / nbins;
+
+  for (let i = 0; i < nbins; i++) {
+    const barH = bins[i].count > 0 ? (h - 2*pad) * (bins[i].count / maxCount) : 0;
+    const x = pad + i * xStep;
+    const y = h - pad - barH;
+    hctx.fillStyle = qColor(bins[i].q);
+    hctx.fillRect(x + 1, y, xStep - 2, barH);
+  }
+
+  // axis labels
+  hctx.fillStyle = "rgba(236,239,241,0.5)"; hctx.font = "9px monospace"; hctx.textAlign = "center";
+  hctx.fillText(minLen.toFixed(3), pad, h - 2);
+  hctx.fillText(maxLen.toFixed(3), w - pad, h - 2);
+  hctx.textAlign = "center"; hctx.fillText("edge length", w/2, h - 2);
 }
 
 function loop(ts) {
