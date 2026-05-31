@@ -3,6 +3,7 @@
 # Convention: `<class>: <name>` (colon + space) for class-prefixed labels.
 # Spec 007: https://github.com/DomI/specs/007-minimal-label-taxonomy/
 # ADR-0001: request: skill gates on 5-repo vote threshold + Opus eval (#57).
+# CHANGING LABELS? See docs/LABEL-TAXONOMY.md § "Changing labels" — a label edit is never one file. CI lane label-doc-sync enforces this.
 #
 # Required classes per open issue (enforced soft — audit warns, does not block):
 #   type     (exactly one: bug, feat, docs, chore, refactor)
@@ -79,6 +80,10 @@ labels:
     color: "196127"
     description: "Work complete and merged."
     class: status
+  - name: "status: probationary"
+    color: "e4e669"
+    description: "Skill created; community input phase — not yet promoted to stable."
+    class: status
 
   # ---- request (conditional, ≤ 1 per issue) ----
   - name: "request: skill"
@@ -131,6 +136,10 @@ labels:
     color: "ededed"
     description: "Audit of DomI's own infra; not consumer-facing."
     class: functional
+  - name: "human-review"
+    color: "d93f0b"
+    description: "High-confidence signal: operator must review before proceeding. Use sparingly."
+    class: functional
 
   # ---- GitHub defaults (kept) ----
   - name: "duplicate"
@@ -143,147 +152,116 @@ labels:
     class: meta
 
 # ---- Deprecated (migration in flight; will be deleted after migration completes) ----
-# Migration to minimal label taxonomy (spec 007, 2026-05-31). Each entry maps the old
-# form to its canonical replacement per ADR-0001. Remap before delete per the migration
-# rules to avoid orphaning downstream. Downstream consumer repos run prune_labels.sh
-# after the next sync window.
 deprecated:
-  # priority class — removed (now: now/normal/someday)
-  - "priority:critical"  # → priority: now
-  - "priority:high"      # → priority: now
-  - "priority:medium"    # → priority: normal
-  - "priority:low"       # → priority: someday
-  - "priority:now"       # → priority: now
-  - "priority:normal"    # → priority: normal
-  - "priority:someday"   # → priority: someday
-  - "high-priority"      # → priority: now
-  - "low priority"       # → priority: someday
-  - "low-priority"       # → priority: someday
-  - "P0"                 # → priority: now
-  - "P1"                 # → priority: now
-  - "P2"                 # → priority: normal
-
-  # type class — removed (now: bug/feat/docs/chore/refactor)
-  - "type:feat"          # → type: feat
-  - "type:bug"           # → type: bug
-  - "type:docs"          # → type: docs
-  - "type:chore"         # → type: chore
-  - "type:refactor"      # → type: refactor
-  - "type:research"      # → request: research
-  - "type:decision"      # → drop
-  - "type:enhancement"   # → type: feat
-  - "type:design-review" # → type: feat
-  - "type:infra"         # → type: chore
-  - "type:investigation" # → request: research
-  - "type:port"          # → type: refactor
-  - "type:tech-debt"     # → type: refactor
-  - "type: blocker"      # → type: bug
-  - "type: feature"      # → type: feat
-  - "enhancement"        # → type: feat
-  - "bug"                # → type: bug
-  - "chore"              # → type: chore
-  - "documentation"      # → type: docs
-
-  # scope class — REMOVED (minimal taxonomy dropped scope entirely)
-  - "scope: skill"       # → request: skill (genuine ask) else strip
-  - "scope: plugin"      # → strip
-  - "scope: ci"          # → strip
-  - "scope: docs"        # → strip
-  - "scope: claude-md"   # → strip
-  - "scope: testing"     # → strip
-  - "scope: automation"  # → strip
-  - "scope: git"         # → strip
-  - "scope: sync"        # → strip
-  - "scope:automation"   # → strip
-  - "scope:skill"        # → request: skill (genuine ask) else strip
-  - "scope:plugin"       # → strip
-  - "scope:git"          # → strip
-  - "scope:sync"         # → strip
-  - "scope:docs"         # → strip
-  - "scope:testing"      # → strip
-  - "scope:ci-cd"        # → strip
-  - "scope:ci"           # → strip
-  - "scope:routine"      # → strip
-  - "scope:infrastructure" # → strip
-  - "scope:labeling"     # → strip
-  - "scope:tests"        # → strip
-  - "area:tooling"       # → strip
-
-  # status class — REMOVED (now: triage/brainstorming/ready/in-progress/blocked/needs-operator/done)
-  - "status:voting"      # → status: ready
-  - "status:ready"       # → status: ready
-  - "status:blocked"     # → status: blocked
-  - "status:in-progress" # → status: in-progress
-  - "status:backlog"     # → strip
-  - "status:draft"       # → status: in-progress
-  - "status: needs-info" # → status: needs-operator
-  - "status: needs-review" # → status: needs-operator
-  - "status: needs-triage" # → status: triage
-  - "status: needs-spec" # → status: triage
-  - "status: in-review"  # → status: in-progress
-  - "status: completed"  # → status: done
-  - "status: probationary" # → drop
-  - "status:voting"      # → status: ready
-  - "status: decision-needed" # → status: needs-operator
-  - "probationary"       # → drop
-
-  # needs class — REMOVED
-  - "needs: triage"      # → status: triage
-  - "needs: votes"       # → status: ready
-  - "needs: review"      # → status: needs-operator
-  - "needs:triage"       # → status: triage
-  - "needs:votes"        # → status: ready
-  - "needs:review"       # → status: needs-operator
-
-  # timeline class — REMOVED (folded to priority)
-  - "timeline: now"      # → priority: now
-  - "timeline: next"     # → priority: normal
-  - "timeline: later"    # → priority: someday
-  - "timeline:now"       # → priority: now
-  - "timeline:next"      # → priority: normal
-  - "timeline:later"     # → priority: someday
-
-  # Executive class — REMOVED (folded to status: needs-operator + close disposition)
-  - "Executive: Needs-Input" # → status: needs-operator
-  - "Executive: Rejected" # → close w/ disposition (no label)
-  - "Executive:Needs-Input" # → status: needs-operator
-  - "Executive:Rejected"  # → close w/ disposition
-
-  # owner class — REMOVED (folded to status: needs-operator + close disposition)
-  - "owner: input-needed" # → status: needs-operator
-  - "owner: review-requested" # → status: needs-operator
-  - "owner: approved"    # → status: ready
-  - "owner: declined"    # → close w/ disposition (no label)
-  - "owner:input-needed" # → status: needs-operator
-  - "owner:review-requested" # → status: needs-operator
-  - "owner:approved"     # → status: ready
-  - "owner:declined"     # → close w/ disposition
-
-  # human-review — REMOVED (folded to status: needs-operator)
-  - "human-review"       # → status: needs-operator
-
-  # request class — hyphen variants (colon+space is canon)
-  - "request-skill"      # → request: skill
-  - "request-research"   # → request: research
-  - "request-enhancement" # → request: enhancement
-  - "request-audit"      # → request: audit
-  - "request: domain"    # → strip
-
-  # severity class — REMOVED (redundant with priority)
-  - "severity:low"       # → priority: someday
-  - "severity:medium"    # → priority: normal
-  - "severity:high"      # → priority: now
-  - "severity: low"      # → priority: someday
-  - "severity: medium"   # → priority: normal
-  - "severity: high"     # → priority: now
-
-  # GitHub defaults — REMOVED
-  - "good-first-issue"   # → strip
-  - "good first issue"   # → strip
-  - "help wanted"        # → strip
-  - "help-wanted"        # → strip
-  - "invalid"            # → strip
-  - "wontfix"            # → strip
-  - "breaking-change"    # → strip
-  - "branch-management"  # → strip
-  - "whats the issue? / too broad / revise and resubmit" # → strip
+  - "priority:critical"
+  - "priority:high"
+  - "priority:medium"
+  - "priority:low"
+  - "priority:now"
+  - "priority:normal"
+  - "priority:someday"
+  - "high-priority"
+  - "low priority"
+  - "low-priority"
+  - "P0"
+  - "P1"
+  - "P2"
+  - "type:feat"
+  - "type:bug"
+  - "type:docs"
+  - "type:chore"
+  - "type:refactor"
+  - "type:research"
+  - "type:decision"
+  - "type:enhancement"
+  - "type:design-review"
+  - "type:infra"
+  - "type:investigation"
+  - "type:port"
+  - "type:tech-debt"
+  - "type: blocker"
+  - "type: feature"
+  - "enhancement"
+  - "bug"
+  - "chore"
+  - "documentation"
+  - "scope: skill"
+  - "scope: plugin"
+  - "scope: ci"
+  - "scope: docs"
+  - "scope: claude-md"
+  - "scope: testing"
+  - "scope: automation"
+  - "scope: git"
+  - "scope: sync"
+  - "scope:automation"
+  - "scope:skill"
+  - "scope:plugin"
+  - "scope:git"
+  - "scope:sync"
+  - "scope:docs"
+  - "scope:testing"
+  - "scope:ci-cd"
+  - "scope:ci"
+  - "scope:routine"
+  - "scope:infrastructure"
+  - "scope:labeling"
+  - "scope:tests"
+  - "area:tooling"
+  - "status:voting"
+  - "status:ready"
+  - "status:blocked"
+  - "status:in-progress"
+  - "status:backlog"
+  - "status:draft"
+  - "status: needs-info"
+  - "status: needs-review"
+  - "status: needs-triage"
+  - "status: needs-spec"
+  - "status: in-review"
+  - "status: completed"
+  - "status: decision-needed"
+  - "needs: triage"
+  - "needs: votes"
+  - "needs: review"
+  - "needs:triage"
+  - "needs:votes"
+  - "needs:review"
+  - "timeline: now"
+  - "timeline: next"
+  - "timeline: later"
+  - "timeline:now"
+  - "timeline:next"
+  - "timeline:later"
+  - "Executive: Needs-Input"
+  - "Executive: Rejected"
+  - "Executive:Needs-Input"
+  - "Executive:Rejected"
+  - "owner: input-needed"
+  - "owner: review-requested"
+  - "owner: approved"
+  - "owner: declined"
+  - "owner:input-needed"
+  - "owner:review-requested"
+  - "owner:approved"
+  - "owner:declined"
+  - "request-skill"
+  - "request-research"
+  - "request-enhancement"
+  - "request-audit"
+  - "request: domain"
+  - "severity:low"
+  - "severity:medium"
+  - "severity:high"
+  - "severity: low"
+  - "severity: medium"
+  - "severity: high"
+  - "good-first-issue"
+  - "good first issue"
+  - "help wanted"
+  - "help-wanted"
+  - "invalid"
+  - "wontfix"
+  - "breaking-change"
+  - "branch-management"
+  - "whats the issue? / too broad / revise and resubmit"
