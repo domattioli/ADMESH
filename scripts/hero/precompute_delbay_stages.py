@@ -336,6 +336,126 @@ def tri_quality(pts, simplices):
     return np.clip(q, 0, 1)
 
 
+def tri_to_quad_frames(final_tri: np.ndarray, tri_simplices: np.ndarray,
+                       n_frames: int = 18) -> tuple[
+    np.ndarray, np.ndarray, np.ndarray, int]:
+    """Generate tri-to-quad conversion: blended frames + final quad mesh.
+
+    For each triangle, split into 3 quads using incenter and edge midpoints.
+    Creates (n_frames) blending frames from tri to quad node space.
+
+    Parameters
+    ----------
+    final_tri : (N, 2)
+        Final triangle node positions
+    tri_simplices : (M, 3)
+        Triangle connectivity
+    n_frames : int
+        Number of blending frames from tri to quad
+
+    Returns
+    -------
+    quad_frames : (n_frames, N_quad, 2)
+        Quad node positions (constant across frames)
+    quad_simplices : (M_quad, 4)
+        Quad connectivity (3 quads per triangle)
+    tri_to_quad_frames : (n_frames, N_quad, 2)
+        Positions during blend from tri to quad node space
+    n_tri_to_quad_frames : int
+        n_frames
+    """
+    M = len(tri_simplices)
+    N = len(final_tri)
+
+    # Build quad structure: original tri nodes + new nodes (incenter + 3 midpoints per tri)
+    # Allocate space for all quad nodes: N (original) + 4*M (new per triangle)
+    quad_nodes = np.zeros((N + 4 * M, 2), dtype=np.float32)
+    quad_nodes[:N] = final_tri.copy()
+
+    quad_simp_list = []
+    next_idx = N
+
+    # For each triangle, create incenter and edge midpoints
+    for k, (i0, i1, i2) in enumerate(tri_simplices):
+        p0, p1, p2 = final_tri[i0], final_tri[i1], final_tri[i2]
+
+        # Incenter (centroid)
+        incenter = (p0 + p1 + p2) / 3.0
+        idx_I = next_idx
+        quad_nodes[idx_I] = incenter
+        next_idx += 1
+
+        # Edge midpoints
+        m01 = (p0 + p1) / 2.0
+        idx_m01 = next_idx
+        quad_nodes[idx_m01] = m01
+        next_idx += 1
+
+        m12 = (p1 + p2) / 2.0
+        idx_m12 = next_idx
+        quad_nodes[idx_m12] = m12
+        next_idx += 1
+
+        m20 = (p2 + p0) / 2.0
+        idx_m20 = next_idx
+        quad_nodes[idx_m20] = m20
+        next_idx += 1
+
+        # Create 3 quads: one per corner (CCW winding)
+        # Quad 0 (corner p0): (p0, m01, I, m20)
+        quad_simp_list.append([i0, idx_m01, idx_I, idx_m20])
+        # Quad 1 (corner p1): (p1, m12, I, m01)
+        quad_simp_list.append([i1, idx_m12, idx_I, idx_m01])
+        # Quad 2 (corner p2): (p2, m20, I, m12)
+        quad_simp_list.append([i2, idx_m20, idx_I, idx_m12])
+
+    quad_simplices = np.array(quad_simp_list, dtype=np.int32)
+
+    # Generate blending frames: interpolate new quad nodes from tri-space
+    tri_to_quad_frames_list = []
+    for frame_idx in range(n_frames):
+        alpha = frame_idx / max(1, n_frames - 1)  # 0 -> 1
+
+        # Each frame has all quad node positions
+        tri_frame = np.zeros((N + 4 * M, 2), dtype=np.float32)
+        # Original tri nodes stay fixed throughout blend
+        tri_frame[:N] = final_tri
+
+        # New quad nodes: interpolate from tri-space (centroids / edge midpoints)
+        # toward final quad-space (exact incenter / exact edge midpoints)
+        next_idx = N
+        for k, (i0, i1, i2) in enumerate(tri_simplices):
+            p0, p1, p2 = final_tri[i0], final_tri[i1], final_tri[i2]
+            tri_centroid = (p0 + p1 + p2) / 3.0
+
+            # Incenter blends from centroid to incenter (same, so no-op)
+            incenter = tri_centroid
+            tri_frame[next_idx] = (1 - alpha) * tri_centroid + alpha * incenter
+            next_idx += 1
+
+            # Edge midpoints: start at triangle centroid, blend to actual midpoint
+            m01 = (p0 + p1) / 2.0
+            tri_frame[next_idx] = (1 - alpha) * tri_centroid + alpha * m01
+            next_idx += 1
+
+            m12 = (p1 + p2) / 2.0
+            tri_frame[next_idx] = (1 - alpha) * tri_centroid + alpha * m12
+            next_idx += 1
+
+            m20 = (p2 + p0) / 2.0
+            tri_frame[next_idx] = (1 - alpha) * tri_centroid + alpha * m20
+            next_idx += 1
+
+        tri_to_quad_frames_list.append(tri_frame)
+
+    tri_to_quad_frames = np.array(tri_to_quad_frames_list, dtype=np.float32)
+
+    # Quad frames: final quad positions (constant across all blend frames)
+    quad_frames = np.tile(quad_nodes[np.newaxis, :, :], (n_frames, 1, 1)).astype(np.float32)
+
+    return quad_frames, quad_simplices, tri_to_quad_frames, n_frames
+
+
 def main() -> None:
     print(f"hyperparameters: hmin={HMIN}  hmax={HMAX}  g={G}")
     poly = delaware_bay_polygon()
@@ -429,6 +549,14 @@ def main() -> None:
     print(f"mean quality: init={q_init.mean():.3f}  min={q_init.min():.3f}  "
           f"truss={q_relax.mean():.3f}  fem={q_final.mean():.3f}  min={q_final.min():.3f}")
 
+    # Stage 4: Tri2Quad conversion
+    print("\ncomputing tri-to-quad stage...")
+    quad_frames, quad_simplices, tri_to_quad_blend_frames, n_tri_to_quad_frames = tri_to_quad_frames(
+        frames[-1], simplices, n_frames=18
+    )
+    print(f"  generated {n_tri_to_quad_frames} tri-to-quad blend frames")
+    print(f"  quad mesh: {quad_frames.shape[1]} nodes, {len(quad_simplices)} quads")
+
     np.savez_compressed(
         OUT,
         frames=frames.astype(np.float32),
@@ -438,9 +566,14 @@ def main() -> None:
         n_relax_frames=len(relax_seq),
         n_smooth_frames=len(smooth_frames),
         hmin=HMIN, hmax=HMAX, g=G,
+        quad_frames=quad_frames.astype(np.float32),
+        quad_simplices=quad_simplices.astype(np.int32),
+        tri_to_quad_frames=tri_to_quad_blend_frames.astype(np.float32),
+        n_tri_to_quad_frames=n_tri_to_quad_frames,
     )
     print(f"wrote {OUT.name}  ({frames.shape[0]} frames, "
-          f"{len(simplices)} triangles)")
+          f"{len(simplices)} triangles, {len(quad_simplices)} quads, "
+          f"{n_tri_to_quad_frames} blend frames)")
 
 
 if __name__ == "__main__":
