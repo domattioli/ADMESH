@@ -2,12 +2,12 @@
 """Generate truss-solver animation frames for the GitHub Pages demo (#118).
 
 Runs the canonical DistMesh driver (:func:`admesh._stages.distmesh.distmesh2d`)
-on a handful of analytic signed-distance domains, capturing one keyframe per
-Delaunay retriangulation via the ``on_iter`` callback. Frames are written as
-compact JSON to ``docs/demo/data/<domain>.json`` for client-side playback.
+on three graded domains, capturing one keyframe per Delaunay retriangulation
+via the ``on_iter`` callback. Frames are written as compact JSON to
+``docs/demo/data/<domain>.json`` for client-side playback.
 
-This is Phase-1 of spec-023: no Pyodide, no in-browser Python — the page just
-replays pre-baked frames on a Canvas2D renderer.
+Phase-1 of spec-023: no Pyodide, no in-browser Python — the page replays
+pre-baked frames on a Canvas2D renderer.
 
 Usage
 -----
@@ -15,8 +15,8 @@ Usage
 
 Output
 ------
-    docs/demo/data/circle.json
-    docs/demo/data/rectangle.json
+    docs/demo/data/l_shape.json
+    docs/demo/data/seamount.json
     docs/demo/data/annulus.json
     docs/demo/data/manifest.json
 """
@@ -28,79 +28,81 @@ from pathlib import Path
 import numpy as np
 
 from admesh._stages.distmesh import distmesh2d
+from admesh._stages.domains import _sdf_l_shape
 from admesh._stages.quality import mesh_quality
+from admesh._fast_sdf import fast_sdf
 
 OUT_DIR = Path(__file__).resolve().parent.parent / "docs" / "demo" / "data"
+BENCHMARKS_DIR = Path(__file__).resolve().parent.parent / "benchmarks" / "data"
 
-# Cap stored frames so the JSON stays small and playback stays smooth.
 MAX_FRAMES = 60
-# Round coordinates to keep payload tight (3 decimals is sub-pixel at render).
 COORD_DP = 3
 
 
-# --- signed-distance primitives (Persson & Strang conventions) -------------
-
 def _dcircle(p, cx, cy, r):
     return np.sqrt((p[:, 0] - cx) ** 2 + (p[:, 1] - cy) ** 2) - r
-
-
-def _drectangle(p, x1, x2, y1, y2):
-    # Negative inside; matches distmesh drectangle.m.
-    d1 = y1 - p[:, 1]
-    d2 = -y2 + p[:, 1]
-    d3 = x1 - p[:, 0]
-    d4 = -x2 + p[:, 0]
-    d5 = np.sqrt(d1 ** 2 + d3 ** 2)
-    d6 = np.sqrt(d1 ** 2 + d4 ** 2)
-    d7 = np.sqrt(d2 ** 2 + d3 ** 2)
-    d8 = np.sqrt(d2 ** 2 + d4 ** 2)
-    d = -np.minimum.reduce([-d1, -d2, -d3, -d4])
-    ix = (d1 > 0) & (d3 > 0)
-    d[ix] = d5[ix]
-    ix = (d1 > 0) & (d4 > 0)
-    d[ix] = d6[ix]
-    ix = (d2 > 0) & (d3 > 0)
-    d[ix] = d7[ix]
-    ix = (d2 > 0) & (d4 > 0)
-    d[ix] = d8[ix]
-    return d
 
 
 def _ddiff(a, b):
     return np.maximum(a, -b)
 
 
+def _cross_shelf_bathymetry(x, y):
+    """Synthetic cross-shelf + seamount bathymetry (normalized coords)."""
+    z_shelf = -50.0 * (x + 1.0)
+    seamount = 4.0 * np.exp(-((x + 0.8) ** 2 + y ** 2) / 0.08)
+    return z_shelf + seamount
+
+
 # --- demo domain definitions -----------------------------------------------
 
-def _domain_circle():
-    fd = lambda p: _dcircle(p, 0.0, 0.0, 1.0)  # noqa: E731
+def _domain_l_shape():
+    """L-shape with graded fh refining near the re-entrant corner at (0, 0)."""
+    def fh(p):
+        d = np.sqrt(p[:, 0] ** 2 + p[:, 1] ** 2)
+        return np.clip(0.05 + 0.22 * np.tanh(d / 0.35), 0.05, 0.24)
+
+    pfix = np.array([[-1., -1.], [1., -1.], [1., 0.], [0., 0.], [0., 1.], [-1., 1.]])
     return dict(
-        key="circle",
-        title="Unit disk — uniform size field",
-        fd=fd,
-        fh=None,
-        h0=0.12,
+        key="l_shape",
+        title="L-shape — refined at re-entrant corner",
+        fd=_sdf_l_shape,
+        fh=fh,
+        h0=0.05,
         bbox=(-1.0, -1.0, 1.0, 1.0),
+        pfix=pfix,
     )
 
 
-def _domain_rectangle():
-    fd = lambda p: _drectangle(p, -1.0, 1.0, -0.6, 0.6)  # noqa: E731
+def _domain_seamount():
+    """Coastal notch domain with bathymetry-graded size field."""
+    d = json.load(open(BENCHMARKS_DIR / "notch_seamount_domain.json"))
+    rings = [np.array(r) for r in d["rings"]]
+    bbox = tuple(d["bbox"])
+    fd = fast_sdf(rings)
+
+    def fh(p):
+        z = _cross_shelf_bathymetry(p[:, 0], p[:, 1])
+        depth = np.clip(-z, 0.0, None)
+        return np.clip(0.07 + 0.22 * (depth / 100.0), 0.07, 0.27)
+
     return dict(
-        key="rectangle",
-        title="Rectangle — uniform size field",
+        key="seamount",
+        title="Seamount — bathymetry-graded coastal mesh",
         fd=fd,
-        fh=None,
-        h0=0.1,
-        bbox=(-1.0, -0.6, 1.0, 0.6),
+        fh=fh,
+        h0=0.07,
+        bbox=bbox,
     )
 
 
 def _domain_annulus():
+    """Annulus with fh refined toward the inner hole."""
     fd = lambda p: _ddiff(_dcircle(p, 0, 0, 1.0), _dcircle(p, 0, 0, 0.4))  # noqa: E731
-    # Graded: finer near the inner hole.
+
     def fh(p):
         return 0.06 + 0.30 * (np.sqrt(p[:, 0] ** 2 + p[:, 1] ** 2) - 0.4)
+
     return dict(
         key="annulus",
         title="Annulus — size field refined toward inner ring",
@@ -111,7 +113,7 @@ def _domain_annulus():
     )
 
 
-DOMAINS = [_domain_circle, _domain_rectangle, _domain_annulus]
+DOMAINS = [_domain_l_shape, _domain_seamount, _domain_annulus]
 
 
 def _serialize_frame(k: int, p: np.ndarray, t: np.ndarray) -> dict:
@@ -129,7 +131,7 @@ def _serialize_frame(k: int, p: np.ndarray, t: np.ndarray) -> dict:
 
 
 def _decimate(frames: list[dict], cap: int) -> list[dict]:
-    """Keep the first frame, the last frame, and an even sample between."""
+    """Keep first, last, and an even sample in between."""
     if len(frames) <= cap:
         return frames
     idx = np.linspace(0, len(frames) - 1, cap).round().astype(int)
@@ -148,16 +150,14 @@ def run_domain(spec: dict) -> dict:
         fh=spec["fh"],
         h0=spec["h0"],
         bbox=spec["bbox"],
+        pfix=spec.get("pfix"),
         seed=0,
         on_iter=collector,
     )
-    # Append the final cleaned mesh as the closing frame.
     frames.append(_serialize_frame(-1, p, t))
     frames = _decimate(frames, MAX_FRAMES)
 
-    # Topology dedupe: ``t`` only changes at a Delaunay retriangulation, so
-    # store it only when it differs from the previous frame; ``None`` means
-    # "reuse the previous frame's triangulation". Cuts payload ~90%.
+    # Topology dedupe: store t only when topology changes; None = reuse prev.
     prev_t = None
     for fr in frames:
         if fr["t"] == prev_t:
