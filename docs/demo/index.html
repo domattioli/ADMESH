@@ -279,7 +279,8 @@ function drawFrame(i) {
   frameLabel.textContent = `${i + 1} / ${current.frames.length}`;
   scrub.value = i;
   drawChart(i);
-  drawHistogram(i);
+  // histogram is decorative — never let a render error abort init/button wiring
+  try { drawHistogram(i); } catch (e) { console.error("drawHistogram:", e); }
 }
 
 function drawChart(upto) {
@@ -304,12 +305,17 @@ function drawChart(upto) {
 }
 
 function drawHistogram(i) {
-  if (!current || !current.frames[i].t) return;
+  if (!current) return;
   const w = histCv.width, h = histCv.height, pad = 6;
   hctx.clearRect(0, 0, w, h);
   const fr = current.frames[i];
   const P = fr.p;
-  const TR = fr.t;
+  // resolve deduped topology (t === null reuses an earlier frame's t)
+  let TR = fr.t;
+  if (TR === null || TR === undefined) {
+    for (let j = i; j >= 0; j--) { if (current.frames[j].t) { TR = current.frames[j].t; break; } }
+  }
+  if (!TR || !TR.length) return;
 
   // compute edge lengths and quality
   const edges = [];
@@ -326,9 +332,9 @@ function drawHistogram(i) {
 
   if (edges.length === 0) return;
 
-  // create histogram bins
-  const minLen = Math.min(...edges.map(e => e.len));
-  const maxLen = Math.max(...edges.map(e => e.len));
+  // min/max edge length — loop, not spread (edges can be 10k+, spread overflows stack)
+  let minLen = Infinity, maxLen = -Infinity;
+  for (const e of edges) { if (e.len < minLen) minLen = e.len; if (e.len > maxLen) maxLen = e.len; }
   const nbins = Math.min(30, Math.max(5, Math.ceil(Math.sqrt(edges.length))));
   const binWidth = (maxLen - minLen) / nbins || 0.01;
   const bins = Array(nbins).fill(null).map(() => ({count: 0, q: 0}));
@@ -340,7 +346,8 @@ function drawHistogram(i) {
   }
   bins.forEach(b => { if (b.count > 0) b.q /= b.count; });
 
-  const maxCount = Math.max(...bins.map(b => b.count));
+  let maxCount = 0;
+  for (const b of bins) { if (b.count > maxCount) maxCount = b.count; }
   const xStep = (w - 2*pad) / nbins;
 
   for (let i = 0; i < nbins; i++) {
@@ -739,21 +746,8 @@ elif _domain_key == 'seamount':
         for ring_idx, ring in enumerate(_rings_list):
             V = np.array(ring, float); n = len(V)
             for i in range(n):
-                ax, ay = float(V[i,0]), float(V[i,1]); bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])
-                m = (ay > py) != (by > py)
-                if m.any() and abs(by-ay) > 1e-12:
-                    x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)
-                    if ring_idx == 0:
-                        inside[m] ^= px[m] < x_int
-                    else:
-                        inside[m] ^= ~(px[m] < x_int)
-        return np.where(inside, -d, d)
-    _fd = _sdf_seamount; _boundary = _rings_list
-    _pts = np.vstack(_rings_list) if len(_rings_list) > 0 else np.array([[0,0]])
-    _margin = max(_h0v * 2, 0.05)
-    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),
-             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))
-elif _domain_key == 'custom':
+                ax, ay = float(V[i,0]), float(V[i,1]); bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])\n                m = (ay > py) != (by > py)\n                if m.any() and abs(by-ay) > 1e-12:\n                    x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)\n                    if ring_idx == 0:\n                        inside[m] ^= px[m] < x_int\n                    else:\n                        inside[m] ^= ~(px[m] < x_int)\n        return np.where(inside, -d, d)\n    _fd = _sdf_seamount; _boundary = _rings_list
+    _pts = np.vstack(_rings_list) if len(_rings_list) > 0 else np.array([[0,0]])\n    _margin = max(_h0v * 2, 0.05)\n    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),\n             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))\nelif _domain_key == 'custom':
     _verts_list = _json.loads(_verts_json)
     _fd = _sdf_polygon(_verts_list); _pts = np.array(_verts_list)
     _margin = max(_h0v * 2, 0.05)
@@ -775,7 +769,7 @@ def _fh(p):
 
 _MAX_FRAMES = 60
 _frames = []
-_result_json = \"\"
+_result_json = ""
 _stop_compute = False
 
 async def _main():
@@ -785,16 +779,16 @@ async def _main():
 
     async def _on_iter(k, p, t):
         qmin, qmean = _mesh_quality(p, t)
-        frame = {\"iter\": int(k), \"p\": np.round(p, 3).tolist(), \"t\": t.tolist(),
-                 \"q_min\": round(qmin, 4), \"q_mean\": round(qmean, 4)}
+        frame = {"iter": int(k), "p": np.round(p, 3).tolist(), "t": t.tolist(),
+                 "q_min": round(qmin, 4), "q_mean": round(qmean, 4)}
         _frames.append(frame)
         js.liveFrameCallback(_json.dumps(frame))
 
     _p, _t = await _distmesh2d_live(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox,
                                      pfix=_pfix, seed=42, on_iter=_on_iter)
     _qmin_f, _qmean_f = _mesh_quality(_p, _t)
-    _frames.append({\"iter\": -1, \"p\": np.round(_p, 3).tolist(), \"t\": _t.tolist(),
-                    \"q_min\": round(_qmin_f, 4), \"q_mean\": round(_qmean_f, 4)})
+    _frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
+                    "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
 
     if len(_frames) > _MAX_FRAMES:
         _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
@@ -807,14 +801,14 @@ async def _main():
 
     _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
     _result_json = _json.dumps({
-        \"title\": f\"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}\",
-        \"bbox\": list(_bbox),
-        \"boundary\": _boundary,
-        \"frames\": _frames,
-        \"n_nodes\": int(len(_p)),
-        \"n_elements\": int(len(_t)),
-        \"q_min\": round(_qmin_f, 4),
-        \"q_mean\": round(_qmean_f, 4),
+        "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
+        "bbox": list(_bbox),
+        "boundary": _boundary,
+        "frames": _frames,
+        "n_nodes": int(len(_p)),
+        "n_elements": int(len(_t)),
+        "q_min": round(_qmin_f, 4),
+        "q_mean": round(_qmean_f, 4),
     })
 
 await _main()
