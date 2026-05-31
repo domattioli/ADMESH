@@ -58,6 +58,15 @@ def quality(pts, simp):
     return np.clip(q, 0, 1)
 
 
+def edge_lengths(pts, simp):
+    """All edge lengths (3 per triangle) in degrees."""
+    a, b, c = pts[simp[:, 0]], pts[simp[:, 1]], pts[simp[:, 2]]
+    ab = np.linalg.norm(b - a, axis=1)
+    bc = np.linalg.norm(c - b, axis=1)
+    ca = np.linalg.norm(a - c, axis=1)
+    return np.concatenate([ab, bc, ca])
+
+
 def quality_color(q: float) -> ManimColor:
     if q < 0.5:
         return ManimColor.interpolate(C_POOR, C_MID, q / 0.5)
@@ -133,34 +142,45 @@ class DelawareBayHero(Scene):
         update_mesh(tris)
 
         # --- titles / captions ------------------------------------------
+        # Title + subtitle: top-right corner.
         title = Text("ADMESH", font="sans-serif", weight="BOLD",
                      color="#e6edf3").scale(0.95)
         subtitle = Text("Delaware Bay  ·  graded unstructured mesh",
                         color="#9aa7b2").scale(0.34)
         subtitle.next_to(title, DOWN, buff=0.14)
-        header = VGroup(title, subtitle).to_corner(UL, buff=0.45)
+        from manim import UR
+        header = VGroup(title, subtitle).to_corner(UR, buff=0.45)
         header.set_z_index(10)
 
-        # Right-hand caption panel.
+        # Right-hand caption panel (below title).
         cap_x = 4.55
         step_label = Text("", color="#e6edf3").scale(0.5)
-        step_label.move_to([cap_x, 1.6, 0])
+        step_label.move_to([cap_x, 1.0, 0])
         step_label.set_z_index(10)
 
-        hyper = VGroup(
-            Text(f"hmin = {hmin:.3f}°", color="#9aa7b2").scale(0.30),
-            Text(f"hmax = {hmax:.3f}°", color="#9aa7b2").scale(0.30),
-            Text(f"g = {g:.2f}  (|∇h| limit)", color="#9aa7b2").scale(0.30),
-        ).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
-        hyper.move_to([cap_x, -0.6, 0])
+        # Live hmin/hmax readout (actual edge lengths in current frame).
+        def hminmax_readout():
+            t = fidx.get_value()
+            el = edge_lengths(frame_positions(t), simp)
+            grp = VGroup(
+                Text(f"hmin = {el.min():.3f}°", color="#9aa7b2").scale(0.30),
+                Text(f"hmax = {el.max():.3f}°", color="#9aa7b2").scale(0.30),
+                Text(f"g = {g:.2f}  (|∇h| limit)", color="#9aa7b2").scale(0.30),
+            ).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
+            grp.move_to([cap_x, -0.55, 0])
+            return grp
+        hyper = always_redraw(hminmax_readout)
         hyper.set_z_index(10)
 
-        def quality_readout() -> Text:
+        def quality_readout():
             t = fidx.get_value()
             q = quality(frame_positions(t), simp)
-            txt = Text(f"mean q = {q.mean():.2f}", color="#e6edf3").scale(0.40)
-            txt.move_to([cap_x, 0.5, 0])
-            return txt
+            grp = VGroup(
+                Text(f"mean q = {q.mean():.2f}", color="#e6edf3").scale(0.38),
+                Text(f"min  q = {q.min():.2f}",  color="#e6edf3").scale(0.38),
+            ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
+            grp.move_to([cap_x, 0.42, 0])
+            return grp
         qreadout = always_redraw(quality_readout)
         qreadout.set_z_index(10)
 
@@ -181,7 +201,7 @@ class DelawareBayHero(Scene):
 
         def set_step(n: int, label: str):
             new = Text(f"{n} · {label}", color="#e6edf3", weight="BOLD").scale(0.5)
-            new.move_to([cap_x, 1.6, 0])
+            new.move_to([cap_x, 1.0, 0])
             return new
 
         # --- play -------------------------------------------------------
@@ -198,7 +218,7 @@ class DelawareBayHero(Scene):
                   run_time=5.0, rate_func=rate_functions.ease_in_out_sine)
         self.wait(0.4)
 
-        new_label = set_step(3, "FEM smoothed")
+        new_label = set_step(3, "Smoothed")
         self.play(FadeOut(step_label), FadeIn(new_label), run_time=0.5)
         step_label = new_label
         self.play(fidx.animate.set_value(T - 1),
