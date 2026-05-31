@@ -69,9 +69,9 @@ RING_CACHE = HERE / "delbay_ring.npy"
 # Registered Delaware Bay sizing is hmin=100m, hmax=20000m (a 200x span).
 # Rendered at hero resolution with the same graded intent but a legible
 # ~8x contrast so individual elements stay visible.
-HMIN = 0.011   # fine: upper Delaware River channel + coastline
+HMIN = 0.007   # fine: upper Delaware River channel + coastline (smaller → more boundary nodes → no slivers)
 HMAX = 0.090   # coarse: open bay / Atlantic mouth
-G = 0.22       # gradient limit: |grad h| <= G (smooth size growth)
+G = 0.20       # gradient limit: |grad h| <= G (smooth size growth)
 
 RELAX_ITERS = 26
 SMOOTH_ITERS = 8
@@ -356,6 +356,15 @@ def main() -> None:
     pg = prep(poly)
     inside = np.array([pg.contains(Point(c)) for c in cent])
     simplices = tri.simplices[inside]
+    # Drop sliver triangles (boundary artifacts): area < 1% of hmin^2.
+    vp = final_relaxed[simplices]
+    areas = 0.5 * np.abs(
+        (vp[:, 1, 0] - vp[:, 0, 0]) * (vp[:, 2, 1] - vp[:, 0, 1])
+        - (vp[:, 2, 0] - vp[:, 0, 0]) * (vp[:, 1, 1] - vp[:, 0, 1])
+    )
+    simplices = simplices[areas > HMIN ** 2 * 0.01]
+    print(f"  kept {len(simplices)} triangles after sliver filter "
+          f"(dropped {inside.sum() - len(simplices)})")
 
     # Initialized stage: jitter interior for a rough look, but ensure no
     # triangle in the (fixed) connectivity inverts (which would give q=0).
