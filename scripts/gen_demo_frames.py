@@ -63,6 +63,7 @@ def _domain_l_shape():
         return np.clip(0.05 + 0.22 * np.tanh(d / 0.35), 0.05, 0.24)
 
     pfix = np.array([[-1., -1.], [1., -1.], [1., 0.], [0., 0.], [0., 1.], [-1., 1.]])
+    boundary = [pfix.tolist()]  # one outer ring through the 6 L-corners
     return dict(
         key="l_shape",
         title="L-shape — refined at re-entrant corner",
@@ -71,6 +72,7 @@ def _domain_l_shape():
         h0=0.05,
         bbox=(-1.0, -1.0, 1.0, 1.0),
         pfix=pfix,
+        boundary=boundary,
     )
 
 
@@ -80,6 +82,7 @@ def _domain_seamount():
     rings = [np.array(r) for r in d["rings"]]
     bbox = tuple(d["bbox"])
     fd = fast_sdf(rings)
+    boundary = [np.round(r, COORD_DP).tolist() for r in rings]
 
     def fh(p):
         z = _cross_shelf_bathymetry(p[:, 0], p[:, 1])
@@ -93,6 +96,7 @@ def _domain_seamount():
         fh=fh,
         h0=0.07,
         bbox=bbox,
+        boundary=boundary,
     )
 
 
@@ -103,6 +107,10 @@ def _domain_annulus():
     def fh(p):
         return 0.06 + 0.30 * (np.sqrt(p[:, 0] ** 2 + p[:, 1] ** 2) - 0.4)
 
+    theta = np.linspace(0, 2 * np.pi, 64, endpoint=False)
+    outer = np.column_stack([np.cos(theta), np.sin(theta)])
+    inner = np.column_stack([0.4 * np.cos(theta), 0.4 * np.sin(theta)])
+    boundary = [np.round(outer, COORD_DP).tolist(), np.round(inner, COORD_DP).tolist()]
     return dict(
         key="annulus",
         title="Annulus — size field refined toward inner ring",
@@ -110,6 +118,7 @@ def _domain_annulus():
         fh=fh,
         h0=0.06,
         bbox=(-1.0, -1.0, 1.0, 1.0),
+        boundary=boundary,
     )
 
 
@@ -171,6 +180,7 @@ def run_domain(spec: dict) -> dict:
         "title": spec["title"],
         "h0": spec["h0"],
         "bbox": list(spec["bbox"]),
+        "boundary": spec.get("boundary", []),
         "n_nodes": int(len(p)),
         "n_elements": int(len(t)),
         "q_min": round(float(q_min), 4),
