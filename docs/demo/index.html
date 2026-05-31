@@ -174,6 +174,8 @@ let current = null;   // loaded domain {frames, bbox, ...}
 let frameIdx = 0;
 let playing = false;
 let lastTs = 0;
+let zoomScale = 1.0, panX = 0, panY = 0;
+let isPanning = false, panStartX = 0, panStartY = 0;
 
 // --- triangle quality (radius-ratio form, matches admesh mesh_quality) ----
 function triQuality(ax, ay, bx, by, cx, cy) {
@@ -201,8 +203,9 @@ function fitTransform(bbox, w, h, pad) {
   const s = Math.min(sx, sy);
   const ox = pad + (w - 2 * pad - s * (x1 - x0)) / 2;
   const oy = pad + (h - 2 * pad - s * (y1 - y0)) / 2;
-  // flip y so domain y-up renders correctly
-  return (px, py) => [ox + s * (px - x0), h - (oy + s * (py - y0))];
+  // flip y so domain y-up renders correctly; apply zoom/pan
+  const scale = s * zoomScale;
+  return (px, py) => [ox + scale * (px - x0) + panX, h - (oy + scale * (py - y0)) + panY];
 }
 
 function drawFrame(i) {
@@ -250,6 +253,21 @@ function drawFrame(i) {
     }
     mctx.restore();
   }
+  // scale bar (1 world unit)
+  mctx.save();
+  const [sx0, sy0] = T(current.bbox[0], current.bbox[1]);
+  const [sx1, sy1] = T(current.bbox[0] + 1, current.bbox[1]);
+  const scalePixels = Math.hypot(sx1 - sx0, sy1 - sy0);
+  if (scalePixels > 20) {
+    const barX = w - 28, barY = h - 16;
+    mctx.strokeStyle = "rgba(236,239,241,0.7)"; mctx.lineWidth = 1;
+    mctx.beginPath(); mctx.moveTo(barX, barY); mctx.lineTo(barX + scalePixels, barY); mctx.stroke();
+    mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
+    mctx.beginPath(); mctx.moveTo(barX + scalePixels, barY - 3); mctx.lineTo(barX + scalePixels, barY + 3); mctx.stroke();
+    mctx.fillStyle = "rgba(236,239,241,0.6)"; mctx.font = "9px monospace"; mctx.textAlign = "center";
+    mctx.fillText("1 unit", barX + scalePixels / 2, barY + 10);
+  }
+  mctx.restore();
   // stats
   document.getElementById("sIter").textContent = fr.iter < 0 ? "final" : fr.iter;
   document.getElementById("sNodes").textContent = P.length;
@@ -303,6 +321,7 @@ function setPlaying(p) {
 async function loadDomain(key) {
   const res = await fetch(DATA_BASE + key + ".json");
   current = await res.json();
+  zoomScale = 1.0; panX = 0; panY = 0;
   document.getElementById("sTitle").textContent = current.title;
   scrub.max = current.frames.length - 1;
   frameIdx = 0;
@@ -402,6 +421,7 @@ function closePoly() {
 
 function enterDrawMode() {
   drawMode = true; drawVerts = []; drawClosed = false; drawMouse = null;
+  zoomScale = 1.0; panX = 0; panY = 0;
   meshCv.style.cursor = "crosshair";
   document.getElementById("draw-controls").style.display = "flex";
   document.getElementById("close-poly").disabled = false;
@@ -447,6 +467,41 @@ meshCv.addEventListener("dblclick", evt => {
   // remove the vertex added by the second click of this double-click, then close
   if (drawVerts.length > 0 && Date.now() - _lastAddTime < 400) drawVerts.pop();
   closePoly();
+});
+
+// ── canvas zoom and pan ──────────────────────────────────────
+meshCv.addEventListener("wheel", evt => {
+  if (!current || drawMode) return;
+  evt.preventDefault();
+  const factor = evt.deltaY > 0 ? 0.9 : 1.1;
+  zoomScale *= factor;
+  zoomScale = Math.max(0.5, Math.min(5, zoomScale));
+  drawFrame(frameIdx);
+});
+meshCv.addEventListener("mousedown", evt => {
+  if (!current || drawMode) return;
+  isPanning = true;
+  panStartX = evt.clientX;
+  panStartY = evt.clientY;
+  meshCv.style.cursor = "grab";
+});
+meshCv.addEventListener("mousemove", evt => {
+  if (!isPanning) return;
+  const dx = evt.clientX - panStartX;
+  const dy = evt.clientY - panStartY;
+  panX += dx;
+  panY += dy;
+  panStartX = evt.clientX;
+  panStartY = evt.clientY;
+  drawFrame(frameIdx);
+});
+meshCv.addEventListener("mouseup", () => {
+  isPanning = false;
+  meshCv.style.cursor = "";
+});
+meshCv.addEventListener("mouseleave", () => {
+  isPanning = false;
+  meshCv.style.cursor = "";
 });
 
 // ── phase 2: pyodide in-browser compute ──────────────────────────────────────
@@ -727,6 +782,7 @@ async function runCompute() {
     // seed live player — frames fill in as Python streams them
     if (drawMode) exitDrawMode();
     setPlaying(false);
+    zoomScale = 1.0; panX = 0; panY = 0;
     current = { title: "Computing…", frames: [], bbox: liveBbox, boundary: liveBoundary };
     scrub.max = 0; frameIdx = 0;
 
