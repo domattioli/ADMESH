@@ -46,7 +46,7 @@
   .stat { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--edge); font-size: .9rem; }
   .stat:last-child { border-bottom: none; }
   .stat b { color: var(--accent2); font-variant-numeric: tabular-nums; }
-  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); flex-wrap: wrap; }
+  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); }
   .legend span { display: inline-flex; align-items: center; gap: .35rem; }
   .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
   footer {
@@ -264,6 +264,7 @@ function drawChart(upto) {
   const w = chartCv.width, h = chartCv.height, pad = 6;
   cctx.clearRect(0, 0, w, h);
   const fs = current.frames;
+  if (fs.length < 2) return;
   // gridline at q=1
   cctx.strokeStyle = "rgba(236,239,241,0.12)"; cctx.lineWidth = 1;
   cctx.beginPath(); cctx.moveTo(pad, pad); cctx.lineTo(w - pad, pad); cctx.stroke();
@@ -447,7 +448,7 @@ meshCv.addEventListener("dblclick", evt => {
   closePoly();
 });
 
-// ── phase 2: pyodide in-browser compute ────────────────────────────────────────────
+// ── phase 2: pyodide in-browser compute ──────────────────────────────────────
 const PYTHON_CODE = `
 import numpy as np
 from scipy.spatial import Delaunay
@@ -481,9 +482,10 @@ def _mesh_quality(p, t):
     q = np.clip(q, 0, 1)
     return float(q.min()), float(q.mean())
 
-def _distmesh2d(fd, fh, h0, bbox, pfix=None, niter=300,
+async def _distmesh2d_live(fd, fh, h0, bbox, pfix=None, niter=300,
                 dptol=2e-3, ttol=0.27, Fscale=1.2, deltat=0.2,
                 geps_factor=1e-3, seed=42, on_iter=None):
+    import asyncio
     rng = np.random.default_rng(seed)
     geps = geps_factor * h0
     deps = np.sqrt(np.finfo(float).eps) * h0
@@ -511,7 +513,9 @@ def _distmesh2d(fd, fh, h0, bbox, pfix=None, niter=300,
             keep = fd(centroids) < -geps
             t = np.sort(t_all[keep], axis=1)
             bars = _unique_bars(t, len(p))
-            if on_iter: on_iter(k, p, t)
+            if on_iter:
+                await on_iter(k, p, t)
+                await asyncio.sleep(0)
         if bars.size == 0: break
         barvec = p[bars[:,0]] - p[bars[:,1]]
         L = np.sqrt((barvec**2).sum(axis=1))
@@ -607,38 +611,50 @@ def _fh(p):
     r = np.sqrt(p[:,0]**2 + p[:,1]**2)
     return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
 
-_MAX_FRAMES = 60; _frames = []
+_MAX_FRAMES = 60
+_frames = []
+_result_json = ""
 
-def _on_iter(k, p, t):
-    qmin, qmean = _mesh_quality(p, t)
-    _frames.append({"iter": int(k), "p": np.round(p, 3).tolist(),
-                    "t": t.tolist(), "q_min": round(qmin, 4), "q_mean": round(qmean, 4)})
+async def _main():
+    import asyncio, js
+    global _frames, _result_json
+    _frames = []
 
-_p, _t = _distmesh2d(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox, pfix=_pfix, seed=42, on_iter=_on_iter)
-_qmin_f, _qmean_f = _mesh_quality(_p, _t)
-_frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
-                "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
+    async def _on_iter(k, p, t):
+        qmin, qmean = _mesh_quality(p, t)
+        frame = {"iter": int(k), "p": np.round(p, 3).tolist(), "t": t.tolist(),
+                 "q_min": round(qmin, 4), "q_mean": round(qmean, 4)}
+        _frames.append(frame)
+        js.liveFrameCallback(_json.dumps(frame))
 
-if len(_frames) > _MAX_FRAMES:
-    _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
-    _frames = [_frames[i] for i in sorted(set(_idx.tolist()))]
+    _p, _t = await _distmesh2d_live(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox,
+                                     pfix=_pfix, seed=42, on_iter=_on_iter)
+    _qmin_f, _qmean_f = _mesh_quality(_p, _t)
+    _frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
+                    "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
 
-_prev_t = None
-for _fr in _frames:
-    if _fr['t'] == _prev_t: _fr['t'] = None
-    else: _prev_t = _fr['t']
+    if len(_frames) > _MAX_FRAMES:
+        _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
+        _frames = [_frames[i] for i in sorted(set(_idx.tolist()))]
 
-_labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
-_result_json = _json.dumps({
-    "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
-    "bbox": list(_bbox),
-    "boundary": _boundary,
-    "frames": _frames,
-    "n_nodes": int(len(_p)),
-    "n_elements": int(len(_t)),
-    "q_min": round(_qmin_f, 4),
-    "q_mean": round(_qmean_f, 4),
-})
+    _prev_t = None
+    for _fr in _frames:
+        if _fr['t'] == _prev_t: _fr['t'] = None
+        else: _prev_t = _fr['t']
+
+    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
+    _result_json = _json.dumps({
+        "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
+        "bbox": list(_bbox),
+        "boundary": _boundary,
+        "frames": _frames,
+        "n_nodes": int(len(_p)),
+        "n_elements": int(len(_t)),
+        "q_min": round(_qmin_f, 4),
+        "q_mean": round(_qmean_f, 4),
+    })
+
+await _main()
 `;
 
 let pyodideInstance = null;
@@ -689,6 +705,39 @@ async function runCompute() {
     const hmax = parseFloat(document.getElementById("inp-hmax").value);
     const g = parseFloat(document.getElementById("inp-g").value);
 
+    // pre-compute live bbox + boundary for canvas during computation
+    let liveBbox, liveBoundary;
+    if (domainKey === "l_shape") {
+      liveBbox = [-1, -1, 1, 1];
+      liveBoundary = [[[-1,-1],[1,-1],[1,0],[0,0],[0,1],[-1,1]]];
+    } else if (domainKey === "annulus") {
+      liveBbox = [-1, -1, 1, 1];
+      const th = Array.from({length: 64}, (_, i) => i * 2 * Math.PI / 64);
+      liveBoundary = [th.map(t => [Math.cos(t), Math.sin(t)]),
+                      th.map(t => [0.4*Math.cos(t), 0.4*Math.sin(t)])];
+    } else {
+      const xs = drawVerts.map(v => v[0]), ys = drawVerts.map(v => v[1]);
+      const margin = Math.max(h0 * 2, 0.05);
+      liveBbox = [Math.min(...xs)-margin, Math.min(...ys)-margin,
+                  Math.max(...xs)+margin, Math.max(...ys)+margin];
+      liveBoundary = [drawVerts.map(v => [...v])];
+    }
+
+    // seed live player — frames fill in as Python streams them
+    if (drawMode) exitDrawMode();
+    setPlaying(false);
+    current = { title: "Computing…", frames: [], bbox: liveBbox, boundary: liveBoundary };
+    scrub.max = 0; frameIdx = 0;
+
+    window.liveFrameCallback = (jsonStr) => {
+      const frame = JSON.parse(jsonStr);
+      current.frames.push(frame);
+      scrub.max = Math.max(0, current.frames.length - 1);
+      frameIdx = current.frames.length - 1;
+      drawFrame(frameIdx);
+      setComputeStatus(`iter ${frame.iter} · ${frame.p.length} nodes · q=${frame.q_mean}`);
+    };
+
     py.globals.set("_domain_key", domainKey);
     py.globals.set("_h0", h0);
     py.globals.set("_hmax", hmax);
@@ -698,17 +747,16 @@ async function runCompute() {
     }
 
     setComputeStatus("Computing…");
-    py.runPython(PYTHON_CODE);
+    await py.runPythonAsync(PYTHON_CODE);
+
+    // replace live frames with deduped final result
     const resultStr = py.globals.get("_result_json");
     const data = JSON.parse(resultStr);
-
-    // exit draw mode and plug computed result into existing player
-    if (drawMode) exitDrawMode();
     current = data;
     document.getElementById("sTitle").textContent = data.title;
     scrub.max = data.frames.length - 1;
-    frameIdx = 0;
-    drawFrame(0);
+    frameIdx = data.frames.length - 1;
+    drawFrame(frameIdx);
     setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
   } catch (err) {
     setComputeStatus("Error: " + (err.message || String(err)).split("\n").slice(-3).join(" | "));
