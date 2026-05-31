@@ -130,7 +130,7 @@
         <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:18px;height:0;border-top:2px dashed rgba(255,255,255,0.75);display:inline-block;margin-top:1px"></span> input boundary</span>
       </div>
       <p style="color:var(--muted);font-size:.8rem;margin:.6rem 0 .3rem">Element size distribution</p>
-      <canvas id="histogram" width="800" height="120" style="background:#1c272c"></canvas>
+      <canvas id="histogram" width="800" height="160" style="background:#1c272c"></canvas>
     </div>
 
     <div class="card">
@@ -349,20 +349,22 @@ function drawHistogram(i) {
   let maxCount = 0;
   for (const b of bins) { if (b.count > maxCount) maxCount = b.count; }
   const xStep = (w - 2*pad) / nbins;
+  const labelH = 24;  // reserved pixels at bottom for axis labels
 
   for (let i = 0; i < nbins; i++) {
-    const barH = bins[i].count > 0 ? (h - 2*pad) * (bins[i].count / maxCount) : 0;
+    const barH = bins[i].count > 0 ? (h - 2*pad - labelH) * (bins[i].count / maxCount) : 0;
     const x = pad + i * xStep;
-    const y = h - pad - barH;
+    const y = h - pad - labelH - barH;
     hctx.fillStyle = qColor(bins[i].q);
     hctx.fillRect(x + 1, y, xStep - 2, barH);
   }
 
-  // axis labels
-  hctx.fillStyle = "rgba(236,239,241,0.5)"; hctx.font = "9px monospace"; hctx.textAlign = "center";
-  hctx.fillText(minLen.toFixed(3), pad, h - 2);
-  hctx.fillText(maxLen.toFixed(3), w - pad, h - 2);
-  hctx.textAlign = "center"; hctx.fillText("edge length", w/2, h - 2);
+  // axis labels — left/right aligned so text stays inside canvas
+  hctx.fillStyle = "rgba(236,239,241,0.55)"; hctx.font = "9px monospace";
+  hctx.textAlign = "left";  hctx.fillText(minLen.toFixed(3), pad, h - 14);
+  hctx.textAlign = "right"; hctx.fillText(maxLen.toFixed(3), w - pad, h - 14);
+  hctx.textAlign = "center"; hctx.fillStyle = "rgba(236,239,241,0.35)";
+  hctx.fillText("edge length", w / 2, h - 2);
 }
 
 function loop(ts) {
@@ -749,7 +751,10 @@ elif _domain_key == 'seamount':
                 ax, ay = float(V[i,0]), float(V[i,1]); bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])\n                m = (ay > py) != (by > py)\n                if m.any() and abs(by-ay) > 1e-12:\n                    x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)\n                    if ring_idx == 0:\n                        inside[m] ^= px[m] < x_int\n                    else:\n                        inside[m] ^= ~(px[m] < x_int)\n        return np.where(inside, -d, d)\n    _fd = _sdf_seamount; _boundary = _rings_list
     _pts = np.vstack(_rings_list) if len(_rings_list) > 0 else np.array([[0,0]])\n    _margin = max(_h0v * 2, 0.05)\n    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),\n             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))\nelif _domain_key == 'custom':
     _verts_list = _json.loads(_verts_json)
-    _fd = _sdf_polygon(_verts_list); _pts = np.array(_verts_list)
+    _fd = _sdf_polygon(_verts_list)
+    _pts = np.atleast_2d(np.array(_verts_list, dtype=float))
+    if _pts.shape[-1] != 2: _pts = _pts.reshape(-1, 2)
+    if len(_pts) < 3: raise ValueError("Custom domain needs at least 3 vertices")
     _margin = max(_h0v * 2, 0.05)
     _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),
              float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))
