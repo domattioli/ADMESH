@@ -660,6 +660,39 @@ elif _domain_key == 'annulus':
         np.column_stack([np.cos(_th), np.sin(_th)]).round(3).tolist(),
         np.column_stack([0.4*np.cos(_th), 0.4*np.sin(_th)]).round(3).tolist()
     ]
+elif _domain_key == 'seamount':
+    _rings_list = _json.loads(_seamount_rings_json)
+    def _sdf_seamount(p):
+        p = np.atleast_2d(p)
+        px, py = p[:,0], p[:,1]; N = len(p)
+        d = np.full(N, np.inf)
+        for ring_idx, ring in enumerate(_rings_list):
+            V = np.array(ring, float); n = len(V)
+            for i in range(n):
+                ax, ay = V[i]; bx, by = V[(i+1)%n]
+                edx, edy = bx-ax, by-ay; l2 = edx*edx + edy*edy
+                if l2 < 1e-20:
+                    d = np.minimum(d, np.hypot(px-ax, py-ay)); continue
+                tc = np.clip(((px-ax)*edx + (py-ay)*edy) / l2, 0, 1)
+                d = np.minimum(d, np.hypot(px-(ax+tc*edx), py-(ay+tc*edy)))
+        inside = np.zeros(N, dtype=bool)
+        for ring_idx, ring in enumerate(_rings_list):
+            V = np.array(ring, float); n = len(V)
+            for i in range(n):
+                ax, ay = float(V[i,0]), float(V[i,1]); bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])
+                m = (ay > py) != (by > py)
+                if m.any() and abs(by-ay) > 1e-12:
+                    x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)
+                    if ring_idx == 0:
+                        inside[m] ^= px[m] < x_int
+                    else:
+                        inside[m] ^= ~(px[m] < x_int)
+        return np.where(inside, -d, d)
+    _fd = _sdf_seamount; _boundary = _rings_list
+    _pts = np.vstack(_rings_list) if len(_rings_list) > 0 else np.array([[0,0]])
+    _margin = max(_h0v * 2, 0.05)
+    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),
+             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))
 elif _domain_key == 'custom':
     _verts_list = _json.loads(_verts_json)
     _fd = _sdf_polygon(_verts_list); _pts = np.array(_verts_list)
@@ -672,8 +705,13 @@ else:
 
 def _fh(p):
     p = np.atleast_2d(p)
-    r = np.sqrt(p[:,0]**2 + p[:,1]**2)
-    return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
+    if _domain_key == 'seamount':
+        z = -50.0 * (p[:,0] + 1.0) + 4.0 * np.exp(-((p[:,0] + 0.8)**2 + p[:,1]**2) / 0.08)
+        depth = np.clip(-z, 0.0, None)
+        return np.clip(0.07 + 0.22 * (depth / 100.0), 0.07, 0.27)
+    else:
+        r = np.sqrt(p[:,0]**2 + p[:,1]**2)
+        return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
 
 _MAX_FRAMES = 60
 _frames = []
@@ -706,7 +744,7 @@ async def _main():
         if _fr['t'] == _prev_t: _fr['t'] = None
         else: _prev_t = _fr['t']
 
-    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
+    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'seamount': 'Seamount', 'custom': 'Custom polygon'}
     _result_json = _json.dumps({
         "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
         "bbox": list(_bbox),
@@ -756,10 +794,6 @@ async function runCompute() {
     if (!py) { setComputeStatus("Still loading — try again"); btn.disabled = false; return; }
 
     const domainKey = sel.value;
-    if (domainKey === "seamount") {
-      setComputeStatus("Seamount Phase 2 coming soon (needs polygon SDF)");
-      btn.disabled = false; return;
-    }
     if (domainKey === "custom" && !drawClosed) {
       setComputeStatus("Draw and close a polygon first");
       btn.disabled = false; return;
@@ -770,7 +804,7 @@ async function runCompute() {
     const g = parseFloat(document.getElementById("inp-g").value);
 
     // pre-compute live bbox + boundary for canvas during computation
-    let liveBbox, liveBoundary;
+    let liveBbox, liveBoundary, seamountData = null;
     if (domainKey === "l_shape") {
       liveBbox = [-1, -1, 1, 1];
       liveBoundary = [[[-1,-1],[1,-1],[1,0],[0,0],[0,1],[-1,1]]];
@@ -779,6 +813,16 @@ async function runCompute() {
       const th = Array.from({length: 64}, (_, i) => i * 2 * Math.PI / 64);
       liveBoundary = [th.map(t => [Math.cos(t), Math.sin(t)]),
                       th.map(t => [0.4*Math.cos(t), 0.4*Math.sin(t)])];
+    } else if (domainKey === "seamount") {
+      try {
+        const res = await fetch(DATA_BASE + "seamount.json");
+        seamountData = await res.json();
+        liveBbox = seamountData.bbox;
+        liveBoundary = seamountData.boundary;
+      } catch (e) {
+        setComputeStatus("Failed to load seamount data");
+        btn.disabled = false; return;
+      }
     } else {
       const xs = drawVerts.map(v => v[0]), ys = drawVerts.map(v => v[1]);
       const margin = Math.max(h0 * 2, 0.05);
@@ -809,6 +853,9 @@ async function runCompute() {
     py.globals.set("_g", g);
     if (domainKey === "custom") {
       py.globals.set("_verts_json", JSON.stringify(drawVerts));
+    }
+    if (seamountData) {
+      py.globals.set("_seamount_rings_json", JSON.stringify(seamountData.boundary));
     }
 
     setComputeStatus("Computing…");
