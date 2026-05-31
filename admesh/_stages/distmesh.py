@@ -672,7 +672,7 @@ def distmesh2d_admesh(
         Target minimum edge length (``hmin`` in the MATLAB source).
     pfix : (M, 2) array or None
         Fixed points (always present in the mesh, never moved). Mirrors
-        MATLAB ``GetMeshConstraints`` semantics: only points from
+        MATLAB ``GetMeshConstraints.m`` semantics: only points from
         ``PTS.BC`` constraints are pinned, **not** the densified ring
         vertices. Pass ``None`` (default) for no pinning — the boundary
         emerges from truss equilibrium + ``projectBackToBoundary`` at

@@ -8,8 +8,7 @@ version = "0.5.0"
 description = "ADMESH: an advanced, automatic unstructured mesh generator for 2D shallow-water models."
 readme = "README.md"
 requires-python = ">=3.10"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
+license = {text = "Apache-2.0"}
 authors = [
     { name = "Colton J. Conroy" },
     { name = "Ethan J. Kubatko" },
