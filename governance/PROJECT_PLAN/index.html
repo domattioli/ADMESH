@@ -313,6 +313,33 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
     
@@ -329,10 +356,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -350,8 +377,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -586,10 +613,10 @@
         
           
         
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -607,8 +634,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1036,13 +1063,13 @@
 <p>Phased roadmap for porting <code>QuADMesh-MATLAB/01_ADMESH_Library</code> to Python. Governance rules in <code>CONSTITUTION.md</code>; code layout in <code>CLAUDE.md</code>.</p>
 <hr />
 <h2 id="where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete">Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)<a class="headerlink" href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" title="Permanent link">&para;</a></h2>
-<p><strong>Spec 012 (<code>specs/012-background-grid-stage-tests/</code>) planning shipped on <code>daily-maintenance</code>.</strong></p>
+<p><strong>Spec 012 (<code>specs/012-background-grid-stage-tests/</code>) planning shipped on <code>daily-issue-fixing</code>.</strong></p>
 <ul>
 <li>Tracks issue #73 (TEST-AUDIT.md backlog B-05 / finding F-MED-01) — <code>admesh/_stages/background_grid.py</code> has no eponymous test file.</li>
 <li>Planning surfaced that the canonical module is a 7-line stub; the original issue's parity-test proposal cannot satisfy at <code>atol=1e-10</code> until the MATLAB port lands.</li>
 <li>Resolution: two-track spec. Track A (test scaffold + smoke + <code>xfail(strict=True)</code> parity scaffolds) closes the audit gap immediately without the port. Track B (numerical parity at <code>atol=1e-10</code>) gates on the new follow-up impl issue #78.</li>
 <li>Issue #78 opened to track the actual port of <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code>. Verified: <code>scripts/export_matlab_fixtures.m</code> does not yet export a stage-02 fixture (OQ-1 resolved → fixture work belongs to #78).</li>
-<li>Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on <code>daily-maintenance</code>.</li>
+<li>Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on <code>daily-issue-fixing</code>.</li>
 <li>Spec 012 deliverables landing this run: <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>, issue #78, plus this PROJECT_PLAN entry. Track A implementation (T-012-2 / T-012-3) deferred to next run per the planning-mode mandate.</li>
 </ul>
 <hr />
@@ -1071,7 +1098,7 @@
   - <code>007-1d-boundary-seeding</code> (issue #2, in progress)
   - <code>008-gmsh-io-integration</code> (issue #5, planning)
 - ~20 ADMESH issues closed since the 2026-04-26 entry; issue #15 (right-isoceles smoother), #27 (valence balancing) and #36 (<code>distmesh2d</code> undefined <code>_boundary_cleanup</code>) are among the larger ones.
-- New "daily-maintenance" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit <code>ab5bb49e</code>, <code>manifest_sha256</code> recorded in <code>.domi-pin</code>).
+- New "daily-issue-fixing" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit <code>ab5bb49e</code>, <code>manifest_sha256</code> recorded in <code>.domi-pin</code>).
 - <code>TEST-AUDIT.md</code> shipped on 2026-05-15 (issue #59). Surfaced <strong>F-CRIT-01</strong>: only <code>publish.yml</code> exists, no CI workflow runs the 310 test functions. Sibling audit issues #60 (test surface, routes to DomI #63) and #61 (Claude Code hooks, routes to DomI #64) are open.
 - <code>admesh-domains&gt;=0.1.0</code> is now a hard runtime dependency (<code>pyproject.toml:22</code>). The registry sibling is part of the public surface for 0.1.0.</p>
 <p><strong>Known drift to fix before tag:</strong>

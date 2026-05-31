@@ -1,0 +1,29 @@
+[
+  {
+    "key": "circle",
+    "title": "Unit disk \u2014 uniform size field",
+    "n_frames": 60,
+    "n_nodes": 251,
+    "n_elements": 448,
+    "q_min": 0.7685,
+    "q_mean": 0.9785
+  },
+  {
+    "key": "rectangle",
+    "title": "Rectangle \u2014 uniform size field",
+    "n_frames": 60,
+    "n_nodes": 287,
+    "n_elements": 507,
+    "q_min": 0.8061,
+    "q_mean": 0.9857
+  },
+  {
+    "key": "annulus",
+    "title": "Annulus \u2014 size field refined toward inner ring",
+    "n_frames": 60,
+    "n_nodes": 161,
+    "n_elements": 259,
+    "q_min": 0.6588,
+    "q_mean": 0.9319
+  }
+]
