@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADMESH — Interactive Truss-Solver Demo</title>
+<style>
+  :root {
+    --bg: #263238;          /* blue-grey slate, matches mkdocs-material */
+    --panel: #2f3e46;
+    --fg: #eceff1;
+    --muted: #b0bec5;
+    --accent: #42a5f5;
+    --accent2: #66bb6a;
+    --edge: rgba(236,239,241,0.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 1.4rem 1.2rem 1rem; border-bottom: 1px solid var(--edge);
+  }
+  header h1 { margin: 0 0 .3rem; font-size: 1.5rem; font-weight: 600; }
+  header p { margin: 0; color: var(--muted); font-size: .92rem; max-width: 60ch; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 1.2rem; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+    background: var(--panel); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;
+  }
+  .controls label { font-size: .82rem; color: var(--muted); display: block; margin-bottom: .25rem; }
+  select, button {
+    background: #37474f; color: var(--fg); border: 1px solid var(--edge);
+    border-radius: 6px; padding: .5rem .7rem; font-size: .9rem; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #0d1b24; border-color: var(--accent); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 820px) { .grid { grid-template-columns: 2fr 1fr; } }
+  .card { background: var(--panel); border-radius: 10px; padding: 1rem; }
+  canvas { width: 100%; height: auto; display: block; background: #1c272c; border-radius: 8px; }
+  .scrubrow { display: flex; align-items: center; gap: .8rem; margin-top: .8rem; }
+  .scrubrow input[type=range] { flex: 1; accent-color: var(--accent); }
+  .stat { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--edge); font-size: .9rem; }
+  .stat:last-child { border-bottom: none; }
+  .stat b { color: var(--accent2); font-variant-numeric: tabular-nums; }
+  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .35rem; }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  footer {
+    margin-top: 1.5rem; padding: 1.2rem; background: var(--panel);
+    border-radius: 10px; font-size: .82rem; color: var(--muted);
+  }
+  footer h3 { margin: 0 0 .5rem; color: var(--fg); font-size: .95rem; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer .cite { margin: 0 0 .8rem; }
+  .badge { font-size: .7rem; background: #37474f; padding: .15rem .5rem; border-radius: 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding-bottom:0">
+    <h1>ADMESH — Interactive Truss-Solver Demo <span class="badge">prototype</span></h1>
+    <p>Watch the DistMesh force-equilibration solver relax a point cloud into a
+       high-quality unstructured triangular mesh, iteration by iteration. Frames
+       are pre-computed by the real <code>admesh</code> pipeline.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div>
+      <label for="domain">Domain</label>
+      <select id="domain"></select>
+    </div>
+    <div>
+      <label for="speed">Speed</label>
+      <select id="speed">
+        <option value="1">1×</option>
+        <option value="2" selected>2×</option>
+        <option value="4">4×</option>
+        <option value="8">8×</option>
+      </select>
+    </div>
+    <div style="align-self:flex-end">
+      <button id="play" class="primary">▶ Play</button>
+      <button id="restart">⟲ Restart</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <canvas id="mesh" width="800" height="640"></canvas>
+      <div class="scrubrow">
+        <span id="frameLabel" style="font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem">0 / 0</span>
+        <input type="range" id="scrub" min="0" max="0" value="0">
+      </div>
+      <div class="legend">
+        <span><i class="swatch" style="background:#ef5350"></i> low quality</span>
+        <span><i class="swatch" style="background:#ffca28"></i> medium</span>
+        <span><i class="swatch" style="background:#66bb6a"></i> near-equilateral</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stat"><span>Domain</span><b id="sTitle">—</b></div>
+      <div class="stat"><span>Iteration</span><b id="sIter">—</b></div>
+      <div class="stat"><span>Nodes</span><b id="sNodes">—</b></div>
+      <div class="stat"><span>Elements</span><b id="sElems">—</b></div>
+      <div class="stat"><span>Min quality</span><b id="sQmin">—</b></div>
+      <div class="stat"><span>Mean quality</span><b id="sQmean">—</b></div>
+      <p style="color:var(--muted);font-size:.8rem;margin:.8rem 0 .3rem">Mean quality over iterations</p>
+      <canvas id="chart" width="320" height="120" style="background:#1c272c"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <h3>Citation</h3>
+    <p class="cite">If you use ADMESH, please cite both the algorithm paper and the archived software release.</p>
+    <p class="cite"><strong>Algorithm</strong> — Conroy, C. J., Kubatko, E. J., &amp; West, D. W. (2012).
+      ADMESH: an advanced, automatic unstructured mesh generator for shallow water models.
+      <em>Ocean Dynamics</em>, 62(10), 1503–1517.
+      <a href="https://doi.org/10.1007/s10236-012-0574-0" target="_blank" rel="noopener">doi:10.1007/s10236-012-0574-0</a></p>
+    <p class="cite"><strong>Software</strong> — Mattioli, D. et&nbsp;al. ADMESH (Python port). Zenodo.
+      <a href="https://doi.org/10.5281/zenodo.20264101" target="_blank" rel="noopener">doi:10.5281/zenodo.20264101</a></p>
+    <p style="margin:0"><a href="https://github.com/domattioli/ADMESH" target="_blank" rel="noopener">github.com/domattioli/ADMESH</a>
+      · DistMesh: Persson &amp; Strang, <em>SIAM Review</em> 46(2), 2004.</p>
+  </footer>
+</div>
+
+<script>
+const DATA_BASE = "data/";
+const meshCv = document.getElementById("mesh");
+const mctx = meshCv.getContext("2d");
+const chartCv = document.getElementById("chart");
+const cctx = chartCv.getContext("2d");
+const sel = document.getElementById("domain");
+const scrub = document.getElementById("scrub");
+const playBtn = document.getElementById("play");
+const restartBtn = document.getElementById("restart");
+const speedSel = document.getElementById("speed");
+const frameLabel = document.getElementById("frameLabel");
+
+let current = null;   // loaded domain {frames, bbox, ...}
+let frameIdx = 0;
+let playing = false;
+let lastTs = 0;
+
+// --- triangle quality (radius-ratio form, matches admesh mesh_quality) ----
+function triQuality(ax, ay, bx, by, cx, cy) {
+  const a = Math.hypot(bx - cx, by - cy);
+  const b = Math.hypot(cx - ax, cy - ay);
+  const c = Math.hypot(ax - bx, ay - by);
+  const denom = a * b * c;
+  if (denom === 0) return 0;
+  return ((b + c - a) * (c + a - b) * (a + b - c)) / denom;
+}
+
+function qColor(q) {
+  // 0 -> red, 0.5 -> amber, 1 -> green
+  const t = Math.max(0, Math.min(1, q));
+  let r, g, b;
+  if (t < 0.5) { const u = t / 0.5; r = 239; g = Math.round(83 + u * (202 - 83)); b = Math.round(80 - u * 40); }
+  else { const u = (t - 0.5) / 0.5; r = Math.round(255 - u * (255 - 102)); g = Math.round(202 - u * (202 - 187)); b = Math.round(40 + u * (104 - 40)); }
+  return `rgb(${r},${g},${b})`;
+}
+
+function fitTransform(bbox, w, h, pad) {
+  const [x0, y0, x1, y1] = bbox;
+  const sx = (w - 2 * pad) / (x1 - x0);
+  const sy = (h - 2 * pad) / (y1 - y0);
+  const s = Math.min(sx, sy);
+  const ox = pad + (w - 2 * pad - s * (x1 - x0)) / 2;
+  const oy = pad + (h - 2 * pad - s * (y1 - y0)) / 2;
+  // flip y so domain y-up renders correctly
+  return (px, py) => [ox + s * (px - x0), h - (oy + s * (py - y0))];
+}
+
+function drawFrame(i) {
+  if (!current) return;
+  const fr = current.frames[i];
+  const w = meshCv.width, h = meshCv.height;
+  mctx.clearRect(0, 0, w, h);
+  const T = fitTransform(current.bbox, w, h, 24);
+  // t === null means "same topology as the previous frame" (payload dedupe).
+  let TR = fr.t;
+  if (TR === null) {
+    for (let j = i; j >= 0; j--) { if (current.frames[j].t !== null) { TR = current.frames[j].t; break; } }
+  }
+  const P = fr.p;
+  // fill triangles by quality
+  for (let k = 0; k < TR.length; k++) {
+    const [ia, ib, ic] = TR[k];
+    const [ax, ay] = T(P[ia][0], P[ia][1]);
+    const [bx, by] = T(P[ib][0], P[ib][1]);
+    const [cx, cy] = T(P[ic][0], P[ic][1]);
+    const q = triQuality(P[ia][0], P[ia][1], P[ib][0], P[ib][1], P[ic][0], P[ic][1]);
+    mctx.beginPath();
+    mctx.moveTo(ax, ay); mctx.lineTo(bx, by); mctx.lineTo(cx, cy); mctx.closePath();
+    mctx.fillStyle = qColor(q);
+    mctx.globalAlpha = 0.85; mctx.fill(); mctx.globalAlpha = 1;
+    mctx.strokeStyle = "rgba(28,39,44,0.9)"; mctx.lineWidth = 0.6; mctx.stroke();
+  }
+  // stats
+  document.getElementById("sIter").textContent = fr.iter < 0 ? "final" : fr.iter;
+  document.getElementById("sNodes").textContent = P.length;
+  document.getElementById("sElems").textContent = TR.length;
+  document.getElementById("sQmin").textContent = fr.q_min.toFixed(3);
+  document.getElementById("sQmean").textContent = fr.q_mean.toFixed(3);
+  frameLabel.textContent = `${i + 1} / ${current.frames.length}`;
+  scrub.value = i;
+  drawChart(i);
+}
+
+function drawChart(upto) {
+  const w = chartCv.width, h = chartCv.height, pad = 6;
+  cctx.clearRect(0, 0, w, h);
+  const fs = current.frames;
+  // gridline at q=1
+  cctx.strokeStyle = "rgba(236,239,241,0.12)"; cctx.lineWidth = 1;
+  cctx.beginPath(); cctx.moveTo(pad, pad); cctx.lineTo(w - pad, pad); cctx.stroke();
+  cctx.beginPath();
+  for (let i = 0; i < fs.length; i++) {
+    const x = pad + (w - 2 * pad) * (i / (fs.length - 1));
+    const y = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[i].q_mean));
+    if (i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
+  }
+  cctx.strokeStyle = "#66bb6a"; cctx.lineWidth = 2; cctx.stroke();
+  // marker at current
+  const mx = pad + (w - 2 * pad) * (upto / (fs.length - 1));
+  const my = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[upto].q_mean));
+  cctx.fillStyle = "#42a5f5"; cctx.beginPath(); cctx.arc(mx, my, 3.5, 0, 7); cctx.fill();
+}
+
+function loop(ts) {
+  if (!playing) return;
+  const fps = 12 * parseInt(speedSel.value, 10);
+  if (ts - lastTs > 1000 / fps) {
+    lastTs = ts;
+    frameIdx++;
+    if (frameIdx >= current.frames.length) { frameIdx = current.frames.length - 1; setPlaying(false); }
+    else drawFrame(frameIdx);
+  }
+  if (playing) requestAnimationFrame(loop);
+}
+
+function setPlaying(p) {
+  playing = p;
+  playBtn.textContent = p ? "⏸ Pause" : "▶ Play";
+  if (p) { if (frameIdx >= current.frames.length - 1) frameIdx = 0; lastTs = 0; requestAnimationFrame(loop); }
+}
+
+async function loadDomain(key) {
+  const res = await fetch(DATA_BASE + key + ".json");
+  current = await res.json();
+  document.getElementById("sTitle").textContent = current.title;
+  scrub.max = current.frames.length - 1;
+  frameIdx = 0;
+  drawFrame(0);
+}
+
+async function init() {
+  const res = await fetch(DATA_BASE + "manifest.json");
+  const manifest = await res.json();
+  for (const d of manifest) {
+    const opt = document.createElement("option");
+    opt.value = d.key; opt.textContent = d.title;
+    sel.appendChild(opt);
+  }
+  await loadDomain(manifest[0].key);
+
+  sel.addEventListener("change", async () => { setPlaying(false); await loadDomain(sel.value); });
+  scrub.addEventListener("input", () => { setPlaying(false); frameIdx = parseInt(scrub.value, 10); drawFrame(frameIdx); });
+  playBtn.addEventListener("click", () => setPlaying(!playing));
+  restartBtn.addEventListener("click", () => { setPlaying(false); frameIdx = 0; drawFrame(0); });
+}
+
+init().catch(err => {
+  document.querySelector(".wrap").insertAdjacentHTML("afterbegin",
+    `<div class="card" style="color:#ef5350">Failed to load demo data: ${err}. Run <code>python scripts/gen_demo_frames.py</code> first.</div>`);
+});
+</script>
+</body>
+</html>
