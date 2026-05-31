@@ -20,12 +20,12 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/assets/hero/admesh_delbay_hero.gif" alt="ADMESH meshing Delaware Bay through three stages: initialized point cloud, DistMesh truss-solver relaxation, then FEM smoothing — element color tracks quality from red to green." width="100%">
   <br>
-  <em>The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
+  <em>A graded <a href="https://github.com/domattioli/ADMESH-Domains">Delaware Bay</a> mesh — fine in the upper river, coarse out in the open bay (<code>hmin</code>/<code>hmax</code> with gradient limit <code>g</code>) — evolving through ADMESH's pipeline: <strong>1.</strong> initialization → <strong>2.</strong> DistMesh truss solver → <strong>3.</strong> FEM smoothing. Element color tracks quality (red = poor → green = equilateral).</em>
 </p>
 
-> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is archived in-repo at [`archive/matlab/`](archive/matlab/) for provenance. Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
+> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is kept in-repo at [`src/matlab/`](src/matlab/) for provenance. Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
 
 ---
 
@@ -96,6 +96,12 @@ In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` cal
 ## Performance
 
 `triangulate(...)` runs the 13-stage ADMESH pipeline (faithful port of `01_ADMESH_Library`); the Numba-JIT solver replaces the original C MEX, so there is no compile step at install.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/figures/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
+  <br>
+  <em>Western North Atlantic (WNAT) benchmark mesh. The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
+</p>
 
 ```mermaid
 flowchart LR
