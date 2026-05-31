@@ -357,15 +357,45 @@ def main() -> None:
     inside = np.array([pg.contains(Point(c)) for c in cent])
     simplices = tri.simplices[inside]
 
-    # Initialized stage: jitter interior (scaled by local h) for a rough look.
-    init = final_relaxed.copy()
-    h_int = hfun(final_relaxed[:n_int])
-    init[:n_int] += RNG.normal(scale=0.30, size=(n_int, 2)) * h_int[:, None]
+    # Initialized stage: jitter interior for a rough look, but ensure no
+    # triangle in the (fixed) connectivity inverts (which would give q=0).
     ext = poly.exterior
-    for i in range(n_int):
-        if not pg.contains(Point(init[i])):
-            d = ext.interpolate(ext.project(Point(init[i])))
-            init[i] = (d.x, d.y)
+    h_int = hfun(final_relaxed[:n_int])
+    init = final_relaxed.copy()
+    raw_jitter = RNG.normal(scale=0.16, size=(n_int, 2)) * h_int[:, None]
+    # Build per-node neighbour list from the fixed connectivity.
+    nbr_map: dict[int, list[int]] = defaultdict(list)
+    for s in simplices:
+        for a in s:
+            for b in s:
+                if a != b:
+                    nbr_map[a].append(b)
+    # Apply jitter in random order; after each node move check all its
+    # triangles stay CCW (positive signed area).  If any inverts, scale
+    # the displacement back until they're all positive.
+    order = RNG.permutation(n_int)
+    for i in order:
+        p_orig = init[i].copy()
+        for alpha in (1.0, 0.7, 0.4, 0.15, 0.0):
+            cand = p_orig + alpha * raw_jitter[i]
+            if not pg.contains(Point(cand)):
+                continue
+            # Check all triangles containing node i.
+            ok = True
+            for s in simplices:
+                if i not in s:
+                    continue
+                pts_tri = init[list(s)]
+                idx_in_tri = list(s).index(i)
+                pts_tri[idx_in_tri] = cand
+                a_, b_, c_ = pts_tri
+                area = (b_[0]-a_[0])*(c_[1]-a_[1]) - (c_[0]-a_[0])*(b_[1]-a_[1])
+                if area <= 0:
+                    ok = False
+                    break
+            if ok:
+                init[i] = cand
+                break
 
     relax_seq = [init]
     for k, fr in enumerate(relax_frames):

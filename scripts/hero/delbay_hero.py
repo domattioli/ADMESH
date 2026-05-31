@@ -36,10 +36,10 @@ from manim import (
 HERE = pathlib.Path(__file__).resolve().parent
 DATA = HERE / "delbay_stages.npz"
 
-# ADMESH palette: poor (red) -> mid (amber) -> good (teal/green).
-C_POOR = ManimColor("#d62728")
-C_MID = ManimColor("#ffb000")
-C_GOOD = ManimColor("#17b890")
+# ADMESH palette: poor (magenta) -> mid (purple) -> good (cyan).
+C_POOR = ManimColor("#e040fb")
+C_MID = ManimColor("#7c4dff")
+C_GOOD = ManimColor("#00e5ff")
 C_COAST = ManimColor("#4aa3df")
 C_BG = ManimColor("#0e1117")
 
@@ -158,13 +158,15 @@ class DelawareBayHero(Scene):
         step_label.move_to([cap_x, 1.0, 0])
         step_label.set_z_index(10)
 
-        # Live hmin/hmax readout (actual edge lengths in current frame).
+        DEG2KM = 111.0  # 1° ≈ 111 km at Delaware Bay (~39°N)
+
+        # Live hmin/hmax readout (actual edge lengths converted to km).
         def hminmax_readout():
             t = fidx.get_value()
-            el = edge_lengths(frame_positions(t), simp)
+            el = edge_lengths(frame_positions(t), simp) * DEG2KM
             grp = VGroup(
-                Text(f"hmin = {el.min():.3f}°", color="#9aa7b2").scale(0.30),
-                Text(f"hmax = {el.max():.3f}°", color="#9aa7b2").scale(0.30),
+                Text(f"hmin = {el.min():.1f} km", color="#9aa7b2").scale(0.30),
+                Text(f"hmax = {el.max():.1f} km", color="#9aa7b2").scale(0.30),
                 Text(f"g = {g:.2f}  (|∇h| limit)", color="#9aa7b2").scale(0.30),
             ).arrange(DOWN, aligned_edge=LEFT, buff=0.16)
             grp.move_to([cap_x, -0.55, 0])
@@ -176,8 +178,8 @@ class DelawareBayHero(Scene):
             t = fidx.get_value()
             q = quality(frame_positions(t), simp)
             grp = VGroup(
-                Text(f"mean q = {q.mean():.2f}", color="#e6edf3").scale(0.38),
-                Text(f"min  q = {q.min():.2f}",  color="#e6edf3").scale(0.38),
+                Text(f"mean q = {q.mean():.2f}",          color="#e6edf3").scale(0.38),
+                Text(f"p5   q = {np.percentile(q,5):.2f}", color="#e6edf3").scale(0.38),
             ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
             grp.move_to([cap_x, 0.42, 0])
             return grp
@@ -195,7 +197,7 @@ class DelawareBayHero(Scene):
             legend.add(seg)
         leg_lbl = VGroup(
             Text("poor", color=C_POOR).scale(0.26).next_to(legend, LEFT, buff=0.12),
-            Text("equilateral", color=C_GOOD).scale(0.26).next_to(legend, RIGHT, buff=0.12),
+            Text("equilateral", color=C_GOOD).scale(0.26).next_to(legend, RIGHT, buff=0.12),  # noqa
         )
         legend_grp = VGroup(legend, leg_lbl).set_z_index(10)
 
