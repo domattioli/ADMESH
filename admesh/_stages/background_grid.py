@@ -3,7 +3,7 @@
 MATLAB source: github.com/domattioli/QuADMesh-MATLAB @ 19b2eb9,
 path 01_ADMESH_Library/02_Create_Background_Grid/CreateBackgroundGrid.m.
 An unmaintained copy of the MATLAB original is archived in-repo at
-``archive/matlab/admesh_library/02_Create_Background_Grid/``.
+``src/matlab/admesh_library/02_Create_Background_Grid/``.
 
 Stage 02 of the routine: synthesize the regular Cartesian background grid
 that every downstream size-field stage (curvature, medial axis, bathymetry,
