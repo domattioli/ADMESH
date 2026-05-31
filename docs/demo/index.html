@@ -109,6 +109,10 @@
       <button id="close-poly" style="background:#66bb6a;color:#0d1b24;border-color:#66bb6a;font-weight:600">✓ Close polygon</button>
       <button id="clear-draw">✗ Clear</button>
     </div>
+    <div style="align-self:flex-end">
+      <button id="btn-compute" style="background:#5c6bc0;border-color:#5c6bc0;color:#fff;font-weight:600">⚡ Compute in browser</button>
+      <span id="compute-status" style="display:block;font-size:.72rem;color:var(--muted);text-align:center;margin-top:.15rem">phase 2 — click to load</span>
+    </div>
   </div>
 
   <div class="grid">
@@ -443,6 +447,276 @@ meshCv.addEventListener("dblclick", evt => {
   closePoly();
 });
 
+// ── phase 2: pyodide in-browser compute ────────────────────────────────────────────
+const PYTHON_CODE = `
+import numpy as np
+from scipy.spatial import Delaunay
+import json as _json
+
+def _initial_distribution(bbox, h0):
+    xmin, ymin, xmax, ymax = bbox
+    xs = np.arange(xmin, xmax + 0.5*h0, h0)
+    ys = np.arange(ymin, ymax + 0.5*h0, h0 * np.sqrt(3) / 2)
+    X, Y = np.meshgrid(xs, ys, indexing='xy')
+    X[1::2] += h0 / 2
+    return np.column_stack([X.ravel(), Y.ravel()])
+
+def _rejection_method(p, fh, rng):
+    r = fh(p); r0 = r.min()
+    return p[rng.random(len(p)) < (r0 / r) ** 2]
+
+def _unique_bars(t, n):
+    e = np.vstack([t[:, [0,1]], t[:, [0,2]], t[:, [1,2]]])
+    key = e[:, 0].astype(np.int64) * n + e[:, 1]
+    uk = np.unique(key)
+    return np.column_stack([uk // n, uk % n]).astype(e.dtype)
+
+def _mesh_quality(p, t):
+    if not len(t): return 0.0, 0.0
+    a = np.hypot(p[t[:,1],0]-p[t[:,0],0], p[t[:,1],1]-p[t[:,0],1])
+    b = np.hypot(p[t[:,2],0]-p[t[:,1],0], p[t[:,2],1]-p[t[:,1],1])
+    c = np.hypot(p[t[:,0],0]-p[t[:,2],0], p[t[:,0],1]-p[t[:,2],1])
+    denom = a * b * c
+    q = np.where(denom > 0, ((b+c-a)*(c+a-b)*(a+b-c)) / denom, 0.0)
+    q = np.clip(q, 0, 1)
+    return float(q.min()), float(q.mean())
+
+def _distmesh2d(fd, fh, h0, bbox, pfix=None, niter=300,
+                dptol=2e-3, ttol=0.27, Fscale=1.2, deltat=0.2,
+                geps_factor=1e-3, seed=42, on_iter=None):
+    rng = np.random.default_rng(seed)
+    geps = geps_factor * h0
+    deps = np.sqrt(np.finfo(float).eps) * h0
+    p = _initial_distribution(bbox, h0)
+    p = p[fd(p) < geps]
+    p = _rejection_method(p, fh, rng)
+    nfix = 0
+    if pfix is not None:
+        pfix = np.asarray(pfix, float).reshape(-1, 2)
+        if len(pfix):
+            if len(p):
+                dist = np.min(np.linalg.norm(p[:,None]-pfix[None], axis=2), axis=1)
+                p = p[dist > geps]
+            p = np.vstack([pfix, p])
+            nfix = len(pfix)
+    pold = np.full_like(p, np.inf)
+    t = np.empty((0, 3), dtype=np.int64)
+    bars = np.empty((0, 2), dtype=np.int64)
+    for k in range(niter):
+        moved = np.sqrt(((p - pold)**2).sum(axis=1)) / h0
+        if moved.max() > ttol:
+            pold = p.copy()
+            t_all = Delaunay(p).simplices
+            centroids = p[t_all].mean(axis=1)
+            keep = fd(centroids) < -geps
+            t = np.sort(t_all[keep], axis=1)
+            bars = _unique_bars(t, len(p))
+            if on_iter: on_iter(k, p, t)
+        if bars.size == 0: break
+        barvec = p[bars[:,0]] - p[bars[:,1]]
+        L = np.sqrt((barvec**2).sum(axis=1))
+        hbars = fh((p[bars[:,0]] + p[bars[:,1]]) / 2)
+        L0 = hbars * Fscale * np.sqrt((L**2).sum() / (hbars**2).sum())
+        F = np.maximum(L0 - L, 0)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            Fvec = np.where(L[:,None] > 0, (F / L)[:,None] * barvec, 0.0)
+        Ftot = np.zeros_like(p)
+        np.add.at(Ftot, bars[:,0], Fvec)
+        np.add.at(Ftot, bars[:,1], -Fvec)
+        if nfix > 0: Ftot[:nfix] = 0
+        p_new = p + deltat * Ftot
+        d = fd(p_new); outside = d > 0
+        if outside.any():
+            po = p_new[outside]; d_o = d[outside]
+            dx = (fd(po + np.array([deps, 0.0])) - d_o) / deps
+            dy = (fd(po + np.array([0.0, deps])) - d_o) / deps
+            denom2 = dx*dx + dy*dy; safe = denom2 > 0
+            shift = np.zeros_like(po)
+            shift[safe, 0] = d_o[safe] * dx[safe] / denom2[safe]
+            shift[safe, 1] = d_o[safe] * dy[safe] / denom2[safe]
+            p_new[outside] = po - shift
+        if nfix < len(p_new):
+            dp_i = np.linalg.norm(p_new[nfix:] - p[nfix:], axis=1)
+            if dp_i.size and dp_i.max() / h0 < dptol:
+                p = p_new; break
+        p = p_new
+    if len(p) >= 3:
+        t_all = Delaunay(p).simplices
+        centroids = p[t_all].mean(axis=1)
+        t = np.sort(t_all[fd(centroids) < -geps], axis=1)
+    return p, t
+
+def _sdf_l_shape(p):
+    x, y = p[:,0], p[:,1]
+    d_big = np.maximum(np.maximum(-1-x, x-1), np.maximum(-1-y, y-1))
+    d_cut = np.maximum(np.maximum(-x, x-1), np.maximum(-y, y-1))
+    return np.maximum(d_big, -d_cut)
+
+def _sdf_annulus(p):
+    r = np.sqrt(p[:,0]**2 + p[:,1]**2)
+    return np.maximum(r - 1.0, 0.4 - r)
+
+def _sdf_polygon(verts):
+    V = np.array(verts, float); n = len(V)
+    def sdf(p):
+        px, py = p[:,0], p[:,1]; N = len(p)
+        d = np.full(N, np.inf)
+        for i in range(n):
+            ax, ay = V[i]; bx, by = V[(i+1)%n]
+            edx, edy = bx-ax, by-ay; l2 = edx*edx + edy*edy
+            if l2 < 1e-20:
+                d = np.minimum(d, np.hypot(px-ax, py-ay)); continue
+            tc = np.clip(((px-ax)*edx + (py-ay)*edy) / l2, 0, 1)
+            d = np.minimum(d, np.hypot(px-(ax+tc*edx), py-(ay+tc*edy)))
+        inside = np.zeros(N, dtype=bool)
+        for i in range(n):
+            ax, ay = float(V[i,0]), float(V[i,1])
+            bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])
+            m = (ay > py) != (by > py)
+            if m.any() and abs(by-ay) > 1e-12:
+                x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)
+                inside[m] ^= px[m] < x_int
+        return np.where(inside, -d, d)
+    return sdf
+
+_h0v = float(_h0); _hmaxv = float(_hmax); _gv = float(_g)
+_pfix = None; _boundary = []
+
+if _domain_key == 'l_shape':
+    _fd = _sdf_l_shape; _bbox = (-1,-1,1,1)
+    _pfix = [[-1,-1],[1,-1],[1,0],[0,0],[0,1],[-1,1]]
+    _boundary = [_pfix]
+elif _domain_key == 'annulus':
+    _fd = _sdf_annulus; _bbox = (-1,-1,1,1)
+    _th = np.linspace(0, 2*np.pi, 64, endpoint=False)
+    _boundary = [
+        np.column_stack([np.cos(_th), np.sin(_th)]).round(3).tolist(),
+        np.column_stack([0.4*np.cos(_th), 0.4*np.sin(_th)]).round(3).tolist()
+    ]
+elif _domain_key == 'custom':
+    _verts_list = _json.loads(_verts_json)
+    _fd = _sdf_polygon(_verts_list); _pts = np.array(_verts_list)
+    _margin = max(_h0v * 2, 0.05)
+    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),
+             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))
+    _boundary = [_verts_list]
+else:
+    raise ValueError(f'Domain {_domain_key!r} not supported in Phase 2')
+
+def _fh(p):
+    r = np.sqrt(p[:,0]**2 + p[:,1]**2)
+    return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
+
+_MAX_FRAMES = 60; _frames = []
+
+def _on_iter(k, p, t):
+    qmin, qmean = _mesh_quality(p, t)
+    _frames.append({"iter": int(k), "p": np.round(p, 3).tolist(),
+                    "t": t.tolist(), "q_min": round(qmin, 4), "q_mean": round(qmean, 4)})
+
+_p, _t = _distmesh2d(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox, pfix=_pfix, seed=42, on_iter=_on_iter)
+_qmin_f, _qmean_f = _mesh_quality(_p, _t)
+_frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
+                "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
+
+if len(_frames) > _MAX_FRAMES:
+    _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
+    _frames = [_frames[i] for i in sorted(set(_idx.tolist()))]
+
+_prev_t = None
+for _fr in _frames:
+    if _fr['t'] == _prev_t: _fr['t'] = None
+    else: _prev_t = _fr['t']
+
+_labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
+_result_json = _json.dumps({
+    "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
+    "bbox": list(_bbox),
+    "boundary": _boundary,
+    "frames": _frames,
+    "n_nodes": int(len(_p)),
+    "n_elements": int(len(_t)),
+    "q_min": round(_qmin_f, 4),
+    "q_mean": round(_qmean_f, 4),
+})
+`;
+
+let pyodideInstance = null;
+let pyodideLoading = false;
+
+function setComputeStatus(msg) {
+  document.getElementById("compute-status").textContent = msg;
+}
+
+async function ensurePyodide() {
+  if (pyodideInstance) return pyodideInstance;
+  if (pyodideLoading) return null;
+  pyodideLoading = true;
+  setComputeStatus("Loading Pyodide (~8 MB)…");
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.js";
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  setComputeStatus("Initializing Pyodide…");
+  pyodideInstance = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/" });
+  setComputeStatus("Loading numpy + scipy…");
+  await pyodideInstance.loadPackage(["numpy", "scipy"]);
+  setComputeStatus("Pyodide ready ✓");
+  pyodideLoading = false;
+  return pyodideInstance;
+}
+
+async function runCompute() {
+  const btn = document.getElementById("btn-compute");
+  btn.disabled = true;
+  try {
+    const py = await ensurePyodide();
+    if (!py) { setComputeStatus("Still loading — try again"); btn.disabled = false; return; }
+
+    const domainKey = sel.value;
+    if (domainKey === "seamount") {
+      setComputeStatus("Seamount Phase 2 coming soon (needs polygon SDF)");
+      btn.disabled = false; return;
+    }
+    if (domainKey === "custom" && !drawClosed) {
+      setComputeStatus("Draw and close a polygon first");
+      btn.disabled = false; return;
+    }
+
+    const h0 = parseFloat(document.getElementById("inp-hmin").value);
+    const hmax = parseFloat(document.getElementById("inp-hmax").value);
+    const g = parseFloat(document.getElementById("inp-g").value);
+
+    py.globals.set("_domain_key", domainKey);
+    py.globals.set("_h0", h0);
+    py.globals.set("_hmax", hmax);
+    py.globals.set("_g", g);
+    if (domainKey === "custom") {
+      py.globals.set("_verts_json", JSON.stringify(drawVerts));
+    }
+
+    setComputeStatus("Computing…");
+    py.runPython(PYTHON_CODE);
+    const resultStr = py.globals.get("_result_json");
+    const data = JSON.parse(resultStr);
+
+    // exit draw mode and plug computed result into existing player
+    if (drawMode) exitDrawMode();
+    current = data;
+    document.getElementById("sTitle").textContent = data.title;
+    scrub.max = data.frames.length - 1;
+    frameIdx = 0;
+    drawFrame(0);
+    setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
+  } catch (err) {
+    setComputeStatus("Error: " + (err.message || String(err)).split("\n").slice(-3).join(" | "));
+    console.error(err);
+  }
+  btn.disabled = false;
+}
+
 async function init() {
   const res = await fetch(DATA_BASE + "manifest.json");
   const manifest = await res.json();
@@ -471,6 +745,7 @@ async function init() {
     document.getElementById("sNodes").textContent = "0 vertices";
     renderDraw();
   });
+  document.getElementById("btn-compute").addEventListener("click", runCompute);
 }
 
 init().catch(err => {
