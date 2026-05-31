@@ -112,6 +112,7 @@
     </div>
     <div style="align-self:flex-end">
       <button id="btn-compute" style="background:#5c6bc0;border-color:#5c6bc0;color:#fff;font-weight:600">⚡ Compute in browser</button>
+      <button id="btn-stop" style="background:#ef5350;border-color:#ef5350;color:#fff;font-weight:600;display:none">⏹ Stop</button>
       <span id="compute-status" style="display:block;font-size:.72rem;color:var(--muted);text-align:center;margin-top:.15rem">phase 2 — click to load</span>
     </div>
   </div>
@@ -176,6 +177,7 @@ let playing = false;
 let lastTs = 0;
 let zoomScale = 1.0, panX = 0, panY = 0;
 let isPanning = false, panStartX = 0, panStartY = 0;
+let isComputing = false;
 
 // --- triangle quality (radius-ratio form, matches admesh mesh_quality) ----
 function triQuality(ax, ay, bx, by, cx, cy) {
@@ -265,7 +267,7 @@ function drawFrame(i) {
     mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
     mctx.beginPath(); mctx.moveTo(barX + scalePixels, barY - 3); mctx.lineTo(barX + scalePixels, barY + 3); mctx.stroke();
     mctx.fillStyle = "rgba(236,239,241,0.6)"; mctx.font = "9px monospace"; mctx.textAlign = "center";
-    mctx.fillText("1 unit", barX + scalePixels / 2, barY + 10);
+    mctx.fillText(\"1 unit\", barX + scalePixels / 2, barY + 10);
   }
   mctx.restore();
   // stats
@@ -469,7 +471,7 @@ meshCv.addEventListener("dblclick", evt => {
   closePoly();
 });
 
-// ── canvas zoom and pan ──────────────────────────────────────
+// ── canvas zoom and pan ──────────────────────────────────────────────────────
 meshCv.addEventListener("wheel", evt => {
   if (!current || drawMode) return;
   evt.preventDefault();
@@ -565,6 +567,7 @@ async def _distmesh2d_live(fd, fh, h0, bbox, pfix=None, niter=300,
     t = np.empty((0, 3), dtype=np.int64)
     bars = np.empty((0, 2), dtype=np.int64)
     for k in range(niter):
+        if _stop_compute: break
         moved = np.sqrt(((p - pold)**2).sum(axis=1)) / h0
         if moved.max() > ttol:
             pold = p.copy()
@@ -577,6 +580,7 @@ async def _distmesh2d_live(fd, fh, h0, bbox, pfix=None, niter=300,
                 await on_iter(k, p, t)
                 await asyncio.sleep(0)
         if bars.size == 0: break
+        if _stop_compute: break
         barvec = p[bars[:,0]] - p[bars[:,1]]
         L = np.sqrt((barvec**2).sum(axis=1))
         hbars = fh((p[bars[:,0]] + p[bars[:,1]]) / 2)
@@ -715,25 +719,26 @@ def _fh(p):
 
 _MAX_FRAMES = 60
 _frames = []
-_result_json = ""
+_result_json = \"\"
+_stop_compute = False
 
 async def _main():
     import asyncio, js
-    global _frames, _result_json
+    global _frames, _result_json, _stop_compute
     _frames = []
 
     async def _on_iter(k, p, t):
         qmin, qmean = _mesh_quality(p, t)
-        frame = {"iter": int(k), "p": np.round(p, 3).tolist(), "t": t.tolist(),
-                 "q_min": round(qmin, 4), "q_mean": round(qmean, 4)}
+        frame = {\"iter\": int(k), \"p\": np.round(p, 3).tolist(), \"t\": t.tolist(),
+                 \"q_min\": round(qmin, 4), \"q_mean\": round(qmean, 4)}
         _frames.append(frame)
         js.liveFrameCallback(_json.dumps(frame))
 
     _p, _t = await _distmesh2d_live(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox,
                                      pfix=_pfix, seed=42, on_iter=_on_iter)
     _qmin_f, _qmean_f = _mesh_quality(_p, _t)
-    _frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
-                    "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
+    _frames.append({\"iter\": -1, \"p\": np.round(_p, 3).tolist(), \"t\": _t.tolist(),
+                    \"q_min\": round(_qmin_f, 4), \"q_mean\": round(_qmean_f, 4)})
 
     if len(_frames) > _MAX_FRAMES:
         _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
@@ -744,16 +749,16 @@ async def _main():
         if _fr['t'] == _prev_t: _fr['t'] = None
         else: _prev_t = _fr['t']
 
-    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'seamount': 'Seamount', 'custom': 'Custom polygon'}
+    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
     _result_json = _json.dumps({
-        "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
-        "bbox": list(_bbox),
-        "boundary": _boundary,
-        "frames": _frames,
-        "n_nodes": int(len(_p)),
-        "n_elements": int(len(_t)),
-        "q_min": round(_qmin_f, 4),
-        "q_mean": round(_qmean_f, 4),
+        \"title\": f\"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}\",
+        \"bbox\": list(_bbox),
+        \"boundary\": _boundary,
+        \"frames\": _frames,
+        \"n_nodes\": int(len(_p)),
+        \"n_elements\": int(len(_t)),
+        \"q_min\": round(_qmin_f, 4),
+        \"q_mean\": round(_qmean_f, 4),
     })
 
 await _main()
@@ -788,15 +793,19 @@ async function ensurePyodide() {
 
 async function runCompute() {
   const btn = document.getElementById("btn-compute");
+  const stopBtn = document.getElementById("btn-stop");
   btn.disabled = true;
+  isComputing = true;
+  stopBtn.style.display = "inline-block";
+
   try {
     const py = await ensurePyodide();
-    if (!py) { setComputeStatus("Still loading — try again"); btn.disabled = false; return; }
+    if (!py) { setComputeStatus("Still loading — try again"); btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return; }
 
     const domainKey = sel.value;
     if (domainKey === "custom" && !drawClosed) {
       setComputeStatus("Draw and close a polygon first");
-      btn.disabled = false; return;
+      btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return;
     }
 
     const h0 = parseFloat(document.getElementById("inp-hmin").value);
@@ -821,7 +830,7 @@ async function runCompute() {
         liveBoundary = seamountData.boundary;
       } catch (e) {
         setComputeStatus("Failed to load seamount data");
-        btn.disabled = false; return;
+        btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return;
       }
     } else {
       const xs = drawVerts.map(v => v[0]), ys = drawVerts.map(v => v[1]);
@@ -851,6 +860,7 @@ async function runCompute() {
     py.globals.set("_h0", h0);
     py.globals.set("_hmax", hmax);
     py.globals.set("_g", g);
+    py.globals.set("_stop_compute", false);
     if (domainKey === "custom") {
       py.globals.set("_verts_json", JSON.stringify(drawVerts));
     }
@@ -869,12 +879,19 @@ async function runCompute() {
     scrub.max = data.frames.length - 1;
     frameIdx = data.frames.length - 1;
     drawFrame(frameIdx);
-    setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
+    const isStopped = py.globals.get("_stop_compute");
+    if (isStopped) {
+      setComputeStatus(`Stopped — ${current.frames.length > 0 ? current.frames.length + ' frames' : 'no frames'}`);
+    } else {
+      setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
+    }
   } catch (err) {
     setComputeStatus("Error: " + (err.message || String(err)).split("\n").slice(-3).join(" | "));
     console.error(err);
   }
   btn.disabled = false;
+  isComputing = false;
+  stopBtn.style.display = "none";
 }
 
 async function init() {
@@ -906,6 +923,12 @@ async function init() {
     renderDraw();
   });
   document.getElementById("btn-compute").addEventListener("click", runCompute);
+  document.getElementById("btn-stop").addEventListener("click", () => {
+    if (pyodideInstance) {
+      pyodideInstance.globals.set("_stop_compute", true);
+      setComputeStatus("Stopping…");
+    }
+  });
 }
 
 init().catch(err => {
