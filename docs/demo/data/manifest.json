@@ -1,0 +1,29 @@
+[
+  {
+    "key": "l_shape",
+    "title": "L-shape — refined at re-entrant corner",
+    "n_frames": 5,
+    "n_nodes": 388,
+    "n_elements": 682,
+    "q_min": 0.4641,
+    "q_mean": 0.9811
+  },
+  {
+    "key": "seamount",
+    "title": "Seamount — bathymetry-graded coastal mesh",
+    "n_frames": 5,
+    "n_nodes": 372,
+    "n_elements": 706,
+    "q_min": 0.0,
+    "q_mean": 0.9681
+  },
+  {
+    "key": "annulus",
+    "title": "Annulus — size field refined toward inner ring",
+    "n_frames": 5,
+    "n_nodes": 316,
+    "n_elements": 582,
+    "q_min": 0.0,
+    "q_mean": 0.9443
+  }
+]
