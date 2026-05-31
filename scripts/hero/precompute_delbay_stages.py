@@ -356,15 +356,9 @@ def main() -> None:
     pg = prep(poly)
     inside = np.array([pg.contains(Point(c)) for c in cent])
     simplices = tri.simplices[inside]
-    # Drop sliver triangles (boundary artifacts): area < 1% of hmin^2.
-    vp = final_relaxed[simplices]
-    areas = 0.5 * np.abs(
-        (vp[:, 1, 0] - vp[:, 0, 0]) * (vp[:, 2, 1] - vp[:, 0, 1])
-        - (vp[:, 2, 0] - vp[:, 0, 0]) * (vp[:, 1, 1] - vp[:, 0, 1])
-    )
-    simplices = simplices[areas > HMIN ** 2 * 0.01]
-    print(f"  kept {len(simplices)} triangles after sliver filter "
-          f"(dropped {inside.sum() - len(simplices)})")
+    # Sliver filter applied after all frames are built (see below).
+    n_inside = inside.sum()
+    simplices = tri.simplices[inside]
 
     # Initialized stage: jitter interior for a rough look, but ensure no
     # triangle in the (fixed) connectivity inverts (which would give q=0).
@@ -399,7 +393,7 @@ def main() -> None:
                 pts_tri[idx_in_tri] = cand
                 a_, b_, c_ = pts_tri
                 area = (b_[0]-a_[0])*(c_[1]-a_[1]) - (c_[0]-a_[0])*(b_[1]-a_[1])
-                if area <= 0:
+                if area < HMIN ** 2 * 0.02:   # reject near-zero as well as negative
                     ok = False
                     break
             if ok:
@@ -413,12 +407,27 @@ def main() -> None:
 
     smooth_frames = laplacian_smooth(final_relaxed, simplices, n_int, SMOOTH_ITERS)
 
-    frames = np.stack(relax_seq + smooth_frames)
+    frames = np.stack(relax_seq + smooth_frames)   # (T, N, 2)
+
+    # Keep only triangles whose area exceeds threshold in EVERY frame,
+    # so min q > 0 holds throughout the animation.
+    thresh = HMIN ** 2 * 0.02
+    vp = frames[:, simplices]                       # (T, M, 3, 2)
+    areas = 0.5 * np.abs(
+        (vp[:, :, 1, 0] - vp[:, :, 0, 0]) * (vp[:, :, 2, 1] - vp[:, :, 0, 1])
+        - (vp[:, :, 2, 0] - vp[:, :, 0, 0]) * (vp[:, :, 1, 1] - vp[:, :, 0, 1])
+    )                                               # (T, M)
+    good = (areas > thresh).all(axis=0)             # (M,)
+    n_before = len(simplices)
+    simplices = simplices[good]
+    print(f"  kept {len(simplices)} triangles after all-frame sliver filter "
+          f"(dropped {n_before - len(simplices)})")
+
     q_init = tri_quality(frames[0], simplices)
     q_relax = tri_quality(final_relaxed, simplices)
     q_final = tri_quality(frames[-1], simplices)
-    print(f"mean quality: init={q_init.mean():.3f}  "
-          f"truss={q_relax.mean():.3f}  fem={q_final.mean():.3f}")
+    print(f"mean quality: init={q_init.mean():.3f}  min={q_init.min():.3f}  "
+          f"truss={q_relax.mean():.3f}  fem={q_final.mean():.3f}  min={q_final.min():.3f}")
 
     np.savez_compressed(
         OUT,
