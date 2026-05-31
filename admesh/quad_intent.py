@@ -77,6 +77,7 @@ class QuadIntentConfig:
     fidelity_min_fraction: float = 0.9
     balance_every: int = 25
     run_quad_prep_finish: bool = True
+    final_valence_pass: bool = False  # empirically net-negative on OE/IE (see #88); opt-in only
 
 
 def _initial_distribution(bbox: tuple[float, float, float, float], h0: float) -> Points:
@@ -420,6 +421,28 @@ def distmesh2d_quad(
 
     # Fixmesh (dedupe, reorient)
     p_out, t_out = fixmesh(p, t)[:2]
+
+    # Final-pass Lawson valence flips on the FROZEN connectivity (after the
+    # last Delaunay). In-loop flips are erased by the next retriangulation;
+    # this pass runs once at the end so the flips survive into the output.
+    if config.final_valence_pass and len(t_out) > 0:
+        try:
+            from admesh.api import _derive_boundary_segments
+            fp_mesh = Mesh(
+                nodes=p_out,
+                elements=t_out,
+                boundaries=_derive_boundary_segments(t_out, p_out),
+                bathymetry=None,
+                quality=None,
+                title="",
+            )
+            fp_cfg = BalanceConfig(
+                ideal_valence=config.ideal_valence,
+                max_iterations=20,
+            )
+            t_out = balance_valence_triangles(fp_mesh, fp_cfg).mesh.elements
+        except Exception:
+            pass
 
     # Post-processing: quad_prep finish
     if config.run_quad_prep_finish:
