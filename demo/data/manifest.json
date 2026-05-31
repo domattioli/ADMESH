@@ -1,21 +1,21 @@
 [
   {
-    "key": "circle",
-    "title": "Unit disk \u2014 uniform size field",
+    "key": "l_shape",
+    "title": "L-shape \u2014 refined at re-entrant corner",
     "n_frames": 60,
-    "n_nodes": 251,
-    "n_elements": 448,
-    "q_min": 0.7685,
-    "q_mean": 0.9785
+    "n_nodes": 129,
+    "n_elements": 209,
+    "q_min": 0.3638,
+    "q_mean": 0.9518
   },
   {
-    "key": "rectangle",
-    "title": "Rectangle \u2014 uniform size field",
+    "key": "seamount",
+    "title": "Seamount \u2014 bathymetry-graded coastal mesh",
     "n_frames": 60,
-    "n_nodes": 287,
-    "n_elements": 507,
-    "q_min": 0.8061,
-    "q_mean": 0.9857
+    "n_nodes": 265,
+    "n_elements": 470,
+    "q_min": 0.7011,
+    "q_mean": 0.9699
   },
   {
     "key": "annulus",
