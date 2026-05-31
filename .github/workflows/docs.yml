@@ -48,6 +48,6 @@ jobs:
         # links; tracked separately).
         run: mkdocs build
 
-      - name: Deploy to gh-pages (daily-issue-fixing or main only)
-        if: github.ref == 'refs/heads/daily-issue-fixing' || github.ref == 'refs/heads/main'
+      - name: Deploy to gh-pages (daily-issue-fixing, daily-maintenance, or main)
+        if: github.ref == 'refs/heads/daily-issue-fixing' || github.ref == 'refs/heads/daily-maintenance' || github.ref == 'refs/heads/main'
         run: mkdocs gh-deploy --force
