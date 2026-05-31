@@ -259,7 +259,7 @@ function drawFrame(i) {
   const [sx1, sy1] = T(current.bbox[0] + 1, current.bbox[1]);
   const scalePixels = Math.hypot(sx1 - sx0, sy1 - sy0);
   if (scalePixels > 20) {
-    const barX = w - 28, barY = h - 16;
+    const barX = Math.max(8, w - 8 - scalePixels), barY = h - 16;
     mctx.strokeStyle = "rgba(236,239,241,0.7)"; mctx.lineWidth = 1;
     mctx.beginPath(); mctx.moveTo(barX, barY); mctx.lineTo(barX + scalePixels, barY); mctx.stroke();
     mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
@@ -474,6 +474,10 @@ meshCv.addEventListener("wheel", evt => {
   if (!current || drawMode) return;
   evt.preventDefault();
   const factor = evt.deltaY > 0 ? 0.9 : 1.1;
+  const rect = meshCv.getBoundingClientRect();
+  const cx = evt.clientX - rect.left, cy = evt.clientY - rect.top;
+  panX = panX * factor + cx * (1 - factor);
+  panY = panY * factor + cy * (1 - factor);
   zoomScale *= factor;
   zoomScale = Math.max(0.5, Math.min(5, zoomScale));
   drawFrame(frameIdx);
@@ -607,18 +611,21 @@ async def _distmesh2d_live(fd, fh, h0, bbox, pfix=None, niter=300,
     return p, t
 
 def _sdf_l_shape(p):
+    p = np.atleast_2d(p)
     x, y = p[:,0], p[:,1]
     d_big = np.maximum(np.maximum(-1-x, x-1), np.maximum(-1-y, y-1))
     d_cut = np.maximum(np.maximum(-x, x-1), np.maximum(-y, y-1))
     return np.maximum(d_big, -d_cut)
 
 def _sdf_annulus(p):
+    p = np.atleast_2d(p)
     r = np.sqrt(p[:,0]**2 + p[:,1]**2)
     return np.maximum(r - 1.0, 0.4 - r)
 
 def _sdf_polygon(verts):
     V = np.array(verts, float); n = len(V)
     def sdf(p):
+        p = np.atleast_2d(p)
         px, py = p[:,0], p[:,1]; N = len(p)
         d = np.full(N, np.inf)
         for i in range(n):
@@ -664,6 +671,7 @@ else:
     raise ValueError(f'Domain {_domain_key!r} not supported in Phase 2')
 
 def _fh(p):
+    p = np.atleast_2d(p)
     r = np.sqrt(p[:,0]**2 + p[:,1]**2)
     return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
 
