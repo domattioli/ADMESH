@@ -178,8 +178,8 @@ class DelawareBayHero(Scene):
             t = fidx.get_value()
             q = quality(frame_positions(t), simp)
             grp = VGroup(
-                Text(f"mean q = {q.mean():.2f}",          color="#e6edf3").scale(0.38),
-                Text(f"p5   q = {np.percentile(q,5):.2f}", color="#e6edf3").scale(0.38),
+                Text(f"mean q = {q.mean():.2f}", color="#e6edf3").scale(0.38),
+                Text(f"min  q = {q.min():.2f}",  color="#e6edf3").scale(0.38),
             ).arrange(DOWN, aligned_edge=LEFT, buff=0.14)
             grp.move_to([cap_x, 0.42, 0])
             return grp
