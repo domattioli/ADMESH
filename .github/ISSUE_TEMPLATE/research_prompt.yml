@@ -1,7 +1,7 @@
 name: Research / Exploration
 description: An open-ended research question or roadmap prompt (no implementation acceptance gate).
 title: "[research] "
-labels: ["type:research", "roadmap", "severity:low"]
+labels: ["type: research", "status: brainstorming", "priority: normal"]
 body:
   - type: markdown
     attributes:

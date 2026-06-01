@@ -1,6 +1,6 @@
 name: Bug Report
 description: Something isn't working correctly
-labels: ["type: bug", "status: ready"]
+labels: ["type: bug", "status: ready", "priority: normal"]
 body:
   - type: markdown
     attributes:
@@ -40,11 +40,11 @@ body:
     id: priority
     attributes:
       label: Priority
+      description: "Informational — maintainer applies the label. Default: `priority: normal`."
       options:
-        - "low"
-        - "medium"
-        - "high"
-        - "critical"
+        - "now"
+        - "normal"
+        - "someday"
       default: 1
     validations:
       required: true
