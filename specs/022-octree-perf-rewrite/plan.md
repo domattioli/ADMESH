@@ -27,6 +27,13 @@ tree-descent queries. Spec 021 proved correctness; this spec makes it production
 **Scale/Scope**: 10³–10⁶ leaves; ratios up to 10⁴  
 **Project Type**: Library internals — no public API surface change
 
+**Clarifications applied** (see spec.md §Clarifications):
+- CL-001: flat list of `OctreeLeaf` + integer index fields (NOT object pointers)
+- CL-002: single cardinal neighbor (W/E/S/N)
+- CL-003: keep `OctreeLeaf` class name
+- CL-004: `locate` clamps OOB to bbox, returns nearest leaf
+- Native (Rust/C++) rewrite OUT OF SCOPE — defer to spec 023 if Python misses SC-002
+
 ---
 
 ## Constitution Check

@@ -8,6 +8,13 @@
 **Input**: `admesh/_stages/octree_grid.py` is O(N²) adjacency, O(N³) balance, O(N) queries.
 Production targets feature-size ratios up to 10⁴ (millions of leaves); current code times out above ~3 000 leaves.
 
+## Clarifications (2026-06-01)
+
+- **CL-001 (storage)**: Flat list of `OctreeLeaf` dataclasses with **integer index** parent/child/neighbor fields (-1 sentinel = absent). Numpy-serializable, easier to profile than pointer references. Benchmark a small N variant if needed; if Python rewrite misses SC-002 a follow-on spec (023) will explore Rust/C++ native rewrite — explicitly OUT OF SCOPE for spec 022.
+- **CL-002 (neighbor convention)**: One single neighbor per cardinal direction (W, E, S, N). 2:1 balance guarantees each neighbor is at most one level coarser; option simplifies balance queue logic.
+- **CL-003 (back-compat)**: Keep class name `OctreeLeaf`; add new internal pointer fields. `octree_medial.py` and rendering scripts continue to work without renames or import changes.
+- **CL-004 (`locate` out-of-bounds)**: Clamp query point to `grid.bbox` and return the nearest boundary leaf. Never return `None`. distmesh drift safety.
+
 ---
 
 ## User Scenarios & Testing
