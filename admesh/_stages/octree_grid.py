@@ -165,6 +165,7 @@ def _find_neighbor_of_greater_depth(nodes: list[OctreeLeaf], idx: int, direction
     """Find neighbor in given direction using Samet (1990) algorithm.
 
     Direction: 0=W, 1=E, 2=S, 3=N.
+    Child quadrant indexing: SW=0, SE=1, NW=2, NE=3.
     Returns index of neighbor leaf at same or greater depth, or -1 if none.
     Complexity: O(log N) per call.
 
@@ -190,84 +191,95 @@ def _find_neighbor_of_greater_depth(nodes: list[OctreeLeaf], idx: int, direction
 
     parent = nodes[node._parent_idx]
 
-    # Determine which child of parent this node is, and whether it's "interior" or "exterior" in this direction
-    # Child quadrant indexing: SW=0, SE=1, NW=2, NE=3
-    child_idx = parent._children_idx.index(idx) if idx in parent._children_idx else -1
-    if child_idx == -1:
+    # Find which quadrant this node is in
+    my_quadrant = -1
+    for q, child_idx in enumerate(parent._children_idx):
+        if child_idx == idx:
+            my_quadrant = q
+            break
+
+    if my_quadrant == -1:
         return -1
 
-    # Determine which children face a given direction
-    # W: SW=0, NW=2  (western children)
-    # E: SE=1, NE=3  (eastern children)
-    # S: SW=0, SE=1  (southern children)
-    # N: NW=2, NE=3  (northern children)
-    facing_children = {
+    # Determine which quadrants are on the boundary of the parent in each direction
+    # W (direction=0): quadrants 0 (SW) and 2 (NW) face west (are on the western boundary)
+    # E (direction=1): quadrants 1 (SE) and 3 (NE) face east
+    # S (direction=2): quadrants 0 (SW) and 1 (SE) face south
+    # N (direction=3): quadrants 2 (NW) and 3 (NE) face north
+    boundary_quadrants = {
         0: [0, 2],  # W
         1: [1, 3],  # E
         2: [0, 1],  # S
         3: [2, 3],  # N
     }
 
-    if child_idx in facing_children[direction]:
-        # This child faces outward in this direction; look up the tree
+    if my_quadrant in boundary_quadrants[direction]:
+        # This node is on the boundary of the parent in this direction
+        # So we must look outside the parent subtree
         parent_neighbor_idx = _find_neighbor_of_greater_depth(nodes, node._parent_idx, direction)
-        if parent_neighbor_idx == -1 or _is_leaf(nodes[parent_neighbor_idx]):
+        if parent_neighbor_idx == -1:
+            return -1
+
+        parent_neighbor = nodes[parent_neighbor_idx]
+        if _is_leaf(parent_neighbor):
             return parent_neighbor_idx
-        else:
-            # Parent's neighbor exists and is internal; descend to find our counterpart
-            parent_neighbor = nodes[parent_neighbor_idx]
-            # Reflect child_idx across the direction to get the opposite child
-            opposite_children = {
-                0: [1, 3],   # W -> E children
-                1: [0, 2],   # E -> W children
-                2: [2, 3],   # S -> N children
-                3: [0, 1],   # N -> S children
-            }
-            # Find which child of the parent_neighbor we should descend to
-            my_quadrant = child_idx
-            target_quadrants = opposite_children[direction]
-            # If my_quadrant is SW (0) and direction is W, target is SE (1)
-            # If my_quadrant is NW (2) and direction is W, target is NE (3)
-            if my_quadrant == 0:  # SW
-                if direction == 0:  # W -> SE (1)
-                    target = 1
-                elif direction == 2:  # S -> NW (2)
-                    target = 2
-                else:
-                    return -1
-            elif my_quadrant == 1:  # SE
-                if direction == 1:  # E -> SW (0)
-                    target = 0
-                elif direction == 2:  # S -> NE (3)
-                    target = 3
-                else:
-                    return -1
-            elif my_quadrant == 2:  # NW
-                if direction == 0:  # W -> NE (3)
-                    target = 3
-                elif direction == 3:  # N -> SW (0)
-                    target = 0
-                else:
-                    return -1
-            elif my_quadrant == 3:  # NE
-                if direction == 1:  # E -> NW (2)
-                    target = 2
-                elif direction == 3:  # N -> SE (1)
-                    target = 1
-                else:
-                    return -1
-            return parent_neighbor._children_idx[target]
-    else:
-        # This child is interior in this direction; sibling is directly accessible
-        # Siblings: if direction is W/E, then sibling is across the x-axis; if S/N, across y-axis
-        sibling_idx_map = {
-            0: {0: 1, 1: 0, 2: 3, 3: 2},  # W: 0<->1, 2<->3
-            1: {0: 1, 1: 0, 2: 3, 3: 2},  # E: same as W
-            2: {0: 2, 1: 3, 2: 0, 3: 1},  # S: 0<->2, 1<->3
-            3: {0: 2, 1: 3, 2: 0, 3: 1},  # N: same as S
+
+        # Descend into parent_neighbor to find our counterpart
+        # The counterpart is the child in the opposite position
+        # Mapping: for each (quadrant, direction) -> opposite quadrant in neighbor
+        # W (0): SW (0)->SE (1), NW (2)->NE (3)
+        # E (1): SE (1)->SW (0), NE (3)->NW (2)
+        # S (2): SW (0)->NW (2), SE (1)->NE (3)
+        # N (3): NW (2)->SW (0), NE (3)->SE (1)
+        opposite_quad = {
+            (0, 0): 1,   # SW, W -> SE
+            (0, 1): 0,   # SE, E -> SW (shouldn't happen)
+            (0, 2): 2,   # SW, S -> NW
+            (0, 3): 1,   # SW, N -> SE (shouldn't happen)
+            (1, 0): 1,   # SE, W -> SE (shouldn't happen)
+            (1, 1): 0,   # SE, E -> SW
+            (1, 2): 3,   # SE, S -> NE
+            (1, 3): 0,   # SE, N -> SW (shouldn't happen)
+            (2, 0): 3,   # NW, W -> NE
+            (2, 1): 2,   # NW, E -> NW (shouldn't happen)
+            (2, 2): 0,   # NW, S -> SW (shouldn't happen)
+            (2, 3): 0,   # NW, N -> SW
+            (3, 0): 3,   # NE, W -> NE (shouldn't happen)
+            (3, 1): 2,   # NE, E -> NW
+            (3, 2): 1,   # NE, S -> SE (shouldn't happen)
+            (3, 3): 1,   # NE, N -> SE
         }
-        sibling_quadrant = sibling_idx_map[direction][child_idx]
-        return parent._children_idx[sibling_quadrant]
+        target_quadrant = opposite_quad[(my_quadrant, direction)]
+        child_idx = parent_neighbor._children_idx[target_quadrant]
+        return child_idx
+    else:
+        # This node is interior in this direction (not on the boundary)
+        # So the neighbor is a sibling within the parent
+        # Sibling mapping for each direction:
+        # W (0): 0<->1 (SW<->SE), 2<->3 (NW<->NE)
+        # E (1): 0<->1 (SW<->SE), 2<->3 (NW<->NE)  (same as W)
+        # S (2): 0<->2 (SW<->NW), 1<->3 (SE<->NE)
+        # N (3): 0<->2 (SW<->NW), 1<->3 (SE<->NE)  (same as S)
+        sibling_quad = {
+            (0, 0): 1,   # SW, W -> SE
+            (0, 1): 1,   # SW, E -> SE (interior to E? no)
+            (0, 2): 2,   # SW, S -> NW
+            (0, 3): 2,   # SW, N -> NW (interior to N? no)
+            (1, 0): 0,   # SE, W -> SW
+            (1, 1): 0,   # SE, E -> SW (shouldn't happen)
+            (1, 2): 3,   # SE, S -> NE
+            (1, 3): 3,   # SE, N -> NE (shouldn't happen)
+            (2, 0): 3,   # NW, W -> NE
+            (2, 1): 3,   # NW, E -> NE (interior? yes)
+            (2, 2): 0,   # NW, S -> SW
+            (2, 3): 0,   # NW, N -> SW (shouldn't happen)
+            (3, 0): 2,   # NE, W -> NW
+            (3, 1): 2,   # NE, E -> NW (shouldn't happen)
+            (3, 2): 1,   # NE, S -> SE
+            (3, 3): 1,   # NE, N -> SE (shouldn't happen)
+        }
+        target_quadrant = sibling_quad[(my_quadrant, direction)]
+        return parent._children_idx[target_quadrant]
 
 
 def _split_leaf(
