@@ -67,7 +67,7 @@ Apply to every repo. Per-repo profile may ADD, never weaken.
 - /act-autonomously. Never ask "should I…". Pick the most urgent executable issue and execute.
 - Never install a plugin or package whose name you cannot verify.
 - No silent algorithm swaps. Document any deviation explicitly.
-- Invoke `/caveman ultra` at bootstrap start (step 0 below). All chat prose uses ultra. Commit messages stay normal (`caveman-commit` skill handles those).
+- Invoke `/caveman:caveman ultra` at bootstrap start (step 0 below). All chat prose uses ultra. Commit messages stay normal (`caveman-commit` skill handles those).
 
 ### CI hard limits (DomI repo-compliance.yml propagates)
 - `skill-frontmatter`, `manifest-sync`, `shell-lint`, `hook-smoke`, `python-tests`, `commit-discipline`, `no-secrets` must pass before declaring done.
@@ -80,7 +80,10 @@ Run in order. Hard-stop on any failure with no auto-install.
 
 ```bash
 # 0. Token-efficiency mode (reduces output ~75%, full technical accuracy)
-/caveman ultra
+#    Explicit invocation required — do NOT abbreviate to "/caveman ultra":
+/caveman:caveman ultra
+#    If not in default skill list: read /workspace/DomI/plugins/caveman/skills/caveman/SKILL.md
+#    and emulate inline (drop articles/filler; fragments OK; code exact).
 
 # 1. Workdir
 cd /workspace/{{repo-slug}} 2>/dev/null || git clone https://github.com/domattioli/{{repo-slug}}.git /workspace/{{repo-slug}}
@@ -137,6 +140,35 @@ echo "bootstrap OK | repo={{repo}} | slug={{repo-slug}} | branch=daily-maintenan
 
 `{{repo-slug}}` = canonical mixed-case slug from profile table.
 
+### Skills manifest (known-good; no discovery needed)
+
+All skills live at `/workspace/DomI/skills/<name>/SKILL.md`. Invoke via slash command or read SKILL.md and run inline. Do NOT search/discover — use this table directly.
+
+| Skill | Slash | Purpose |
+|---|---|---|
+| `caveman:caveman` | `/caveman:caveman ultra` | Token-compression mode. **Always activate first.** |
+| `caveman:cavecrew` | `/caveman:cavecrew` | Subagent preset selector (investigator/builder/reviewer). Use before every Agent spawn. |
+| `introspect` | `/introspect` | Session close-out: corpus, pain routing. Fallback: `bash skills/introspect/scripts/run_introspection.sh` |
+| `handoff` | `/handoff` | Session handoff doc generator. |
+| `dispatch-issue` | `/dispatch-issue <N>` | Pick up + implement single issue end-to-end. |
+| `dispatch-wave` | `/dispatch-wave` | Parallel wave dispatch (calls list-issues + dispatch-issue). |
+| `verify-plan` | `/verify-plan <N>` | Quality gate before implementation. |
+| `check-done` | `/check-done <N>` | Prior-work detection. |
+| `comment-issue` | `/comment-issue` | Canonical comment templates A–G + required footer. |
+| `doc-issue` | `/doc-issue` | Document pain point to DomI issue tracker. |
+| `log-issue` | `/log-issue` | File new GitHub issue from session context. |
+| `skill-creator` | `/skill-creator` | Scaffold compliant new skill. |
+| `skill-review` | `/skill-review` | Audit existing skill against template. |
+| `list-issues` | `/list-issues` | Priority-ordered READY issue list + wave computation. |
+| `git-push-fallback` | `/git-push-fallback` | Push with MCP fallback when git push returns 403. |
+| `subagent-dispatch-policy` | `/subagent-dispatch-policy` | Model tier + caveman level selection for subagents. |
+| `session-resume` | `/session-resume` | Parse prior session handoff and resume state. |
+
+If slash command is unavailable (plugin not loaded at container start — see DomI #114):
+1. Read `/workspace/DomI/skills/<name>/SKILL.md` directly.
+2. Execute the flow described there inline.
+3. For scripts: `bash /workspace/DomI/skills/<name>/scripts/<name>.sh`.
+
 ### Plugin enablement (declarative — required, or sync never runs)
 
 DomI contract plugins install **declaratively at container start** from
@@ -155,6 +187,7 @@ close-out hand-done. Root cause of recurring "plugins not installed" pain (DomI
     "caveman": { "source": { "source": "github", "repo": "JuliusBrussee/caveman" } }
   },
   "enabledPlugins": {
+    "caveman@caveman": true,
     "sync-from-domi@DomI": true,
     "request-from-domi@DomI": true,
     "introspect@DomI": true,
@@ -202,10 +235,15 @@ in the DomI checkout, runnable by hand:
 
 Resolve the skill files via the same private-repo-safe order as the routine file
 itself: local DomI checkout if present → `mcp__github__get_file_contents` on
-`domattioli/DomI` path `plugins/<name>/...` → raw URL. **Plugin-not-installed is
+`domattioli/DomI` path `skills/<name>/...` → raw URL. **Plugin-not-installed is
 NOT a skip condition** — identical rule to "a 404 on the raw fetch is NOT a stop
 condition." Skipping close-out because the slash-command was missing is the
 recurring failure #114 tracks; the inline path closes it.
+
+**caveman fallback:** caveman is a style mode, no inline script. If `/caveman ultra`
+unavailable (plugin not loaded at container start), emulate from
+`skills/caveman/SKILL.md` or `plugins/caveman/skills/caveman/SKILL.md` in the local
+DomI checkout. Read the intensity table and apply ultra rules manually for the session.
 
 ### Bootstrap follow-up — label normalization (one-time per repo)
 
@@ -225,7 +263,7 @@ Run until stop condition hit (see §5).
 
 1. **List issues** via `mcp__github__list_issues` on `domattioli/{{repo-slug}}`, `state=open`. Use repo's actual label scheme — DomI uses `priority: now/normal/someday` + `status: triage/brainstorming/ready/in-progress/blocked/needs-operator/done` + `type: bug/feat/docs/chore/refactor`. Do NOT assume generic `P1/P2/bug` labels match; check the label list if `list_issues` returns 0.
 1b. **GitHub project context**: Note milestone assignments (M1–M6) on each issue — they encode the phase priority set by `project-triage.md`. `priority: now` + M1 milestone = highest urgency. M1 = Foundation (due ~2026-06-13); M2–M6 = later phases. Project-board Status is not writable via MCP (no `project` scope); closing an issue auto-updates project Status. Read, don't try to write project fields directly.
-2. **Sort**: `priority: now` first (operator-greenlit — jump the queue, per #129 skill pipeline) → then `priority: normal` → `priority: someday`; break ties by milestone (M1 before M2, etc.); then newest first. Full lifecycle: [`docs/SKILL-PIPELINE.md`](docs/SKILL-PIPELINE.md).
+2. **Sort**: `priority: now` first (operator-greenlit — jump the queue, per #129 skill pipeline) → then `priority: normal` → `priority: someday`; break ties by milestone (M1 before M2, etc.); then oldest first. Full lifecycle: [`docs/SKILL-PIPELINE.md`](docs/SKILL-PIPELINE.md).
 3. **Filter out**:
    - Blocked (label `status: blocked`, `wontfix`)
    - Out-of-scope (GPU training, admin-panel, upstream blocker open on same repo)
@@ -268,7 +306,7 @@ Run regardless of work-loop outcome.
      ±1 from {{repo-slug}} [model: <id>, effort: <low|med|high>, wasted: <N tool calls | N min | qualitative>]
      <2-sentence concrete incident with what would have helped>
      ```
-     Then **update the issue's opening-post VOTE-TALLY** — set your repo's row (`+1`/`-1`) and the TOTAL. `request-from-domi` v1.1 `vote_request.sh <issue> [+1|-1]` does the comment + tally edit in one call (gh path); the MCP-only path is `add_issue_comment` + a marker-delimited body edit (never blind-replace — #131).
+     Then **update the issue's opening-post VOTE-TALLY** — set your repo's row (`+1`/`-1`) and the TOTAL. `request-from-domi` v1.1's `vote_request.sh <issue> [+1|-1]` does the comment + tally edit in one call (gh path); the MCP-only path is `add_issue_comment` + a marker-delimited body edit (never blind-replace — #131).
    - **`-1` is a first-class vote.** Comment `-1 from {{repo-slug}}` with rationale when evidence says the issue should NOT become a skill (duplicate, out-of-scope, wrong layer) — do not stay silent.
    - Reopen closed if session produced new evidence: `issue_write` with `state=open` + comment citing evidence.
    - File new if novel pain not covered: `issue_write` create, labels `request: skill`, `type: feat`, `status: triage`.
