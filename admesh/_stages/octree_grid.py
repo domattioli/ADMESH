@@ -83,14 +83,23 @@ class OctreeLeaf:
     _neighbor_idx: list[int] = field(default_factory=lambda: [-1, -1, -1, -1])
 
     @property
-    def neighbors(self) -> list[OctreeLeaf]:
-        """Return live neighbor leaf objects from the flat node list (back-compat property)."""
+    def neighbors(self) -> list[int]:
+        """Return indices of neighbor leaves (back-compat with spec 021).
+
+        Returns indices into grid.leaves that correspond to edge-adjacent neighbors.
+        This allows code like `xy[leaf.neighbors]` to work for numpy array indexing.
+        """
         if _nodes is None:
             return []
         result = []
-        for nb_idx in self._neighbor_idx:
-            if nb_idx >= 0:
-                result.append(_nodes[nb_idx])
+        for nb_node_idx in self._neighbor_idx:
+            if nb_node_idx >= 0 and _is_leaf(_nodes[nb_node_idx]):
+                # Count how many leaves come before this neighbor node
+                count = 0
+                for j in range(nb_node_idx):
+                    if _is_leaf(_nodes[j]):
+                        count += 1
+                result.append(count)
         return result
 
 

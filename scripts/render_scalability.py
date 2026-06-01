@@ -50,12 +50,13 @@ def main():
     span = 2 * Hx
     area = (span + 2 * 5.0) * (Hy + river_len + 2 * 5.0)  # padded bbox area
 
-    widths = [4.8, 2.4, 1.2]   # ratios 10, 20, 40
+    # Extended range: ratios 10, 100, 1000 (spec 022 T019)
+    widths = [span / 10, span / 100, span / 1000]   # ratios 10, 100, 1000
     ratios_m, leaves_m, times_m = [], [], []
     for w in widths:
         n, hmin, dt = build_for_width(Hx, Hy, w, river_len)
         ratios_m.append(span / w); leaves_m.append(n); times_m.append(dt)
-        print(f"ratio={span/w:.0f} w={w} hmin={hmin:.2f} leaves={n} build={dt:.1f}s")
+        print(f"ratio={span/w:.0f} w={w:.3f} hmin={hmin:.3f} leaves={n} build={dt:.2f}s")
 
     ratios = np.logspace(1, 3, 50)             # 10 .. 1000
     hmins = span / ratios / 4.0
@@ -69,21 +70,18 @@ def main():
               label="uniform grid: cells = area/(w/4)²  (∝ ratio²)")
     ax.loglog(ratios, octree_lin, "--", color="#1f77b4", lw=2,
               label="octree leaf count ~ linear (boundary-driven)")
-    ax.loglog(ratios_m, leaves_m, "o", color="#1f77b4", ms=9, label="octree measured")
+    ax.loglog(ratios_m, leaves_m, "o", color="#1f77b4", ms=9, label="octree measured (spec 022)")
     for r, n in zip(ratios_m, leaves_m):
         ax.annotate(f"{n}", (r, n), textcoords="offset points", xytext=(6, 6), fontsize=8)
-    ax.axvspan(80, 1000, color="0.9", zorder=0)
-    ax.text(260, uniform[0] * 0.5, "octree BUILD is O(N²) today\n→ can't yet build this region\n(leaf-count law still holds)",
-            fontsize=8, color="0.3")
     ax.set_xlabel("feature-size ratio  S / w  (bay span / river width)")
     ax.set_ylabel("number of cells / leaves")
-    ax.set_title("Spec 021 scalability — cells to resolve the river: uniform (∝ ratio²) vs octree (~linear)")
+    ax.set_title("Spec 022 scalability — O(N log N) build: cells to resolve river")
     ax.legend(loc="upper left", fontsize=9)
     ax.grid(True, which="both", alpha=0.25)
     out = OUTDIR / "octree_scalability.png"
     fig.tight_layout(); fig.savefig(out, dpi=130); plt.close(fig)
     print(f"wrote {out}")
-    print("uniform@1000 =", f"{area/(span/1000/4)**2:.3e}", "cells; octree~", f"{coef*1000:.0f}", "leaves (count law)")
+    print("uniform@1000 =", f"{area/(span/1000/4)**2:.3e}", "cells; octree~", f"{coef*1000:.0f}", "leaves")
 
 
 if __name__ == "__main__":
