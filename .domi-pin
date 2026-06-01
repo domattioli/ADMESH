@@ -3,7 +3,7 @@
 # Regenerate via: bash skills/sync-from-domi/scripts/update_pin.sh
 
 upstream: domattioli/DomI
-branch: daily-maintenance
-sha: ca87f9cbbf7c108ad340f8063038cf8d3db43149
-manifest_sha256: 9803f9311014deef0f6d23cd9d04f4eac059beaaa3fa5edbd2dbc84a13dbe161
-pinned_at: 2026-05-31T20:11:19Z
+branch: main
+sha: 9da6d9421dd6892d473752b36ab963b525b7f0f9
+manifest_sha256: 4e196d8b7b4794686bf9f9917630fb06ae9ebacf9a4f6df91b0c36dee64a795d
+pinned_at: 2026-06-01T03:15:00Z

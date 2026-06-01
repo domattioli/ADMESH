@@ -21,7 +21,7 @@ authors:
     affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
   - family-names: West
     given-names: Dustin W.
-    affiliation: ?
+    affiliation: "?"
 repository-code: "https://github.com/domattioli/ADMESH"
 url: "https://github.com/domattioli/ADMESH"
 license: Apache-2.0
