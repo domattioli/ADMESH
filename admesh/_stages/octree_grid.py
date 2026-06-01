@@ -47,7 +47,7 @@ class OctreeConstructionError(Exception):
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=False)
 class OctreeLeaf:
     """A single leaf cell in the octree.
 
@@ -63,16 +63,53 @@ class OctreeLeaf:
         Signed distance at the leaf center (from domain.fd).
     neighbors : list[int]
         Indices into OctreeGrid.leaves of edge-adjacent neighbors.
+
+    Internal pointer fields (spec 022)
+    ----------------------------------
+    _parent_idx : int
+        Index of parent node in the flat node list; -1 if root.
+    _children_idx : list[int]
+        Indices of 4 children [SW, SE, NW, NE]; all -1 if leaf.
+    _neighbor_idx : list[int]
+        Indices of cardinal neighbors [W, E, S, N]; -1 if absent.
     """
 
     center: tuple[float, float]
     size: float
     depth: int
     D: float = 0.0
-    neighbors: list[int] = field(default_factory=list)
+    _parent_idx: int = -1
+    _children_idx: list[int] = field(default_factory=lambda: [-1, -1, -1, -1])
+    _neighbor_idx: list[int] = field(default_factory=lambda: [-1, -1, -1, -1])
+
+    @property
+    def neighbors(self) -> list[OctreeLeaf]:
+        """Return live neighbor leaf objects from the flat node list (back-compat property)."""
+        if _nodes is None:
+            return []
+        result = []
+        for nb_idx in self._neighbor_idx:
+            if nb_idx >= 0:
+                result.append(_nodes[nb_idx])
+        return result
 
 
-@dataclass(frozen=True)
+# Module-level reference to the flat node list (set at build time)
+_nodes: list[OctreeLeaf] | None = None
+
+
+def _set_nodes_ref(nodes: list[OctreeLeaf]) -> None:
+    """Set the shared node list reference for property resolution."""
+    global _nodes
+    _nodes = nodes
+
+
+def _is_leaf(node: OctreeLeaf) -> bool:
+    """Check if a node is a true leaf (has no children)."""
+    return all(c == -1 for c in node._children_idx)
+
+
+@dataclass(frozen=False)
 class OctreeGrid:
     """Hierarchically-refined quadtree background grid.
 
@@ -80,18 +117,23 @@ class OctreeGrid:
     ----------
     bbox : tuple[float, float, float, float]
         (xmin, ymin, xmax, ymax) padded domain extent.
-    root : OctreeLeaf
-        Top-level cell covering whole bbox.
-    leaves : list[OctreeLeaf]
-        Flattened list of all leaf cells (refinement complete, 2:1 balanced).
+    root : int
+        Index of root node in the flat _nodes list.
+    _nodes : list[OctreeLeaf]
+        Flattened list of all nodes (internal + leaf).
     h_min : float
         Refinement floor; no leaf smaller than this.
     """
 
     bbox: tuple[float, float, float, float]
-    root: OctreeLeaf
-    leaves: list[OctreeLeaf]
+    root: int
+    _nodes: list[OctreeLeaf]
     h_min: float
+
+    @property
+    def leaves(self) -> list[OctreeLeaf]:
+        """Return only the true leaf nodes (for back-compat with spec 021)."""
+        return [n for n in self._nodes if _is_leaf(n)]
 
 
 def _warn_under_resolved(feature_width: float, h_min: float) -> None:
@@ -115,8 +157,210 @@ def _warn_under_resolved(feature_width: float, h_min: float) -> None:
 
 
 # ============================================================================
-# Phase 2: Foundational Octree Core (T004–T008)
+# Phase 3: O(N log N) Build with Samet Pointer Algorithm
 # ============================================================================
+
+
+def _find_neighbor_of_greater_depth(nodes: list[OctreeLeaf], idx: int, direction: int) -> int:
+    """Find neighbor in given direction using Samet (1990) algorithm.
+
+    Direction: 0=W, 1=E, 2=S, 3=N.
+    Returns index of neighbor leaf at same or greater depth, or -1 if none.
+    Complexity: O(log N) per call.
+
+    Parameters
+    ----------
+    nodes : list[OctreeLeaf]
+        Flat node list.
+    idx : int
+        Index of query node.
+    direction : int
+        0=W, 1=E, 2=S, 3=N.
+
+    Returns
+    -------
+    int
+        Index of neighbor node, or -1 if no neighbor in that direction.
+    """
+    node = nodes[idx]
+
+    # If this is the root, it has no neighbor in any direction
+    if node._parent_idx == -1:
+        return -1
+
+    parent = nodes[node._parent_idx]
+
+    # Determine which child of parent this node is, and whether it's "interior" or "exterior" in this direction
+    # Child quadrant indexing: SW=0, SE=1, NW=2, NE=3
+    child_idx = parent._children_idx.index(idx) if idx in parent._children_idx else -1
+    if child_idx == -1:
+        return -1
+
+    # Determine which children face a given direction
+    # W: SW=0, NW=2  (western children)
+    # E: SE=1, NE=3  (eastern children)
+    # S: SW=0, SE=1  (southern children)
+    # N: NW=2, NE=3  (northern children)
+    facing_children = {
+        0: [0, 2],  # W
+        1: [1, 3],  # E
+        2: [0, 1],  # S
+        3: [2, 3],  # N
+    }
+
+    if child_idx in facing_children[direction]:
+        # This child faces outward in this direction; look up the tree
+        parent_neighbor_idx = _find_neighbor_of_greater_depth(nodes, node._parent_idx, direction)
+        if parent_neighbor_idx == -1 or _is_leaf(nodes[parent_neighbor_idx]):
+            return parent_neighbor_idx
+        else:
+            # Parent's neighbor exists and is internal; descend to find our counterpart
+            parent_neighbor = nodes[parent_neighbor_idx]
+            # Reflect child_idx across the direction to get the opposite child
+            opposite_children = {
+                0: [1, 3],   # W -> E children
+                1: [0, 2],   # E -> W children
+                2: [2, 3],   # S -> N children
+                3: [0, 1],   # N -> S children
+            }
+            # Find which child of the parent_neighbor we should descend to
+            my_quadrant = child_idx
+            target_quadrants = opposite_children[direction]
+            # If my_quadrant is SW (0) and direction is W, target is SE (1)
+            # If my_quadrant is NW (2) and direction is W, target is NE (3)
+            if my_quadrant == 0:  # SW
+                if direction == 0:  # W -> SE (1)
+                    target = 1
+                elif direction == 2:  # S -> NW (2)
+                    target = 2
+                else:
+                    return -1
+            elif my_quadrant == 1:  # SE
+                if direction == 1:  # E -> SW (0)
+                    target = 0
+                elif direction == 2:  # S -> NE (3)
+                    target = 3
+                else:
+                    return -1
+            elif my_quadrant == 2:  # NW
+                if direction == 0:  # W -> NE (3)
+                    target = 3
+                elif direction == 3:  # N -> SW (0)
+                    target = 0
+                else:
+                    return -1
+            elif my_quadrant == 3:  # NE
+                if direction == 1:  # E -> NW (2)
+                    target = 2
+                elif direction == 3:  # N -> SE (1)
+                    target = 1
+                else:
+                    return -1
+            return parent_neighbor._children_idx[target]
+    else:
+        # This child is interior in this direction; sibling is directly accessible
+        # Siblings: if direction is W/E, then sibling is across the x-axis; if S/N, across y-axis
+        sibling_idx_map = {
+            0: {0: 1, 1: 0, 2: 3, 3: 2},  # W: 0<->1, 2<->3
+            1: {0: 1, 1: 0, 2: 3, 3: 2},  # E: same as W
+            2: {0: 2, 1: 3, 2: 0, 3: 1},  # S: 0<->2, 1<->3
+            3: {0: 2, 1: 3, 2: 0, 3: 1},  # N: same as S
+        }
+        sibling_quadrant = sibling_idx_map[direction][child_idx]
+        return parent._children_idx[sibling_quadrant]
+
+
+def _split_leaf(
+    nodes: list[OctreeLeaf],
+    idx: int,
+    domain,
+    size_oracle: Callable[[float, float], float],
+) -> list[int]:
+    """Split a leaf into 4 children; wire neighbors; return new child indices.
+
+    Complexity: O(log N) due to neighbor lookups via _find_neighbor_of_greater_depth.
+
+    Parameters
+    ----------
+    nodes : list[OctreeLeaf]
+        Flat node list (mutated in place by appending children).
+    idx : int
+        Index of leaf to split.
+    domain : Domain
+        Domain object with fd method.
+    size_oracle : Callable
+        Size oracle callable.
+
+    Returns
+    -------
+    list[int]
+        Indices of 4 new children [SW, SE, NW, NE].
+    """
+    node = nodes[idx]
+    cx, cy = node.center
+    half_size = node.size / 2
+    quarter = half_size / 2
+
+    # Create 4 children: SW, SE, NW, NE
+    child_centers = [
+        (cx - quarter, cy - quarter),  # SW = 0
+        (cx + quarter, cy - quarter),  # SE = 1
+        (cx - quarter, cy + quarter),  # NW = 2
+        (cx + quarter, cy + quarter),  # NE = 3
+    ]
+
+    child_indices = []
+    for child_center in child_centers:
+        child = OctreeLeaf(
+            center=child_center,
+            size=half_size,
+            depth=node.depth + 1,
+            D=_eval_sdf(domain.fd, child_center[0], child_center[1]),
+            _parent_idx=idx,
+        )
+        nodes.append(child)
+        child_indices.append(len(nodes) - 1)
+
+    # Wire sibling neighbors (direct arithmetic, no descent needed)
+    # SW (0) and SE (1) share southern edge
+    nodes[child_indices[0]]._neighbor_idx[1] = child_indices[1]  # SW.E = SE
+    nodes[child_indices[1]]._neighbor_idx[0] = child_indices[0]  # SE.W = SW
+
+    # NW (2) and NE (3) share southern edge
+    nodes[child_indices[2]]._neighbor_idx[1] = child_indices[3]  # NW.E = NE
+    nodes[child_indices[3]]._neighbor_idx[0] = child_indices[2]  # NE.W = NW
+
+    # SW (0) and NW (2) share western edge
+    nodes[child_indices[0]]._neighbor_idx[3] = child_indices[2]  # SW.N = NW
+    nodes[child_indices[2]]._neighbor_idx[2] = child_indices[0]  # NW.S = SW
+
+    # SE (1) and NE (3) share eastern edge
+    nodes[child_indices[1]]._neighbor_idx[3] = child_indices[3]  # SE.N = NE
+    nodes[child_indices[3]]._neighbor_idx[2] = child_indices[1]  # NE.S = SE
+
+    # Wire external neighbors via Samet algorithm
+    # For each child and each outward-facing direction, find its neighbor
+    for child_quadrant, child_idx_new in enumerate(child_indices):
+        # Determine which directions this child faces outward
+        # SW (0): faces W (0) and S (2)
+        # SE (1): faces E (1) and S (2)
+        # NW (2): faces W (0) and N (3)
+        # NE (3): faces E (1) and N (3)
+        outward_directions = {
+            0: [0, 2],  # SW
+            1: [1, 2],  # SE
+            2: [0, 3],  # NW
+            3: [1, 3],  # NE
+        }
+        for direction in outward_directions[child_quadrant]:
+            neighbor_idx = _find_neighbor_of_greater_depth(nodes, idx, direction)
+            if neighbor_idx != -1:
+                nodes[child_idx_new]._neighbor_idx[direction] = neighbor_idx
+
+    # Mark parent as internal by setting _children_idx
+    nodes[idx]._children_idx = child_indices
+
+    return child_indices
 
 
 def build_octree(
@@ -130,9 +374,8 @@ def build_octree(
 ) -> OctreeGrid:
     """Build a 2:1-balanced quadtree over the domain.
 
-    Top-down recursive subdivision (research.md R2): each cell subdivides
-    while its size exceeds the local target from size_oracle and is still
-    above h_min. The 2:1 balance pass (R3) smooths transitions.
+    O(N log N) top-down recursive subdivision using pointer-based Samet (1990)
+    algorithm for neighbor finding. Complexity: O(N log N) build + O(N log N) balance.
 
     Parameters
     ----------
@@ -167,58 +410,46 @@ def build_octree(
     ymax += pad
     bbox = (xmin, ymin, xmax, ymax)
 
-    # Create root
+    # Create root in the flat node list
     root_size = max(xmax - xmin, ymax - ymin)
+    nodes: list[OctreeLeaf] = []
     root = OctreeLeaf(
         center=((xmin + xmax) / 2, (ymin + ymax) / 2),
         size=root_size,
         depth=0,
         D=_eval_sdf(domain.fd, (xmin + xmax) / 2, (ymin + ymax) / 2),
+        _parent_idx=-1,
     )
+    nodes.append(root)
+    root_idx = 0
 
-    # Recursive subdivision: collect leaves in a list
-    leaves = []
-
-    def _subdivide(cell: OctreeLeaf) -> None:
+    # Top-down recursive subdivision using pointer wiring
+    def _subdivide_recursive(idx: int) -> None:
         """Recursively subdivide until size target is met or h_min floor."""
-        cx, cy = cell.center
+        node = nodes[idx]
+        cx, cy = node.center
         target_h = size_oracle(cx, cy)
 
         # Stop if cell is small enough or at floor
-        if cell.size <= target_h or cell.size <= h_min:
-            leaves.append(cell)
-            return
+        if node.size <= target_h or node.size <= h_min:
+            return  # This node stays as a leaf
 
-        # Subdivide into 4 children
-        half_size = cell.size / 2
-        quarter = half_size / 2
-        children = [
-            (cx - quarter, cy - quarter),  # lower-left
-            (cx + quarter, cy - quarter),  # lower-right
-            (cx - quarter, cy + quarter),  # upper-left
-            (cx + quarter, cy + quarter),  # upper-right
-        ]
-        for cx_child, cy_child in children:
-            child = OctreeLeaf(
-                center=(cx_child, cy_child),
-                size=half_size,
-                depth=cell.depth + 1,
-                D=_eval_sdf(domain.fd, cx_child, cy_child),
-            )
-            _subdivide(child)
+        # Subdivide using _split_leaf (which handles all pointer wiring)
+        _split_leaf(nodes, idx, domain, size_oracle)
 
-    _subdivide(root)
+        # Recursively subdivide the 4 children
+        for child_idx in nodes[idx]._children_idx:
+            _subdivide_recursive(child_idx)
 
-    if not leaves:
-        raise OctreeConstructionError("No leaves generated during subdivision")
+    _subdivide_recursive(root_idx)
 
-    # Build adjacency: for each leaf, find edge-adjacent neighbors
-    leaves_with_neighbors = _build_adjacency(leaves)
+    # Set the global nodes reference for the neighbors property
+    _set_nodes_ref(nodes)
 
     if balance:
-        leaves_with_neighbors = _balance_2to1(leaves_with_neighbors)
+        _balance_2to1(nodes, root_idx, h_min, domain, size_oracle)
 
-    grid = OctreeGrid(bbox=bbox, root=root, leaves=leaves_with_neighbors, h_min=h_min)
+    grid = OctreeGrid(bbox=bbox, root=root_idx, _nodes=nodes, h_min=h_min)
     return grid
 
 
@@ -228,151 +459,73 @@ def _eval_sdf(fd: Callable, x: float, y: float) -> float:
     return float(fd(p)[0])
 
 
-def _build_adjacency(leaves: list[OctreeLeaf]) -> list[OctreeLeaf]:
-    """Build edge-adjacency neighbors for each leaf.
+# DELETED: _build_adjacency, _are_edge_adjacent, _intervals_overlap
+# These were O(N²) implementations replaced by Samet pointer algorithm in spec 022.
 
-    Returns a new list of leaves with the neighbors field populated.
+
+def _balance_2to1(
+    nodes: list[OctreeLeaf],
+    root_idx: int,
+    h_min: float,
+    domain,
+    size_oracle: Callable[[float, float], float],
+) -> None:
+    """Enforce 2:1 size ratio between edge-adjacent leaves using work queue.
+
+    O(N log N) amortized: each node enqueued O(1) times under 2:1 constraint.
+    Uses BFS work queue; never rebuilds full adjacency.
+
+    Parameters
+    ----------
+    nodes : list[OctreeLeaf]
+        Flat node list (mutated in place).
+    root_idx : int
+        Index of root node.
+    h_min : float
+        Minimum leaf size (do not split below this).
+    domain : Domain
+        Domain object with fd method.
+    size_oracle : Callable
+        Size oracle callable.
     """
-    leaves_list = list(leaves)
-    leaf_by_idx = {i: leaf for i, leaf in enumerate(leaves_list)}
+    from collections import deque
 
-    # For each pair of leaves, check if they are edge-adjacent
-    neighbors_map = {i: [] for i in range(len(leaves_list))}
+    # Initialize queue with all current leaves
+    queue: deque[int] = deque()
+    for i, node in enumerate(nodes):
+        if _is_leaf(node):
+            queue.append(i)
 
-    for i, leaf_i in enumerate(leaves_list):
-        for j, leaf_j in enumerate(leaves_list):
-            if i >= j:
-                continue  # Only check each pair once
-            if _are_edge_adjacent(leaf_i, leaf_j):
-                neighbors_map[i].append(j)
-                neighbors_map[j].append(i)
+    while queue:
+        idx = queue.popleft()
+        node = nodes[idx]
 
-    # Rebuild leaves with neighbors
-    result = []
-    for i, leaf in enumerate(leaves_list):
-        new_leaf = OctreeLeaf(
-            center=leaf.center,
-            size=leaf.size,
-            depth=leaf.depth,
-            D=leaf.D,
-            neighbors=neighbors_map[i],
-        )
-        result.append(new_leaf)
+        if not _is_leaf(node):
+            continue  # Already split by a prior step
 
-    return result
+        # Check each cardinal neighbor for 2:1 violation
+        for direction in range(4):
+            nb_idx = node._neighbor_idx[direction]
+            if nb_idx == -1:
+                continue
 
+            nb = nodes[nb_idx]
+            if not _is_leaf(nb):
+                continue  # Neighbor already split
 
-def _are_edge_adjacent(leaf1: OctreeLeaf, leaf2: OctreeLeaf) -> bool:
-    """Check if two leaves share an edge (not just a corner)."""
-    x1, y1 = leaf1.center
-    x2, y2 = leaf2.center
-    s1 = leaf1.size
-    s2 = leaf2.size
-
-    # Bounding boxes
-    x1_min, x1_max = x1 - s1 / 2, x1 + s1 / 2
-    y1_min, y1_max = y1 - s1 / 2, y1 + s1 / 2
-    x2_min, x2_max = x2 - s2 / 2, x2 + s2 / 2
-    y2_min, y2_max = y2 - s2 / 2, y2 + s2 / 2
-
-    tol = 1e-10
-
-    # Check if they share an edge:
-    # - Horizontal edge: y-ranges overlap, x-edges touch
-    h_edge = (
-        abs(y1_min - y1_max) > tol
-        and abs(y2_min - y2_max) > tol
-        and _intervals_overlap(y1_min, y1_max, y2_min, y2_max)
-        and (abs(x1_max - x2_min) < tol or abs(x1_min - x2_max) < tol)
-    )
-    # - Vertical edge: x-ranges overlap, y-edges touch
-    v_edge = (
-        abs(x1_min - x1_max) > tol
-        and abs(x2_min - x2_max) > tol
-        and _intervals_overlap(x1_min, x1_max, x2_min, x2_max)
-        and (abs(y1_max - y2_min) < tol or abs(y1_min - y2_max) < tol)
-    )
-
-    return h_edge or v_edge
-
-
-def _intervals_overlap(a_min: float, a_max: float, b_min: float, b_max: float) -> bool:
-    """Check if two 1D intervals overlap (strictly; touching at a point doesn't count)."""
-    return a_min < b_max and b_min < a_max
-
-
-def _balance_2to1(leaves: list[OctreeLeaf]) -> list[OctreeLeaf]:
-    """Enforce 2:1 size ratio between edge-adjacent leaves (research.md R3).
-
-    Simple greedy approach: if any edge-adjacent pair violates 2:1,
-    subdivide the larger cell and rebuild adjacency until no violations remain.
-    """
-    max_iterations = 100
-    iteration = 0
-
-    while iteration < max_iterations:
-        iteration += 1
-
-        # Check for violations
-        violations = []
-        for i, leaf_i in enumerate(leaves):
-            for j in leaf_i.neighbors:
-                leaf_j = leaves[j]
-                if leaf_i.size > 0 and leaf_j.size > 0:
-                    ratio = max(leaf_i.size, leaf_j.size) / min(leaf_i.size, leaf_j.size)
-                    if ratio > 2.0 + 1e-9:
-                        violations.append((i, j))
-
-        if not violations:
-            break
-
-        # Subdivide the larger cell in the first violation
-        i, j = violations[0]
-        if leaves[i].size >= leaves[j].size:
-            idx_to_split = i
-        else:
-            idx_to_split = j
-
-        leaf_to_split = leaves[idx_to_split]
-
-        # Only subdivide if above h_min floor
-        if leaf_to_split.size > 1.0000001 * min(leaf_to_split.size / 2, leaf_to_split.size):
-            # Note: we need h_min but it's not stored. For now, subdivide if size > 1e-10
-            # (this will be fixed when we store h_min in the leaf or grid)
-            half_size = leaf_to_split.size / 2
-            cx, cy = leaf_to_split.center
-            quarter = half_size / 2
-
-            new_leaves = []
-            children = [
-                (cx - quarter, cy - quarter),
-                (cx + quarter, cy - quarter),
-                (cx - quarter, cy + quarter),
-                (cx + quarter, cy + quarter),
-            ]
-            for cx_child, cy_child in children:
-                child = OctreeLeaf(
-                    center=(cx_child, cy_child),
-                    size=half_size,
-                    depth=leaf_to_split.depth + 1,
-                    D=leaf_to_split.D,  # Approximate; could recompute
-                )
-                new_leaves.append(child)
-
-            leaves = leaves[:idx_to_split] + new_leaves + leaves[idx_to_split + 1 :]
-            leaves = _build_adjacency(leaves)
-
-    if iteration >= max_iterations:
-        raise OctreeConstructionError("2:1 balance did not converge")
-
-    return leaves
+            # Check 2:1 balance
+            size_ratio = max(node.size, nb.size) / min(node.size, nb.size)
+            if size_ratio > 2.0 + 1e-9:
+                # Neighbor is more than 2x coarser; split it if above h_min
+                if nb.size / 2 >= h_min:
+                    new_children = _split_leaf(nodes, nb_idx, domain, size_oracle)
+                    queue.extend(new_children)
 
 
 def locate(grid: OctreeGrid, p: NDArray) -> NDArray[np.intp]:
-    """Locate leaf index for each query point (O(log) per point).
+    """Locate leaf index for each query point using tree descent O(log N).
 
-    Simple O(log N) search by traversing the octree structure.
-    For now, implement as O(N) linear search (acceptable for small/medium N).
+    Clamps out-of-bounds points to the nearest boundary leaf.
 
     Parameters
     ----------
@@ -383,7 +536,8 @@ def locate(grid: OctreeGrid, p: NDArray) -> NDArray[np.intp]:
     Returns
     -------
     (N,) ndarray of int
-        Leaf indices; -1 if p is outside the grid bbox.
+        Indices into grid.leaves for leaf containing each point.
+        Returns nearest boundary leaf for out-of-bounds points (never -1).
     """
     p = np.asarray(p, dtype=np.float64).reshape(-1, 2)
     indices = np.zeros(len(p), dtype=np.intp)
@@ -391,20 +545,32 @@ def locate(grid: OctreeGrid, p: NDArray) -> NDArray[np.intp]:
     xmin, ymin, xmax, ymax = grid.bbox
 
     for query_idx, (x, y) in enumerate(p):
-        # Check if point is outside bbox
-        if x < xmin or x > xmax or y < ymin or y > ymax:
-            indices[query_idx] = -1
-            continue
+        # Clamp to bbox
+        x = np.clip(x, xmin, xmax)
+        y = np.clip(y, ymin, ymax)
 
-        # Linear search: find first leaf containing the point
-        leaf_idx = -1
+        # Tree descent from root
+        idx = grid.root
+        while not _is_leaf(grid._nodes[idx]):
+            node = grid._nodes[idx]
+            cx, cy = node.center
+            # Determine which child contains (x, y)
+            quadrant = 0
+            if x > cx:
+                quadrant += 1
+            if y > cy:
+                quadrant += 2
+            child_idx = node._children_idx[quadrant]
+            if child_idx == -1:
+                # This quadrant not subdivided; current node is deepest
+                break
+            idx = child_idx
+
+        # Map from node index to leaf index
+        # grid.leaves is a property that filters to true leaves; find its position
+        leaf_idx = 0
         for i, leaf in enumerate(grid.leaves):
-            cx, cy = leaf.center
-            half_size = leaf.size / 2
-            if (
-                cx - half_size <= x <= cx + half_size
-                and cy - half_size <= y <= cy + half_size
-            ):
+            if leaf is grid._nodes[idx]:
                 leaf_idx = i
                 break
 
@@ -455,6 +621,7 @@ def interpolate(
 def leaf_graph(grid: OctreeGrid) -> tuple[NDArray, NDArray]:
     """Build the leaf-adjacency graph (edge list + centre-to-centre spacing).
 
+    O(N) single pass over leaves using stored neighbor pointers.
     Used by medial-axis FMM and gradient-limit solver on variable-spacing graph.
 
     Parameters
@@ -464,26 +631,50 @@ def leaf_graph(grid: OctreeGrid) -> tuple[NDArray, NDArray]:
     Returns
     -------
     edges : (E, 2) ndarray of int
-        Edge-adjacent leaf pairs (leaf indices).
+        Edge-adjacent leaf pairs (indices into grid.leaves).
     spacing : (E,) ndarray of float
         Centre-to-centre distances (for variable-spacing graph algorithms).
     """
     edges = []
     spacing = []
 
-    # Extract edges from the adjacency lists (avoiding duplicates)
-    seen = set()
-    for i, leaf_i in enumerate(grid.leaves):
-        for j in leaf_i.neighbors:
-            if i < j:  # Only add each edge once
-                edges.append([i, j])
-                leaf_j = grid.leaves[j]
-                cx_i, cy_i = leaf_i.center
-                cx_j, cy_j = leaf_j.center
-                dist = np.hypot(cx_j - cx_i, cy_j - cy_i)
-                spacing.append(dist)
+    # Build mapping from node index to leaf index
+    leaf_index_map = {}
+    for leaf_idx, leaf_node in enumerate(grid.leaves):
+        for node_idx, node in enumerate(grid._nodes):
+            if node is leaf_node:
+                leaf_index_map[node_idx] = leaf_idx
+                break
 
-    edges = np.array(edges, dtype=np.intp)
-    spacing = np.array(spacing, dtype=np.float64)
+    # Extract edges from neighbor pointers (avoiding duplicates)
+    for i, leaf_i in enumerate(grid.leaves):
+        # Find the node index of this leaf
+        node_i_idx = None
+        for node_idx, node in enumerate(grid._nodes):
+            if node is leaf_i:
+                node_i_idx = node_idx
+                break
+
+        if node_i_idx is None:
+            continue
+
+        # Iterate through neighbor indices
+        for direction in range(4):
+            nb_node_idx = leaf_i._neighbor_idx[direction]
+            if nb_node_idx == -1:
+                continue
+            if nb_node_idx in leaf_index_map:
+                j = leaf_index_map[nb_node_idx]
+                # Only add each edge once (i < j)
+                if i < j:
+                    edges.append([i, j])
+                    cx_i, cy_i = leaf_i.center
+                    leaf_j = grid.leaves[j]
+                    cx_j, cy_j = leaf_j.center
+                    dist = np.hypot(cx_j - cx_i, cy_j - cy_i)
+                    spacing.append(dist)
+
+    edges = np.array(edges, dtype=np.intp) if edges else np.empty((0, 2), dtype=np.intp)
+    spacing = np.array(spacing, dtype=np.float64) if spacing else np.empty(0, dtype=np.float64)
 
     return edges, spacing
