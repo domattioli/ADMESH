@@ -556,6 +556,14 @@ def locate(grid: OctreeGrid, p: NDArray) -> NDArray[np.intp]:
 
     xmin, ymin, xmax, ymax = grid.bbox
 
+    # Build node-to-leaf-index mapping once
+    node_to_leaf_idx = {}
+    for leaf_idx, leaf_node in enumerate(grid.leaves):
+        for node_idx, node in enumerate(grid._nodes):
+            if node is leaf_node:
+                node_to_leaf_idx[node_idx] = leaf_idx
+                break
+
     for query_idx, (x, y) in enumerate(p):
         # Clamp to bbox
         x = np.clip(x, xmin, xmax)
@@ -579,13 +587,7 @@ def locate(grid: OctreeGrid, p: NDArray) -> NDArray[np.intp]:
             idx = child_idx
 
         # Map from node index to leaf index
-        # grid.leaves is a property that filters to true leaves; find its position
-        leaf_idx = 0
-        for i, leaf in enumerate(grid.leaves):
-            if leaf is grid._nodes[idx]:
-                leaf_idx = i
-                break
-
+        leaf_idx = node_to_leaf_idx.get(idx, 0)
         indices[query_idx] = leaf_idx
 
     return indices
@@ -650,41 +652,42 @@ def leaf_graph(grid: OctreeGrid) -> tuple[NDArray, NDArray]:
     edges = []
     spacing = []
 
-    # Build mapping from node index to leaf index
+    # Build mapping from node index to leaf index (one-pass construction)
     leaf_index_map = {}
     for leaf_idx, leaf_node in enumerate(grid.leaves):
-        for node_idx, node in enumerate(grid._nodes):
-            if node is leaf_node:
+        # Find node index of this leaf node by scanning _nodes
+        for node_idx in range(len(grid._nodes)):
+            if grid._nodes[node_idx] is leaf_node:
                 leaf_index_map[node_idx] = leaf_idx
                 break
 
     # Extract edges from neighbor pointers (avoiding duplicates)
-    for i, leaf_i in enumerate(grid.leaves):
-        # Find the node index of this leaf
-        node_i_idx = None
-        for node_idx, node in enumerate(grid._nodes):
-            if node is leaf_i:
-                node_i_idx = node_idx
-                break
-
-        if node_i_idx is None:
+    # We iterate over all nodes and find which are leaves
+    for node_idx in range(len(grid._nodes)):
+        node = grid._nodes[node_idx]
+        if not _is_leaf(node):
             continue
 
-        # Iterate through neighbor indices
+        if node_idx not in leaf_index_map:
+            continue
+
+        i = leaf_index_map[node_idx]
+
+        # Iterate through cardinal neighbor indices
         for direction in range(4):
-            nb_node_idx = leaf_i._neighbor_idx[direction]
-            if nb_node_idx == -1:
+            nb_node_idx = node._neighbor_idx[direction]
+            if nb_node_idx == -1 or nb_node_idx not in leaf_index_map:
                 continue
-            if nb_node_idx in leaf_index_map:
-                j = leaf_index_map[nb_node_idx]
-                # Only add each edge once (i < j)
-                if i < j:
-                    edges.append([i, j])
-                    cx_i, cy_i = leaf_i.center
-                    leaf_j = grid.leaves[j]
-                    cx_j, cy_j = leaf_j.center
-                    dist = np.hypot(cx_j - cx_i, cy_j - cy_i)
-                    spacing.append(dist)
+
+            j = leaf_index_map[nb_node_idx]
+            # Only add each edge once (i < j)
+            if i < j:
+                edges.append([i, j])
+                cx_i, cy_i = node.center
+                nb_node = grid._nodes[nb_node_idx]
+                cx_j, cy_j = nb_node.center
+                dist = np.hypot(cx_j - cx_i, cy_j - cy_i)
+                spacing.append(dist)
 
     edges = np.array(edges, dtype=np.intp) if edges else np.empty((0, 2), dtype=np.intp)
     spacing = np.array(spacing, dtype=np.float64) if spacing else np.empty(0, dtype=np.float64)
