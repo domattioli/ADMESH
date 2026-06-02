@@ -23,7 +23,7 @@ jobs:
       - name: Open or skip monthly review issue
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEMPLATE: plugins/introspect/skills/introspect/templates/monthly-review.md
+          TEMPLATE: skills/introspect/templates/monthly-review.md
         run: |
           set -euo pipefail
 
