@@ -346,7 +346,7 @@ Whichever fires first:
 | {{repo}} | repo-slug | branch | spec_kit_required | code_shipping_allowed | validation_cmds | budget | stop_after_n_prs | extra_pre | extra_post | batch_allowed |
 |---|---|---|---|---|---|---|---|---|---|---|
 | madmeshr | MADMESHR | daily-maintenance | true | true | `pytest tests/`, `python scripts/validate_mesh.py` | — | — | — | lessons-learned commit if shipped | true |
-| admesh | ADMESH | daily-maintenance | true | true | `pytest tests/` (if applicable) | — | — | `/compact` to reduce tokens | — | true |
+| admesh | ADMESH | daily-maintenance | true | **false** (planning only) | `pytest tests/` (if applicable) | — | — | `/compact` to reduce tokens | — | true |
 | admesh-domains | ADMESH-Domains | daily-maintenance | true | true | `pytest tests/ -q`, `admesh-domains validate registry_data/manifest.toml`, `python scripts/build_site.py` (if site change), `admesh-domains publish --dry-run` (if publisher change) | — | — | detect track Code vs Data | HF Hub metadata sync | true |
 | chilmesh | CHILmesh | daily-maintenance | true | true | `pytest tests/` | 100k tokens; checkpoint every 5 tasks or 30 min | — | — | — | true |
 | domi | DomI | daily-maintenance | false | true | `bash scripts/instructions_on_start.sh`, `bash -n` on changed `.sh`, `pytest` if python touched | ≥30 min wall-clock | 3 | filter issues <2h old | — | true |
@@ -375,17 +375,17 @@ Notes:
 
 ### Profile: admesh
 
-**Slug:** `ADMESH`. **Mission:** domain mesh operations — spec, implement, and ship.
+**Slug:** `ADMESH`. **Mission:** domain mesh operations, planning phase.
 
 Hard rules (extend §1):
+- **Planning phase only.** No code commits. Output = specs, plans, docs, follow-up issues.
 - Domain correctness non-negotiable: any proposed operation must preserve mesh validity.
-- Data-structure changes: O(1) or near-O(1) domain membership queries preferred.
+- Data-structure recommendation: O(1) or near-O(1) domain membership queries.
 - Use `/compact` aggressively to reduce token usage.
-- Cross-repo integration points (MADMESHR, CHILmesh, ADMESH-Domains) must be called out in specs and PR descriptions.
-- `spec_kit_required=true`: run speckit pipeline before impl. For LARGE budget issues → STOP, file sub-issues.
+- Cross-repo integration points (MADMESHR, CHILmesh, ADMESH-Domains) must be called out in specs.
 
 Notes:
-- Full speckit pipeline: `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement`.
+- `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` produces the deliverables. Stop before `/speckit.implement`.
 
 ### Profile: admesh-domains
 
