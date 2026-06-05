@@ -68,11 +68,13 @@
 
 **Independent tests**: `test_scalability_ratio_1000` + `test_parity_vs_prototype`.
 
-- [ ] T015 [US3] Extend `scripts/render_scalability.py` to run ratio 1000 and regenerate `output/octree_scalability.png`
-- [ ] T016 [US3] Write `test_scalability_ratio_1000` in `tests/test_octree_grid.py`: river-into-bay ratio=1000; assert build+query < 10 s AND leaf count ≥ 10× below uniform baseline at finest `h_min`
-- [ ] T017 [US3] Write `test_parity_vs_prototype` in `tests/test_octree_grid.py`: assert `size_field_octree(pts)` within `atol=1e-10` of reference output in `tests/fixtures/octree/river-into-bay*.npz`
+- [x] T015 [US3] Extend `scripts/render_scalability.py` to run ratio 1000 and regenerate `output/octree_scalability.png`
+- [x] T016 [US3] Write `test_scalability_ratio_1000` in `tests/test_octree_grid.py`: river-into-bay ratio=1000; assert build+query < 10 s AND leaf count ≥ 10× below uniform baseline at finest `h_min` — confirmed 6.68s, 77,800 leaves (2026-06-05)
+- [x] T017 [US3] Write `test_parity_vs_prototype` in `tests/test_octree_grid.py`: assert `size_field_octree(pts)` within `atol=1e-10` of reference output in `tests/fixtures/octree/river-into-bay*.npz`
 
-**Checkpoint**: T016 + T017 green → scalability target met; numerical parity confirmed.
+**Checkpoint**: T016 + T017 green ✓ — scalability target met; numerical parity confirmed (2026-06-05).
+
+**Bug fixed (2026-06-05)**: `_build_tree_recursive` was refining entire interior (d<0 never triggered `d > 2*size`). Fixed to use `abs(d)` as local-feature-size proxy — ratio=1000 build 26.8s → 6.68s, leaves 698,644 → 77,800.
 
 ---
 
