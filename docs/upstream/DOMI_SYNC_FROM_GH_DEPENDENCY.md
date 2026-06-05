@@ -38,7 +38,7 @@ cleanly via `claude plugin install sync-from-domi@DomI`.
 
 ### Reproduction (ADMESH session 2026-05-15)
 
-1. Fresh remote Claude Code session, container cloned ADMESH at `daily-issue-fixing`.
+1. Fresh remote Claude Code session, container cloned ADMESH at `daily-maintenance`.
 2. `scripts/instructions_on_start.sh` reports `sync-from-domi not installed`.
 3. `claude plugin marketplace add domattioli/DomI` → success.
 4. `claude plugin install sync-from-domi@DomI` → success.

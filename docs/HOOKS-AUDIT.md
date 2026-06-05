@@ -4,7 +4,7 @@ Read-only audit of the ADMESH Claude Code hook footprint. Companion to
 `TEST-AUDIT.md`. Per issue [#61](https://github.com/domattioli/ADMESH/issues/61).
 
 **Audit date:** 2026-05-18
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 
 ## 1. Inventory
 

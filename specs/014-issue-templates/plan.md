@@ -2,7 +2,7 @@
 
 **Spec**: `specs/014-issue-templates/spec.md`
 **Resolves**: ADMESH #83
-**Branch**: `daily-issue-fixing` (single rolling branch per CLAUDE.md routine)
+**Branch**: `daily-maintenance` (single rolling branch per CLAUDE.md routine)
 
 ## Architecture decisions
 
@@ -125,7 +125,7 @@ No reverse coupling — DomI doesn't read ADMESH templates.
 1. **T-014-1**: Audit current labels against required set. ✓
 2. **T-014-2**: Write `config.yml`. ✓
 3. **T-014-3..6**: Write four template YAMLs. ✓
-4. **T-014-7**: Commit on `daily-issue-fixing` (via MCP API push, container's
+4. **T-014-7**: Commit on `daily-maintenance` (via MCP API push, container's
    local git signing failed). ✓
 5. **T-014-8**: Close issue with a comment listing label gaps for maintainer
    follow-up.

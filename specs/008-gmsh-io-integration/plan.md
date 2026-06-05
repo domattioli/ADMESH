@@ -1,6 +1,6 @@
 # Implementation Plan: Gmsh `.msh` I/O Integration
 
-**Branch**: `008-gmsh-io-integration` (logical; physical work lands on `daily-issue-fixing`)
+**Branch**: `008-gmsh-io-integration` (logical; physical work lands on `daily-maintenance`)
 **Date**: 2026-05-10
 **Spec**: [spec.md](./spec.md)
 **Tracks**: domattioli/ADMESH#5

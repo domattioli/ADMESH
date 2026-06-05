@@ -15,7 +15,7 @@
 - [x] 1.9 Synthesize audit results (docs/planning/issue-57-audits.md)
 - [x] 1.10 Draft all 8 spec CONSTITUTION.md files
 - [x] 1.11 Create CONSTITUTION-FRAMEWORK.md
-- [x] 1.12 Commit planning artifacts to daily-issue-fixing
+- [x] 1.12 Commit planning artifacts to daily-maintenance
 
 ## Phase 2 (Implementation) — Complete
 
@@ -27,7 +27,7 @@
 - [x] 2.6 Finalize and commit specs/006/CONSTITUTION.md
 - [x] 2.7 Finalize and commit specs/007/CONSTITUTION.md
 - [x] 2.8 Finalize and commit specs/008/CONSTITUTION.md
-- [x] 2.9 Push all to daily-issue-fixing via GitHub MCP
+- [x] 2.9 Push all to daily-maintenance via GitHub MCP
 - [x] 2.10 Post issue comment and close #57
 
 ---

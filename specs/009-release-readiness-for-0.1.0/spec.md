@@ -97,7 +97,7 @@ A downstream library author wants to depend on `admesh2D` and needs to know: whi
 
 - **FR-001**: `scripts/pre_tag_check.sh` MUST verify that `pyproject.toml` `[project].version` equals `admesh/__init__.py::__version__`, exiting non-zero with both file paths and conflicting values when they differ.
 - **FR-002**: `scripts/pre_tag_check.sh` MUST verify that `docs/governance/PROJECT_PLAN.md` contains a `## Where we are today (YYYY-MM-DD` entry whose date is within 30 days of `git log -1 --format=%cI` on HEAD, exiting non-zero with a `PLAN_STALE` message when stale.
-- **FR-003**: `docs/governance/PROJECT_PLAN.md` MUST gain a 2026-05-15 (or later) "Where we are today" entry capturing: closure of #11, addition of specs 003–008, daily-issue-fixing workflow adoption, DomI v1.9 sync state, audit issues #59/#60/#61, and an explicit pointer to this spec as the active sub-plan for 0.1.0.
+- **FR-003**: `docs/governance/PROJECT_PLAN.md` MUST gain a 2026-05-15 (or later) "Where we are today" entry capturing: closure of #11, addition of specs 003–008, daily-maintenance workflow adoption, DomI v1.9 sync state, audit issues #59/#60/#61, and an explicit pointer to this spec as the active sub-plan for 0.1.0.
 - **FR-004**: A `pytest --cov=admesh --cov-report=json --cov-report=term-missing` run output and a `pytest --durations=10` run output MUST be committed under `output/` and referenced from `TEST-AUDIT.md` (closes backlog items B-04 and B-06).
 - **FR-005**: `scripts/pre_tag_check.sh` MUST verify that `output/coverage.json` and `output/durations.txt` exist and were generated within 30 days of HEAD.
 - **FR-006**: Reconcile the version strings: `pyproject.toml` and `admesh/__init__.py::__version__` MUST both declare `0.1.0` (or whatever the agreed initial tag) at the moment R4 fires.
@@ -106,7 +106,7 @@ A downstream library author wants to depend on `admesh2D` and needs to know: whi
 
 - **FR-010**: A new `.github/workflows/tests.yml` MUST run the full pytest suite on every push and PR to any branch, on Python 3.10 / 3.11 / 3.12, on `ubuntu-latest`. This closes TEST-AUDIT finding F-CRIT-01.
 - **FR-011**: Tests requiring real coastal fixtures or external binaries MUST be marked with a `slow` pytest marker; the standard CI lane skips `slow`; a separate weekly lane (`.github/workflows/tests-slow.yml`) runs the full suite including `slow`.
-- **FR-012**: `CONTRIBUTING.md` MUST exist at repo root and cover: dev setup (`pip install -e ".[dev]"`), running tests (`pytest`), the `daily-issue-fixing` branch contract, the DomI sync expectation (`.domi-pin` ledger), and how to file an issue.
+- **FR-012**: `CONTRIBUTING.md` MUST exist at repo root and cover: dev setup (`pip install -e ".[dev]"`), running tests (`pytest`), the `daily-maintenance` branch contract, the DomI sync expectation (`.domi-pin` ledger), and how to file an issue.
 - **FR-013**: `TESTING.md` MUST exist (repo root or `docs/`) and cover: pytest invocation patterns, markers (`slow`, `requires_matlab`, `requires_chilmesh`), fixture-data locations, and the parity-tests pattern (port-correctness vs. MATLAB fixtures).
 - **FR-014**: `docs/ADMESH_DOMAINS_CONTRACT.md` MUST exist and document: the exact symbols ADMESH imports from `admesh-domains`, the supported version range, the parity-test mechanism, and the upgrade policy when `admesh-domains` ships a minor or major bump.
 - **FR-015**: `pyproject.toml` `[project].dependencies` MUST pin `admesh-domains>=0.1.0,<0.2` (or whatever upper bound the contract doc justifies).
@@ -118,7 +118,7 @@ A downstream library author wants to depend on `admesh2D` and needs to know: whi
 - **FR-021**: If the amendment passes, the package MUST be reorganized such that all faithful-port stage modules (`background_grid`, `bathymetry`, `boundary`, `curvature`, `distance`, `distmesh`, `dominate_tide`, `in_polygon`, `inpaint`, `medial_axis`, `mesh_size`, `quality`, `routine`) live under `admesh/_stages/`, with stub re-exports preserving backward compatibility on the old import paths until 1.0.
 - **FR-022**: If the amendment fails, `admesh/__init__.py::__all__` MUST be split into clearly commented "public surface" and "faithful-port stage modules (internal)" groups.
 - **FR-023**: A `docs/` subdirectory MUST house a mkdocs-material configuration (`mkdocs.yml`) covering: index page, quickstart, public API reference (auto-generated from docstrings via `mkdocstrings`), the porting-notes journal, and the constitution.
-- **FR-024**: GitHub Pages MUST serve the rendered docs from the `gh-pages` branch on every push to `daily-issue-fixing` and `main`, via a new `.github/workflows/docs.yml`.
+- **FR-024**: GitHub Pages MUST serve the rendered docs from the `gh-pages` branch on every push to `daily-maintenance` and `main`, via a new `.github/workflows/docs.yml`.
 - **FR-025**: Every public-surface symbol (`Mesh`, `Domain`, `triangulate`, `read_fort14`, `write_fort14`, `BoundaryType`, `BoundarySegment`, `Fort14ParseError`, `compose_size_field`, `SizeFieldFn`, `load_domain_from_fort14`, `load_domain_from_json`, `load_domain_from_toml`, `load_domain_from_registry`, `load_domain_with_metadata`, `list_available_domains`, `mesh_quality`, `right_iso_quality`, `smooth_for_quadrangulation`, `balance_valence_triangles`, `compute_valence`, `get_valence_report`, `BalanceConfig`, `BalanceResult`, `ValenceStats`) MUST have a complete docstring with `Parameters`, `Returns`, and at least one runnable example.
 
 #### Phase R4 — Issue #10 resolution + tag
@@ -146,7 +146,7 @@ A downstream library author wants to depend on `admesh2D` and needs to know: whi
 
 ### Measurable Outcomes
 
-- **SC-001**: `bash scripts/pre_tag_check.sh` exits zero on the `daily-issue-fixing` branch HEAD before the tag is pushed, and a deliberately-introduced version mismatch (test) causes it to exit non-zero.
+- **SC-001**: `bash scripts/pre_tag_check.sh` exits zero on the `daily-maintenance` branch HEAD before the tag is pushed, and a deliberately-introduced version mismatch (test) causes it to exit non-zero.
 - **SC-002**: `pip install admesh2D==0.1.0` in a fresh Python 3.10 / 3.11 / 3.12 virtualenv installs cleanly on Linux (and on macOS + Windows when validated by the weekly slow lane).
 - **SC-003**: 100% of public-surface symbols (per FR-025) have a docstring containing `Parameters`, `Returns`, and ≥1 runnable example; verified by a `tests/test_docstring_completeness.py`.
 - **SC-004**: CI test workflow runs all 310 test functions on every PR; a contributor opening a PR that fails any test sees the failure inline on the GitHub PR check, with median CI wall-clock under 8 minutes on the standard lane.
@@ -163,7 +163,7 @@ A downstream library author wants to depend on `admesh2D` and needs to know: whi
 - mkdocs-material is acceptable as the docs framework; sphinx is not a hard requirement and revisiting is allowed at 1.0.
 - GitHub Pages / Actions are the deployment substrate; no alternative hosting (ReadTheDocs) is required for 0.1.0.
 - The existing single-CI-workflow constraint is acceptable to expand: this spec adds 3 new workflows (`tests.yml`, `tests-slow.yml`, `docs.yml`) on top of the existing `publish.yml`.
-- The `daily-issue-fixing` branch remains the integration branch; this spec lives on `009-release-readiness-for-0.1.0` and merges back to `daily-issue-fixing` only after all four phases complete or are explicitly deferred.
+- The `daily-maintenance` branch remains the integration branch; this spec lives on `009-release-readiness-for-0.1.0` and merges back to `daily-maintenance` only after all four phases complete or are explicitly deferred.
 - Real coastal fixtures (`wnat_test.14`, `wetting_and_drying_test.14`) remain committed under `tests/fixtures/` and are acceptable as Tier-1/Tier-2 release-gate test data.
 - chilmesh integration remains a gated compat smoke test; no runtime dependency on `chilmesh` is introduced by this spec.
 

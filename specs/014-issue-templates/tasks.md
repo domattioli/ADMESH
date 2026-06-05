@@ -81,7 +81,7 @@ the #25-style boilerplate), adjacent issues (input, optional).
 
 **Dependency**: T-014-2.
 
-### T-014-7 — Commit on `daily-issue-fixing` ✓
+### T-014-7 — Commit on `daily-maintenance` ✓
 
 **Tied to**: CLAUDE.md routine → STEP 7 (Validation & Commit).
 
@@ -91,7 +91,7 @@ GitHub's verified signature flow. Templates committed in
 `afa69e978c96e0288a163a568022ba29badf5c27`; spec/plan/tasks
 follow-on in subsequent `create_or_update_file` commits.
 
-**Verification**: branch HEAD on `daily-issue-fixing` shows the
+**Verification**: branch HEAD on `daily-maintenance` shows the
 template-bundle commit referencing #83.
 
 ### T-014-8 — Close issue with label-gap punch list

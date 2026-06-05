@@ -2,7 +2,7 @@
 
 **Status:** Planning-phase only. No code shipping.
 **Issue:** [#81 overlap with chilmesh](https://github.com/domattioli/ADMESH/issues/81)
-**Branch:** `daily-issue-fixing`
+**Branch:** `daily-maintenance`
 **Token budget:** MEDIUM (architecture audit, doc-only deliverables)
 
 ---

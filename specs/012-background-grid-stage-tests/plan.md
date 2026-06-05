@@ -1,7 +1,7 @@
 # Plan 012 — Direct stage tests for `admesh._stages.background_grid`
 
 **Spec**: `specs/012-background-grid-stage-tests/spec.md`
-**Branch**: `daily-issue-fixing`
+**Branch**: `daily-maintenance`
 **Phase**: Planning (no code commits this run)
 
 ## 1. Architecture decisions
@@ -67,7 +67,7 @@ hide indefinitely behind the larger port effort.
 ```
 Spec 012 (this run)
     │
-    ├── Track A (next implementation run on daily-issue-fixing)
+    ├── Track A (next implementation run on daily-maintenance)
     │     ├── T-012-1  Verify fixture exporter state
     │     ├── T-012-2  Create test scaffold (smoke + xfail parity)
     │     ├── T-012-3  Update TEST-AUDIT.md (F-MED-01, B-05)
@@ -92,7 +92,7 @@ Track A is one implementation run. Track B is gated on a separate spec.
   produced from a polygon or fort.14 input; the registry sibling has
   no role here.
 - **CHILMESH**: not involved.
-- **DomI**: spec uses the daily-issue-fixing workflow conventions
+- **DomI**: spec uses the daily-maintenance workflow conventions
   established by spec 009 / 010 / 011 (linked branch, audit gates,
   Constitution Principle I citation).
 

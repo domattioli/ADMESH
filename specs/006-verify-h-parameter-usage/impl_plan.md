@@ -3,7 +3,7 @@
 **Date**: 2026-05-06  
 **Status**: Planning Phase  
 **Issue Reference**: #37  
-**Branch**: `daily-issue-fixing` (mandate reuse)
+**Branch**: `daily-maintenance` (mandate reuse)
 
 ## Overview
 

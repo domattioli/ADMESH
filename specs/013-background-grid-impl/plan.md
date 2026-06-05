@@ -1,7 +1,7 @@
 # Plan 013 — Implementation plan for background-grid port
 
 **Spec**: `specs/013-background-grid-impl/spec.md`
-**Branch**: `daily-issue-fixing`
+**Branch**: `daily-maintenance`
 
 ## Approach
 
@@ -190,7 +190,7 @@ regression cause recorded.
 
 - **Constitution Principle I**: enforced by FR-013-2 / FR-013-6.
 - **Principle II (no branch proliferation)**: all passes on
-  `daily-issue-fixing`.
+  `daily-maintenance`.
 - **Principle III (audit gates close)**: F-MED-01 / B-05 close once
   Pass 5b finishes.
 

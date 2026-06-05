@@ -80,7 +80,7 @@ Constitution Principle I: 13 faithful-port modules stay numerically identical. S
 ## Skills & Tools
 
 All Claude Code skills managed by parent **DomI** repository:
-- Single-branch policy enforcement (`daily-issue-fixing`)
+- Single-branch policy enforcement (`daily-maintenance`)
 - Pre-commit hooks
 - Session startup configuration
 
