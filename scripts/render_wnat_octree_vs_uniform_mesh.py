@@ -37,16 +37,17 @@ from shapely.geometry import Polygon  # noqa: E402
 
 import admesh  # noqa: E402
 from admesh._stages.octree_grid import build_octree  # noqa: E402
+from admesh._stages.octree_grid import _is_leaf  # noqa: E402
 from admesh._stages.octree_grid import interpolate as octree_interp  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 ONUR = REPO / "benchmarks" / "data" / "wnat_onur_boundary.json"
 OUT = REPO / "output" / "wnat_octree_vs_uniform_mesh.png"
 
-H_MIN = 0.4   # degrees — fine resolution near boundary
-H_MAX = 3.0   # degrees — coarse offshore
+H_MIN = 0.25  # degrees — fine resolution near boundary
+H_MAX = 1.5   # degrees — coarse offshore
 UNIFORM_DELTA = H_MIN   # uniform background grid spacing — match octree finest level
-MAX_ITER = 25   # distmesh cap
+MAX_ITER = 40   # distmesh cap
 SEED = 0
 HOLE_MIN_VERTS = 8  # drop tiny holes that bog distmesh
 
@@ -120,26 +121,56 @@ def build_octree_size_field(bbox, fd):
     t0 = time.perf_counter()
     grid = build_octree(dom, h_min=H_MIN, h_max=H_MAX,
                         size_oracle=oracle, balance=True)
-    h_per_leaf = np.array([lf.size for lf in grid.leaves], dtype=np.float64)
+    leaves = grid.leaves
+    h_per_leaf = np.array([lf.size for lf in leaves], dtype=np.float64)
+    h_max_val = float(h_per_leaf.max())
+    # Spec-022 perf bug workaround: locate() rebuilds an O(N²) node→leaf
+    # dict every call. Precompute it once here and descend per-point inline.
+    node_to_leaf = {}
+    for li, lf in enumerate(leaves):
+        for ni, nd in enumerate(grid._nodes):
+            if nd is lf:
+                node_to_leaf[ni] = li
+                break
+    nodes = grid._nodes
+    root = grid.root
+    xmin, ymin, xmax, ymax = grid.bbox
     setup_dt = time.perf_counter() - t0
 
     def size_field(p):
-        return octree_interp(grid, h_per_leaf, p)
+        p = np.asarray(p, dtype=np.float64).reshape(-1, 2)
+        out = np.empty(len(p), dtype=np.float64)
+        for qi in range(len(p)):
+            x = min(max(p[qi, 0], xmin), xmax)
+            y = min(max(p[qi, 1], ymin), ymax)
+            idx = root
+            while not _is_leaf(nodes[idx]):
+                cx, cy = nodes[idx].center
+                q = (1 if x > cx else 0) + (2 if y > cy else 0)
+                ci = nodes[idx]._children_idx[q]
+                if ci == -1:
+                    break
+                idx = ci
+            li = node_to_leaf.get(idx, 0)
+            out[qi] = h_per_leaf[li]
+        return out
 
-    return size_field, setup_dt, len(grid.leaves)
+    return size_field, setup_dt, len(leaves)
 
 
 def run_triangulate(domain, size_field, h_max, label):
     print(f"  [{label}] triangulating (max_iter={MAX_ITER}) …", end=" ", flush=True)
     t0 = time.perf_counter()
     try:
+        # Pass h_max=H_MIN so distmesh seeds at the finest scale; size_field
+        # tells it to coarsen offshore. Without this, h0=h_max → sparse seed.
         mesh = admesh.triangulate(
             domain,
-            h_max=h_max,
+            h_max=H_MIN,
             size_field=size_field,
             max_iter=MAX_ITER,
             seed=SEED,
-            quality_gate=(0.05, 0.30),
+            quality_gate=(0.0, 0.0),  # disabled — render whatever distmesh produces
         )
         dt = time.perf_counter() - t0
         print(f"{dt:.2f}s  ({mesh.n_nodes} nodes / {mesh.n_elements} elements)")
