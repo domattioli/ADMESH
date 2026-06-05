@@ -16,6 +16,16 @@ Template:
 
 ---
 
+## 2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)
+
+**MATLAB**: N/A — `octree_grid.py` is new Python-only code, not a MATLAB port.
+**Python**: `admesh._stages.octree_grid._build_tree_recursive`
+**Bug fixed**: `_build_tree_recursive` condition `d > 2.0 * node.size` only skipped far-EXTERIOR cells. Interior cells (d < 0, negative SDF) always passed the check → entire interior subdivided to h_min → O(N²)–like leaf growth at high feature-size ratios.
+**Fix**: Replace exterior-only check with local-feature-size (LFS) adaptive stopping. `lfs = max(abs(d), h_min)`, `target_h = min(lfs, h_max)`. Stop subdividing when `node.size <= target_h`. This halts interior cells at the depth appropriate for their distance to the boundary.
+**Impact**: ratio=1000 build time 26.8s → 6.68s, leaf count 698,644 → 77,800. All 16 octree tests pass. `_build_tree_recursive` now accepts `h_max` parameter; `build_octree` passes it through.
+
+---
+
 ## 2026-05-25 — stage 02 — CreateBackgroundGrid
 
 **MATLAB**: `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)` in `02_Create_Background_Grid/CreateBackgroundGrid.m`

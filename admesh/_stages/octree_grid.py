@@ -320,7 +320,7 @@ def build_octree(
     tree = OctreeTree(root=root, max_depth=max_depth)
 
     # Build the tree via recursive subdivision
-    _build_tree_recursive(root, domain, h_min, max_depth)
+    _build_tree_recursive(root, domain, h_min, max_depth, h_max)
 
     # Collect all leaves
     tree._collect_leaves()
@@ -355,24 +355,28 @@ def _build_tree_recursive(
     domain: Domain,
     h_min: float,
     max_depth: int,
+    h_max: float = 1.0,
 ) -> None:
     """Recursively subdivide until cell size <= h_min or depth >= max_depth.
 
-    Only subdivides cells that are inside or near the domain boundary
-    (signed distance <= 2 * cell_size), so exterior cells stay coarse.
+    Uses local feature size (LFS) = abs(signed_distance) to guide refinement:
+    cells are subdivided only if their size exceeds the local LFS.
+    This avoids over-refining deep interiors while respecting boundary gradients.
     """
     if node.depth >= max_depth or node.size <= h_min:
         return
 
-    # Only refine cells near/inside the domain
+    # Local feature size: abs(d) as distance-to-boundary proxy
     pt = node.center
     d = float(domain.sdf(pt.reshape(1, -1))[0])
-    if d > 2.0 * node.size:
-        return  # far outside domain; leave coarse
+    lfs = max(abs(d), h_min)
+    target_h = min(lfs, h_max)
+    if node.size <= target_h:
+        return  # Cell already fine enough for local feature size
 
     node.split(max_depth)
     for child in node.children:
-        _build_tree_recursive(child, domain, h_min, max_depth)
+        _build_tree_recursive(child, domain, h_min, max_depth, h_max)
 
 
 def size_field_octree(
