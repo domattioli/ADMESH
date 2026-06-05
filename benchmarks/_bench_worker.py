@@ -65,10 +65,13 @@ def main() -> None:
         bbox = dom.bbox
 
     # Stages 1-5: size field (SDF grid + curvature + medial + grading + interp).
+    # Use spec-002 production defaults: curvature_scale=20.0, medial_scale=0.1.
+    # (Previously used a.hmin for both, which mis-parameterizes the size field
+    # and produces systematically low-quality meshes. See issue #101.)
     t0 = time.perf_counter()
     fh = _ms.build_h(
         _D, base=a.hmax, hmin=a.hmin, hmax=a.hmax, g=a.g,
-        curvature_scale=a.hmin, medial_scale=a.hmin,
+        curvature_scale=20.0, medial_scale=0.1,
     )
     T["build_h_total"] = time.perf_counter() - t0
     T["interpolant"] = max(
@@ -94,13 +97,6 @@ def main() -> None:
     t0 = time.perf_counter()
     qmin, qmean, q = _quality.mesh_quality(p, t)
     T["quality"] = time.perf_counter() - t0
-
-    # TODO: Apply quality gate (same as admesh.triangulate default).
-    # Benchmark bypasses the production size-field stack (spec-002), which limits mesh quality.
-    # On WNAT domain with correct derived params, minimum quality ~0.02 (severe sliver at Bermuda).
-    # Gate should be relaxed for benchmark-only domains, or benchmark should be routed through
-    # full triangulate() path with spec-002 size-field stack.
-    # See issue #101 for ongoing discussion.
 
     res = {
         "label": a.label,
