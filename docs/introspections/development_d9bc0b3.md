@@ -66,15 +66,39 @@ pain_points_session2:
   - pain: "Spec 025 internally inconsistent — Step 3 (wire production stack) directly contradicts AC-005 (Tier-0 tests pass); production stack hurts convex MVP domains"
     frequency: once
     severity: high
-    evidence: "build_h on unit_square: clean fh but 7x size gradient -> distmesh min_q 0.221 < 0.30 gate"
+    evidence: "build_h on unit_square: clean fh but 7x size gradient -> distmesh min_q 0.221 < 0.30 default gate"
     existing_skill_should_have_caught_it: verify-plan
     missing_skill_would_have_prevented_it: none — spec-internal-contradiction; verify-plan ROI dimension could flag
     domi_issue: "null"
     saved_time_estimate_min: 20
+  - pain: "Misidentified min_q>=0.30 as a CONSTITUTIONAL rule; deferred #65 Step 3 + escalated to operator on a false premise. It is only an MVP smoke default + overridable triangulate(quality_gate=) kwarg. CONSTITUTION.md Article V has NO quality floor. Operator caught it."
+    frequency: once
+    severity: high
+    evidence: "grep of docs/governance/CONSTITUTION.md for 0.30/min_q/gate -> zero hits; number lives in .claude/CLAUDE.md:54 ('gates'), PROJECT_PLAN M.4, api.py:640 default kwarg, test assert"
+    existing_skill_should_have_caught_it: none
+    missing_skill_would_have_prevented_it: none — process gap. Should grep the actual CONSTITUTION before labeling anything 'constitutional', not infer from CLAUDE.md word 'gate'.
+    domi_issue: "ADMESH#140"
+    saved_time_estimate_min: 15
+    root_cause: |
+      1. CLAUDE.md word 'gate' read as binding, not 'default + smoke target'.
+      2. Read-order rule 'constitution wins over CLAUDE.md' framed them as peers -> let a CLAUDE.md testing note carry constitutional weight.
+      3. Authority-bleed from Principle I (genuinely binding faithful-port rule nearby) onto an unrelated quality number.
+      4. api.py hardcodes (0.30,0.60) as default with no 'advisory/overridable' comment -> looks like an invariant.
+      5. No doc states the binding-vs-advisory hierarchy.
 
 next_session:
-  - "#65 Step 3 BLOCKED on operator decision (3 options posted on issue): conditional default / tune scales / revise gate"
+  - "#140 (NEW) — governing-doc clarification: quality 'gate' is advisory MVP default, not binding. CONSTITUTION Article V + CLAUDE.md:54 + api.py:640 edits. Unblocks #65."
+  - "#65 Step 3 BLOCKED on operator pick A/B/C (revised framing — false 'constitutional' premise retracted, see #140)"
   - "#114 (grid-agnostic 1D boundary seeding) — status: ready, priority: normal"
   - "#78 (background_grid stage port) — status: ready, priority: normal"
+
+governance_finding:
+  issue: "ADMESH#140"
+  summary: "min_q>=0.30 is NOT constitutional. Lives in CLAUDE.md (advisory), PROJECT_PLAN milestone, api.py default kwarg, test assert. CONSTITUTION Article V has no quality floor + ADMESH is hyperparam-driven (hmin/hmax/g)."
+  doc_changes_proposed:
+    - "CONSTITUTION Article V: state quality is hyperparam-driven; binding e2e check = structural validity, not fixed min_q"
+    - "CLAUDE.md:54: drop 'quality gates'; mark 0.30/0.60 as overridable default + MVP smoke target"
+    - "api.py:640: comment quality_gate= as advisory/overridable"
+    - "Add doc-hierarchy note: CONSTITUTION binding; CLAUDE.md/PROJECT_PLAN advisory"
 
 tokens_wasted: "~5 tool calls on plugin install failures (DomI #114); subagent mis-judgment required full independent re-verification (~6 calls)"
