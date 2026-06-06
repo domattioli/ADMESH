@@ -447,8 +447,12 @@ class TestScalabilityRatio1000:
         h = fh(pts)
         elapsed = time.perf_counter() - t0
 
-        # Time gate: < 10s
-        assert elapsed < 10.0, f"Build + query took {elapsed:.2f}s, expected < 10s"
+        # Time gate: budget set to 20s (not 10s) — Windows CI runners sit in the
+        # 10-12s noise band for this build+query (Linux ~6.7s) while the original
+        # O(N^2) bug ran ~26.8s, so 20s still catches gross regression without
+        # flaking on runner variance. The leaf-count gate below is the real
+        # scalability proof. (#115)
+        assert elapsed < 20.0, f"Build + query took {elapsed:.2f}s, expected < 20s"
 
         # Leaf count gate: >= 10x below uniform baseline
         # uniform baseline = bbox_area / h_min^2 = 1.0 / 0.001^2 = 1_000_000
