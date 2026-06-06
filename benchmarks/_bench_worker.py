@@ -72,6 +72,7 @@ def main() -> None:
     fh = _ms.build_h(
         _D, base=a.hmax, hmin=a.hmin, hmax=a.hmax, g=a.g,
         curvature_scale=20.0, medial_scale=0.1,
+        bathymetry=getattr(dom, 'bathymetry', None), bathy_scale=0.5,
     )
     T["build_h_total"] = time.perf_counter() - t0
     T["interpolant"] = max(
@@ -83,7 +84,7 @@ def main() -> None:
     # Stage 6: distmesh (point generation + force relaxation).
     pfix = dom.pfix if getattr(dom, "pfix", None) is not None else None
     t0 = time.perf_counter()
-    out = distmesh2d(fd=dom.sdf, fh=fh, h0=a.hmin, bbox=dom.bbox,
+    out = distmesh2d(fd=dom.sdf, fh=fh, h0=a.hmax, bbox=dom.bbox,
                      pfix=pfix, niter=a.niter, return_diagnostics=True)
     T["distmesh"] = time.perf_counter() - t0
     if len(out) == 3:
@@ -97,6 +98,13 @@ def main() -> None:
     t0 = time.perf_counter()
     qmin, qmean, q = _quality.mesh_quality(p, t)
     T["quality"] = time.perf_counter() - t0
+
+    # Quality gate (issue #101 fallback contract).
+    gate_min, gate_mean = 0.30, 0.60
+    if qmin < gate_min:
+        import sys
+        print(f"[{a.label}] WARNING: min_q {qmin:.3f} < quality gate {gate_min:.2f} — "
+              f"benchmark mesh fails production standard", file=sys.stderr)
 
     res = {
         "label": a.label,
