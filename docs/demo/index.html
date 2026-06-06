@@ -896,6 +896,7 @@ async function runCompute() {
     }
 
     // seed live player — frames fill in as Python streams them
+    const capturedVerts = (domainKey === "custom") ? drawVerts.slice() : null;
     if (drawMode) exitDrawMode();
     setPlaying(false);
     zoomScale = 1.0; panX = 0; panY = 0;
@@ -916,8 +917,8 @@ async function runCompute() {
     py.globals.set("_hmax", hmax);
     py.globals.set("_g", g);
     py.globals.set("_stop_compute", false);
-    if (domainKey === "custom") {
-      py.globals.set("_verts_json", JSON.stringify(drawVerts));
+    if (capturedVerts !== null) {
+      py.globals.set("_verts_json", JSON.stringify(capturedVerts));
     }
     if (seamountData) {
       py.globals.set("_seamount_rings_json", JSON.stringify(seamountData.boundary));
