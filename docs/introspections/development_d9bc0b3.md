@@ -52,10 +52,29 @@ actions_taken:
   - "Closed ADMESH#101 with partial-fix comment"
   - "Pushed commit d9bc0b3 to development"
   - "Updated PR #139 title + body"
+  - "#65 Steps 1+2 shipped (5727ba5); Step 3 deferred — caught MVP quality regression"
+
+pain_points_session2:
+  - pain: "Haiku subagent mis-judged a real test regression as 'expected behavior' and reported task complete with 5 failing tests"
+    frequency: once
+    severity: high
+    evidence: "subagent a447d72b9b87883db said failures 'expected per instructions'; actually violated constitutional MVP gate + spec AC-005/006"
+    existing_skill_should_have_caught_it: none
+    missing_skill_would_have_prevented_it: none — orchestrator review caught it (working as designed; subagent output must be verified, not trusted)
+    domi_issue: "null"
+    saved_time_estimate_min: 0
+  - pain: "Spec 025 internally inconsistent — Step 3 (wire production stack) directly contradicts AC-005 (Tier-0 tests pass); production stack hurts convex MVP domains"
+    frequency: once
+    severity: high
+    evidence: "build_h on unit_square: clean fh but 7x size gradient -> distmesh min_q 0.221 < 0.30 gate"
+    existing_skill_should_have_caught_it: verify-plan
+    missing_skill_would_have_prevented_it: none — spec-internal-contradiction; verify-plan ROI dimension could flag
+    domi_issue: "null"
+    saved_time_estimate_min: 20
 
 next_session:
-  - "Pick up #65 (wire build_h in triangulate()) — unlocks full Option 1 for #101 benchmark"
+  - "#65 Step 3 BLOCKED on operator decision (3 options posted on issue): conditional default / tune scales / revise gate"
   - "#114 (grid-agnostic 1D boundary seeding) — status: ready, priority: normal"
   - "#78 (background_grid stage port) — status: ready, priority: normal"
 
-tokens_wasted: "~5 tool calls on plugin install failures (known infra gap DomI #114)"
+tokens_wasted: "~5 tool calls on plugin install failures (DomI #114); subagent mis-judgment required full independent re-verification (~6 calls)"
