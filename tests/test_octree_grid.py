@@ -424,6 +424,7 @@ class TestNumericalParity:
         np.testing.assert_array_equal(h_batch, h_single)
 
 
+@pytest.mark.slow  # wall-clock perf gate — runs in scheduled tests-slow lane, not PR-blocking matrix (Windows runner-variance flake, #115)
 class TestScalabilityRatio1000:
     """T016 — Build + query < 10s at feature-size ratio 1000."""
 
