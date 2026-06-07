@@ -62,6 +62,11 @@ pip install admesh2D            # core
 pip install admesh2D[viz]       # adds chilmesh for mesh.plot() / plot_quality()
 ```
 
+> ⚠️ **Install `admesh2D`, not `admesh`.** `pip install admesh` pulls an
+> unrelated C STL-repair library that needs `admesh/stl.h` at build time and
+> will fail. This project's PyPI distribution name is **`admesh2D`**; the
+> import name stays `admesh` (`import admesh`).
+
 From source:
 
 ```bash
