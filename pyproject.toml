@@ -48,6 +48,7 @@ Paper = "https://doi.org/10.1007/s10236-012-0574-0"
 "Mesh Registry" = "https://github.com/domattioli/ADMESH-Domains"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["admesh*"]
 
 [tool.pytest.ini_options]

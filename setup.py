@@ -58,13 +58,13 @@ if HAS_PYBIND11 and eigen_path is None:
 ext_modules = []
 
 if HAS_PYBIND11 and eigen_path is not None:
-    include_dirs = [str(Path(__file__).parent), eigen_path]
+    include_dirs = [str(Path(__file__).parent), str(Path(__file__).parent / "src"), eigen_path]
     ext_modules = [
         Pybind11Extension(
             "admesh._cpp._distmesh_cpp",
             [
-                "admesh/_cpp/distmesh_module.cpp",
-                "admesh/_cpp/distmesh_cpp.cpp",
+                "src/admesh/_cpp/distmesh_module.cpp",
+                "src/admesh/_cpp/distmesh_cpp.cpp",
             ],
             include_dirs=include_dirs,
             language='c++',
