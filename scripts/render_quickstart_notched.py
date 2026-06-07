@@ -1,6 +1,6 @@
 """Render the notched-rectangle quickstart figure for README.
 
-Produces ``papers/quickstart_notched.png`` — a triangulation of the
+Produces ``docs/papers/quickstart_notched.png`` — a triangulation of the
 ``notched_rectangle`` MVP domain with a *graded* size field so the
 figure shows ADMESH actually doing its job: curvature sizing refines the
 elements around the sharp notch and corners, coarsening into the open
@@ -28,7 +28,7 @@ from admesh.routine import triangulate
 
 matplotlib.use("Agg")
 
-OUT = Path(__file__).resolve().parent.parent / "papers" / "quickstart_notched.png"
+OUT = Path(__file__).resolve().parent.parent / "docs" / "papers" / "quickstart_notched.png"
 
 HMIN, HMAX = 0.025, 0.25
 

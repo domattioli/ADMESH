@@ -167,11 +167,10 @@ docs/demo/data/
 admesh-rs/target/
 admesh-rs/**/target/
 
-# Preserve output/ except specific files
+# output/ is scratch for render scripts; only release-gate artifacts tracked.
+# Committed demo/gallery images now live under docs/gallery/.
 output/*
-!output/*.png
 !output/quickstart_validation.txt
-!output/quad_prep_block_o/
 !output/coverage.json
 !output/durations.txt
 *.mexw64
