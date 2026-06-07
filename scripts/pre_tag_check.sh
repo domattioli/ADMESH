@@ -4,7 +4,7 @@
 # Gates:
 #   1. constitution version >= 1.0.2
 #   2. README has the "0.1.0 in progress" callout
-#   3. no papers/wnat_admesh.png in the working tree
+#   3. no docs/papers/wnat_admesh.png in the working tree
 #   4. no dist/ or build/ directories
 #   5. tier-2 release-gate test passes OR is documented as xfail (issue #10)
 #   6. pyproject.toml version == admesh/__init__.py __version__  (spec 009 FR-001)
@@ -57,11 +57,11 @@ else
     fail "README must reference 0.1.0 either as 'in progress' or as a shipped version"
 fi
 
-# 3. No papers/wnat_admesh.png in the working tree ------------------------
-if [[ -f papers/wnat_admesh.png ]]; then
-    fail "papers/wnat_admesh.png is present (spec FR-019; should be removed)"
+# 3. No docs/papers/wnat_admesh.png in the working tree ------------------------
+if [[ -f docs/papers/wnat_admesh.png ]]; then
+    fail "docs/papers/wnat_admesh.png is present (spec FR-019; should be removed)"
 else
-    pass "papers/wnat_admesh.png absent"
+    pass "docs/papers/wnat_admesh.png absent"
 fi
 
 # 4. No dist/ or build/ directories ---------------------------------------
