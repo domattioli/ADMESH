@@ -7,7 +7,7 @@
 
 namespace py = pybind11;
 
-// Stub: reference the admesh-cpp headers if integrated
+// Stub: reference the src/cpp headers if integrated
 // For now, define minimal Python-visible types
 
 struct Domain {

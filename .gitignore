@@ -164,8 +164,8 @@ scripts/viz_data/
 docs/demo/data/
 
 # Rust port build artifacts
-admesh-rs/target/
-admesh-rs/**/target/
+src/rust/target/
+src/rust/**/target/
 
 # output/ is scratch for render scripts; only release-gate artifacts tracked.
 # Committed demo/gallery images now live under docs/gallery/.
@@ -176,11 +176,11 @@ output/*
 *.mexw64
 *.mexmaci64
 *.mexa64
-# keep the vendored MATLAB MEX binaries in the archived reference library
+# keep the vendored MATLAB MEX binaries in the reference library
 # (mex-only routines have no .m/.c source — this is their only copy)
-!archive/matlab/**/*.mexw64
-!archive/matlab/**/*.mexmaci64
-!archive/matlab/**/*.mexa64
+!src/matlab/**/*.mexw64
+!src/matlab/**/*.mexmaci64
+!src/matlab/**/*.mexa64
 
 # manim render artifacts + generated viz data
 media/
