@@ -61,7 +61,7 @@ of the MATLAB reference and may evolve as the port is refined. See
 
 ## Project state
 
-- **Maturity**: pre-0.1.0; first PyPI tag tracked by [spec 009](https://github.com/domattioli/ADMESH/blob/daily-maintenance/specs/009-release-readiness-for-0.1.0/spec.md).
+- **Maturity**: pre-0.1.0; first PyPI tag tracked by [spec 009](https://github.com/domattioli/ADMESH/blob/development/specs/009-release-readiness-for-0.1.0/spec.md).
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
 - **Sibling registry**: [github.com/domattioli/ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) — federated mesh metadata + HuggingFace-mirrored data files.
