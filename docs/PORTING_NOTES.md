@@ -125,3 +125,16 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 **Python**: `admesh.quality.right_iso_quality`. Right-isoceles deviation score in `[0, 1]` per spec-004 FR-006. Per-element score = product of three terms: leg-equality, right-angle-fit, hypotenuse-fit. Mesh score = unweighted mean. Constitutionally additive: existing `mesh_quality` (equilateral target) **not** modified (Principle I).
 **Behavior diff**: None to MATLAB (no analog). Metric documented in public-api.md contract. ADMESH distmesh output typically scores ~1.0 on `mesh_quality` and ~0.5 on `right_iso_quality`; spec-004 smoother trades former for latter (validated on Block_O.14: 0.977 → 0.923 for `mesh_quality`, 0.498 → 0.686 for `right_iso_quality`).
 **Impact**: Downstream consumers running tri-to-quad fusion have quality metric meaningfully scoring mesh suitability.
+
+## 2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
+
+**MATLAB**: `02_Create_Background_Grid/CreateBackgroundGrid.m` @ 19b2eb9 — `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)`. Bbox padded by `hmax` each side; `delta = (1/res)*hmin`; grid `meshgrid(xmin:delta:xmax, ymin:delta:ymax)`.
+**Python**: `admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1)` returns frozen `BackgroundGrid(X, Y, delta, bbox)`.
+
+**Substitutions / behavior diffs**:
+- `hmin` role → `h0` (grid spacing); `delta = h0/res` matches `(1/res)*hmin`.
+- `hmax` pad → `padding` kwarg, default `h0`. The MATLAB signature carries a separate coarse `hmax`; this port has no second size in scope, so one cell (`h0`) of pad is the faithful minimum. A caller wanting MATLAB parity passes `padding=hmax`.
+- MATLAB colon `xmin:delta:xmax` (inclusive, stops at the largest `xmin+k*delta <= xmax`) → NumPy `np.arange(xmin, xmax + 0.5*delta, delta)`. The `0.5*delta` upper-bound guard absorbs float rounding so the terminal `~xmax` node is retained. Edge case: when `(xmax-xmin)/delta` lands near an integer, the half-open arange can keep one node the colon would also keep — counts match for the unit-square fixture (13×13 at h0=0.1).
+- `meshgrid(..., indexing="xy")` keeps MATLAB column-major X-along-columns layout; `(X, Y)` align with `eval_sdf_grid` for the same bbox+delta.
+
+**Parity status**: structural tests in `tests/test_background_grid.py` pass (bbox, spacing, uniformity, res-factor). Bit-exact MATLAB parity test stays `xfail(strict=True)` until a MATLAB-equipped run executes the stage-02 target now wired into `scripts/export_matlab_fixtures.m` (writes `tests/fixtures/matlab/background_grid_unit_square.mat`; `scripts/mat_to_npz.py` converts to the `.npz` the test loads). No MATLAB/Octave in the routine container (#78 acceptance criteria 1 + 3 blocked on that run).
