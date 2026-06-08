@@ -274,6 +274,9 @@ class Domain:
     bc_segments
         Optional pre-labeled boundary metadata that flows through to
         the output mesh.
+    bathymetry
+        Optional callable for bathymetric elevation sampling;
+        used by the default size-field stack.
     """
 
     sdf: Callable[[np.ndarray], np.ndarray]
@@ -281,6 +284,7 @@ class Domain:
     pfix: np.ndarray | None = None
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
+    bathymetry: Callable[[np.ndarray], np.ndarray] | None = field(default=None, compare=False)
 
     @classmethod
     def from_mesh(cls, mesh: "Mesh") -> "Domain":
@@ -363,7 +367,17 @@ class Domain:
             inside = in_outer & ~in_hole
             return np.where(inside, -distances, distances)
 
-        return cls(sdf=sdf, bbox=bbox, bc_segments=bc_segments)
+        if getattr(mesh, "bathymetry", None) is not None:
+            from scipy.interpolate import NearestNDInterpolator
+            bathy_interp = NearestNDInterpolator(
+                mesh.nodes,
+                mesh.bathymetry,
+                rescale=False,
+            )
+        else:
+            bathy_interp = None
+
+        return cls(sdf=sdf, bbox=bbox, bc_segments=bc_segments, bathymetry=bathy_interp)
 
 
 # ---------------------------------------------------------------------------
@@ -756,6 +770,13 @@ def triangulate(
         user_phase2 = tuple(user_contribs)
 
         # If h_min/h_max specified without other size fields, create a bounded field.
+        # NOTE (#65 / spec 025 Step 3 DEFERRED): wiring build_h() here as the
+        # unconditional default degrades MVP convex-domain min_q 0.30 -> 0.22
+        # (curvature+medial size-gradient -> low-quality distmesh transition
+        # tris), violating the constitutional MVP quality gate + spec 025
+        # AC-005/AC-006. Deferred pending operator decision (make conditional on
+        # domain features / tune scales / revise gate). Steps 1+2 (Domain.bathymetry
+        # + from_mesh extraction) shipped — additive, no behavior change.
         if not builtins_phase1 and not user_phase2:
             # Create a clamping size field directly to avoid warning noise.
             def _clamped_uniform(pts):

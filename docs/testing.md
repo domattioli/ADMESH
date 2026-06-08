@@ -1,6 +1,6 @@
 # Testing
 
-See **[TESTING.md](https://github.com/domattioli/ADMESH/blob/daily-maintenance/TESTING.md)**
+See **[TESTING.md](https://github.com/domattioli/ADMESH/blob/development/TESTING.md)**
 at the repository root for the full testing guide.
 
 ## Quick reference

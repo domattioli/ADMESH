@@ -35,12 +35,12 @@ See `TESTING.md` for the full marker reference and fixture-data layout.
 
 ## Branch contract
 
-- All in-progress work lives on `daily-maintenance`. Open issues directly
+- All in-progress work lives on `development`. Open issues directly
   against that branch; do not push directly to `main`.
 - Feature specs (`specs/NNN-name/`) may live on their own short-lived
-  `NNN-name` branches and merge back to `daily-maintenance` when complete.
+  `NNN-name` branches and merge back to `development` when complete.
 - Never push to `main` from a fork or local clone.
-- Never force-push to `main`, `daily-maintenance`, or any branch with an
+- Never force-push to `main`, `development`, or any branch with an
   open pull request from another contributor.
 - Never use `--no-verify`, `--no-gpg-sign`, or any other flag that skips
   configured git hooks unless explicitly approved by a maintainer in a
@@ -92,7 +92,7 @@ ships a new commit. Close the issue by running the sync.
 
 ## Pull requests
 
-- Target `daily-maintenance`, not `main`.
+- Target `development`, not `main`.
 - Mark as draft until CI is green.
 - Include a "Test plan" section in the body. If the PR is documentation-only,
   say so explicitly.

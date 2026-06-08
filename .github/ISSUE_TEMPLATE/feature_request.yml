@@ -1,7 +1,7 @@
 name: Feature Request
 description: Propose a non-port enhancement (new API, new I/O, new selection mechanism, etc.).
 title: "[feat] "
-labels: ["type:enhancement"]
+labels: ["type: feat", "status: triage", "priority: normal"]
 body:
   - type: markdown
     attributes:
@@ -41,8 +41,8 @@ body:
       options:
         - "io"
         - "numerics"
-        - "scope:tests"
-        - "scope:docs"
+        - "tests"
+        - "docs"
         - "performance"
         - "integration"
         - "roadmap"
@@ -50,27 +50,14 @@ body:
       required: true
 
   - type: dropdown
-    id: severity
-    attributes:
-      label: Severity
-      options:
-        - "severity:low"
-        - "severity:medium"
-        - "severity:high"
-        - "severity:critical"
-      default: 0
-    validations:
-      required: true
-
-  - type: dropdown
     id: priority
     attributes:
       label: Priority
+      description: "Informational — maintainer applies the label. Default: `priority: normal`."
       options:
-        - "priority:low"
-        - "priority:medium"
-        - "priority:high"
-        - "priority:critical"
+        - "now"
+        - "normal"
+        - "someday"
       default: 1
     validations:
       required: true

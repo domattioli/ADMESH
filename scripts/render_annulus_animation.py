@@ -4,7 +4,7 @@ Sweeps ``admesh.triangulate(..., max_iter=k)`` for an exponentially-
 spaced sequence of k values to capture frames without touching
 ``distmesh2d``. See ``specs/011-annulus-meshing-animation/spec.md``.
 
-Outputs (both committed to ``papers/``):
+Outputs (both committed to ``docs/papers/``):
 
 - ``annulus_meshing.gif``  — canonical, GitHub-friendly.
 - ``annulus_meshing.mp4``  — optional, only when ffmpeg is on PATH.
@@ -90,7 +90,7 @@ FPS: int = 6
 FIG_INCHES: tuple[float, float] = (4.0, 4.0)
 DPI: int = 80
 
-OUT_DIR = Path(__file__).resolve().parents[1] / "papers"
+OUT_DIR = Path(__file__).resolve().parents[1] / "docs" / "papers"
 
 LOG = logging.getLogger("render_annulus_animation")
 
