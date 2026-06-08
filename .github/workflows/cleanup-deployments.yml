@@ -1,0 +1,61 @@
+name: cleanup-old-deployments
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: 'Number of most-recent deployments to keep'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old gh-pages deployment records
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP: ${{ inputs.keep }}
+        run: |
+          set -euo pipefail
+
+          DEPLOYMENTS=$(gh api \
+            "repos/domattioli/ADMESH/deployments?environment=github-pages&per_page=100" \
+            --jq '[.[].id]')
+
+          TOTAL=$(echo "$DEPLOYMENTS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))")
+          echo "Found $TOTAL deployment(s) in github-pages environment"
+
+          KEEP_INT=${KEEP:-1}
+
+          echo "$DEPLOYMENTS" | python3 - <<'PYEOF'
+          import sys, json, subprocess, os
+
+          deployments = json.load(sys.stdin)
+          keep = int(os.environ.get('KEEP_INT', 1))
+          to_delete = deployments[keep:]  # newest first; skip first keep entries
+
+          print(f"Keeping {keep}, deleting {len(to_delete)}")
+
+          for dep_id in to_delete:
+              # Must mark inactive before delete
+              subprocess.run(
+                  ['gh', 'api', '-X', 'POST',
+                   f'repos/domattioli/ADMESH/deployments/{dep_id}/statuses',
+                   '-f', 'state=inactive'],
+                  check=False, capture_output=True
+              )
+              r = subprocess.run(
+                  ['gh', 'api', '-X', 'DELETE',
+                   f'repos/domattioli/ADMESH/deployments/{dep_id}'],
+                  capture_output=True
+              )
+              status = 'deleted' if r.returncode == 0 else f'failed ({r.stderr.decode().strip()})'
+              print(f'  deployment {dep_id}: {status}')
+
+          print('Done.')
+          PYEOF
