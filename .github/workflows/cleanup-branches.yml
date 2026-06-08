@@ -1,0 +1,20 @@
+name: cleanup-stale-branches
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete stale claude/* session branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X DELETE "repos/domattioli/ADMESH/git/refs/heads/claude%2Fwonderful-tesla-1jawz" && echo "deleted wonderful-tesla-1jawz" || echo "wonderful-tesla-1jawz not found or already deleted"
+          gh api -X DELETE "repos/domattioli/ADMESH/git/refs/heads/claude%2Ftrusting-goldberg-2D0Ce" && echo "deleted trusting-goldberg-2D0Ce" || echo "trusting-goldberg-2D0Ce not found or already deleted"
+          gh api -X DELETE "repos/domattioli/ADMESH/git/refs/heads/claude%2Ftrusting-goldberg-2nc0X" && echo "deleted trusting-goldberg-2nc0X" || echo "trusting-goldberg-2nc0X not found or already deleted"
+          echo "Cleanup complete"
