@@ -47,7 +47,7 @@ Execute unified routine. Load DomI/claude_routine_instructions.md, trying in ord
 Apply to every repo. Per-repo profile may ADD, never weaken.
 
 ### Git discipline
-- Work ONLY on `daily-maintenance`. Do not create branches. `branch_guard.sh` blocks non-allowlisted names.
+- Work ONLY on `development`. Do not create branches. `branch_guard.sh` blocks non-allowlisted names.
 - Never push to `main` / `master`. Never force-push. Never `--no-verify`, `--force`, admin-merge.
 - Never `--amend` a published commit.
 - Max 20 commits per PR.
@@ -98,8 +98,8 @@ if [ -n "$(git status --porcelain)" ]; then
 fi
 
 # 4. Branch
-git checkout daily-maintenance 2>/dev/null || git checkout -b daily-maintenance
-git pull origin daily-maintenance 2>/dev/null || true
+git checkout development 2>/dev/null || git checkout -b development
+git pull origin development 2>/dev/null || true
 
 # 5. Sync from DomI (skills + plugins + .domi-pin)
 #    DomI contract plugins (sync-from-domi, introspect, request-from-domi)
@@ -142,7 +142,7 @@ fi
 #    Confirm all validation_cmds binaries on PATH; if not, STOP (no auto-install).
 
 # 8. One-line status
-echo "bootstrap OK | repo={{repo}} | slug={{repo-slug}} | branch=daily-maintenance | sha=$(git rev-parse --short HEAD)"
+echo "bootstrap OK | repo={{repo}} | slug={{repo-slug}} | branch=development | sha=$(git rev-parse --short HEAD)"
 ```
 
 `{{repo-slug}}` = canonical mixed-case slug from profile table.
@@ -288,12 +288,12 @@ Run until stop condition hit (see §5).
 7. **Validate** — run profile `validation_cmds[]` in order. Hard-stop on any non-zero exit. No auto-install of missing binaries. **Python repos (`pytest tests/` gate): run `ensure-test-venv` first** (bootstrap §2 step 6b) so a fresh container's missing test deps don't fail the gate spuriously — a real test failure must be distinguishable from an unbuilt venv.
 8. **Issue comment** — use `mcp__github__add_issue_comment` with template rendered by `skills/comment-issue/` (flags `--vote / --close / --eval / --mission / --wrap / --repro / --brief` map to templates A–G). Footer `[model: …, repo: {{repo-slug}}, session: …]` mandatory.
 9. **Close issue** if all acceptance criteria met. Otherwise leave open with status comment.
-10. **PR — single rolling PR per repo, operator-merged (per #128).** Pushing to `daily-maintenance` IS the session deliverable. Do **not** open a PR every session and do **not** merge.
-    - **Reuse, never duplicate.** If an open `daily-maintenance → main` PR already exists for this repo, the push already updated it — refresh its description (§4 telemetry) and stop. Never open a second PR for the same branch.
-    - **Create only when none is open.** If and only if no open `daily-maintenance → main` PR exists, open exactly one as `draft=true` (`mcp__github__create_pull_request`). This is the long-lived rolling PR; it accumulates across sessions until the operator merges. `stop_after_n_prs` caps *new* PR creation (rarely hit under reuse).
+10. **PR — single rolling PR per repo, operator-merged (per #128).** Pushing to `development` IS the session deliverable. Do **not** open a PR every session and do **not** merge.
+    - **Reuse, never duplicate.** If an open `development → main` PR already exists for this repo, the push already updated it — refresh its description (§4 telemetry) and stop. Never open a second PR for the same branch.
+    - **Create only when none is open.** If and only if no open `development → main` PR exists, open exactly one as `draft=true` (`mcp__github__create_pull_request`). This is the long-lived rolling PR; it accumulates across sessions until the operator merges. `stop_after_n_prs` caps *new* PR creation (rarely hit under reuse).
     - **Never merge inside a session.** No squash, no admin-merge, no auto-merge, no closing the rolling PR. Merging to `main` is operator-only, on an explicit "ship it" / "merge it" instruction. Session-driven merge-then-reopen churn is exactly the spam #128 closes.
 
-    **Title rule** (per DomI #107): title MUST describe the substantive change in conventional-commit form `<type>: <imperative summary> (#NNN)` where `<type>` ∈ `{fix, feat, docs, chore, refactor, test}`. Examples: `docs: quadmeshing algorithm survey spec (#9, #10)`, `feat: add session-resume skill (#88)`, `fix: branch_guard.sh allowlist regex (#68)`. **Never use `chore: rolling daily-maintenance → main`** or any title that hides what shipped — rolling-session titles obscure the diff from human reviewers. If multiple unrelated issues land in one session, either split into N PRs (preferred) or pick the most prominent change for the title and enumerate the rest in the body.
+    **Title rule** (per DomI #107): title MUST describe the substantive change in conventional-commit form `<type>: <imperative summary> (#NNN)` where `<type>` ∈ `{fix, feat, docs, chore, refactor, test}`. Examples: `docs: quadmeshing algorithm survey spec (#9, #10)`, `feat: add session-resume skill (#88)`, `fix: branch_guard.sh allowlist regex (#68)`. **Never use `chore: rolling development → main`** or any title that hides what shipped — rolling-session titles obscure the diff from human reviewers. If multiple unrelated issues land in one session, either split into N PRs (preferred) or pick the most prominent change for the title and enumerate the rest in the body.
 
     **Body** includes: spec, milestones with checks, validation evidence, decision log, and (when multiple issues addressed) a "Resolves / Tracks" section listing every `#NNN` touched.
 
@@ -345,12 +345,12 @@ Whichever fires first:
 
 | {{repo}} | repo-slug | branch | spec_kit_required | code_shipping_allowed | validation_cmds | budget | stop_after_n_prs | extra_pre | extra_post | batch_allowed |
 |---|---|---|---|---|---|---|---|---|---|---|
-| madmeshr | MADMESHR | daily-maintenance | true | true | `pytest tests/`, `python scripts/validate_mesh.py` | — | — | — | lessons-learned commit if shipped | true |
-| admesh | ADMESH | daily-maintenance | true | **false** (planning only) | `pytest tests/` (if applicable) | — | — | `/compact` to reduce tokens | — | true |
-| admesh-domains | ADMESH-Domains | daily-maintenance | true | true | `pytest tests/ -q`, `admesh-domains validate registry_data/manifest.toml`, `python scripts/build_site.py` (if site change), `admesh-domains publish --dry-run` (if publisher change) | — | — | detect track Code vs Data | HF Hub metadata sync | true |
-| chilmesh | CHILmesh | daily-maintenance | true | true | `pytest tests/` | 100k tokens; checkpoint every 5 tasks or 30 min | — | — | — | true |
-| domi | DomI | daily-maintenance | false | true | `bash scripts/instructions_on_start.sh`, `bash -n` on changed `.sh`, `pytest` if python touched | ≥30 min wall-clock | 3 | filter issues <2h old | — | true |
-| quadmesh | QuADMESH | daily-maintenance | true | true | `pytest tests/` (Python port surface) | — | — | reference parity with quadmesh-matlab MATLAB source where helpful | open low-priority issues against CHILmesh for needed downstream API changes | true |
+| madmeshr | MADMESHR | development | true | true | `pytest tests/`, `python scripts/validate_mesh.py` | — | — | — | lessons-learned commit if shipped | true |
+| admesh | ADMESH | development | true | **false** (planning only) | `pytest tests/` (if applicable) | — | — | `/compact` to reduce tokens | — | true |
+| admesh-domains | ADMESH-Domains | development | true | true | `pytest tests/ -q`, `admesh-domains validate registry_data/manifest.toml`, `python scripts/build_site.py` (if site change), `admesh-domains publish --dry-run` (if publisher change) | — | — | detect track Code vs Data | HF Hub metadata sync | true |
+| chilmesh | CHILmesh | development | true | true | `pytest tests/` | 100k tokens; checkpoint every 5 tasks or 30 min | — | — | — | true |
+| domi | DomI | development | false | true | `bash scripts/instructions_on_start.sh`, `bash -n` on changed `.sh`, `pytest` if python touched | ≥30 min wall-clock | 3 | filter issues <2h old | — | true |
+| quadmesh | QuADMESH | development | true | true | `pytest tests/` (Python port surface) | — | — | reference parity with quadmesh-matlab MATLAB source where helpful | open low-priority issues against CHILmesh for needed downstream API changes | true |
 
 Model hints (advisory, not enforced):
 - `quadmesh`: prefer Haiku for simple porting; Opus/Sonnet for algorithm-critical code.

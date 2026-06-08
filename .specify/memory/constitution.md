@@ -47,7 +47,7 @@ DomI MUST NOT edit downstream repo files directly. The sync contract is pull-onl
 
 ## Principle V — Branch Discipline Prevents Sprawl
 
-The working branch is `daily-maintenance`. No `claude/*` branches MUST persist beyond session start. The startup script enforces this with a HARD STOP. PRs merge to `main` only via deliberate `<author>/<short-kebab>` branches. Creating more than 5 branches per session is forbidden.
+The working branch is `development` (per DomI `branching.md`; supersedes the deprecated `daily-maintenance` as of 2026-06-02, #196). No `claude/*` branches MUST persist beyond session start. The startup script enforces this with a HARD STOP. PRs merge to `main` only via deliberate `<author>/<short-kebab>` branches. Creating more than 5 branches per session is forbidden.
 
 **Rationale**: Branch sprawl (issue #13) caused repeated cleanup overhead and orphaned work across sessions.
 
