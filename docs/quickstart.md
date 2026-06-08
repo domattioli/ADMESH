@@ -189,5 +189,5 @@ plt.show()
   for faithful-port discipline, no C extensions, and reference-test cadence.
 - **[Project plan](governance/PROJECT_PLAN.md)** — historical and current
   status; "Path to 0.1.0" lives at the top.
-- **[Contributing](https://github.com/domattioli/ADMESH/blob/daily-maintenance/CONTRIBUTING.md)** — dev setup, branch contract,
+- **[Contributing](https://github.com/domattioli/ADMESH/blob/development/CONTRIBUTING.md)** — dev setup, branch contract,
   filing issues.

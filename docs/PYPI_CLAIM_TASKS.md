@@ -132,7 +132,7 @@ Task 3 (Monitor)
 
 ✓ **Planning phase complete** when:
 - Email draft is reviewed and approved
-- CONTACT_LOG.md is committed to `daily-maintenance` branch
+- CONTACT_LOG.md is committed to `development` branch
 - Task breakdown is documented
 
 ✓ **Issue resolved** when:

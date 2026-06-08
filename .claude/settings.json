@@ -12,6 +12,12 @@
         "source": "github",
         "repo": "domattioli/DomI"
       }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
     }
   },
   "enabledPlugins": {

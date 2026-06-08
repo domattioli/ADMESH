@@ -35,6 +35,7 @@ theme:
 nav:
   - Home: index.md
   - Quickstart: quickstart.md
+  - Interactive Demo: demo/index.html
   - API Reference:
       - Triangulation: api/triangulate.md
       - Mesh + Domain: api/types.md

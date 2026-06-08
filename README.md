@@ -62,6 +62,11 @@ pip install admesh2D            # core
 pip install admesh2D[viz]       # adds chilmesh for mesh.plot() / plot_quality()
 ```
 
+> ⚠️ **Install `admesh2D`, not `admesh`.** `pip install admesh` pulls an
+> unrelated C STL-repair library that needs `admesh/stl.h` at build time and
+> will fail. This project's PyPI distribution name is **`admesh2D`**; the
+> import name stays `admesh` (`import admesh`).
+
 From source:
 
 ```bash
@@ -98,7 +103,7 @@ In `triangulate`, `h_min` / `h_max` set the size bounds; pass a `size_field` cal
 `triangulate(...)` runs the 13-stage ADMESH pipeline (faithful port of `01_ADMESH_Library`); the Numba-JIT solver replaces the original C MEX, so there is no compile step at install.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/papers/figures/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
   <br>
   <em>Western North Atlantic (WNAT) benchmark mesh. The size function (red = fine, blue = coarse) drives node placement; force-balance relaxation pushes element quality toward equilateral.</em>
 </p>
@@ -173,7 +178,7 @@ API reference lives in the docstrings (`triangulate`, `Domain`, `Mesh`, `Boundar
 
 > Mattioli, D., Conroy, C.J., Kubatko, E.J., West, D.W. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
 
-The DOI resolves to the latest release; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) at the repo root feeds GitHub's "Cite this repository" button. Paper copy: [`papers/Conroy-2012-ADMESH.pdf`](papers/Conroy-2012-ADMESH.pdf).
+The DOI resolves to the latest release; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101). A [`CITATION.cff`](CITATION.cff) at the repo root feeds GitHub's "Cite this repository" button. Paper copy: [`docs/papers/Conroy-2012-ADMESH.pdf`](docs/papers/Conroy-2012-ADMESH.pdf).
 
 ## Contributing
 

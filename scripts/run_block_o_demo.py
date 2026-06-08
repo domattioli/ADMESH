@@ -23,7 +23,7 @@ from admesh.in_polygon import in_polygon
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
 OUT_DIR = REPO_ROOT / "output" / "quad_prep_block_o"
-FORT14 = OUT_DIR / "Block_O.14"
+FORT14 = REPO_ROOT / "tests" / "fixtures" / "meshes" / "Block_O.14"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 

@@ -1,13 +1,13 @@
 # Contributing
 
-See **[CONTRIBUTING.md](https://github.com/domattioli/ADMESH/blob/daily-maintenance/CONTRIBUTING.md)**
+See **[CONTRIBUTING.md](https://github.com/domattioli/ADMESH/blob/development/CONTRIBUTING.md)**
 at the repository root for the full contributor guide.
 
 ## Quick reference
 
 - Dev setup: `pip install -e ".[dev]"`
 - Tests: `pytest -m "not slow" -q`
-- Branch: all in-progress work on `daily-maintenance`; spec branches
+- Branch: all in-progress work on `development`; spec branches
   (`NNN-name`) for multi-commit features.
 - Never push to `main`; never force-push to a branch with an open PR;
   never `--no-verify`.
