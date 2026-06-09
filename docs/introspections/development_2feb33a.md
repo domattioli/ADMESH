@@ -27,3 +27,10 @@
 ## Open questions / pains (→ PAIN_MATRIX, probation: no skill votes)
 - `tokens_wasted`: ~moderate. Sync inline-fallback hashing subtlety (`echo -n` vs file sha256) cost a couple tool calls to get right — a `sync-from-domi` local-checkout mode (no network) would remove the per-session manual replication.
 - Repeated env-capability re-checks (matlab absent, numpy absent) every session — a cached per-container capability probe would save the rediscovery walk.
+
+## Introspect retro (close-out, user-requested handoff+introspect)
+- **Extra work after first close-out** (#99 plan + #145 filed) — operator follow-ups on research issues sit unanswered for days because routine sorts code/closeable issues first; brainstorming issues with operator questions need a "stale-operator-question" surfacing pass. `tokens_wasted`: low (the work itself was high-value).
+- **What went right:** routing — #144 (closeable) first, then additive demo fix via Haiku subagent, then research synthesis. No faithful-port surface touched → zero Principle-I risk, no venv tax.
+- **What'd help:** (1) `sync-from-domi` offline/local-checkout pin mode (recurring); (2) `bench_pipeline.py` (#145) would have let me ground the #99 plan in real numbers instead of citing prior anecdotal timings; (3) a `triage-stale-operator-questions` helper that flags issues where the last comment is an unanswered operator question.
+- **No skill votes / new request issues** — DomI probation active (#203). Pains logged here per `tokens_wasted` routing.
+
