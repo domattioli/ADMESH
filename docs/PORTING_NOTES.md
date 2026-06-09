@@ -16,6 +16,16 @@ Template:
 
 ---
 
+## Benchmark harness (#145)
+
+`scripts/bench_pipeline.py` is the per-stage wall-clock harness. Monkeypatches stage entry-point callables (defensive: skips on missing) to accumulate elapsed time by stage label across measured runs. Outputs per-stage seconds + percentage of total end-to-end, with "other/unaccounted" row and JSON record for CI integration.
+
+**MVP triangulate path (default)**: distmesh-dominated. The size-field stack (curvature/medial-axis/bathymetry/tide/mesh_size) only invokes when a `build_h` size field is composed into the call — in the default MVP path (no `size_field=` arg) it is NOT invoked. Per-stage timing honestly shows only stages that fired; unexercised stages list 0.0 sec or are omitted. Issue #99 parallelization phases (CPU vectorize/prange, batch MP, distmesh accel, GPU) each require a before/after number from this harness for ROI justification.
+
+**Fixtures**: tier-0 in-package (UNIT_SQUARE, L_SHAPE) always present + optional WNAT (coarse h_max=0.0135) if `tests/fixtures/fort14/adcirc_examples/wnat_test.14` exists. Tier-1 (JSON/TOML domains) skipped gracefully if absent. Warmup run (excluded, triggers Numba JIT) is non-fatal; measured runs use `time.perf_counter()` median across `--runs` iterations.
+
+---
+
 ## 2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)
 
 **MATLAB**: N/A — `octree_grid.py` is new Python-only code, not a MATLAB port.
