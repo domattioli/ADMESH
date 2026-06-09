@@ -51,7 +51,7 @@ Breaking change from v0.1: `domain_from_polygon()` removed. Use file-based loadi
 - One test file per stage: `tests/test_<stage>.py`
 - Reference fixtures: `tests/fixtures/<stage>/*.npz` (from MATLAB)
 - Default tolerance: `atol=1e-8, rtol=1e-6` (override in docstring if needed)
-- End-to-end: MVP 5 domains, quality gates `min_q ≥ 0.30`, `mean_q ≥ 0.60`
+- End-to-end: MVP 5 domains. Binding check = **structural validity** (positive-area tris, points inside domain, watertight boundary). The `min_q ≥ 0.30`, `mean_q ≥ 0.60` numbers are the **default `quality_gate` kwarg + an MVP port-sanity smoke target — advisory, not binding** (CONSTITUTION Article V.5, #140). Quality controlled by `hmin`/`hmax`/`g`; override `quality_gate` (e.g. `(0.0, 0.0)`) when knobs legitimately lower min quality.
 
 ## Numba Path
 
