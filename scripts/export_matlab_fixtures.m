@@ -205,7 +205,7 @@ if ~exist(outdir, 'dir'); mkdir(outdir); end
 
 % Unit square outer ring as a PTS struct with a .Points cell (the MATLAB
 % source does vertcat(PTS.Points{:}) to find the bounding box).
-PTS_sq = struct('Points', {{[0 0; 1 0; 1 1; 0 1]}});
+PTS_sq = struct('Points', {{[-0.5 -0.5; 0.5 -0.5; 0.5 0.5; -0.5 0.5]}});
 [X, Y, delta] = CreateBackgroundGrid(PTS_sq, 0.1, 0.1, 1);
 save(fullfile(outdir, 'background_grid_unit_square.mat'), ...
      'X', 'Y', 'delta', '-v7');
