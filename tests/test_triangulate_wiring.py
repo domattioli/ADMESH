@@ -1,9 +1,11 @@
 """Spec 025 / #65: Domain.bathymetry plumbing (Steps 1+2).
 
-Step 3 (wire build_h() as triangulate() default) is DEFERRED — the production
-size-field stack degrades MVP convex-domain min_q 0.30 -> 0.22, violating the
-constitutional MVP quality gate + spec 025 AC-005/AC-006. The xfail test below
-pins the intended Step-3 contract for when the operator resolves the tradeoff.
+Step 3 (wire build_h() as triangulate() default) stays DEFERRED — the production
+size-field stack degrades MVP convex-domain min_q 0.30 -> 0.22, below the
+advisory quality_gate smoke default (CONSTITUTION Article V.5, #140 — advisory,
+NOT constitutional) + spec 025 AC-005/AC-006. Operator closed #65 leaving Step 3
+unwired by design choice (not a constitutional bar). The xfail test below pins
+the intended Step-3 contract for if/when the operator opts in.
 """
 from __future__ import annotations
 
@@ -61,8 +63,9 @@ def test_from_mesh_bathymetry_populated():
 
 # --- Step 3: triangulate() wires build_h (DEFERRED — see module docstring) --
 
-@pytest.mark.xfail(reason="spec 025 Step 3 deferred: production stack violates "
-                          "MVP quality gate on convex domains (#65)", strict=False)
+@pytest.mark.xfail(reason="spec 025 Step 3 deferred by design (#65 closed unwired): "
+                          "production stack lowers convex-domain min_q below the "
+                          "advisory quality_gate default (Article V.5, #140)", strict=False)
 def test_triangulate_calls_build_h():
     import admesh._stages.mesh_size as ms
     called = {}
