@@ -28,7 +28,15 @@
 - #78: needs MATLAB/Octave hosted runner for fixture → drop xfail. Deferred.
 - #86 (v1.0 cpp/rust): LARGE, decompose into sub-issues (specs 021/022 octree already in flight).
 
+## Addendum — #78 closed (operator unblock, commit `c8178f4`)
+- Operator: "you can just use octave." Re-tested env (#223): octave absent but apt candidate `8.4.0` present → `apt-get update && install octave` (first install hit stale-index 404s; `apt-get update` fixed).
+- Archived MATLAB `src/matlab/.../CreateBackgroundGrid.m` runs **unmodified in Octave 8.4**. Generated stage-02 fixture `background_grid_unit_square.npz`; dropped `xfail(strict)` on parity test → 6/6 pass. Port vs Octave ref `max|ΔX|=4.4e-16`.
+- **Caught a latent exporter bug by running, not eyeballing:** `export_matlab_fixtures.m` stage-02 `PTS_sq` used `[0,1]²` but `UNIT_SQUARE` is centered `[-0.5,0.5]²`. The earlier session that "wired" the target (commit `9da7953`) never executed it, so the coord mismatch shipped silently. Fixed `PTS_sq`. **Lesson: a wired-but-never-run MATLAB exporter target is not validated.**
+- Built test venv (`pip install -e .[dev]`): numpy/scipy/numba/pytest. Full suite 405 passed, no regression.
+- Vindicates the earlier honesty call: I declined to fabricate the "MATLAB-parity" fixture analytically — had I done so with the port's own coords, it would have masked the exporter's `[0,1]²` bug. Real Octave run surfaced it.
+
 ## Open questions / pains (→ PAIN_MATRIX, probation: no skill votes)
+- **Octave IS installable in-container** (apt candidate present) — overturns the standing "no MATLAB/Octave → #78 blocked" assumption parroted across prior corpora (#223 in action). Stage-03..13 MATLAB parity fixtures (`test_matlab_port.py` skips: collinear_sliver, project_back, initial_points, boundary/enforce_bc) are likely now generatable the same way. High-value follow-up.
 - `tokens_wasted`: low. Most open ADMESH issues are done-pending-merge or blocked → routing/triage was the bulk of the work; the doc edit itself was small.
 - Recurring: env-capability re-checks (matlab/numpy absent) every session — cached per-container capability probe would save the rediscovery walk (same pain as prior corpus).
 - Recurring: research issues with unanswered operator follow-ups sit because routine sorts closeable issues first — a stale-operator-question surfacing pass would help.
