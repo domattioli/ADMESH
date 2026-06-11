@@ -1,23 +1,37 @@
-name: Test & CI
+name: Cross-OS tests
 
 on:
   push:
     branches: [cpp-distmesh, main]
   pull_request:
+    paths:
+      - "cpp/**"
+      - "pyproject.toml"
+      - ".github/workflows/build-wheels.yml"
+
+concurrency:
+  group: cross-os-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        # PRs (paths-gated): macOS/Windows x newest Python only — ubuntu lanes
+        # already covered by tests.yml. Push to main/cpp-distmesh: full matrix.
+        os: ${{ fromJson(github.event_name == 'pull_request' && '["macos-latest","windows-latest"]' || '["ubuntu-latest","macos-latest","windows-latest"]') }}
+        python-version: ${{ fromJson(github.event_name == 'pull_request' && '["3.13"]' || '["3.10","3.11","3.12","3.13"]') }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - run: pip install -e ".[dev]"
-      - run: pytest tests/ -q
+      - run: pytest tests/ -m "not slow" -q
 
   # wheels job deferred to T036-T038: requires scikit-build-core integration
