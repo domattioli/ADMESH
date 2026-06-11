@@ -1,0 +1,57 @@
+name: cleanup-old-deployments
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep:
+        description: 'Number of most-recent deployments to keep'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old gh-pages deployment records
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP: ${{ inputs.keep }}
+        run: |
+          set -euo pipefail
+
+          KEEP_INT=${KEEP:-1}
+
+          # Fetch all deployment IDs for the github-pages environment (newest first)
+          DEPLOY_IDS=$(gh api \
+            "repos/domattioli/ADMESH/deployments?environment=github-pages&per_page=100" \
+            --jq '.[].id')
+
+          TOTAL=$(echo "$DEPLOY_IDS" | wc -l)
+          echo "Found $TOTAL deployment(s) — keeping $KEEP_INT, deleting $((TOTAL - KEEP_INT))"
+
+          COUNT=0
+          DELETED=0
+          while IFS= read -r DEPLOY_ID; do
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -le "$KEEP_INT" ]; then
+              echo "  keeping  $DEPLOY_ID (rank $COUNT)"
+              continue
+            fi
+            # Must mark inactive before the API will allow deletion
+            gh api -X POST \
+              "repos/domattioli/ADMESH/deployments/${DEPLOY_ID}/statuses" \
+              -f state=inactive --silent || true
+            if gh api -X DELETE \
+              "repos/domattioli/ADMESH/deployments/${DEPLOY_ID}" --silent; then
+              echo "  deleted  $DEPLOY_ID"
+              DELETED=$((DELETED + 1))
+            else
+              echo "  failed   $DEPLOY_ID (may already be active — skipping)"
+            fi
+          done <<< "$DEPLOY_IDS"
+
+          echo "Done. Deleted $DELETED / $((TOTAL - KEEP_INT)) targeted."
