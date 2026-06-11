@@ -185,3 +185,6 @@ output/*
 # manim render artifacts + generated viz data
 media/
 scripts/viz_data/
+
+# Octave/MATLAB intermediate fixture exports (.npz is the committed artifact)
+tests/fixtures/matlab/*.mat

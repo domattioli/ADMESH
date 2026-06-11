@@ -942,7 +942,12 @@ async function runCompute() {
       setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
     }
   } catch (err) {
-    setComputeStatus("Error: " + (err.message || String(err)).split("\n").slice(-3).join(" | "));
+    const msg = err.message || String(err);
+    if (/at least 3 vertices/i.test(msg)) {
+      setComputeStatus("Draw at least 3 vertices to define a domain");
+    } else {
+      setComputeStatus("Error: " + msg.split("\n").slice(-3).join(" | "));
+    }
     console.error(err);
   }
   btn.disabled = false;

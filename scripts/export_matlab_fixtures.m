@@ -196,4 +196,19 @@ save(fullfile(outdir, 'enforce_bc_simple.mat'), ...
      'X', 'Y', 'D', 'IB', 'hmax', 'hmin', 'h_ic', 'h_bc_noBC', '-v7');
 
 
+%% 02_Create_Background_Grid: unit-square structured grid ==================
+% Mirrors admesh._stages.background_grid.create_background_grid(UNIT_SQUARE, 0.1):
+% pad = h0 = 0.1, delta = h0/res = 0.1. MATLAB pads by hmax and spaces by
+% hmin, so call with hmax = hmin = 0.1, res = 1 to match the Python defaults.
+outdir = fullfile(FIXTURE_ROOT, 'matlab');
+if ~exist(outdir, 'dir'); mkdir(outdir); end
+
+% Unit square outer ring as a PTS struct with a .Points cell (the MATLAB
+% source does vertcat(PTS.Points{:}) to find the bounding box).
+PTS_sq = struct('Points', {{[-0.5 -0.5; 0.5 -0.5; 0.5 0.5; -0.5 0.5]}});
+[X, Y, delta] = CreateBackgroundGrid(PTS_sq, 0.1, 0.1, 1);
+save(fullfile(outdir, 'background_grid_unit_square.mat'), ...
+     'X', 'Y', 'delta', '-v7');
+
+
 fprintf('export_matlab_fixtures.m: done.\n');
