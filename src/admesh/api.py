@@ -637,6 +637,10 @@ def triangulate(
     seed: int | None = None,
     max_iter: int | None = None,
     initial_points: "np.ndarray | None" = None,
+    # Advisory default, NOT a binding invariant (CONSTITUTION Article V.5, #140):
+    # (0.30, 0.60) is an MVP port-sanity smoke floor, caller-overridable. Mesh
+    # quality is hyperparameter-driven (h_min/h_max/g); aggressive ratios
+    # legitimately lower min quality. Pass (0.0, 0.0) to disable the gate.
     quality_gate: tuple[float, float] = (0.30, 0.60),
     ttol: float | None = None,
     dptol: float | None = None,
@@ -663,7 +667,10 @@ def triangulate(
     max_iter : int or None
         Maximum iterations for mesh generation.
     quality_gate : tuple[float, float]
-        Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).
+        Advisory (min_q, mean_q) smoke thresholds. Default: (0.30, 0.60) —
+        an MVP port-sanity floor, NOT a binding quality invariant
+        (CONSTITUTION Article V.5). Quality is driven by h_min/h_max/g;
+        pass (0.0, 0.0) to disable the gate when knobs lower min quality.
     ttol : float or None
         Relative displacement threshold for Delaunay rebuild. Default: 0.27.
     dptol : float or None

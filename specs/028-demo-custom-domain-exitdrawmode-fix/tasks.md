@@ -11,7 +11,7 @@
 
 ## Phase 2: Optional hardening
 
-- [ ] T002 (optional) In the outer catch block, detect `ValueError` from Python and call `setComputeStatus("Draw at least 3 vertices to define a domain")` for better UX.
+- [x] T002 (optional) In the outer catch block, detect `ValueError` from Python and call `setComputeStatus("Draw at least 3 vertices to define a domain")` for better UX.
 
 ## Acceptance
 

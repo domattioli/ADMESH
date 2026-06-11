@@ -3,7 +3,7 @@ name: docs
 on:
   push:
     branches:
-      - daily-maintenance
+      - development
       - main
   workflow_dispatch:
 
@@ -40,6 +40,9 @@ jobs:
           pip install -e ".[dev]"
 
       - name: Generate interactive-demo frames (#118)
+        # Runs the real distmesh driver on a few analytic domains and writes
+        # docs/demo/data/*.json for client-side playback. Regenerated every
+        # build so the demo always reflects the current solver.
         run: python scripts/gen_demo_frames.py
 
       - name: Build docs

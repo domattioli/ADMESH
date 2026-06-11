@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Benchmark ADMESH 13-stage pipeline end-to-end + per-stage.
+"""Per-stage wall-clock harness for ADMESH pipeline (issue #145).
 
-Measures wall-clock (perf_counter) + peak memory (tracemalloc) for:
-- tiny (CI): ~100 nodes, <5s
-- medium (dev loop): ~5K nodes, <30s
-- wnat-3m (nightly/manual): ~3M-node domain — NOT YET PROVISIONED. Largest
-  real asset is WNAT_Onur.14 (127K). Source a NOAA grid or synthesize a
-  deterministic 3M fixture first (see .planning/perf-optimization/PLAN.md s0).
+Monkeypatches stage entry-point callables with timing wrappers to isolate
+wall-clock per-stage. MVP triangulate path (distmesh-only, no size-field stack)
+will show distmesh2d + mesh_quality; full path (with build_h) invokes all 13
+stages. Defensive patching: missing stages skipped silently.
 
-JIT warmup excluded; steady-state median + IQR over 3 runs (1 run for wnat-3m).
+Fixtures:
+- square, lshape: tier-0 (in-package), h_max=0.1, runs=3
+- wnat: real fixture, h_max=coarse, runs=1 (slow)
+- tier1: JSON/TOML domains, skipped if absent
 
-Output: JSON artifact + human summary table, keyed by git SHA + env hash.
-
-Run:
-    python scripts/bench_pipeline.py --tier=tiny --runs=3
-    python scripts/bench_pipeline.py --tier=wnat-3m --ci --fail-on-regression
+Usage:
+    python scripts/bench_pipeline.py --runs 1 --fixtures square,lshape
+    python scripts/bench_pipeline.py --runs 1 --json /tmp/bench.json
+    python scripts/bench_pipeline.py --h0 0.2 --runs 1
 """
 
 from __future__ import annotations
@@ -23,58 +23,15 @@ import argparse
 import contextlib
 import hashlib
 import json
-import os
 import pathlib
 import subprocess
 import sys
 import time
-import tracemalloc
-from dataclasses import dataclass, asdict
 from typing import Any
 
 import numpy as np
 
-
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-BENCHMARKS_DIR = REPO_ROOT / "benchmarks"
-RESULTS_DIR = BENCHMARKS_DIR / "results"
-DATA_DIR = BENCHMARKS_DIR / "data"
-
-# Ensure output dirs exist
-RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-
-@dataclass
-class TimingResult:
-    """Timing stats for one stage: median, Q25, Q75 in milliseconds."""
-    median_ms: float
-    q25_ms: float
-    q75_ms: float
-
-
-@dataclass
-class BenchmarkRun:
-    """Complete benchmark run: metadata + results."""
-    git_sha: str
-    env_hash: str
-    timestamp_utc: str
-    tier: str
-    wall_clock: dict[str, TimingResult]  # stage_name -> TimingResult
-    peak_memory_mb: dict[str, float]      # stage_name -> peak_mb
-    end_to_end_ms: float
-
-
-@contextlib.contextmanager
-def _timer_and_memory():
-    """Context: measure wall-clock (sec) + peak memory (bytes)."""
-    tracemalloc.start()
-    t0 = time.perf_counter()
-    peak = 0
-    try:
-        yield lambda: (time.perf_counter() - t0, tracemalloc.get_traced_memory()[1])
-    finally:
-        tracemalloc.stop()
 
 
 def _get_git_sha() -> str:
@@ -110,281 +67,258 @@ def _get_env_hash() -> str:
     return hashlib.md5(s.encode()).hexdigest()[:8]
 
 
-def _get_timestamp_utc() -> str:
-    """ISO 8601 UTC timestamp."""
-    import datetime
-    return datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z")
+@contextlib.contextmanager
+def _stage_timer():
+    """Context mgr for per-stage wall-clock accumulation.
 
-
-def _create_tiny_domain() -> tuple[np.ndarray, np.ndarray]:
-    """Synthetic tiny annulus domain (~100 nodes target)."""
-    import admesh
-    theta = np.linspace(0, 2 * np.pi, 32, endpoint=False)
-    outer = np.c_[np.cos(theta), np.sin(theta)]
-    inner = np.c_[0.5 * np.cos(theta), 0.5 * np.sin(theta)]
-    domain = admesh.Domain(
-        rings=[outer, inner],
-        bbox=np.array([-1.2, -1.2, 1.2, 1.2]),
-    )
-    return domain, np.array([0.1])
-
-
-def _create_medium_domain() -> tuple[Any, np.ndarray]:
-    """Load medium domain from file (~5K nodes target)."""
-    import admesh
-    toml_path = DATA_DIR / "medium_lake.toml"
-    if toml_path.exists():
-        return admesh.load_domain_from_toml(str(toml_path)), np.array([0.02])
-    # Fallback: synthetic
-    domain = admesh.Domain(
-        rings=[np.c_[np.cos(np.linspace(0, 2*np.pi, 100)), np.sin(np.linspace(0, 2*np.pi, 100))]],
-        bbox=np.array([-1.1, -1.1, 1.1, 1.1]),
-    )
-    return domain, np.array([0.02])
-
-
-def _load_wnat_domain() -> tuple[Any, np.ndarray]:
-    """Load WNAT from reference fixture."""
-    import admesh
-    wnat_path = REPO_ROOT / "tests" / "fixtures" / "fort14" / "adcirc_examples" / "wnat_test.14"
-    if not wnat_path.exists():
-        raise FileNotFoundError(f"WNAT fixture not found: {wnat_path}")
-    domain = admesh.load_domain_from_fort14(str(wnat_path))
-    h0 = 1.5 / 111.0  # ~1.5 degrees in radians (coarse)
-    return domain, np.array([h0])
-
-
-def _instrument_pipeline(domain: Any, h0: float) -> dict[str, float]:
-    """Run admesh.triangulate with per-stage timing + memory instrumentation.
-
-    Returns {stage_name: elapsed_sec, ...} dict.
-    This is a simplified version; full impl would monkey-patch stages.
+    Monkeypatches stage callables (defensive: skip on missing).
+    Restores all originals on exit. Yields dict[stage_label] → sec_accumulated.
     """
-    # For now, measure end-to-end only; per-stage timing requires stage-level hooks.
-    import admesh
-    t0 = time.perf_counter()
-    mesh = admesh.triangulate(domain, h0=h0)
-    elapsed = time.perf_counter() - t0
-    return {
-        "end_to_end_sec": elapsed,
-        "n_nodes": mesh.n_nodes,
-        "n_elements": mesh.n_elements,
-    }
+    import admesh._stages.routine as routine_mod
+    import admesh._stages.quality as quality_mod
+    import admesh.size_field as size_field_mod
+    import admesh._stages.mesh_size as mesh_size_mod
+    import admesh._stages.background_grid as bg_grid_mod
+    import admesh._stages.distance as dist_mod
+    import admesh._stages.curvature as curv_mod
+    import admesh._stages.medial_axis as medial_mod
+    import admesh._stages.bathymetry as bath_mod
+    import admesh._stages.dominate_tide as tide_mod
+    import admesh._stages.boundary as bnd_mod
 
+    timings: dict[str, float] = {}
+    originals: dict[tuple, Any] = {}
 
-def _run_benchmark_suite(tier: str, runs: int) -> BenchmarkRun:
-    """Execute benchmark: (runs) iterations, record stats."""
-    import admesh
-
-    # Select input
-    if tier == "tiny":
-        domain, h0_arr = _create_tiny_domain()
-    elif tier == "medium":
-        domain, h0_arr = _create_medium_domain()
-    elif tier == "wnat-3m":
-        domain, h0_arr = _load_wnat_domain()
-    else:
-        raise ValueError(f"Unknown tier: {tier}")
-
-    h0 = float(h0_arr[0])
-
-    # Warmup (excluded from timing): dummy run to trigger JIT
-    print(f"[{tier}] Warmup (JIT compilation)...")
-    try:
-        _instrument_pipeline(domain, h0)
-    except Exception as e:
-        print(f"  Warmup failed (non-fatal): {e}")
-
-    # Measured runs
-    print(f"[{tier}] Running {runs} measured iterations...")
-    timings_sec: list[float] = []
-    peak_mems: list[float] = []
-
-    for i in range(runs):
-        print(f"  Run {i+1}/{runs}...", end=" ", flush=True)
-        t0 = time.perf_counter()
-        tracemalloc.start()
-
-        try:
-            result = _instrument_pipeline(domain, h0)
-            elapsed = time.perf_counter() - t0
-            _, peak_bytes = tracemalloc.get_traced_memory()
-        finally:
-            tracemalloc.stop()
-
-        timings_sec.append(elapsed)
-        peak_mems.append(peak_bytes / 1024 / 1024)  # MB
-        print(f"{elapsed:.2f}s, peak {peak_mems[-1]:.1f} MB")
-
-    # Stats
-    timings_ms = [t * 1000 for t in timings_sec]
-    timings_ms_sorted = sorted(timings_ms)
-    median_ms = np.median(timings_ms_sorted)
-    q25_ms = np.percentile(timings_ms_sorted, 25)
-    q75_ms = np.percentile(timings_ms_sorted, 75)
-    peak_mem_mb = max(peak_mems)
-
-    wall_clock = {
-        "end_to_end": TimingResult(
-            median_ms=float(median_ms),
-            q25_ms=float(q25_ms),
-            q75_ms=float(q75_ms),
-        )
-    }
-    peak_memory = {"end_to_end": float(peak_mem_mb)}
-
-    run = BenchmarkRun(
-        git_sha=_get_git_sha(),
-        env_hash=_get_env_hash(),
-        timestamp_utc=_get_timestamp_utc(),
-        tier=tier,
-        wall_clock=wall_clock,
-        peak_memory_mb=peak_memory,
-        end_to_end_ms=float(median_ms),
-    )
-    return run
-
-
-def _save_results(run: BenchmarkRun) -> pathlib.Path:
-    """Write JSON result + human summary."""
-    # JSON
-    json_name = f"{run.git_sha}-{run.env_hash}.json"
-    json_path = RESULTS_DIR / json_name
-
-    data_dict = asdict(run)
-    # Convert TimingResult dataclass to dict
-    data_dict["wall_clock"] = {
-        k: asdict(v) for k, v in run.wall_clock.items()
-    }
-
-    json_path.write_text(json.dumps(data_dict, indent=2))
-    print(f"✓ Saved JSON: {json_path.relative_to(REPO_ROOT)}")
-
-    # Human summary
-    summary_path = RESULTS_DIR / f"SUMMARY_{run.git_sha[:8]}.txt"
-    lines = [
-        f"ADMESH Benchmark Summary — {run.timestamp_utc}",
-        f"Git: {run.git_sha} | Env: {run.env_hash}",
-        f"Tier: {run.tier}",
-        "",
-        "Stage                       | Median (ms) | Q25-Q75 (ms) | Peak Mem (MB)",
-        "-" * 70,
+    # List of (module, attr_name, friendly_label)
+    targets = [
+        (routine_mod, "distmesh2d", "distmesh2d"),
+        (routine_mod, "distmesh2d_admesh", "distmesh2d_admesh"),
+        (quality_mod, "mesh_quality", "mesh_quality"),
+        (size_field_mod, "compose_size_field", "size_field_compose"),
+        (mesh_size_mod, "solve_iter", "mesh_size.solve_iter"),
+        (mesh_size_mod, "build_h", "mesh_size.build_h"),
+        (bg_grid_mod, "create_background_grid", "background_grid"),
+        (dist_mod, "eval_sdf_grid", "distance.eval_sdf_grid"),
+        (curv_mod, "apply_curvature", "curvature"),
+        (medial_mod, "apply_medial_axis", "medial_axis"),
+        (bath_mod, "apply_bathymetry", "bathymetry"),
+        (tide_mod, "apply_tide", "dominate_tide"),
+        (bnd_mod, "enforce_boundary_conditions", "boundary"),
     ]
 
-    for stage, timing in sorted(run.wall_clock.items()):
-        peak_mb = run.peak_memory_mb.get(stage, 0.0)
-        lines.append(
-            f"{stage:27} | {timing.median_ms:11.2f} | "
-            f"{timing.q25_ms:5.2f}-{timing.q75_ms:5.2f}  | {peak_mb:12.1f}"
-        )
+    for module, attr_name, label in targets:
+        if hasattr(module, attr_name):
+            orig = getattr(module, attr_name)
+            originals[(module, attr_name)] = orig
+            timings[label] = 0.0
 
-    lines.append("-" * 70)
-    summary_path.write_text("\n".join(lines) + "\n")
-    print(f"✓ Saved summary: {summary_path.relative_to(REPO_ROOT)}")
+            def make_wrapper(fn, lbl):
+                def wrapper(*args, **kwargs):
+                    t0 = time.perf_counter()
+                    try:
+                        return fn(*args, **kwargs)
+                    finally:
+                        elapsed = time.perf_counter() - t0
+                        timings[lbl] += elapsed
+                return wrapper
 
-    return json_path
+            setattr(module, attr_name, make_wrapper(orig, label))
+
+    try:
+        yield timings
+    finally:
+        for (module, attr_name), orig in originals.items():
+            setattr(module, attr_name, orig)
 
 
-def _check_regression(run: BenchmarkRun, threshold_pct: float = 15.0) -> bool:
-    """Load baseline from main, check if run exceeds threshold.
+def _bench_fixture(
+    name: str,
+    domain: Any,
+    h_max: float,
+    runs: int,
+) -> dict[str, Any]:
+    """Benchmark one fixture: warm-up + measured runs.
 
-    Returns True if regression detected (should fail CI).
+    Returns {fixture_name, h_max, end_to_end_sec, n_nodes, n_elements, stages}.
     """
-    # Simplified: find most recent baseline for same tier on main
-    baselines = sorted(RESULTS_DIR.glob("*.json"))
-    if not baselines:
-        print("  (no baseline found; skipping regression check)")
-        return False
+    import admesh
 
-    # Load latest baseline
-    baseline_data = json.loads(baselines[-1].read_text())
-    baseline_run = BenchmarkRun(**baseline_data)
+    result = {
+        "fixture": name,
+        "h_max": h_max,
+        "end_to_end_sec": 0.0,
+        "n_nodes": 0,
+        "n_elements": 0,
+        "stages": {},
+    }
 
-    if baseline_run.tier != run.tier:
-        print(f"  (baseline tier {baseline_run.tier} != run tier {run.tier}; skipping)")
-        return False
+    # Warmup (non-fatal)
+    print(f"  [{name}] Warmup...", end=" ", flush=True)
+    try:
+        with _stage_timer() as timings:
+            t0 = time.perf_counter()
+            mesh = admesh.triangulate(domain, h_max=h_max)
+            e2e = time.perf_counter() - t0
+        print(f"OK ({e2e:.2f}s)")
+    except Exception as e:
+        print(f"skip ({e})")
 
-    baseline_median_ms = baseline_run.end_to_end_ms
-    run_median_ms = run.end_to_end_ms
-    pct_slower = ((run_median_ms - baseline_median_ms) / baseline_median_ms) * 100
+    # Measured runs
+    print(f"  [{name}] {runs} run(s)...", end=" ", flush=True)
+    medians: dict[str, list[float]] = {}
+    e2e_times: list[float] = []
 
-    print(f"  Baseline: {baseline_median_ms:.2f} ms | Run: {run_median_ms:.2f} ms")
-    print(f"  Delta: {pct_slower:+.1f}%")
+    for _ in range(runs):
+        with _stage_timer() as timings:
+            t0 = time.perf_counter()
+            try:
+                mesh = admesh.triangulate(domain, h_max=h_max)
+            except Exception as e:
+                print(f"\n    ✗ run failed: {e}")
+                return result
+            e2e = time.perf_counter() - t0
 
-    if pct_slower > threshold_pct:
-        print(f"  ✗ REGRESSION DETECTED (>{threshold_pct}% slower)")
-        return True
+        e2e_times.append(e2e)
+        for label, sec in timings.items():
+            if label not in medians:
+                medians[label] = []
+            medians[label].append(sec)
 
-    print(f"  ✓ Within threshold (<{threshold_pct}%)")
-    return False
+    # Compute medians
+    result["end_to_end_sec"] = float(np.median(e2e_times))
+    result["n_nodes"] = mesh.n_nodes
+    result["n_elements"] = mesh.n_elements
+
+    for label, secs in medians.items():
+        result["stages"][label] = float(np.median(secs))
+
+    # "other" = unaccounted time
+    measured_sum = sum(result["stages"].values())
+    other = result["end_to_end_sec"] - measured_sum
+    if other > 0:
+        result["stages"]["other/unaccounted"] = other
+
+    print(f"OK (median {result['end_to_end_sec']:.3f}s)")
+    return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="ADMESH pipeline benchmark harness",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="ADMESH per-stage wall-clock harness (issue #145)"
     )
     parser.add_argument(
-        "--tier",
-        choices=["tiny", "medium", "wnat-3m"],
-        default="tiny",
-        help="Input tier (tiny: ~100 nodes, medium: ~5K, wnat-3m: ~3M)",
+        "--h0",
+        type=float,
+        default=None,
+        help="Override target h_max for all fixtures (default: per-fixture)",
     )
     parser.add_argument(
         "--runs",
         type=int,
         default=3,
-        help="Number of measured iterations (default: 3; wnat-3m auto→1)",
+        help="Measured iterations per fixture (default: 3; wnat auto→1)",
     )
     parser.add_argument(
-        "--ci",
-        action="store_true",
-        help="CI mode (skip wnat-3m unless --tier=wnat-3m)",
-    )
-    parser.add_argument(
-        "--fail-on-regression",
-        action="store_true",
-        help="Exit non-zero if regression >15% detected vs baseline",
-    )
-    parser.add_argument(
-        "--check-regression",
-        action="store_true",
-        help="Report regression vs baseline without failing",
-    )
-    parser.add_argument(
-        "--output",
+        "--json",
         type=pathlib.Path,
-        help="Explicit output JSON path (default: {git_sha}-{env_hash}.json)",
+        help="Write JSON record to PATH (omit to skip)",
+    )
+    parser.add_argument(
+        "--fixtures",
+        type=str,
+        default="square,lshape,wnat",
+        help="Comma-sep fixture names: square,lshape,tier1,wnat (default: all present)",
     )
 
     args = parser.parse_args()
 
-    # Auto-adjust runs for large tier
-    if args.tier == "wnat-3m" and args.runs == 3:
-        args.runs = 1
-        print(f"Auto-reduced runs to 1 for tier={args.tier}")
+    import admesh
 
-    print(f"ADMESH Benchmark Harness")
-    print(f"  Tier: {args.tier}, Runs: {args.runs}")
+    fixtures_requested = [f.strip() for f in args.fixtures.split(",")]
+
+    # Tier-0 fixtures (always present)
+    tier0 = {
+        "square": (admesh.domains.UNIT_SQUARE, args.h0 or 0.1),
+        "lshape": (admesh.domains.L_SHAPE, args.h0 or 0.1),
+    }
+
+    # WNAT fixture
+    wnat_path = REPO_ROOT / "tests" / "fixtures" / "fort14" / "adcirc_examples" / "wnat_test.14"
+
+    results = {
+        "git_sha": _get_git_sha(),
+        "env_hash": _get_env_hash(),
+        "fixtures": {},
+    }
+
+    for fixture_name in fixtures_requested:
+        fixture_name = fixture_name.strip()
+
+        if fixture_name in tier0:
+            domain, h_max = tier0[fixture_name]
+            runs = args.runs
+            if fixture_name == "wnat" and runs == 3:
+                runs = 1
+            fixture_result = _bench_fixture(fixture_name, domain, h_max, runs)
+            results["fixtures"][fixture_name] = fixture_result
+
+        elif fixture_name == "wnat":
+            try:
+                if not wnat_path.exists():
+                    print(f"skip: wnat (file not found: {wnat_path})")
+                    continue
+                domain = admesh.load_domain_from_fort14(str(wnat_path))
+                h_max = args.h0 or (1.5 / 111.0)
+                runs = 1  # WNAT is slow
+                fixture_result = _bench_fixture(fixture_name, domain, h_max, runs)
+                results["fixtures"][fixture_name] = fixture_result
+            except Exception as e:
+                print(f"skip: wnat ({type(e).__name__}: {str(e)[:80]})")
+
+        elif fixture_name == "tier1":
+            # Search for any JSON/TOML domain files
+            json_files = list((REPO_ROOT / "tests" / "fixtures").glob("**/*.json"))
+            toml_files = list((REPO_ROOT / "tests" / "fixtures").glob("**/*.toml"))
+            if not json_files and not toml_files:
+                print("skip: tier1 (no JSON/TOML domain files found)")
+                continue
+            print(f"skip: tier1 (would scan {len(json_files)} JSON + {len(toml_files)} TOML; deferred)")
+
+        else:
+            print(f"skip: {fixture_name} (unknown fixture name)")
+
     print()
+    print("=" * 80)
+    print("SUMMARY")
+    print("=" * 80)
 
-    try:
-        run = _run_benchmark_suite(args.tier, args.runs)
-    except Exception as e:
-        print(f"✗ Benchmark failed: {e}", file=sys.stderr)
-        import traceback
-        traceback.print_exc()
-        return 1
-
-    print()
-    _save_results(run)
-
-    if args.check_regression or args.fail_on_regression:
+    # Per-fixture table
+    for fixture_name, fixture_data in results["fixtures"].items():
         print()
-        print("Regression check:")
-        regressed = _check_regression(run, threshold_pct=15.0)
-        if args.fail_on_regression and regressed:
-            return 1
+        print(f"Fixture: {fixture_name}")
+        print(f"  h_max={fixture_data['h_max']:.6f}, nodes={fixture_data['n_nodes']}, elems={fixture_data['n_elements']}")
+        print()
+        print(f"  {'Stage':<30} {'Seconds':>12} {'% of total':>12}")
+        print(f"  {'-' * 30} {'-' * 12} {'-' * 12}")
+
+        stages = fixture_data["stages"]
+        e2e = fixture_data["end_to_end_sec"]
+
+        # Sort by time desc
+        sorted_stages = sorted(stages.items(), key=lambda x: x[1], reverse=True)
+        for label, sec in sorted_stages:
+            pct = 100.0 * sec / e2e if e2e > 0 else 0.0
+            print(f"  {label:<30} {sec:>12.6f} {pct:>11.1f}%")
+
+        print(f"  {'-' * 30} {'-' * 12} {'-' * 12}")
+        print(f"  {'TOTAL':<30} {e2e:>12.6f} {'100.0%':>11}")
+
+    # JSON output
+    if args.json:
+        args.json.parent.mkdir(parents=True, exist_ok=True)
+        args.json.write_text(json.dumps(results, indent=2))
+        print()
+        print(f"✓ JSON saved: {args.json}")
 
     return 0
 

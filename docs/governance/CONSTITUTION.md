@@ -6,6 +6,12 @@ Governs **how we work** on the ADMESH Python port. Companion docs:
 
 Read first at every session. If rule here conflicts with `CLAUDE.md`, this wins.
 
+**Document hierarchy (binding vs advisory).** Precedence and nature of each governing doc, so an operational *note* is never mistaken for a binding rule (see #140):
+- **`CONSTITUTION.md` (this file) — BINDING.** Articles are law. Conflicts resolve here.
+- **`PROJECT_PLAN.md` — milestones, not law.** Phase targets and validation goals; a milestone metric is an aim, not an invariant.
+- **`CLAUDE.md` — operational notes & defaults.** Code organization, conventions, and *default* values. A CLAUDE.md note carries no constitutional weight.
+- **Default kwargs in code (e.g. `triangulate(quality_gate=...)`) — overridable defaults, not invariants.**
+
 ---
 
 ## Article I — Identity & north star
@@ -57,6 +63,7 @@ Read first at every session. If rule here conflicts with `CLAUDE.md`, this wins.
 2. **Reference fixtures** generated once from MATLAB (`scripts/export_matlab_fixtures.m`) and committed under `tests/fixtures/`. Load-only in Python; regenerate only when MATLAB source commit pin changes.
 3. **End-to-end tests** exercise full `routine.adm_esh_routine()` on small synthetic domains (unit square, L-shape, annulus) and compare final mesh to MATLAB output.
 4. **Visual inspection encouraged but not required.** Test producing PNG under `output/` is fine; don't gate CI on it.
+5. **Mesh quality is hyperparameter-driven; there is no fixed quality floor.** Element size — and therefore quality — is dictated by the user's `hmin`/`hmax`/`g` knobs. The binding end-to-end check is **structural validity** (positive-area triangles, nodes/centroids inside the domain, watertight boundary), **not** a universal `min_q`/`mean_q` threshold. Any numeric quality target (e.g. the `min_q ≥ 0.30`, `mean_q ≥ 0.60` MVP smoke floor) is an **advisory default**, overridable per call via `triangulate(quality_gate=...)` (set to `(0.0, 0.0)` to disable). Aggressive `hmin`/`hmax`/`g` ratios legitimately lower min quality and do not constitute a port defect.
 
 ---
 

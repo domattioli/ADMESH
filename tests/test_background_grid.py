@@ -2,8 +2,8 @@
 
 Imports the *canonical* module path (not the ``admesh.background_grid``
 shim) so the contract is immune to shim deletion at 1.0.0. The MATLAB
-numerical-parity test stays ``xfail(strict=True)`` until a stage-02
-fixture is exported by a MATLAB-equipped run (spec 013 T-013-B5).
+numerical-parity test runs against the stage-02 fixture exported via
+``scripts/export_matlab_fixtures.m`` (Octave-compatible; #78).
 """
 from __future__ import annotations
 
@@ -71,10 +71,6 @@ def test_res_factor_refines_spacing():
     assert g2.delta == pytest.approx(g1.delta / 2)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="blocked on stage-02 MATLAB fixture export (#78, spec 013 T-013-B5)",
-)
 def test_matlab_parity_unit_square():
     """FR-012-4: bit-stable parity vs MATLAB CreateBackgroundGrid at atol=1e-10."""
     data = np.load(FIXTURE)  # FileNotFoundError until the fixture lands
