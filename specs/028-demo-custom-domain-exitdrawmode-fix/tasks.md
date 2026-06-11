@@ -7,7 +7,7 @@
 
 ## Phase 1: Fix (single task)
 
-- [ ] T001 In `docs/demo/index.html`, before `if (drawMode) exitDrawMode()` (~line 899): add `const capturedVerts = (domainKey === "custom") ? drawVerts.slice() : null;`. Replace the `if (domainKey === "custom") { py.globals.set("_verts_json", ...) }` block (~line 919) with `if (capturedVerts !== null) { py.globals.set("_verts_json", JSON.stringify(capturedVerts)); }`.
+- [x] T001 In `docs/demo/index.html`, before `if (drawMode) exitDrawMode()` (~line 899): add `const capturedVerts = (domainKey === "custom") ? drawVerts.slice() : null;`. Replace the `if (domainKey === "custom") { py.globals.set("_verts_json", ...) }` block (~line 919) with `if (capturedVerts !== null) { py.globals.set("_verts_json", JSON.stringify(capturedVerts)); }`.
 
 ## Phase 2: Optional hardening
 
