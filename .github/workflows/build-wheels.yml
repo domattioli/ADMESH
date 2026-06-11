@@ -2,10 +2,11 @@ name: Cross-OS tests
 
 on:
   push:
-    branches: [cpp-distmesh, main]
+    branches: [main]
   pull_request:
     paths:
-      - "cpp/**"
+      - "src/cpp/**"
+      - "src/admesh/_cpp/**"
       - "pyproject.toml"
       - ".github/workflows/build-wheels.yml"
 
