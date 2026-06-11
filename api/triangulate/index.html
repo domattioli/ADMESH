@@ -1070,7 +1070,10 @@
             </td>
             <td>
               <div class="doc-md-description">
-                <p>Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).</p>
+                <p>Advisory (min_q, mean_q) smoke thresholds. Default: (0.30, 0.60) —
+an MVP port-sanity floor, NOT a binding quality invariant
+(CONSTITUTION Article V.5). Quality is driven by h_min/h_max/g;
+pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
               </div>
             </td>
             <td>
@@ -1457,7 +1460,14 @@
 <span class="normal"><a href="#__codelineno-0-867">867</a></span>
 <span class="normal"><a href="#__codelineno-0-868">868</a></span>
 <span class="normal"><a href="#__codelineno-0-869">869</a></span>
-<span class="normal"><a href="#__codelineno-0-870">870</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-629" name="__codelineno-0-629"></a><span class="k">def</span><span class="w"> </span><span class="nf">triangulate</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-870">870</a></span>
+<span class="normal"><a href="#__codelineno-0-871">871</a></span>
+<span class="normal"><a href="#__codelineno-0-872">872</a></span>
+<span class="normal"><a href="#__codelineno-0-873">873</a></span>
+<span class="normal"><a href="#__codelineno-0-874">874</a></span>
+<span class="normal"><a href="#__codelineno-0-875">875</a></span>
+<span class="normal"><a href="#__codelineno-0-876">876</a></span>
+<span class="normal"><a href="#__codelineno-0-877">877</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-629" name="__codelineno-0-629"></a><span class="k">def</span><span class="w"> </span><span class="nf">triangulate</span><span class="p">(</span>
 <a id="__codelineno-0-630" name="__codelineno-0-630"></a>    <span class="n">domain</span><span class="p">:</span> <span class="n">Domain</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="s2">&quot;os.PathLike[str]&quot;</span><span class="p">,</span>
 <a id="__codelineno-0-631" name="__codelineno-0-631"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-632" name="__codelineno-0-632"></a>    <span class="n">h_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1468,237 +1478,244 @@
 <a id="__codelineno-0-637" name="__codelineno-0-637"></a>    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-638" name="__codelineno-0-638"></a>    <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-639" name="__codelineno-0-639"></a>    <span class="n">initial_points</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-640" name="__codelineno-0-640"></a>    <span class="n">quality_gate</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.30</span><span class="p">,</span> <span class="mf">0.60</span><span class="p">),</span>
-<a id="__codelineno-0-641" name="__codelineno-0-641"></a>    <span class="n">ttol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-642" name="__codelineno-0-642"></a>    <span class="n">dptol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-643" name="__codelineno-0-643"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
-<a id="__codelineno-0-644" name="__codelineno-0-644"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a triangular mesh on ``domain``.</span>
-<a id="__codelineno-0-645" name="__codelineno-0-645"></a>
-<a id="__codelineno-0-646" name="__codelineno-0-646"></a><span class="sd">    Parameters</span>
-<a id="__codelineno-0-647" name="__codelineno-0-647"></a><span class="sd">    ----------</span>
-<a id="__codelineno-0-648" name="__codelineno-0-648"></a><span class="sd">    domain : Domain, str, or os.PathLike</span>
-<a id="__codelineno-0-649" name="__codelineno-0-649"></a><span class="sd">        Domain object, file path (TOML/JSON/fort.14), or mesh_id string</span>
-<a id="__codelineno-0-650" name="__codelineno-0-650"></a><span class="sd">        (from ADMESH-Domains registry if installed).</span>
-<a id="__codelineno-0-651" name="__codelineno-0-651"></a><span class="sd">    h_max : float or None</span>
-<a id="__codelineno-0-652" name="__codelineno-0-652"></a><span class="sd">        Target maximum edge length. If None, defaults to bbox_diagonal / 20.</span>
-<a id="__codelineno-0-653" name="__codelineno-0-653"></a><span class="sd">    h_min : float or None</span>
-<a id="__codelineno-0-654" name="__codelineno-0-654"></a><span class="sd">        Minimum edge length for size field composition.</span>
-<a id="__codelineno-0-655" name="__codelineno-0-655"></a><span class="sd">    size_field : callable or None</span>
-<a id="__codelineno-0-656" name="__codelineno-0-656"></a><span class="sd">        Pre-composed size field function.</span>
-<a id="__codelineno-0-657" name="__codelineno-0-657"></a><span class="sd">    user_contribs : tuple of callables</span>
-<a id="__codelineno-0-658" name="__codelineno-0-658"></a><span class="sd">        User-defined size field contributions.</span>
-<a id="__codelineno-0-659" name="__codelineno-0-659"></a><span class="sd">    combine : callable</span>
-<a id="__codelineno-0-660" name="__codelineno-0-660"></a><span class="sd">        Function to combine multiple size fields (default: np.minimum.reduce).</span>
-<a id="__codelineno-0-661" name="__codelineno-0-661"></a><span class="sd">    seed : int or None</span>
-<a id="__codelineno-0-662" name="__codelineno-0-662"></a><span class="sd">        Random seed for reproducibility.</span>
-<a id="__codelineno-0-663" name="__codelineno-0-663"></a><span class="sd">    max_iter : int or None</span>
-<a id="__codelineno-0-664" name="__codelineno-0-664"></a><span class="sd">        Maximum iterations for mesh generation.</span>
-<a id="__codelineno-0-665" name="__codelineno-0-665"></a><span class="sd">    quality_gate : tuple[float, float]</span>
-<a id="__codelineno-0-666" name="__codelineno-0-666"></a><span class="sd">        Quality thresholds (min_q, mean_q). Default: (0.30, 0.60).</span>
-<a id="__codelineno-0-667" name="__codelineno-0-667"></a><span class="sd">    ttol : float or None</span>
-<a id="__codelineno-0-668" name="__codelineno-0-668"></a><span class="sd">        Relative displacement threshold for Delaunay rebuild. Default: 0.27.</span>
-<a id="__codelineno-0-669" name="__codelineno-0-669"></a><span class="sd">    dptol : float or None</span>
-<a id="__codelineno-0-670" name="__codelineno-0-670"></a><span class="sd">        Interior node movement tolerance for convergence. Default: 2e-3.</span>
-<a id="__codelineno-0-671" name="__codelineno-0-671"></a>
-<a id="__codelineno-0-672" name="__codelineno-0-672"></a><span class="sd">    Returns</span>
-<a id="__codelineno-0-673" name="__codelineno-0-673"></a><span class="sd">    -------</span>
-<a id="__codelineno-0-674" name="__codelineno-0-674"></a><span class="sd">    Mesh</span>
-<a id="__codelineno-0-675" name="__codelineno-0-675"></a><span class="sd">        Triangulated mesh with quality metrics and boundaries.</span>
-<a id="__codelineno-0-676" name="__codelineno-0-676"></a>
-<a id="__codelineno-0-677" name="__codelineno-0-677"></a><span class="sd">    Raises</span>
-<a id="__codelineno-0-678" name="__codelineno-0-678"></a><span class="sd">    ------</span>
-<a id="__codelineno-0-679" name="__codelineno-0-679"></a><span class="sd">    ValueError</span>
-<a id="__codelineno-0-680" name="__codelineno-0-680"></a><span class="sd">        If domain source cannot be resolved or quality gates fail.</span>
-<a id="__codelineno-0-681" name="__codelineno-0-681"></a><span class="sd">    ImportError</span>
-<a id="__codelineno-0-682" name="__codelineno-0-682"></a><span class="sd">        If registry lookup is attempted without admesh-domains installed.</span>
+<a id="__codelineno-0-640" name="__codelineno-0-640"></a>    <span class="c1"># Advisory default, NOT a binding invariant (CONSTITUTION Article V.5, #140):</span>
+<a id="__codelineno-0-641" name="__codelineno-0-641"></a>    <span class="c1"># (0.30, 0.60) is an MVP port-sanity smoke floor, caller-overridable. Mesh</span>
+<a id="__codelineno-0-642" name="__codelineno-0-642"></a>    <span class="c1"># quality is hyperparameter-driven (h_min/h_max/g); aggressive ratios</span>
+<a id="__codelineno-0-643" name="__codelineno-0-643"></a>    <span class="c1"># legitimately lower min quality. Pass (0.0, 0.0) to disable the gate.</span>
+<a id="__codelineno-0-644" name="__codelineno-0-644"></a>    <span class="n">quality_gate</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.30</span><span class="p">,</span> <span class="mf">0.60</span><span class="p">),</span>
+<a id="__codelineno-0-645" name="__codelineno-0-645"></a>    <span class="n">ttol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-646" name="__codelineno-0-646"></a>    <span class="n">dptol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-647" name="__codelineno-0-647"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
+<a id="__codelineno-0-648" name="__codelineno-0-648"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a triangular mesh on ``domain``.</span>
+<a id="__codelineno-0-649" name="__codelineno-0-649"></a>
+<a id="__codelineno-0-650" name="__codelineno-0-650"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-651" name="__codelineno-0-651"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-652" name="__codelineno-0-652"></a><span class="sd">    domain : Domain, str, or os.PathLike</span>
+<a id="__codelineno-0-653" name="__codelineno-0-653"></a><span class="sd">        Domain object, file path (TOML/JSON/fort.14), or mesh_id string</span>
+<a id="__codelineno-0-654" name="__codelineno-0-654"></a><span class="sd">        (from ADMESH-Domains registry if installed).</span>
+<a id="__codelineno-0-655" name="__codelineno-0-655"></a><span class="sd">    h_max : float or None</span>
+<a id="__codelineno-0-656" name="__codelineno-0-656"></a><span class="sd">        Target maximum edge length. If None, defaults to bbox_diagonal / 20.</span>
+<a id="__codelineno-0-657" name="__codelineno-0-657"></a><span class="sd">    h_min : float or None</span>
+<a id="__codelineno-0-658" name="__codelineno-0-658"></a><span class="sd">        Minimum edge length for size field composition.</span>
+<a id="__codelineno-0-659" name="__codelineno-0-659"></a><span class="sd">    size_field : callable or None</span>
+<a id="__codelineno-0-660" name="__codelineno-0-660"></a><span class="sd">        Pre-composed size field function.</span>
+<a id="__codelineno-0-661" name="__codelineno-0-661"></a><span class="sd">    user_contribs : tuple of callables</span>
+<a id="__codelineno-0-662" name="__codelineno-0-662"></a><span class="sd">        User-defined size field contributions.</span>
+<a id="__codelineno-0-663" name="__codelineno-0-663"></a><span class="sd">    combine : callable</span>
+<a id="__codelineno-0-664" name="__codelineno-0-664"></a><span class="sd">        Function to combine multiple size fields (default: np.minimum.reduce).</span>
+<a id="__codelineno-0-665" name="__codelineno-0-665"></a><span class="sd">    seed : int or None</span>
+<a id="__codelineno-0-666" name="__codelineno-0-666"></a><span class="sd">        Random seed for reproducibility.</span>
+<a id="__codelineno-0-667" name="__codelineno-0-667"></a><span class="sd">    max_iter : int or None</span>
+<a id="__codelineno-0-668" name="__codelineno-0-668"></a><span class="sd">        Maximum iterations for mesh generation.</span>
+<a id="__codelineno-0-669" name="__codelineno-0-669"></a><span class="sd">    quality_gate : tuple[float, float]</span>
+<a id="__codelineno-0-670" name="__codelineno-0-670"></a><span class="sd">        Advisory (min_q, mean_q) smoke thresholds. Default: (0.30, 0.60) —</span>
+<a id="__codelineno-0-671" name="__codelineno-0-671"></a><span class="sd">        an MVP port-sanity floor, NOT a binding quality invariant</span>
+<a id="__codelineno-0-672" name="__codelineno-0-672"></a><span class="sd">        (CONSTITUTION Article V.5). Quality is driven by h_min/h_max/g;</span>
+<a id="__codelineno-0-673" name="__codelineno-0-673"></a><span class="sd">        pass (0.0, 0.0) to disable the gate when knobs lower min quality.</span>
+<a id="__codelineno-0-674" name="__codelineno-0-674"></a><span class="sd">    ttol : float or None</span>
+<a id="__codelineno-0-675" name="__codelineno-0-675"></a><span class="sd">        Relative displacement threshold for Delaunay rebuild. Default: 0.27.</span>
+<a id="__codelineno-0-676" name="__codelineno-0-676"></a><span class="sd">    dptol : float or None</span>
+<a id="__codelineno-0-677" name="__codelineno-0-677"></a><span class="sd">        Interior node movement tolerance for convergence. Default: 2e-3.</span>
+<a id="__codelineno-0-678" name="__codelineno-0-678"></a>
+<a id="__codelineno-0-679" name="__codelineno-0-679"></a><span class="sd">    Returns</span>
+<a id="__codelineno-0-680" name="__codelineno-0-680"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-681" name="__codelineno-0-681"></a><span class="sd">    Mesh</span>
+<a id="__codelineno-0-682" name="__codelineno-0-682"></a><span class="sd">        Triangulated mesh with quality metrics and boundaries.</span>
 <a id="__codelineno-0-683" name="__codelineno-0-683"></a>
-<a id="__codelineno-0-684" name="__codelineno-0-684"></a><span class="sd">    Adapts the v1 :class:`Domain` onto the faithful-port driver</span>
-<a id="__codelineno-0-685" name="__codelineno-0-685"></a><span class="sd">    :func:`admesh.routine.triangulate` without modifying it (Constitution</span>
-<a id="__codelineno-0-686" name="__codelineno-0-686"></a><span class="sd">    Principle I). Returns a :class:`Mesh` with per-element quality</span>
-<a id="__codelineno-0-687" name="__codelineno-0-687"></a><span class="sd">    populated and boundaries derived from the triangulation.</span>
-<a id="__codelineno-0-688" name="__codelineno-0-688"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-689" name="__codelineno-0-689"></a>    <span class="c1"># Lazy imports — keeps `import admesh` cheap and avoids a hard</span>
-<a id="__codelineno-0-690" name="__codelineno-0-690"></a>    <span class="c1"># dependency cycle with the faithful-port modules at import time.</span>
-<a id="__codelineno-0-691" name="__codelineno-0-691"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.domains</span><span class="w"> </span><span class="kn">import</span> <span class="n">Domain</span> <span class="k">as</span> <span class="n">_PortDomain</span>
-<a id="__codelineno-0-692" name="__codelineno-0-692"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.quality</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_quality</span>
-<a id="__codelineno-0-693" name="__codelineno-0-693"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.routine</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangulate</span> <span class="k">as</span> <span class="n">_routine_triangulate</span>
-<a id="__codelineno-0-694" name="__codelineno-0-694"></a>
-<a id="__codelineno-0-695" name="__codelineno-0-695"></a>    <span class="c1"># Load domain from file or registry if it&#39;s a string; adapt if it&#39;s a port Domain.</span>
-<a id="__codelineno-0-696" name="__codelineno-0-696"></a>    <span class="n">api_domain</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track whether we have an api.Domain (may have bc_segments)</span>
-<a id="__codelineno-0-697" name="__codelineno-0-697"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">_PortDomain</span><span class="p">):</span>
-<a id="__codelineno-0-698" name="__codelineno-0-698"></a>        <span class="c1"># Input is already a faithful-port Domain; use it directly.</span>
-<a id="__codelineno-0-699" name="__codelineno-0-699"></a>        <span class="n">port_domain</span> <span class="o">=</span> <span class="n">domain</span>
-<a id="__codelineno-0-700" name="__codelineno-0-700"></a>        <span class="n">bbox</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">bbox</span>
-<a id="__codelineno-0-701" name="__codelineno-0-701"></a>        <span class="n">h0_default</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_bbox_diag</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
-<a id="__codelineno-0-702" name="__codelineno-0-702"></a>        <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_max</span><span class="p">)</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h0_default</span>
-<a id="__codelineno-0-703" name="__codelineno-0-703"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">fixed_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-704" name="__codelineno-0-704"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-705" name="__codelineno-0-705"></a>        <span class="c1"># Input should be an api.Domain or a file/registry path</span>
-<a id="__codelineno-0-706" name="__codelineno-0-706"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">Domain</span><span class="p">):</span>
-<a id="__codelineno-0-707" name="__codelineno-0-707"></a>            <span class="n">domain</span> <span class="o">=</span> <span class="n">_load_domain_from_source</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
-<a id="__codelineno-0-708" name="__codelineno-0-708"></a>
-<a id="__codelineno-0-709" name="__codelineno-0-709"></a>        <span class="n">api_domain</span> <span class="o">=</span> <span class="n">domain</span>  <span class="c1"># Track the api.Domain for bc_segments access later</span>
-<a id="__codelineno-0-710" name="__codelineno-0-710"></a>        <span class="c1"># Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.</span>
-<a id="__codelineno-0-711" name="__codelineno-0-711"></a>        <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-712" name="__codelineno-0-712"></a>            <span class="n">h0</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_bbox_diag</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
-<a id="__codelineno-0-713" name="__codelineno-0-713"></a>        <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-714" name="__codelineno-0-714"></a>            <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_max</span><span class="p">)</span>
+<a id="__codelineno-0-684" name="__codelineno-0-684"></a><span class="sd">    Raises</span>
+<a id="__codelineno-0-685" name="__codelineno-0-685"></a><span class="sd">    ------</span>
+<a id="__codelineno-0-686" name="__codelineno-0-686"></a><span class="sd">    ValueError</span>
+<a id="__codelineno-0-687" name="__codelineno-0-687"></a><span class="sd">        If domain source cannot be resolved or quality gates fail.</span>
+<a id="__codelineno-0-688" name="__codelineno-0-688"></a><span class="sd">    ImportError</span>
+<a id="__codelineno-0-689" name="__codelineno-0-689"></a><span class="sd">        If registry lookup is attempted without admesh-domains installed.</span>
+<a id="__codelineno-0-690" name="__codelineno-0-690"></a>
+<a id="__codelineno-0-691" name="__codelineno-0-691"></a><span class="sd">    Adapts the v1 :class:`Domain` onto the faithful-port driver</span>
+<a id="__codelineno-0-692" name="__codelineno-0-692"></a><span class="sd">    :func:`admesh.routine.triangulate` without modifying it (Constitution</span>
+<a id="__codelineno-0-693" name="__codelineno-0-693"></a><span class="sd">    Principle I). Returns a :class:`Mesh` with per-element quality</span>
+<a id="__codelineno-0-694" name="__codelineno-0-694"></a><span class="sd">    populated and boundaries derived from the triangulation.</span>
+<a id="__codelineno-0-695" name="__codelineno-0-695"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-696" name="__codelineno-0-696"></a>    <span class="c1"># Lazy imports — keeps `import admesh` cheap and avoids a hard</span>
+<a id="__codelineno-0-697" name="__codelineno-0-697"></a>    <span class="c1"># dependency cycle with the faithful-port modules at import time.</span>
+<a id="__codelineno-0-698" name="__codelineno-0-698"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.domains</span><span class="w"> </span><span class="kn">import</span> <span class="n">Domain</span> <span class="k">as</span> <span class="n">_PortDomain</span>
+<a id="__codelineno-0-699" name="__codelineno-0-699"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.quality</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_quality</span>
+<a id="__codelineno-0-700" name="__codelineno-0-700"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.routine</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangulate</span> <span class="k">as</span> <span class="n">_routine_triangulate</span>
+<a id="__codelineno-0-701" name="__codelineno-0-701"></a>
+<a id="__codelineno-0-702" name="__codelineno-0-702"></a>    <span class="c1"># Load domain from file or registry if it&#39;s a string; adapt if it&#39;s a port Domain.</span>
+<a id="__codelineno-0-703" name="__codelineno-0-703"></a>    <span class="n">api_domain</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track whether we have an api.Domain (may have bc_segments)</span>
+<a id="__codelineno-0-704" name="__codelineno-0-704"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">_PortDomain</span><span class="p">):</span>
+<a id="__codelineno-0-705" name="__codelineno-0-705"></a>        <span class="c1"># Input is already a faithful-port Domain; use it directly.</span>
+<a id="__codelineno-0-706" name="__codelineno-0-706"></a>        <span class="n">port_domain</span> <span class="o">=</span> <span class="n">domain</span>
+<a id="__codelineno-0-707" name="__codelineno-0-707"></a>        <span class="n">bbox</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">bbox</span>
+<a id="__codelineno-0-708" name="__codelineno-0-708"></a>        <span class="n">h0_default</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_bbox_diag</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+<a id="__codelineno-0-709" name="__codelineno-0-709"></a>        <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_max</span><span class="p">)</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h0_default</span>
+<a id="__codelineno-0-710" name="__codelineno-0-710"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">fixed_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">fixed_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-711" name="__codelineno-0-711"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-712" name="__codelineno-0-712"></a>        <span class="c1"># Input should be an api.Domain or a file/registry path</span>
+<a id="__codelineno-0-713" name="__codelineno-0-713"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">Domain</span><span class="p">):</span>
+<a id="__codelineno-0-714" name="__codelineno-0-714"></a>            <span class="n">domain</span> <span class="o">=</span> <span class="n">_load_domain_from_source</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
 <a id="__codelineno-0-715" name="__codelineno-0-715"></a>
-<a id="__codelineno-0-716" name="__codelineno-0-716"></a>        <span class="c1"># Adapter: the faithful-port `Domain` carries the SDF + fixed points.</span>
-<a id="__codelineno-0-717" name="__codelineno-0-717"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">pfix</span>
-<a id="__codelineno-0-718" name="__codelineno-0-718"></a>        <span class="k">if</span> <span class="n">pfix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-719" name="__codelineno-0-719"></a>            <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-720" name="__codelineno-0-720"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pfix</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-721" name="__codelineno-0-721"></a>        <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
-<a id="__codelineno-0-722" name="__codelineno-0-722"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-723" name="__codelineno-0-723"></a>            <span class="n">fd</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">sdf</span><span class="p">,</span>
-<a id="__codelineno-0-724" name="__codelineno-0-724"></a>            <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
-<a id="__codelineno-0-725" name="__codelineno-0-725"></a>            <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
-<a id="__codelineno-0-726" name="__codelineno-0-726"></a>        <span class="p">)</span>
-<a id="__codelineno-0-727" name="__codelineno-0-727"></a>
-<a id="__codelineno-0-728" name="__codelineno-0-728"></a>    <span class="c1"># Build kwargs for the driver. seed / niter only forwarded when the</span>
-<a id="__codelineno-0-729" name="__codelineno-0-729"></a>    <span class="c1"># caller supplied them — let the routine apply its own defaults.</span>
-<a id="__codelineno-0-730" name="__codelineno-0-730"></a>    <span class="n">opts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-<a id="__codelineno-0-731" name="__codelineno-0-731"></a>    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-732" name="__codelineno-0-732"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-<a id="__codelineno-0-733" name="__codelineno-0-733"></a>    <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-734" name="__codelineno-0-734"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;niter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span>
-<a id="__codelineno-0-735" name="__codelineno-0-735"></a>    <span class="k">if</span> <span class="n">ttol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-736" name="__codelineno-0-736"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;ttol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ttol</span><span class="p">)</span>
-<a id="__codelineno-0-737" name="__codelineno-0-737"></a>    <span class="k">if</span> <span class="n">dptol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-738" name="__codelineno-0-738"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;dptol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dptol</span><span class="p">)</span>
-<a id="__codelineno-0-739" name="__codelineno-0-739"></a>    <span class="k">if</span> <span class="n">initial_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-740" name="__codelineno-0-740"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;initial_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-741" name="__codelineno-0-741"></a>
-<a id="__codelineno-0-742" name="__codelineno-0-742"></a>    <span class="c1"># Resolve the size field. Cases:</span>
-<a id="__codelineno-0-743" name="__codelineno-0-743"></a>    <span class="c1">#</span>
-<a id="__codelineno-0-744" name="__codelineno-0-744"></a>    <span class="c1">#   1. Caller passed a pre-composed `size_field=`. They&#39;ve already</span>
-<a id="__codelineno-0-745" name="__codelineno-0-745"></a>    <span class="c1">#      done their own composition; we use it as-is. If they ALSO</span>
-<a id="__codelineno-0-746" name="__codelineno-0-746"></a>    <span class="c1">#      passed `user_contribs=` we warn — those would be ignored</span>
-<a id="__codelineno-0-747" name="__codelineno-0-747"></a>    <span class="c1">#      otherwise, which silently violates the contract.</span>
-<a id="__codelineno-0-748" name="__codelineno-0-748"></a>    <span class="c1">#   2. Caller passed `user_contribs=`. Wrap them via</span>
-<a id="__codelineno-0-749" name="__codelineno-0-749"></a>    <span class="c1">#      `compose_size_field` with `size_field` (if any) as the sole</span>
-<a id="__codelineno-0-750" name="__codelineno-0-750"></a>    <span class="c1">#      Phase-1 builtin. Default combiner is `np.minimum.reduce`.</span>
-<a id="__codelineno-0-751" name="__codelineno-0-751"></a>    <span class="c1">#   3. Caller passed h_min or h_max but no user_contribs — auto-create</span>
-<a id="__codelineno-0-752" name="__codelineno-0-752"></a>    <span class="c1">#      a uniform clamping size field so the bounds are not silently ignored.</span>
-<a id="__codelineno-0-753" name="__codelineno-0-753"></a>    <span class="c1">#   4. Neither — uniform sizing falls through (`fh=None`).</span>
-<a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="k">if</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">user_contribs</span><span class="p">:</span>
-<a id="__codelineno-0-755" name="__codelineno-0-755"></a>        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-<a id="__codelineno-0-756" name="__codelineno-0-756"></a>            <span class="s2">&quot;triangulate: both `size_field` and `user_contribs` were &quot;</span>
-<a id="__codelineno-0-757" name="__codelineno-0-757"></a>            <span class="s2">&quot;supplied; ignoring `user_contribs` (the pre-composed &quot;</span>
-<a id="__codelineno-0-758" name="__codelineno-0-758"></a>            <span class="s2">&quot;`size_field` already encodes its own composition).&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-759" name="__codelineno-0-759"></a>            <span class="ne">UserWarning</span><span class="p">,</span>
-<a id="__codelineno-0-760" name="__codelineno-0-760"></a>            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-<a id="__codelineno-0-761" name="__codelineno-0-761"></a>        <span class="p">)</span>
-<a id="__codelineno-0-762" name="__codelineno-0-762"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">size_field</span>
-<a id="__codelineno-0-763" name="__codelineno-0-763"></a>    <span class="k">elif</span> <span class="n">user_contribs</span> <span class="ow">or</span> <span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-764" name="__codelineno-0-764"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.size_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose_size_field</span>
-<a id="__codelineno-0-765" name="__codelineno-0-765"></a>
-<a id="__codelineno-0-766" name="__codelineno-0-766"></a>        <span class="c1"># Build Phase-1 builtins: include size_field if provided</span>
-<a id="__codelineno-0-767" name="__codelineno-0-767"></a>        <span class="n">builtins_phase1</span> <span class="o">=</span> <span class="p">(</span><span class="n">size_field</span><span class="p">,)</span> <span class="k">if</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">()</span>
-<a id="__codelineno-0-768" name="__codelineno-0-768"></a>
-<a id="__codelineno-0-769" name="__codelineno-0-769"></a>        <span class="c1"># Build Phase-2 user contributions</span>
-<a id="__codelineno-0-770" name="__codelineno-0-770"></a>        <span class="n">user_phase2</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">user_contribs</span><span class="p">)</span>
-<a id="__codelineno-0-771" name="__codelineno-0-771"></a>
-<a id="__codelineno-0-772" name="__codelineno-0-772"></a>        <span class="c1"># If h_min/h_max specified without other size fields, create a bounded field.</span>
-<a id="__codelineno-0-773" name="__codelineno-0-773"></a>        <span class="c1"># NOTE (#65 / spec 025 Step 3 DEFERRED): wiring build_h() here as the</span>
-<a id="__codelineno-0-774" name="__codelineno-0-774"></a>        <span class="c1"># unconditional default degrades MVP convex-domain min_q 0.30 -&gt; 0.22</span>
-<a id="__codelineno-0-775" name="__codelineno-0-775"></a>        <span class="c1"># (curvature+medial size-gradient -&gt; low-quality distmesh transition</span>
-<a id="__codelineno-0-776" name="__codelineno-0-776"></a>        <span class="c1"># tris), violating the constitutional MVP quality gate + spec 025</span>
-<a id="__codelineno-0-777" name="__codelineno-0-777"></a>        <span class="c1"># AC-005/AC-006. Deferred pending operator decision (make conditional on</span>
-<a id="__codelineno-0-778" name="__codelineno-0-778"></a>        <span class="c1"># domain features / tune scales / revise gate). Steps 1+2 (Domain.bathymetry</span>
-<a id="__codelineno-0-779" name="__codelineno-0-779"></a>        <span class="c1"># + from_mesh extraction) shipped — additive, no behavior change.</span>
-<a id="__codelineno-0-780" name="__codelineno-0-780"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">builtins_phase1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">user_phase2</span><span class="p">:</span>
-<a id="__codelineno-0-781" name="__codelineno-0-781"></a>            <span class="c1"># Create a clamping size field directly to avoid warning noise.</span>
-<a id="__codelineno-0-782" name="__codelineno-0-782"></a>            <span class="k">def</span><span class="w"> </span><span class="nf">_clamped_uniform</span><span class="p">(</span><span class="n">pts</span><span class="p">):</span>
-<a id="__codelineno-0-783" name="__codelineno-0-783"></a>                <span class="n">pts_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-784" name="__codelineno-0-784"></a>                <span class="n">n</span> <span class="o">=</span> <span class="n">pts_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<a id="__codelineno-0-785" name="__codelineno-0-785"></a>                <span class="c1"># Return uniform field, already clamped to [h_min, h_max]</span>
-<a id="__codelineno-0-786" name="__codelineno-0-786"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">h_max</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h_min</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-787" name="__codelineno-0-787"></a>                <span class="k">if</span> <span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-788" name="__codelineno-0-788"></a>                    <span class="n">result</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">h_max</span>  <span class="c1"># Use h_max as the target (conservative for refinement)</span>
-<a id="__codelineno-0-789" name="__codelineno-0-789"></a>                <span class="k">return</span> <span class="n">result</span>
-<a id="__codelineno-0-790" name="__codelineno-0-790"></a>            <span class="n">user_phase2</span> <span class="o">=</span> <span class="p">(</span><span class="n">_clamped_uniform</span><span class="p">,)</span>
-<a id="__codelineno-0-791" name="__codelineno-0-791"></a>
-<a id="__codelineno-0-792" name="__codelineno-0-792"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">compose_size_field</span><span class="p">(</span>
-<a id="__codelineno-0-793" name="__codelineno-0-793"></a>            <span class="n">builtins</span><span class="o">=</span><span class="n">builtins_phase1</span><span class="p">,</span>
-<a id="__codelineno-0-794" name="__codelineno-0-794"></a>            <span class="n">user_contribs</span><span class="o">=</span><span class="n">user_phase2</span><span class="p">,</span>
-<a id="__codelineno-0-795" name="__codelineno-0-795"></a>            <span class="n">combine</span><span class="o">=</span><span class="n">combine</span><span class="p">,</span>
-<a id="__codelineno-0-796" name="__codelineno-0-796"></a>            <span class="n">hmin</span><span class="o">=</span><span class="n">h_min</span><span class="p">,</span>
-<a id="__codelineno-0-797" name="__codelineno-0-797"></a>            <span class="n">hmax</span><span class="o">=</span><span class="n">h_max</span><span class="p">,</span>
-<a id="__codelineno-0-798" name="__codelineno-0-798"></a>        <span class="p">)</span>
-<a id="__codelineno-0-799" name="__codelineno-0-799"></a>    <span class="k">elif</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-<a id="__codelineno-0-800" name="__codelineno-0-800"></a>        <span class="c1"># Fix #37: h_min/h_max were silently ignored when no user_contribs</span>
-<a id="__codelineno-0-801" name="__codelineno-0-801"></a>        <span class="c1"># provided. Auto-compose a uniform field that clamps to [h_min, h_max].</span>
-<a id="__codelineno-0-802" name="__codelineno-0-802"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.size_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose_size_field</span>
-<a id="__codelineno-0-803" name="__codelineno-0-803"></a>
-<a id="__codelineno-0-804" name="__codelineno-0-804"></a>        <span class="n">_h_max_val</span> <span class="o">=</span> <span class="n">h_max</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h0</span>
-<a id="__codelineno-0-805" name="__codelineno-0-805"></a>        <span class="n">_uniform</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span> <span class="n">_h_max_val</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
-<a id="__codelineno-0-806" name="__codelineno-0-806"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">compose_size_field</span><span class="p">(</span>
-<a id="__codelineno-0-807" name="__codelineno-0-807"></a>            <span class="n">builtins</span><span class="o">=</span><span class="p">(</span><span class="n">_uniform</span><span class="p">,),</span>
-<a id="__codelineno-0-808" name="__codelineno-0-808"></a>            <span class="n">user_contribs</span><span class="o">=</span><span class="p">(),</span>
-<a id="__codelineno-0-809" name="__codelineno-0-809"></a>            <span class="n">combine</span><span class="o">=</span><span class="n">combine</span><span class="p">,</span>
-<a id="__codelineno-0-810" name="__codelineno-0-810"></a>            <span class="n">hmin</span><span class="o">=</span><span class="n">h_min</span><span class="p">,</span>
-<a id="__codelineno-0-811" name="__codelineno-0-811"></a>            <span class="n">hmax</span><span class="o">=</span><span class="n">h_max</span><span class="p">,</span>
-<a id="__codelineno-0-812" name="__codelineno-0-812"></a>        <span class="p">)</span>
-<a id="__codelineno-0-813" name="__codelineno-0-813"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-814" name="__codelineno-0-814"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">size_field</span>  <span class="c1"># may still be None — uniform sizing</span>
-<a id="__codelineno-0-815" name="__codelineno-0-815"></a>
-<a id="__codelineno-0-816" name="__codelineno-0-816"></a>    <span class="c1"># Issue #2: if the domain carries explicit boundary vertices (pts), seed</span>
-<a id="__codelineno-0-817" name="__codelineno-0-817"></a>    <span class="c1"># intermediate points along each edge so short boundary segments get</span>
-<a id="__codelineno-0-818" name="__codelineno-0-818"></a>    <span class="c1"># adequate coverage even when the 2-D lattice is coarse.</span>
-<a id="__codelineno-0-819" name="__codelineno-0-819"></a>    <span class="c1"># Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.</span>
-<a id="__codelineno-0-820" name="__codelineno-0-820"></a>    <span class="n">_pts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;pts&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-821" name="__codelineno-0-821"></a>    <span class="n">domain_pts</span> <span class="o">=</span> <span class="n">_pts</span> <span class="k">if</span> <span class="n">_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;boundary_polygon&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-822" name="__codelineno-0-822"></a>    <span class="k">if</span> <span class="n">domain_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-823" name="__codelineno-0-823"></a>        <span class="n">boundary_seeds</span> <span class="o">=</span> <span class="n">_seed_boundary_1d</span><span class="p">(</span>
-<a id="__codelineno-0-824" name="__codelineno-0-824"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">domain_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fh</span><span class="p">,</span> <span class="n">h0</span>
-<a id="__codelineno-0-825" name="__codelineno-0-825"></a>        <span class="p">)</span>
-<a id="__codelineno-0-826" name="__codelineno-0-826"></a>        <span class="k">if</span> <span class="n">boundary_seeds</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-<a id="__codelineno-0-827" name="__codelineno-0-827"></a>            <span class="n">pfix</span> <span class="o">=</span> <span class="p">(</span>
-<a id="__codelineno-0-828" name="__codelineno-0-828"></a>                <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">pfix</span><span class="p">,</span> <span class="n">boundary_seeds</span><span class="p">])</span> <span class="k">if</span> <span class="n">pfix</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="n">boundary_seeds</span>
-<a id="__codelineno-0-829" name="__codelineno-0-829"></a>            <span class="p">)</span>
-<a id="__codelineno-0-830" name="__codelineno-0-830"></a>            <span class="c1"># _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.</span>
-<a id="__codelineno-0-831" name="__codelineno-0-831"></a>            <span class="n">_sdf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;sdf&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;fd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-832" name="__codelineno-0-832"></a>            <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
-<a id="__codelineno-0-833" name="__codelineno-0-833"></a>                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-834" name="__codelineno-0-834"></a>                <span class="n">fd</span><span class="o">=</span><span class="n">_sdf</span><span class="p">,</span>
-<a id="__codelineno-0-835" name="__codelineno-0-835"></a>                <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
-<a id="__codelineno-0-836" name="__codelineno-0-836"></a>                <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
-<a id="__codelineno-0-837" name="__codelineno-0-837"></a>            <span class="p">)</span>
-<a id="__codelineno-0-838" name="__codelineno-0-838"></a>
-<a id="__codelineno-0-839" name="__codelineno-0-839"></a>    <span class="n">p</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">_routine_triangulate</span><span class="p">(</span><span class="n">port_domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="n">h0</span><span class="p">,</span> <span class="n">fh</span><span class="o">=</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
-<a id="__codelineno-0-840" name="__codelineno-0-840"></a>    <span class="n">nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-<a id="__codelineno-0-841" name="__codelineno-0-841"></a>    <span class="n">elements</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-<a id="__codelineno-0-842" name="__codelineno-0-842"></a>
-<a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="n">min_q</span><span class="p">,</span> <span class="n">mean_q</span><span class="p">,</span> <span class="n">q_per</span> <span class="o">=</span> <span class="n">mesh_quality</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
-<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="n">gate_min</span><span class="p">,</span> <span class="n">gate_mean</span> <span class="o">=</span> <span class="n">quality_gate</span>
-<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="k">if</span> <span class="n">min_q</span> <span class="o">&lt;</span> <span class="n">gate_min</span><span class="p">:</span>
-<a id="__codelineno-0-846" name="__codelineno-0-846"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-847" name="__codelineno-0-847"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: min_q </span><span class="si">{</span><span class="n">min_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[0] </span><span class="si">{</span><span class="n">gate_min</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-848" name="__codelineno-0-848"></a>        <span class="p">)</span>
-<a id="__codelineno-0-849" name="__codelineno-0-849"></a>    <span class="k">if</span> <span class="n">mean_q</span> <span class="o">&lt;</span> <span class="n">gate_mean</span><span class="p">:</span>
-<a id="__codelineno-0-850" name="__codelineno-0-850"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-851" name="__codelineno-0-851"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: mean_q </span><span class="si">{</span><span class="n">mean_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[1] </span><span class="si">{</span><span class="n">gate_mean</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-852" name="__codelineno-0-852"></a>        <span class="p">)</span>
-<a id="__codelineno-0-853" name="__codelineno-0-853"></a>
-<a id="__codelineno-0-854" name="__codelineno-0-854"></a>    <span class="c1"># Derive boundary segments. If the caller pre-declared bc_segments</span>
-<a id="__codelineno-0-855" name="__codelineno-0-855"></a>    <span class="c1"># on the Domain, pass them through verbatim — they&#39;re the user&#39;s</span>
-<a id="__codelineno-0-856" name="__codelineno-0-856"></a>    <span class="c1"># contract about the output. Otherwise default-label every closed</span>
-<a id="__codelineno-0-857" name="__codelineno-0-857"></a>    <span class="c1"># boundary ring as MAINLAND.</span>
-<a id="__codelineno-0-858" name="__codelineno-0-858"></a>    <span class="k">if</span> <span class="n">api_domain</span> <span class="ow">and</span> <span class="n">api_domain</span><span class="o">.</span><span class="n">bc_segments</span><span class="p">:</span>
-<a id="__codelineno-0-859" name="__codelineno-0-859"></a>        <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">api_domain</span><span class="o">.</span><span class="n">bc_segments</span><span class="p">)</span>
-<a id="__codelineno-0-860" name="__codelineno-0-860"></a>    <span class="k">else</span><span class="p">:</span>
-<a id="__codelineno-0-861" name="__codelineno-0-861"></a>        <span class="n">boundaries</span> <span class="o">=</span> <span class="n">_derive_boundary_segments</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
-<a id="__codelineno-0-862" name="__codelineno-0-862"></a>
-<a id="__codelineno-0-863" name="__codelineno-0-863"></a>    <span class="k">return</span> <span class="n">Mesh</span><span class="p">(</span>
-<a id="__codelineno-0-864" name="__codelineno-0-864"></a>        <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span>
-<a id="__codelineno-0-865" name="__codelineno-0-865"></a>        <span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
-<a id="__codelineno-0-866" name="__codelineno-0-866"></a>        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
-<a id="__codelineno-0-867" name="__codelineno-0-867"></a>        <span class="n">bathymetry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-868" name="__codelineno-0-868"></a>        <span class="n">quality</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">q_per</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
-<a id="__codelineno-0-869" name="__codelineno-0-869"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<a id="__codelineno-0-870" name="__codelineno-0-870"></a>    <span class="p">)</span>
+<a id="__codelineno-0-716" name="__codelineno-0-716"></a>        <span class="n">api_domain</span> <span class="o">=</span> <span class="n">domain</span>  <span class="c1"># Track the api.Domain for bc_segments access later</span>
+<a id="__codelineno-0-717" name="__codelineno-0-717"></a>        <span class="c1"># Resolve h0 from h_max, falling back to a fraction of the bbox diagonal.</span>
+<a id="__codelineno-0-718" name="__codelineno-0-718"></a>        <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-719" name="__codelineno-0-719"></a>            <span class="n">h0</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">_bbox_diag</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">)</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">1e-6</span><span class="p">)</span>
+<a id="__codelineno-0-720" name="__codelineno-0-720"></a>        <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-721" name="__codelineno-0-721"></a>            <span class="n">h0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_max</span><span class="p">)</span>
+<a id="__codelineno-0-722" name="__codelineno-0-722"></a>
+<a id="__codelineno-0-723" name="__codelineno-0-723"></a>        <span class="c1"># Adapter: the faithful-port `Domain` carries the SDF + fixed points.</span>
+<a id="__codelineno-0-724" name="__codelineno-0-724"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">pfix</span>
+<a id="__codelineno-0-725" name="__codelineno-0-725"></a>        <span class="k">if</span> <span class="n">pfix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-726" name="__codelineno-0-726"></a>            <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-727" name="__codelineno-0-727"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pfix</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-728" name="__codelineno-0-728"></a>        <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
+<a id="__codelineno-0-729" name="__codelineno-0-729"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-730" name="__codelineno-0-730"></a>            <span class="n">fd</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">sdf</span><span class="p">,</span>
+<a id="__codelineno-0-731" name="__codelineno-0-731"></a>            <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
+<a id="__codelineno-0-732" name="__codelineno-0-732"></a>            <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
+<a id="__codelineno-0-733" name="__codelineno-0-733"></a>        <span class="p">)</span>
+<a id="__codelineno-0-734" name="__codelineno-0-734"></a>
+<a id="__codelineno-0-735" name="__codelineno-0-735"></a>    <span class="c1"># Build kwargs for the driver. seed / niter only forwarded when the</span>
+<a id="__codelineno-0-736" name="__codelineno-0-736"></a>    <span class="c1"># caller supplied them — let the routine apply its own defaults.</span>
+<a id="__codelineno-0-737" name="__codelineno-0-737"></a>    <span class="n">opts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<a id="__codelineno-0-738" name="__codelineno-0-738"></a>    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-739" name="__codelineno-0-739"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+<a id="__codelineno-0-740" name="__codelineno-0-740"></a>    <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-741" name="__codelineno-0-741"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;niter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span>
+<a id="__codelineno-0-742" name="__codelineno-0-742"></a>    <span class="k">if</span> <span class="n">ttol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-743" name="__codelineno-0-743"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;ttol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ttol</span><span class="p">)</span>
+<a id="__codelineno-0-744" name="__codelineno-0-744"></a>    <span class="k">if</span> <span class="n">dptol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-745" name="__codelineno-0-745"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;dptol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dptol</span><span class="p">)</span>
+<a id="__codelineno-0-746" name="__codelineno-0-746"></a>    <span class="k">if</span> <span class="n">initial_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-747" name="__codelineno-0-747"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;initial_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-748" name="__codelineno-0-748"></a>
+<a id="__codelineno-0-749" name="__codelineno-0-749"></a>    <span class="c1"># Resolve the size field. Cases:</span>
+<a id="__codelineno-0-750" name="__codelineno-0-750"></a>    <span class="c1">#</span>
+<a id="__codelineno-0-751" name="__codelineno-0-751"></a>    <span class="c1">#   1. Caller passed a pre-composed `size_field=`. They&#39;ve already</span>
+<a id="__codelineno-0-752" name="__codelineno-0-752"></a>    <span class="c1">#      done their own composition; we use it as-is. If they ALSO</span>
+<a id="__codelineno-0-753" name="__codelineno-0-753"></a>    <span class="c1">#      passed `user_contribs=` we warn — those would be ignored</span>
+<a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="c1">#      otherwise, which silently violates the contract.</span>
+<a id="__codelineno-0-755" name="__codelineno-0-755"></a>    <span class="c1">#   2. Caller passed `user_contribs=`. Wrap them via</span>
+<a id="__codelineno-0-756" name="__codelineno-0-756"></a>    <span class="c1">#      `compose_size_field` with `size_field` (if any) as the sole</span>
+<a id="__codelineno-0-757" name="__codelineno-0-757"></a>    <span class="c1">#      Phase-1 builtin. Default combiner is `np.minimum.reduce`.</span>
+<a id="__codelineno-0-758" name="__codelineno-0-758"></a>    <span class="c1">#   3. Caller passed h_min or h_max but no user_contribs — auto-create</span>
+<a id="__codelineno-0-759" name="__codelineno-0-759"></a>    <span class="c1">#      a uniform clamping size field so the bounds are not silently ignored.</span>
+<a id="__codelineno-0-760" name="__codelineno-0-760"></a>    <span class="c1">#   4. Neither — uniform sizing falls through (`fh=None`).</span>
+<a id="__codelineno-0-761" name="__codelineno-0-761"></a>    <span class="k">if</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">user_contribs</span><span class="p">:</span>
+<a id="__codelineno-0-762" name="__codelineno-0-762"></a>        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+<a id="__codelineno-0-763" name="__codelineno-0-763"></a>            <span class="s2">&quot;triangulate: both `size_field` and `user_contribs` were &quot;</span>
+<a id="__codelineno-0-764" name="__codelineno-0-764"></a>            <span class="s2">&quot;supplied; ignoring `user_contribs` (the pre-composed &quot;</span>
+<a id="__codelineno-0-765" name="__codelineno-0-765"></a>            <span class="s2">&quot;`size_field` already encodes its own composition).&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-766" name="__codelineno-0-766"></a>            <span class="ne">UserWarning</span><span class="p">,</span>
+<a id="__codelineno-0-767" name="__codelineno-0-767"></a>            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<a id="__codelineno-0-768" name="__codelineno-0-768"></a>        <span class="p">)</span>
+<a id="__codelineno-0-769" name="__codelineno-0-769"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">size_field</span>
+<a id="__codelineno-0-770" name="__codelineno-0-770"></a>    <span class="k">elif</span> <span class="n">user_contribs</span> <span class="ow">or</span> <span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-771" name="__codelineno-0-771"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.size_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose_size_field</span>
+<a id="__codelineno-0-772" name="__codelineno-0-772"></a>
+<a id="__codelineno-0-773" name="__codelineno-0-773"></a>        <span class="c1"># Build Phase-1 builtins: include size_field if provided</span>
+<a id="__codelineno-0-774" name="__codelineno-0-774"></a>        <span class="n">builtins_phase1</span> <span class="o">=</span> <span class="p">(</span><span class="n">size_field</span><span class="p">,)</span> <span class="k">if</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">()</span>
+<a id="__codelineno-0-775" name="__codelineno-0-775"></a>
+<a id="__codelineno-0-776" name="__codelineno-0-776"></a>        <span class="c1"># Build Phase-2 user contributions</span>
+<a id="__codelineno-0-777" name="__codelineno-0-777"></a>        <span class="n">user_phase2</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">user_contribs</span><span class="p">)</span>
+<a id="__codelineno-0-778" name="__codelineno-0-778"></a>
+<a id="__codelineno-0-779" name="__codelineno-0-779"></a>        <span class="c1"># If h_min/h_max specified without other size fields, create a bounded field.</span>
+<a id="__codelineno-0-780" name="__codelineno-0-780"></a>        <span class="c1"># NOTE (#65 / spec 025 Step 3 DEFERRED): wiring build_h() here as the</span>
+<a id="__codelineno-0-781" name="__codelineno-0-781"></a>        <span class="c1"># unconditional default degrades MVP convex-domain min_q 0.30 -&gt; 0.22</span>
+<a id="__codelineno-0-782" name="__codelineno-0-782"></a>        <span class="c1"># (curvature+medial size-gradient -&gt; low-quality distmesh transition</span>
+<a id="__codelineno-0-783" name="__codelineno-0-783"></a>        <span class="c1"># tris), violating the constitutional MVP quality gate + spec 025</span>
+<a id="__codelineno-0-784" name="__codelineno-0-784"></a>        <span class="c1"># AC-005/AC-006. Deferred pending operator decision (make conditional on</span>
+<a id="__codelineno-0-785" name="__codelineno-0-785"></a>        <span class="c1"># domain features / tune scales / revise gate). Steps 1+2 (Domain.bathymetry</span>
+<a id="__codelineno-0-786" name="__codelineno-0-786"></a>        <span class="c1"># + from_mesh extraction) shipped — additive, no behavior change.</span>
+<a id="__codelineno-0-787" name="__codelineno-0-787"></a>        <span class="k">if</span> <span class="ow">not</span> <span class="n">builtins_phase1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">user_phase2</span><span class="p">:</span>
+<a id="__codelineno-0-788" name="__codelineno-0-788"></a>            <span class="c1"># Create a clamping size field directly to avoid warning noise.</span>
+<a id="__codelineno-0-789" name="__codelineno-0-789"></a>            <span class="k">def</span><span class="w"> </span><span class="nf">_clamped_uniform</span><span class="p">(</span><span class="n">pts</span><span class="p">):</span>
+<a id="__codelineno-0-790" name="__codelineno-0-790"></a>                <span class="n">pts_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-791" name="__codelineno-0-791"></a>                <span class="n">n</span> <span class="o">=</span> <span class="n">pts_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<a id="__codelineno-0-792" name="__codelineno-0-792"></a>                <span class="c1"># Return uniform field, already clamped to [h_min, h_max]</span>
+<a id="__codelineno-0-793" name="__codelineno-0-793"></a>                <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">h_max</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h_min</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-794" name="__codelineno-0-794"></a>                <span class="k">if</span> <span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-795" name="__codelineno-0-795"></a>                    <span class="n">result</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">h_max</span>  <span class="c1"># Use h_max as the target (conservative for refinement)</span>
+<a id="__codelineno-0-796" name="__codelineno-0-796"></a>                <span class="k">return</span> <span class="n">result</span>
+<a id="__codelineno-0-797" name="__codelineno-0-797"></a>            <span class="n">user_phase2</span> <span class="o">=</span> <span class="p">(</span><span class="n">_clamped_uniform</span><span class="p">,)</span>
+<a id="__codelineno-0-798" name="__codelineno-0-798"></a>
+<a id="__codelineno-0-799" name="__codelineno-0-799"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">compose_size_field</span><span class="p">(</span>
+<a id="__codelineno-0-800" name="__codelineno-0-800"></a>            <span class="n">builtins</span><span class="o">=</span><span class="n">builtins_phase1</span><span class="p">,</span>
+<a id="__codelineno-0-801" name="__codelineno-0-801"></a>            <span class="n">user_contribs</span><span class="o">=</span><span class="n">user_phase2</span><span class="p">,</span>
+<a id="__codelineno-0-802" name="__codelineno-0-802"></a>            <span class="n">combine</span><span class="o">=</span><span class="n">combine</span><span class="p">,</span>
+<a id="__codelineno-0-803" name="__codelineno-0-803"></a>            <span class="n">hmin</span><span class="o">=</span><span class="n">h_min</span><span class="p">,</span>
+<a id="__codelineno-0-804" name="__codelineno-0-804"></a>            <span class="n">hmax</span><span class="o">=</span><span class="n">h_max</span><span class="p">,</span>
+<a id="__codelineno-0-805" name="__codelineno-0-805"></a>        <span class="p">)</span>
+<a id="__codelineno-0-806" name="__codelineno-0-806"></a>    <span class="k">elif</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">h_min</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+<a id="__codelineno-0-807" name="__codelineno-0-807"></a>        <span class="c1"># Fix #37: h_min/h_max were silently ignored when no user_contribs</span>
+<a id="__codelineno-0-808" name="__codelineno-0-808"></a>        <span class="c1"># provided. Auto-compose a uniform field that clamps to [h_min, h_max].</span>
+<a id="__codelineno-0-809" name="__codelineno-0-809"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.size_field</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose_size_field</span>
+<a id="__codelineno-0-810" name="__codelineno-0-810"></a>
+<a id="__codelineno-0-811" name="__codelineno-0-811"></a>        <span class="n">_h_max_val</span> <span class="o">=</span> <span class="n">h_max</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h0</span>
+<a id="__codelineno-0-812" name="__codelineno-0-812"></a>        <span class="n">_uniform</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">pts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">),</span> <span class="n">_h_max_val</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
+<a id="__codelineno-0-813" name="__codelineno-0-813"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">compose_size_field</span><span class="p">(</span>
+<a id="__codelineno-0-814" name="__codelineno-0-814"></a>            <span class="n">builtins</span><span class="o">=</span><span class="p">(</span><span class="n">_uniform</span><span class="p">,),</span>
+<a id="__codelineno-0-815" name="__codelineno-0-815"></a>            <span class="n">user_contribs</span><span class="o">=</span><span class="p">(),</span>
+<a id="__codelineno-0-816" name="__codelineno-0-816"></a>            <span class="n">combine</span><span class="o">=</span><span class="n">combine</span><span class="p">,</span>
+<a id="__codelineno-0-817" name="__codelineno-0-817"></a>            <span class="n">hmin</span><span class="o">=</span><span class="n">h_min</span><span class="p">,</span>
+<a id="__codelineno-0-818" name="__codelineno-0-818"></a>            <span class="n">hmax</span><span class="o">=</span><span class="n">h_max</span><span class="p">,</span>
+<a id="__codelineno-0-819" name="__codelineno-0-819"></a>        <span class="p">)</span>
+<a id="__codelineno-0-820" name="__codelineno-0-820"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-821" name="__codelineno-0-821"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">size_field</span>  <span class="c1"># may still be None — uniform sizing</span>
+<a id="__codelineno-0-822" name="__codelineno-0-822"></a>
+<a id="__codelineno-0-823" name="__codelineno-0-823"></a>    <span class="c1"># Issue #2: if the domain carries explicit boundary vertices (pts), seed</span>
+<a id="__codelineno-0-824" name="__codelineno-0-824"></a>    <span class="c1"># intermediate points along each edge so short boundary segments get</span>
+<a id="__codelineno-0-825" name="__codelineno-0-825"></a>    <span class="c1"># adequate coverage even when the 2-D lattice is coarse.</span>
+<a id="__codelineno-0-826" name="__codelineno-0-826"></a>    <span class="c1"># Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.</span>
+<a id="__codelineno-0-827" name="__codelineno-0-827"></a>    <span class="n">_pts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;pts&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-828" name="__codelineno-0-828"></a>    <span class="n">domain_pts</span> <span class="o">=</span> <span class="n">_pts</span> <span class="k">if</span> <span class="n">_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;boundary_polygon&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-829" name="__codelineno-0-829"></a>    <span class="k">if</span> <span class="n">domain_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-0-830" name="__codelineno-0-830"></a>        <span class="n">boundary_seeds</span> <span class="o">=</span> <span class="n">_seed_boundary_1d</span><span class="p">(</span>
+<a id="__codelineno-0-831" name="__codelineno-0-831"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">domain_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fh</span><span class="p">,</span> <span class="n">h0</span>
+<a id="__codelineno-0-832" name="__codelineno-0-832"></a>        <span class="p">)</span>
+<a id="__codelineno-0-833" name="__codelineno-0-833"></a>        <span class="k">if</span> <span class="n">boundary_seeds</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+<a id="__codelineno-0-834" name="__codelineno-0-834"></a>            <span class="n">pfix</span> <span class="o">=</span> <span class="p">(</span>
+<a id="__codelineno-0-835" name="__codelineno-0-835"></a>                <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">pfix</span><span class="p">,</span> <span class="n">boundary_seeds</span><span class="p">])</span> <span class="k">if</span> <span class="n">pfix</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="n">boundary_seeds</span>
+<a id="__codelineno-0-836" name="__codelineno-0-836"></a>            <span class="p">)</span>
+<a id="__codelineno-0-837" name="__codelineno-0-837"></a>            <span class="c1"># _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.</span>
+<a id="__codelineno-0-838" name="__codelineno-0-838"></a>            <span class="n">_sdf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;sdf&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;fd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-839" name="__codelineno-0-839"></a>            <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
+<a id="__codelineno-0-840" name="__codelineno-0-840"></a>                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-841" name="__codelineno-0-841"></a>                <span class="n">fd</span><span class="o">=</span><span class="n">_sdf</span><span class="p">,</span>
+<a id="__codelineno-0-842" name="__codelineno-0-842"></a>                <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
+<a id="__codelineno-0-843" name="__codelineno-0-843"></a>                <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>            <span class="p">)</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>
+<a id="__codelineno-0-846" name="__codelineno-0-846"></a>    <span class="n">p</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">_routine_triangulate</span><span class="p">(</span><span class="n">port_domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="n">h0</span><span class="p">,</span> <span class="n">fh</span><span class="o">=</span><span class="n">fh</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+<a id="__codelineno-0-847" name="__codelineno-0-847"></a>    <span class="n">nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-848" name="__codelineno-0-848"></a>    <span class="n">elements</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<a id="__codelineno-0-849" name="__codelineno-0-849"></a>
+<a id="__codelineno-0-850" name="__codelineno-0-850"></a>    <span class="n">min_q</span><span class="p">,</span> <span class="n">mean_q</span><span class="p">,</span> <span class="n">q_per</span> <span class="o">=</span> <span class="n">mesh_quality</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">elements</span><span class="p">)</span>
+<a id="__codelineno-0-851" name="__codelineno-0-851"></a>    <span class="n">gate_min</span><span class="p">,</span> <span class="n">gate_mean</span> <span class="o">=</span> <span class="n">quality_gate</span>
+<a id="__codelineno-0-852" name="__codelineno-0-852"></a>    <span class="k">if</span> <span class="n">min_q</span> <span class="o">&lt;</span> <span class="n">gate_min</span><span class="p">:</span>
+<a id="__codelineno-0-853" name="__codelineno-0-853"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: min_q </span><span class="si">{</span><span class="n">min_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[0] </span><span class="si">{</span><span class="n">gate_min</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>        <span class="p">)</span>
+<a id="__codelineno-0-856" name="__codelineno-0-856"></a>    <span class="k">if</span> <span class="n">mean_q</span> <span class="o">&lt;</span> <span class="n">gate_mean</span><span class="p">:</span>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-0-858" name="__codelineno-0-858"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: mean_q </span><span class="si">{</span><span class="n">mean_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[1] </span><span class="si">{</span><span class="n">gate_mean</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-859" name="__codelineno-0-859"></a>        <span class="p">)</span>
+<a id="__codelineno-0-860" name="__codelineno-0-860"></a>
+<a id="__codelineno-0-861" name="__codelineno-0-861"></a>    <span class="c1"># Derive boundary segments. If the caller pre-declared bc_segments</span>
+<a id="__codelineno-0-862" name="__codelineno-0-862"></a>    <span class="c1"># on the Domain, pass them through verbatim — they&#39;re the user&#39;s</span>
+<a id="__codelineno-0-863" name="__codelineno-0-863"></a>    <span class="c1"># contract about the output. Otherwise default-label every closed</span>
+<a id="__codelineno-0-864" name="__codelineno-0-864"></a>    <span class="c1"># boundary ring as MAINLAND.</span>
+<a id="__codelineno-0-865" name="__codelineno-0-865"></a>    <span class="k">if</span> <span class="n">api_domain</span> <span class="ow">and</span> <span class="n">api_domain</span><span class="o">.</span><span class="n">bc_segments</span><span class="p">:</span>
+<a id="__codelineno-0-866" name="__codelineno-0-866"></a>        <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">api_domain</span><span class="o">.</span><span class="n">bc_segments</span><span class="p">)</span>
+<a id="__codelineno-0-867" name="__codelineno-0-867"></a>    <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-868" name="__codelineno-0-868"></a>        <span class="n">boundaries</span> <span class="o">=</span> <span class="n">_derive_boundary_segments</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+<a id="__codelineno-0-869" name="__codelineno-0-869"></a>
+<a id="__codelineno-0-870" name="__codelineno-0-870"></a>    <span class="k">return</span> <span class="n">Mesh</span><span class="p">(</span>
+<a id="__codelineno-0-871" name="__codelineno-0-871"></a>        <span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span>
+<a id="__codelineno-0-872" name="__codelineno-0-872"></a>        <span class="n">elements</span><span class="o">=</span><span class="n">elements</span><span class="p">,</span>
+<a id="__codelineno-0-873" name="__codelineno-0-873"></a>        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
+<a id="__codelineno-0-874" name="__codelineno-0-874"></a>        <span class="n">bathymetry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-875" name="__codelineno-0-875"></a>        <span class="n">quality</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">q_per</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
+<a id="__codelineno-0-876" name="__codelineno-0-876"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-877" name="__codelineno-0-877"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

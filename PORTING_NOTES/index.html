@@ -744,6 +744,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#benchmark-harness-145" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark harness (#145)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -864,6 +875,17 @@
     <span class="md-ellipsis">
       
         2026-04-25 — quality — right_iso_quality companion metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
       
     </span>
   </a>
@@ -969,6 +991,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#benchmark-harness-145" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark harness (#145)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1095,6 +1128,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1126,6 +1170,11 @@
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>**Behavior diff**: &lt;closed-vs-open boundary, tie-break, ordering, etc.&gt;
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>**Impact**: &lt;how tests / callers are affected&gt;
 </code></pre></div>
+<hr />
+<h2 id="benchmark-harness-145">Benchmark harness (#145)<a class="headerlink" href="#benchmark-harness-145" title="Permanent link">&para;</a></h2>
+<p><code>scripts/bench_pipeline.py</code> is the per-stage wall-clock harness. Monkeypatches stage entry-point callables (defensive: skips on missing) to accumulate elapsed time by stage label across measured runs. Outputs per-stage seconds + percentage of total end-to-end, with "other/unaccounted" row and JSON record for CI integration.</p>
+<p><strong>MVP triangulate path (default)</strong>: distmesh-dominated. The size-field stack (curvature/medial-axis/bathymetry/tide/mesh_size) only invokes when a <code>build_h</code> size field is composed into the call — in the default MVP path (no <code>size_field=</code> arg) it is NOT invoked. Per-stage timing honestly shows only stages that fired; unexercised stages list 0.0 sec or are omitted. Issue #99 parallelization phases (CPU vectorize/prange, batch MP, distmesh accel, GPU) each require a before/after number from this harness for ROI justification.</p>
+<p><strong>Fixtures</strong>: tier-0 in-package (UNIT_SQUARE, L_SHAPE) always present + optional WNAT (coarse h_max=0.0135) if <code>tests/fixtures/fort14/adcirc_examples/wnat_test.14</code> exists. Tier-1 (JSON/TOML domains) skipped gracefully if absent. Warmup run (excluded, triggers Numba JIT) is non-fatal; measured runs use <code>time.perf_counter()</code> median across <code>--runs</code> iterations.</p>
 <hr />
 <h2 id="2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115">2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)<a class="headerlink" href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" title="Permanent link">&para;</a></h2>
 <p><strong>MATLAB</strong>: N/A — <code>octree_grid.py</code> is new Python-only code, not a MATLAB port.
@@ -1196,6 +1245,17 @@
 <strong>Python</strong>: <code>admesh.quality.right_iso_quality</code>. Right-isoceles deviation score in <code>[0, 1]</code> per spec-004 FR-006. Per-element score = product of three terms: leg-equality, right-angle-fit, hypotenuse-fit. Mesh score = unweighted mean. Constitutionally additive: existing <code>mesh_quality</code> (equilateral target) <strong>not</strong> modified (Principle I).
 <strong>Behavior diff</strong>: None to MATLAB (no analog). Metric documented in public-api.md contract. ADMESH distmesh output typically scores ~1.0 on <code>mesh_quality</code> and ~0.5 on <code>right_iso_quality</code>; spec-004 smoother trades former for latter (validated on Block_O.14: 0.977 → 0.923 for <code>mesh_quality</code>, 0.498 → 0.686 for <code>right_iso_quality</code>).
 <strong>Impact</strong>: Downstream consumers running tri-to-quad fusion have quality metric meaningfully scoring mesh suitability.</p>
+<h2 id="2026-06-08-background_grid-stage-02-grid-construction-78-spec-012">2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)<a class="headerlink" href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code> @ 19b2eb9 — <code>[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)</code>. Bbox padded by <code>hmax</code> each side; <code>delta = (1/res)*hmin</code>; grid <code>meshgrid(xmin:delta:xmax, ymin:delta:ymax)</code>.
+<strong>Python</strong>: <code>admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1)</code> returns frozen <code>BackgroundGrid(X, Y, delta, bbox)</code>.</p>
+<p><strong>Substitutions / behavior diffs</strong>:
+- <code>hmin</code> role → <code>h0</code> (grid spacing); <code>delta = h0/res</code> matches <code>(1/res)*hmin</code>.
+- <code>hmax</code> pad → <code>padding</code> kwarg, default <code>h0</code>. The MATLAB signature carries a separate coarse <code>hmax</code>; this port has no second size in scope, so one cell (<code>h0</code>) of pad is the faithful minimum. A caller wanting MATLAB parity passes <code>padding=hmax</code>.
+- MATLAB colon <code>xmin:delta:xmax</code> (inclusive, stops at the largest <code>xmin+k*delta &lt;= xmax</code>) → NumPy <code>np.arange(xmin, xmax + 0.5*delta, delta)</code>. The <code>0.5*delta</code> upper-bound guard absorbs float rounding so the terminal <code>~xmax</code> node is retained. Edge case: when <code>(xmax-xmin)/delta</code> lands near an integer, the half-open arange can keep one node the colon would also keep — counts match for the unit-square fixture (13×13 at h0=0.1).
+- <code>meshgrid(..., indexing="xy")</code> keeps MATLAB column-major X-along-columns layout; <code>(X, Y)</code> align with <code>eval_sdf_grid</code> for the same bbox+delta.</p>
+<p><strong>Parity status (RESOLVED 2026-06-09, #78)</strong>: all 6 <code>tests/test_background_grid.py</code> tests pass, including bit-exact MATLAB parity (<code>test_matlab_parity_unit_square</code>, <code>atol=1e-10</code>). Fixture <code>tests/fixtures/matlab/background_grid_unit_square.npz</code> generated by running the stage-02 target of <code>scripts/export_matlab_fixtures.m</code> under <strong>GNU Octave 8.4</strong> — the archived MATLAB source <code>src/matlab/admesh_library/02_Create_Background_Grid/CreateBackgroundGrid.m</code> runs unmodified in Octave. Port vs Octave reference agree to <code>max|ΔX| = 4.4e-16</code> (float epsilon — NumPy <code>arange</code> and the Octave/MATLAB colon emit identical doubles for the unit-square grid). <code>xfail(strict)</code> removed.
+- <strong>Exporter bug fixed in the same change</strong>: the stage-02 <code>PTS_sq</code> used the <code>[0,1]²</code> square, but the Python <code>UNIT_SQUARE</code> domain it mirrors is the centered <code>[-0.5,0.5]²</code> (bbox <code>(-0.5,-0.5,0.5,0.5)</code>). Corrected <code>PTS_sq</code> to the centered corners so the regenerated fixture matches <code>create_background_grid(UNIT_SQUARE, 0.1)</code>.
+- <strong>Regen</strong>: <code>octave --no-gui scripts/export_matlab_fixtures.m</code> (stage-02 block) → <code>.mat</code>; <code>scipy.io.loadmat</code> → <code>np.savez</code> to the <code>.npz</code> the test loads. MATLAB and Octave both regenerate it identically.</p>
 
 
 

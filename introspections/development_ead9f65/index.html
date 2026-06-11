@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://domattioli.github.io/ADMESH/governance/CONSTITUTION/">
+        <link rel="canonical" href="https://domattioli.github.io/ADMESH/introspections/development_ead9f65/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>ADMESH Constitution - ADMESH</title>
+        <title>Development ead9f65 - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#admesh-constitution" class="md-skip">
+        <a href="#session-handoff-admesh-development_ead9f65-2026-06-09" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ADMESH Constitution
+              Development ead9f65
             
           </span>
         </div>
@@ -791,10 +791,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#article-i-identity-north-star" class="md-nav__link">
+  <a href="#pre-flight" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Article I — Identity &amp; north star
+        Pre-flight
       
     </span>
   </a>
@@ -802,10 +802,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#article-ii-hard-rules" class="md-nav__link">
+  <a href="#what-worked-top-3-with-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Article II — Hard rules
+        What worked (top 3, with evidence)
       
     </span>
   </a>
@@ -813,129 +813,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#article-iii-malleable-choices-open-for-redirect" class="md-nav__link">
+  <a href="#what-didnt-top-3-with-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Article III — Malleable choices (open for redirect)
+        What didn't (top 3, with evidence)
       
     </span>
   </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#article-iv-porting-discipline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Article IV — Porting discipline
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#article-v-testing-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Article V — Testing &amp; validation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#article-vi-commit-workflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Article VI — Commit &amp; workflow
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#article-vii-persistent-session-cadence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Article VII — Persistent-session cadence
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#article-viii-external-upstream-domi" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Article VIII — External Upstream (DomI)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#amendments-log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Amendments log
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Amendments log">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#2026-05-08-article-viii-adopted-external-upstream-domi" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2026-05-08 — Article VIII adopted (External Upstream: DomI)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2026-04-25-article-vi-rules-58-adopted-branch-governance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2026-04-25 — Article VI rules 5–8 adopted (branch governance)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2026-04-21-article-vii-adopted" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2026-04-21 — Article VII adopted
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2026-04-18-constitution-adopted" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2026-04-18 — Constitution adopted
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -959,106 +843,128 @@
   
 
 
-<h1 id="admesh-constitution">ADMESH Constitution<a class="headerlink" href="#admesh-constitution" title="Permanent link">&para;</a></h1>
-<p>Governs <strong>how we work</strong> on the ADMESH Python port. Companion docs:
-- <code>PROJECT_PLAN.md</code> — <strong>what</strong> we build (phased roadmap)
-- <code>CLAUDE.md</code> — <strong>how the code is organized</strong> (operational reference)</p>
-<p>Read first at every session. If rule here conflicts with <code>CLAUDE.md</code>, this wins.</p>
-<p><strong>Document hierarchy (binding vs advisory).</strong> Precedence and nature of each governing doc, so an operational <em>note</em> is never mistaken for a binding rule (see #140):
-- <strong><code>CONSTITUTION.md</code> (this file) — BINDING.</strong> Articles are law. Conflicts resolve here.
-- <strong><code>PROJECT_PLAN.md</code> — milestones, not law.</strong> Phase targets and validation goals; a milestone metric is an aim, not an invariant.
-- <strong><code>CLAUDE.md</code> — operational notes &amp; defaults.</strong> Code organization, conventions, and <em>default</em> values. A CLAUDE.md note carries no constitutional weight.
-- <strong>Default kwargs in code (e.g. <code>triangulate(quality_gate=...)</code>) — overridable defaults, not invariants.</strong></p>
-<hr />
-<h2 id="article-i-identity-north-star">Article I — Identity &amp; north star<a class="headerlink" href="#article-i-identity-north-star" title="Permanent link">&para;</a></h2>
-<p><strong>ADMESH</strong> = Advanced Meshing (Python). Faithful port of MATLAB <code>01_ADMESH_Library</code> from QuADMesh-MATLAB.</p>
-<p><strong>North star</strong>: Python package reproducing MATLAB ADMESH pipeline output bit-for-bit (within floating-point tolerance), <code>pip install</code>-able without C toolchain, drop-in algorithmic backend for downstream meshing.</p>
-<p><strong>Source of truth</strong>: <code>github.com/domattioli/QuADMesh-MATLAB</code>, commit <code>19b2eb9f078a648daec3fd40d5d4c6e072f467ac</code>, path <code>01_ADMESH_Library/</code>. Locally cloned to <code>/workspace/QuADMesh-MATLAB</code>.</p>
-<hr />
-<h2 id="article-ii-hard-rules">Article II — Hard rules<a class="headerlink" href="#article-ii-hard-rules" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Port faithfully before optimizing.</strong> First pass mirrors MATLAB algorithm 1:1 (variable names may Pythonize; algorithm does not). Optimization, vectorization rewrites, API redesigns come AFTER passing reference test.</li>
-<li><strong>No C/C++ extensions in first cut.</strong> Single <code>.c</code> file (<code>MeshSizeIterativeSolver.c</code>) ported to NumPy + Numba. If profiling shows Numba underperforms by &gt; 2× on realistic domains, Cython/C extension allowed — with PR note explaining why.</li>
-<li><strong>MATLAB 1-based indexing is translated, not preserved.</strong> Python is 0-based. Index-arithmetic in MATLAB source is adjusted; port does NOT emulate 1-based indexing.</li>
-<li><strong>MATLAB column-major semantics only matter at I/O boundaries.</strong> Internal arrays are row-major NumPy. Loading reference <code>.mat</code> files or matching MATLAB's <code>reshape</code> order is an explicit boundary concern.</li>
-<li><strong>Every stage ships with reference test.</strong> For each <code>admesh/&lt;stage&gt;.py</code>, <code>tests/test_&lt;stage&gt;.py</code> exercises function on MATLAB-captured input (under <code>tests/fixtures/&lt;stage&gt;/</code>) and asserts numerical agreement to documented tolerance.</li>
-<li><strong><code>pytest tests/ -q</code> must pass on <code>main</code>.</strong> PR that breaks it is not merged.</li>
-<li><strong>No third-party meshing dependency added silently.</strong> If module needs <code>scipy.spatial</code>, <code>shapely</code>, <code>meshpy</code>, etc., it goes in <code>pyproject.toml</code> with one-line rationale in commit message.</li>
-<li><strong>MATLAB mex binaries (<code>.mexw64</code>, <code>.mexmaci64</code>) are discarded.</strong> Platform-specific builds of <code>MeshSizeIterativeSolver.c</code>; Python port replaces them entirely.</li>
-</ol>
-<hr />
-<h2 id="article-iii-malleable-choices-open-for-redirect">Article III — Malleable choices (open for redirect)<a class="headerlink" href="#article-iii-malleable-choices-open-for-redirect" title="Permanent link">&para;</a></h2>
+<!-- Session handoff + corpus entry. Caveman style. -->
+
+<h1 id="session-handoff-admesh-development_ead9f65-2026-06-09">Session Handoff — ADMESH · development_ead9f65 · 2026-06-09<a class="headerlink" href="#session-handoff-admesh-development_ead9f65-2026-06-09" title="Permanent link">&para;</a></h1>
+<p><strong>Task:</strong> #143 — pin ADMESH public-API surface for MADMESHing unification
+<strong>Phase:</strong> implementation
+<strong>Progress:</strong> 100% of session goal — contract test landed; #143 stays open as standing coordination thread
+<strong>Branch:</strong> development
+<strong>Duration:</strong> ~25 min
+<strong>Tool failures:</strong> 1 (one malformed tool-call retry)
+<strong>Outcome:</strong> complete</p>
+<h2 id="pre-flight">Pre-flight<a class="headerlink" href="#pre-flight" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Module naming</strong> — flat names (<code>admesh/distance.py</code>) instead of numeric prefixes (<code>01_ADMESH_Routine</code>). Numbered dirs are MATLAB path convention; Python uses imports.</li>
-<li><strong>Numerical tolerance defaults</strong> — <code>atol=1e-8, rtol=1e-6</code> for reference-test agreement. Tighten or loosen per stage as port reveals each function's conditioning.</li>
-<li><strong>Reference fixture format</strong> — <code>.npz</code> with named arrays, one file per stage/test-case. If unwieldy, can switch to HDF5.</li>
-<li><strong>Public API surface</strong> — TBD until Phase 3. Phase 1/2 expose every stage function; Phase 3 distills user-facing entry points.</li>
+<li>branch_policy_conflict: caught_and_resolved   <!-- harness put session on claude/nice-curie-bm6s60; switched to development per branching.md --></li>
+<li>mcp_scope_gap: no</li>
+<li>label_scheme_mismatch: no</li>
 </ul>
-<hr />
-<h2 id="article-iv-porting-discipline">Article IV — Porting discipline<a class="headerlink" href="#article-iv-porting-discipline" title="Permanent link">&para;</a></h2>
+<h2 id="what-worked-top-3-with-evidence">What worked (top 3, with evidence)<a class="headerlink" href="#what-worked-top-3-with-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>One MATLAB function → one Python function, same name in snake_case.</strong> <code>CreateBackgroundGrid.m</code> → <code>create_background_grid()</code>. Internal helpers keep their structure; don't merge prematurely.</li>
-<li><strong>Docstring cites MATLAB source path + commit.</strong> Reader should be able to <code>cd /workspace/QuADMesh-MATLAB</code> and diff.</li>
-<li><strong>Preserve algorithmic comments from MATLAB source</strong> where they explain <em>why</em> (derivation, paper citation, edge-case rationale). Drop purely procedural MATLAB comments.</li>
-<li><strong>Ports land stage-by-stage</strong>, bottom-up. Leaf utilities (<code>in_polygon</code>, <code>inpaint</code>, <code>quality</code>) first; integrator modules (<code>distmesh</code>, <code>routine</code>) last. See <code>PROJECT_PLAN.md</code> phase ordering.</li>
-<li><strong>If MATLAB uses toolbox function</strong> (e.g. <code>inpolygon</code>, <code>delaunay</code>, <code>fmincon</code>), replace with SciPy/Shapely equivalent and note substitution in <code># port:</code> comment with behavior differences.</li>
-<li><strong>Numerical divergence from MATLAB is a bug until proven otherwise.</strong> If port disagrees with reference fixture, fix the port — don't widen tolerance to make test pass.</li>
+<li>Hour→repo routing correct: 17 UTC → ADMESH (per textbox map). Bootstrapped clean, pin matched DomI head (69fdeb7, no drift).</li>
+<li>Issue triage filtered fast: #133 already shipped (spec-028), #78 MATLAB-blocked, #86 LARGE → picked #143 (opened today, executable, no MATLAB).</li>
+<li>Grounded the contract test in MADMESHing's <em>actual</em> imports (<code>monte_carlo.py</code>, <code>wnat_doe.py</code>) not the issue prose — pinned the real surface. Haiku subagent wrote it, 6 tests green, full suite no regression (398 pass).</li>
 </ol>
-<hr />
-<h2 id="article-v-testing-validation">Article V — Testing &amp; validation<a class="headerlink" href="#article-v-testing-validation" title="Permanent link">&para;</a></h2>
+<h2 id="what-didnt-top-3-with-evidence">What didn't (top 3, with evidence)<a class="headerlink" href="#what-didnt-top-3-with-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Unit tests</strong> in <code>tests/test_&lt;stage&gt;.py</code>, run on every push.</li>
-<li><strong>Reference fixtures</strong> generated once from MATLAB (<code>scripts/export_matlab_fixtures.m</code>) and committed under <code>tests/fixtures/</code>. Load-only in Python; regenerate only when MATLAB source commit pin changes.</li>
-<li><strong>End-to-end tests</strong> exercise full <code>routine.adm_esh_routine()</code> on small synthetic domains (unit square, L-shape, annulus) and compare final mesh to MATLAB output.</li>
-<li><strong>Visual inspection encouraged but not required.</strong> Test producing PNG under <code>output/</code> is fine; don't gate CI on it.</li>
-<li><strong>Mesh quality is hyperparameter-driven; there is no fixed quality floor.</strong> Element size — and therefore quality — is dictated by the user's <code>hmin</code>/<code>hmax</code>/<code>g</code> knobs. The binding end-to-end check is <strong>structural validity</strong> (positive-area triangles, nodes/centroids inside the domain, watertight boundary), <strong>not</strong> a universal <code>min_q</code>/<code>mean_q</code> threshold. Any numeric quality target (e.g. the <code>min_q ≥ 0.30</code>, <code>mean_q ≥ 0.60</code> MVP smoke floor) is an <strong>advisory default</strong>, overridable per call via <code>triangulate(quality_gate=...)</code> (set to <code>(0.0, 0.0)</code> to disable). Aggressive <code>hmin</code>/<code>hmax</code>/<code>g</code> ratios legitimately lower min quality and do not constitute a port defect.</li>
+<li>Most open ADMESH issues are MATLAB-faithful-port (#78) or research/brainstorm (#8/#25/#90/#99) — not code-shippable in a no-MATLAB routine container. Narrow executable surface per session.</li>
+<li>
+<h1 id="78-impl-matlab-exporter-target-already-done-in-prior-sessions-only-the-matlab-run-fixture-remains-could-not-close-would-not-fabricate-the-npz-parity-circular-genuine-env-block">78 impl + MATLAB exporter target already done in prior sessions; only the MATLAB-RUN fixture remains — could not close, would not fabricate the npz (parity-circular). Genuine env block.<a class="headerlink" href="#78-impl-matlab-exporter-target-already-done-in-prior-sessions-only-the-matlab-run-fixture-remains-could-not-close-would-not-fabricate-the-npz-parity-circular-genuine-env-block" title="Permanent link">&para;</a></h1>
+</li>
+<li>One malformed MCP tool call (used wrong XML form for list_pull_requests) cost a retry.</li>
 </ol>
-<hr />
-<h2 id="article-vi-commit-workflow">Article VI — Commit &amp; workflow<a class="headerlink" href="#article-vi-commit-workflow" title="Permanent link">&para;</a></h2>
-<ol>
-<li><strong>Trunk-based.</strong> Work on <code>main</code>. Feature branches only if change crosses &gt; 3 commits or needs review.</li>
-<li><strong>Commit messages reference MATLAB source paths</strong> when porting: <code>port: CreateBackgroundGrid.m → admesh/background_grid.py</code>.</li>
-<li><strong>No auto-PR, no auto-merge.</strong> Claude drafts PRs on request only.</li>
-<li><strong>GitHub posting on user's behalf requires explicit instruction.</strong> Creating issues for tracking is pre-approved; commenting / closing / merging is not.</li>
-<li><strong>Feature branches are speckit-driven only.</strong> New feature branch created exclusively as part of <code>/speckit-specify</code> workflow. Claude does NOT create branches manually, does NOT create from session-system prompts (e.g. <code>claude/&lt;...&gt;-&lt;random&gt;</code>), does NOT create per-task branches for one-off edits. Direct work on <code>main</code> is default.</li>
-<li><strong>Speckit naming is the only branch convention.</strong> All feature branches follow <code>NNN-&lt;short-name&gt;</code> (sequential) or <code>YYYYMMDD-HHMMSS-&lt;short-name&gt;</code> (timestamp), per <code>.specify/init-options.json</code>. <code>claude/&lt;feature&gt;-&lt;hash&gt;</code> pattern NOT adopted.</li>
-<li><strong>Scan before creating.</strong> Before invoking <code>/speckit-specify</code> or any branch-creation, run <code>git branch -a</code> and check local + remote for existing branch matching feature's intent. If matching branch exists, REUSE it.</li>
-<li><strong>Consolidate redundant branches when discovered.</strong> If multiple branches address same feature, confirm with user once, then delete redundant ones (local + remote) and keep only speckit-named branch.</li>
-</ol>
-<hr />
-<h2 id="article-vii-persistent-session-cadence">Article VII — Persistent-session cadence<a class="headerlink" href="#article-vii-persistent-session-cadence" title="Permanent link">&para;</a></h2>
-<p>Operational rules for Claude sessions to prevent pause-for-ack pattern observed in session 0.</p>
-<ol>
-<li><strong>Report-and-advance after every milestone.</strong> When milestone ships, report result and immediately start next item. Do not end turn with "ready to continue" or any soft-ask phrasing.</li>
-<li><strong>Zero <code>AskUserQuestion</code> outside destructive or ambiguous actions.</strong> Permitted: destructive git operations, architecturally significant PR review replies, genuine ambiguity no reading of plan resolves. Banned: default-pick questions, option lists in prose, visibility/config picks, continue-prompts.</li>
-<li><strong>Session-start read order is fixed.</strong> <code>CONSTITUTION.md</code> → <code>PROJECT_PLAN.md</code> → <code>CLAUDE.md</code> → latest <code>docs/sessions/session_&lt;N-1&gt;_state.md</code> → active <code>docs/sessions/session_&lt;N&gt;_plan.md</code>. This is load-bearing; skipping previous-session state file is how context gets lost at session boundaries.</li>
-</ol>
-<hr />
-<h2 id="article-viii-external-upstream-domi">Article VIII — External Upstream (DomI)<a class="headerlink" href="#article-viii-external-upstream-domi" title="Permanent link">&para;</a></h2>
-<p>Foundational skills and policy governed by <a href="https://github.com/domattioli/DomI">domattioli/DomI</a>.</p>
-<ol>
-<li><code>.domi-pin</code> ledger MUST be committed and current.</li>
-<li>Session start auto-checks drift via <code>scripts/instructions_on_start.sh</code>. Hard stop on drift; <code>/sync-from-domi</code> unblocks.</li>
-<li>Skills from DomI take precedence over inline implementations. Local repo-specific skills (those NOT shipped by DomI) are exempt.</li>
-<li>Repo-specific principles in this constitution override DomI universal defaults where they conflict.</li>
-<li>This section does NOT affect existing repo-specific algorithmic principles.</li>
-</ol>
-<p>Note: ADMESH speckit branch policy (Articles VI 5–8) stays as-is. The universal routine session instructions from DomI do NOT override ADMESH-specific branch and speckit rules.</p>
-<hr />
-<h2 id="amendments-log">Amendments log<a class="headerlink" href="#amendments-log" title="Permanent link">&para;</a></h2>
-<h3 id="2026-05-08-article-viii-adopted-external-upstream-domi">2026-05-08 — Article VIII adopted (External Upstream: DomI)<a class="headerlink" href="#2026-05-08-article-viii-adopted-external-upstream-domi" title="Permanent link">&para;</a></h3>
-<p>Added Article VIII to wire this repo to the DomI plugin marketplace
-contract. Foundational skills sourced from domattioli/DomI via
-sync-from-domi plugin. <code>.domi-pin</code> ledger required. Routine session
-instructions are universal and do NOT override repo-specific branch
-or speckit rules (Articles VI 5–8 intact). Session reference: DomI
-downstream rollout.</p>
-<h3 id="2026-04-25-article-vi-rules-58-adopted-branch-governance">2026-04-25 — Article VI rules 5–8 adopted (branch governance)<a class="headerlink" href="#2026-04-25-article-vi-rules-58-adopted-branch-governance" title="Permanent link">&para;</a></h3>
-<p>Tightened Article VI with four new rules (5–8) on branch lifecycle: speckit is ONLY path to feature branch; speckit naming (<code>NNN-&lt;short-name&gt;</code>) is ONLY accepted convention; existing branches must be scanned before creation; redundant branches must be consolidated. Adopted after session-system auto-created branches (<code>claude/&lt;feature&gt;-&lt;hash&gt;</code>) coexisted with speckit branches for same feature. Session reference: ADMESH session on <code>005-adcirc-mesh-registry</code>.</p>
-<h3 id="2026-04-21-article-vii-adopted">2026-04-21 — Article VII adopted<a class="headerlink" href="#2026-04-21-article-vii-adopted" title="Permanent link">&para;</a></h3>
-<p>Added Article VII — Persistent-session cadence. Codifies report-and-advance discipline learned from session 0's four <code>UNCONFIRMED_PAUSE</code> interrupts (see <code>docs/persistence_journal.md</code> and <code>docs/sessions/session_0_report.md</code> § "Persistence retro"). Session reference: ADMESH session 1.</p>
-<h3 id="2026-04-18-constitution-adopted">2026-04-18 — Constitution adopted<a class="headerlink" href="#2026-04-18-constitution-adopted" title="Permanent link">&para;</a></h3>
-<p>Initial ratification. ADMESH is new private repo (<code>domattioli/ADMESH</code>) porting QuADMesh-MATLAB <code>01_ADMESH_Library</code> @ <code>19b2eb9</code> to Python. Structure adapted from MADMESHR constitution down to port-focused rule set. Session reference: ADMESH session 0.</p>
+<h2 id="recurring-frictions-from-local-corpus">Recurring frictions (from local corpus)<a class="headerlink" href="#recurring-frictions-from-local-corpus" title="Permanent link">&para;</a></h2>
+<ul>
+<li>MATLAB-unavailable blocks faithful-port stage parity fixtures — observed across multiple sessions (#78, test_matlab_port skips).</li>
+<li>Harness injects <code>claude/*</code> session branch every run — caught_and_resolved each time via branching.md precedence.</li>
+</ul>
+<h2 id="pain-skill-table">Pain → skill table<a class="headerlink" href="#pain-skill-table" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pain</th>
+<th>Severity</th>
+<th>DomI issue</th>
+<th>Saved-min/session</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No MATLAB → faithful-port fixtures un-generatable, blocks #78-class issues</td>
+<td>medium</td>
+<td>(route to PAIN_MATRIX)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Harness <code>claude/*</code> branch injection every session</td>
+<td>low</td>
+<td>known (branching.md)</td>
+<td>~2</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pain-corpus-machine-readable">Pain corpus (machine-readable)<a class="headerlink" href="#pain-corpus-machine-readable" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">session_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">development_ead9f65</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ADMESH</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">branch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">development</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2026-06-09</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">duration_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">25</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">issue_worked</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;#143&quot;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">phase</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">implementation</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nt">outcome</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">complete</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">tool_failure_count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">workarounds</span><span class="p">:</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;Grounded</span><span class="nv"> </span><span class="s">contract</span><span class="nv"> </span><span class="s">test</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">MADMESHing&#39;s</span><span class="nv"> </span><span class="s">real</span><span class="nv"> </span><span class="s">imports</span><span class="nv"> </span><span class="s">rather</span><span class="nv"> </span><span class="s">than</span><span class="nv"> </span><span class="s">issue</span><span class="nv"> </span><span class="s">prose.&quot;</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="nt">pre_flight</span><span class="p">:</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">  </span><span class="nt">branch_policy_conflict</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">  </span><span class="nt">mcp_scope_gap</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">  </span><span class="nt">label_scheme_mismatch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">  </span><span class="nt">notes</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Harness</span><span class="nv"> </span><span class="s">session</span><span class="nv"> </span><span class="s">branch</span><span class="nv"> </span><span class="s">claude/nice-curie-bm6s60</span><span class="nv"> </span><span class="s">→</span><span class="nv"> </span><span class="s">switched</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">development</span><span class="nv"> </span><span class="s">per</span><span class="nv"> </span><span class="s">DomI</span><span class="nv"> </span><span class="s">branching.md.</span><span class="nv"> </span><span class="s">DomI</span><span class="nv"> </span><span class="s">pin</span><span class="nv"> </span><span class="s">matched</span><span class="nv"> </span><span class="s">head,</span><span class="nv"> </span><span class="s">no</span><span class="nv"> </span><span class="s">drift.&quot;</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="nt">pain_points</span><span class="p">:</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pain</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;MATLAB</span><span class="nv"> </span><span class="s">unavailable</span><span class="nv"> </span><span class="s">in</span><span class="nv"> </span><span class="s">routine</span><span class="nv"> </span><span class="s">container</span><span class="nv"> </span><span class="s">blocks</span><span class="nv"> </span><span class="s">faithful-port</span><span class="nv"> </span><span class="s">stage</span><span class="nv"> </span><span class="s">parity</span><span class="nv"> </span><span class="s">fixtures</span><span class="nv"> </span><span class="s">(#78</span><span class="nv"> </span><span class="s">stage-02</span><span class="nv"> </span><span class="s">npz).&quot;</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">    </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recurring-across-sessions</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="nt">severity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">medium</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;#78</span><span class="nv"> </span><span class="s">impl+exporter</span><span class="nv"> </span><span class="s">done;</span><span class="nv"> </span><span class="s">only</span><span class="nv"> </span><span class="s">MATLAB-run</span><span class="nv"> </span><span class="s">fixture</span><span class="nv"> </span><span class="s">remains;</span><span class="nv"> </span><span class="s">test_matlab_port</span><span class="nv"> </span><span class="s">shows</span><span class="nv"> </span><span class="s">5</span><span class="nv"> </span><span class="s">fixture</span><span class="nv"> </span><span class="s">skips.&quot;</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nt">existing_skill_should_have_caught_it</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">missing_skill_would_have_prevented_it</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">    </span><span class="nt">domi_issue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">    </span><span class="nt">saved_time_estimate_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">    </span><span class="nt">tokens_wasted</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unknown</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pain</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Harness</span><span class="nv"> </span><span class="s">injects</span><span class="nv"> </span><span class="s">claude/*</span><span class="nv"> </span><span class="s">session</span><span class="nv"> </span><span class="s">branch</span><span class="nv"> </span><span class="s">every</span><span class="nv"> </span><span class="s">run;</span><span class="nv"> </span><span class="s">must</span><span class="nv"> </span><span class="s">override</span><span class="nv"> </span><span class="s">to</span><span class="nv"> </span><span class="s">development.&quot;</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">    </span><span class="nt">frequency</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recurring-across-sessions</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">    </span><span class="nt">severity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">low</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Session</span><span class="nv"> </span><span class="s">opened</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">claude/nice-curie-bm6s60.&quot;</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="w">    </span><span class="nt">existing_skill_should_have_caught_it</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a><span class="w">    </span><span class="nt">missing_skill_would_have_prevented_it</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a><span class="w">    </span><span class="nt">domi_issue</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a><span class="w">    </span><span class="nt">saved_time_estimate_min</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a><span class="w">    </span><span class="nt">tokens_wasted</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unknown</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a><span class="nt">actions_taken</span><span class="p">:</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a><span class="w">  </span><span class="nt">votes_cast</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span><span class="w">   </span><span class="c1"># probation active (#191/#203) — no skill-request votes filed</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a><span class="w">  </span><span class="nt">prs_touched</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;#142</span><span class="nv"> </span><span class="s">(rolling,</span><span class="nv"> </span><span class="s">refreshed)&quot;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a><span class="w">  </span><span class="nt">commits</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;ead9f65&quot;</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="w">  </span><span class="nt">issues_commented</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;#143&quot;</span><span class="p p-Indicator">]</span>
+</code></pre></div>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>
+<h1 id="78-still-blocked-on-a-matlab-equipped-run-to-export-testsfixturesmatlabbackground_grid_unit_squarenpz-impl-exporter-target-ready-parity-test-xfailstrict-until-then-do-not-fabricate-the-fixture">78: still blocked on a MATLAB-equipped run to export <code>tests/fixtures/matlab/background_grid_unit_square.npz</code>; impl + exporter target ready, parity test xfail(strict) until then. Do NOT fabricate the fixture.<a class="headerlink" href="#78-still-blocked-on-a-matlab-equipped-run-to-export-testsfixturesmatlabbackground_grid_unit_squarenpz-impl-exporter-target-ready-parity-test-xfailstrict-until-then-do-not-fabricate-the-fixture" title="Permanent link">&para;</a></h1>
+</li>
+<li>
+<h1 id="143-standing-coordination-thread-re-check-item-2-admeshdomains-synth_domainspy-item-3-fort14-chilmesh-adr-001-on-next-unification-change">143: standing coordination thread — re-check item #2 (<code>admesh.domains</code> ↔ <code>synth_domains.py</code>) + item #3 (fort.14 ↔ CHILmesh ADR-001) on next unification change.<a class="headerlink" href="#143-standing-coordination-thread-re-check-item-2-admeshdomains-synth_domainspy-item-3-fort14-chilmesh-adr-001-on-next-unification-change" title="Permanent link">&para;</a></h1>
+</li>
+<li>
+<h1 id="86-v10-cpprust-full-srccpp-tree-exists-large-decompose-into-sub-issues-before-any-impl-session">86 (v1.0 cpp/rust): full <code>src/cpp/</code> tree exists; LARGE — decompose into sub-issues before any impl session.<a class="headerlink" href="#86-v10-cpprust-full-srccpp-tree-exists-large-decompose-into-sub-issues-before-any-impl-session" title="Permanent link">&para;</a></h1>
+</li>
+</ul>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Permanent PyPI strategy for <code>admesh</code> (#136 latent blocker) — operator call, surfaces if MADMESHing ships ADMESH as non-optional dep.</li>
+</ul>
 
 
 
