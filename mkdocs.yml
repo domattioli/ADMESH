@@ -1,9 +1,9 @@
 site_name: ADMESH
 site_description: Advanced, automatic unstructured mesh generator for 2D shallow-water domains.
-site_url: https://domattioli.github.io/ADMESH/
+site_url: https://admesh.domattioli.com/
 repo_url: https://github.com/domattioli/ADMESH
 repo_name: domattioli/ADMESH
-edit_uri: edit/daily-issue-fixing/docs/
+edit_uri: edit/main/docs/
 
 theme:
   name: material
@@ -49,6 +49,16 @@ nav:
       - Porting notes: PORTING_NOTES.md
       - Contributing: contributing.md
       - Testing: testing.md
+  - Wiki:
+      - Overview: wiki/index.md
+      - Concepts: wiki/Concepts.md
+      - Pipeline: wiki/Pipeline.md
+      - Architecture overview: wiki/Architecture-Overview.md
+      - fort.14 cheat sheet: wiki/fort14-Cheat-Sheet.md
+      - Roadmap: wiki/Roadmap.md
+      - Ecosystem: wiki/Ecosystem.md
+      - FAQ: wiki/FAQ.md
+      - Contributing: wiki/Contributing.md
 
 plugins:
   - search
