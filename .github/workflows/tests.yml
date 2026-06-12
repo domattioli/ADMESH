@@ -1,3 +1,5 @@
+# DomI-managed workflow (spec-010 v3) — materialized from template; DO NOT EDIT IN THIS REPO.
+# Source: domattioli/DomI templates/workflows/tests.yml @ v1 — edit upstream, then sync.
 name: tests
 
 on:
