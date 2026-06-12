@@ -8,6 +8,9 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 concurrency:
   group: tests-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
