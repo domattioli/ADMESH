@@ -1,0 +1,23 @@
+include README.md
+include LICENSE
+include CHANGELOG.md
+include pyproject.toml
+
+recursive-include src/admesh *.py
+
+# Claude-derived development docs — never ship in distributions (operator directive 2026-06-12)
+prune .claude
+prune .github
+prune .specify
+prune specs
+prune .planning
+prune docs
+prune tests
+prune scripts
+exclude CLAUDE.md
+exclude AGENTS.md
+exclude .domi-pin
+
+global-exclude __pycache__
+global-exclude *.pyc
+global-exclude .DS_Store

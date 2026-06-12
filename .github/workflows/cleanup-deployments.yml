@@ -7,19 +7,21 @@ on:
         description: 'Number of most-recent deployments to keep'
         required: false
         default: '1'
+  schedule:
+    - cron: "0 5 * * 1"
 
 permissions:
-  contents: write
   deployments: write
 
 jobs:
   cleanup:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Delete old gh-pages deployment records
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          KEEP: ${{ inputs.keep }}
+          KEEP: ${{ inputs.keep || '5' }}
         run: |
           set -euo pipefail
 
