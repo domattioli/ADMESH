@@ -43,16 +43,29 @@ def _find_eigen3():
 
 
 # Optional: try to include C++ extension
+import os
+REQUIRE_CPP = os.environ.get("ADMESH_REQUIRE_CPP", "0").strip() in ("1", "true")
+
 try:
     import pybind11
     from pybind11.setup_helpers import Pybind11Extension, build_ext
     HAS_PYBIND11 = True
 except ImportError:
     HAS_PYBIND11 = False
+    if REQUIRE_CPP:
+        raise RuntimeError(
+            "ADMESH_REQUIRE_CPP=1 but pybind11 not found. "
+            "Install via: pip install pybind11"
+        )
     print("[setup.py] pybind11 not found; C++ distmesh extension will be skipped")
 
 eigen_path = _find_eigen3() if HAS_PYBIND11 else None
 if HAS_PYBIND11 and eigen_path is None:
+    if REQUIRE_CPP:
+        raise RuntimeError(
+            "ADMESH_REQUIRE_CPP=1 but Eigen3 not found. "
+            "Install via: apt-get install libeigen3-dev (Linux) or brew install eigen (macOS)"
+        )
     print("[setup.py] Eigen3 not found; C++ distmesh extension will be skipped")
 
 ext_modules = []
