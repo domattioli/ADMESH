@@ -1,323 +1,359 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://domattioli.github.io/ADMESH/</loc>
+         <loc>https://admesh.domattioli.com/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/ADMESH_DOMAINS_CONTRACT/</loc>
+         <loc>https://admesh.domattioli.com/ADMESH_DOMAINS_CONTRACT/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/BENCHMARK_DELIVERABLE/</loc>
+         <loc>https://admesh.domattioli.com/BENCHMARK_DELIVERABLE/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/CONTACT_LOG/</loc>
+         <loc>https://admesh.domattioli.com/CONTACT_LOG/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/DOMAIN_IO/</loc>
+         <loc>https://admesh.domattioli.com/DOMAIN_IO/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/HOOKS-AUDIT/</loc>
+         <loc>https://admesh.domattioli.com/HOOKS-AUDIT/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/PFIX_CONTRACT/</loc>
+         <loc>https://admesh.domattioli.com/PFIX_CONTRACT/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/PORTING_NOTES/</loc>
+         <loc>https://admesh.domattioli.com/PORTING_NOTES/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/PUBLISH_RELEASE/</loc>
+         <loc>https://admesh.domattioli.com/PUBLISH_RELEASE/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/PYPI_CLAIM_TASKS/</loc>
+         <loc>https://admesh.domattioli.com/PYPI_CLAIM_TASKS/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/SCRIPT_AUDIT/</loc>
+         <loc>https://admesh.domattioli.com/SCRIPT_AUDIT/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/contributing/</loc>
+         <loc>https://admesh.domattioli.com/contributing/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/persistence_journal/</loc>
+         <loc>https://admesh.domattioli.com/persistence_journal/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/quickstart/</loc>
+         <loc>https://admesh.domattioli.com/quickstart/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/testing/</loc>
+         <loc>https://admesh.domattioli.com/testing/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/adr/ADR-001-chilmesh-boundary/</loc>
+         <loc>https://admesh.domattioli.com/adr/ADR-001-chilmesh-boundary/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/io/</loc>
+         <loc>https://admesh.domattioli.com/api/io/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/loaders/</loc>
+         <loc>https://admesh.domattioli.com/api/loaders/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/quality/</loc>
+         <loc>https://admesh.domattioli.com/api/quality/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/size_field/</loc>
+         <loc>https://admesh.domattioli.com/api/size_field/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/triangulate/</loc>
+         <loc>https://admesh.domattioli.com/api/triangulate/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/types/</loc>
+         <loc>https://admesh.domattioli.com/api/types/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/api/valence/</loc>
+         <loc>https://admesh.domattioli.com/api/valence/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/governance/CONSTITUTION/</loc>
+         <loc>https://admesh.domattioli.com/governance/CONSTITUTION/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/governance/PROJECT_PLAN/</loc>
+         <loc>https://admesh.domattioli.com/governance/PROJECT_PLAN/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/2026-06-03-octree-p0-p2/</loc>
+         <loc>https://admesh.domattioli.com/introspections/2026-06-03-octree-p0-p2/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/2026-06-04-admesh-planning-session/</loc>
+         <loc>https://admesh.domattioli.com/introspections/2026-06-04-admesh-planning-session/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/2026-06-05T10Z-admesh/</loc>
+         <loc>https://admesh.domattioli.com/introspections/2026-06-05T10Z-admesh/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/2026-06-06-demo-133-fix/</loc>
+         <loc>https://admesh.domattioli.com/introspections/2026-06-06-demo-133-fix/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/2026-06-07T10Z/</loc>
+         <loc>https://admesh.domattioli.com/introspections/2026-06-07T10Z/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/637aefe3-a338-418f-8edc-93b5369a4190/</loc>
+         <loc>https://admesh.domattioli.com/introspections/637aefe3-a338-418f-8edc-93b5369a4190/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/cpp-distmesh_d69677b/</loc>
+         <loc>https://admesh.domattioli.com/introspections/cpp-distmesh_d69677b/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-issue-fixing_30eb104/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-issue-fixing_30eb104/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-issue-fixing_49a6447/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-issue-fixing_49a6447/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-issue-fixing_c877f07/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-issue-fixing_c877f07/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-issue-fixing_ca1fcb4/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-issue-fixing_ca1fcb4/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-issue-fixing_d846bd7/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-issue-fixing_d846bd7/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/daily-maintenance_2026-05-31/</loc>
+         <loc>https://admesh.domattioli.com/introspections/daily-maintenance_2026-05-31/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_2feb33a/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_2feb33a/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_6a9e4c5/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_6a9e4c5/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_848293d/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_848293d/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_9da7953/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_9da7953/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_beb994a/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_beb994a/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_d9bc0b3/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_d9bc0b3/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/development_ead9f65/</loc>
+         <loc>https://admesh.domattioli.com/introspections/development_ead9f65/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/introspections/fec48222-b035-4521-9026-9da270c2a66e/</loc>
+         <loc>https://admesh.domattioli.com/introspections/fec48222-b035-4521-9026-9da270c2a66e/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/SPEC_005_GMSH_IO/</loc>
+         <loc>https://admesh.domattioli.com/planning/SPEC_005_GMSH_IO/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/TASKS_005_GMSH_IO/</loc>
+         <loc>https://admesh.domattioli.com/planning/TASKS_005_GMSH_IO/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/issue-57-audits/</loc>
+         <loc>https://admesh.domattioli.com/planning/issue-57-audits/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/issue-57-plan/</loc>
+         <loc>https://admesh.domattioli.com/planning/issue-57-plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/issue-57-specification/</loc>
+         <loc>https://admesh.domattioli.com/planning/issue-57-specification/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/planning/issue-57-tasks/</loc>
+         <loc>https://admesh.domattioli.com/planning/issue-57-tasks/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_0_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_0_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_0_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_0_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_0_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_0_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_10_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_10_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_11_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_11_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_1_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_1_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_1_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_1_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_1_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_1_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_2_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_2_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_2_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_2_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_2_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_2_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_3_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_3_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_3_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_3_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_3_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_3_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_4_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_4_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_4_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_4_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_4_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_4_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_5_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_5_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_5_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_5_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_5_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_5_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_6_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_6_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_6_report/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_6_report/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_6_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_6_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_7_plan/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_7_plan/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_7_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_7_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_8_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_8_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/sessions/session_9_state/</loc>
+         <loc>https://admesh.domattioli.com/sessions/session_9_state/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
     <url>
-         <loc>https://domattioli.github.io/ADMESH/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY/</loc>
+         <loc>https://admesh.domattioli.com/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Architecture-Overview/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Concepts/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Contributing/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Ecosystem/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/FAQ/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Pipeline/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/Roadmap/</loc>
+         <lastmod>2026-06-12</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/wiki/fort14-Cheat-Sheet/</loc>
          <lastmod>2026-06-12</lastmod>
     </url>
 </urlset>
