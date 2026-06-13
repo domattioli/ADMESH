@@ -16,13 +16,14 @@ Usage
 -----
     python benchmarks/compare_versions.py \
         --mesh tests/fixtures/fort14/adcirc_examples/wnat_test.14 \
-        --domain benchmarks/data/wnat_onur_boundary.json \
+        --domain benchmarks/data/enpac_boundary.json \
         --ref v0.2.1="v0.2.1 (original Python)" \
         --ref current="v0.5.0 (Numba-optimized Python)" \
         --niter 120 --hist
 
-The first ``--ref`` is the baseline; the last is the speedup numerator's
-denominator (speedup = baseline / latest).
+ENPAC is the standard large-domain comparison target (issue #154); WNAT is retained
+as a lighter smoke test. The first ``--ref`` is the baseline; the last is the speedup
+numerator's denominator (speedup = baseline / latest).
 """
 from __future__ import annotations
 
@@ -255,7 +256,8 @@ def main() -> None:
 
     if args.hist:
         (REPO / "output").mkdir(parents=True, exist_ok=True)
-        make_histogram(results, REPO / "output" / "wnat_quality_comparison.png")
+        domain_stem = pathlib.Path(args.domain).stem
+        make_histogram(results, REPO / "output" / f"{domain_stem}_quality_comparison.png")
 
 
 if __name__ == "__main__":
