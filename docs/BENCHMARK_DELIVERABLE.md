@@ -1,5 +1,11 @@
 # ADMESH v0.5.0 → v1.0.0alpha Benchmark + Bayesian Hyperparameter Optimization
 
+> **Standard-change banner (#154):** the **large-domain benchmark standard is now
+> ENPAC 2003** (`benchmarks/bench_enpac.py`), replacing WNAT. The WNAT-centric
+> content below is the v0.5.0→v1.0.0alpha-era record and is retained as history;
+> WNAT-Onur survives as a lighter ~7k-node smoke. See `benchmarks/README.md`
+> "Large-domain standard" for the current gate.
+
 **Status:** COMPLETE. Benchmark column delivered + bayesian experiment ready to run.
 
 ---

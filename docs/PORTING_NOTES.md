@@ -164,3 +164,10 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 - **Interpolation**: nearest-leaf stairstep gave SC-005 fidelity 0.076·h_max (> 0.05 gate); IDW blend over leaf + edge neighbors → 0.0296·h_max (PASS).
 
 **Behavior diff**: `background="uniform"` (default) is byte-identical to prior behavior. `background="octree"` reproduces uniform meshes on flat size fields and matches/exceeds quality on graded fields (benchmarks/results/octree_benchmark.md).
+
+## 2026-06-13 — inpaint_nans 1-D Laplacian column alignment (stage 13, #155)
+
+**MATLAB**: `01_ADMESH_Library/.../inpaint_nans.m` method 0, 1-D branch (lines 109–125) — builds the `[1 -2 1]` second-difference operator with row/column/value triples in matching per-row order.
+**Python**: `admesh._stages.inpaint._inpaint_nans_method_0`, `if m == 1 or n == 1` branch.
+
+**Behavior diff (port artifact, now fixed)**: the COO `cols` array was assembled column-grouped (`np.concatenate([work-1, work, work+1])`) while `rows`/`data` were interleaved per-row (`np.repeat(arange(nw),3)` / `np.tile([1,-2,1],nw)`). COO maps triple `k → (rows[k], cols[k], data[k])`, so the stencil only landed on the right columns when `work` was perfectly consecutive; any gap between NaN clusters scattered the `[1,-2,1]` coefficients into wrong columns → silently-wrong inpaint on non-contiguous interior NaNs. The sibling 2-D branch already built `cols` interleaved (`np.column_stack([...]).ravel()`) — the fix mirrors it. Moves the port *toward* MATLAB fidelity (the MATLAB original is correct). A linear ramp cannot expose the defect (it lies in the operator's null space); `tests/test_inpaint.py::test_inpaint_1d_noncontiguous_nans_regression` compares against an independent clean-room del² oracle on quadratic/cubic/sine fields (buggy diverged O(100), fixed matches to ~1e-10).

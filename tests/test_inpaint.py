@@ -86,3 +86,50 @@ def test_inpaint_unimplemented_methods_raise():
     for m in (1, 2, 3, 4, 5):
         with pytest.raises(NotImplementedError):
             inpaint_nans(A, method=m)
+
+
+def _oracle_inpaint_1d(A_col):
+    """Independent clean-room method-0 del^2 inpaint for a 1-D (N,1) column.
+
+    Builds the centered [1, -2, 1] second-difference operator plainly (no
+    vectorized COO tricks), then least-squares solves for the NaN cells.
+    Used to validate the module's 1-D branch without reusing its matrix
+    construction code (regression oracle for #155)."""
+    a = A_col.ravel().astype(float)
+    N = a.size
+    nan_idx = np.flatnonzero(np.isnan(a))
+    work = np.unique(np.concatenate([nan_idx, nan_idx - 1, nan_idx + 1]))
+    work = work[(work >= 1) & (work <= N - 2)]
+    fda = np.zeros((len(work), N))
+    for r, w in enumerate(work):
+        fda[r, w - 1] += 1.0
+        fda[r, w] += -2.0
+        fda[r, w + 1] += 1.0
+    known = np.setdiff1d(np.arange(N), nan_idx)
+    b = a.copy()
+    rhs = -fda[:, known] @ a[known]
+    sol, *_ = np.linalg.lstsq(fda[:, nan_idx], rhs, rcond=None)
+    b[nan_idx] = sol
+    return b
+
+
+@pytest.mark.parametrize("field", [
+    np.arange(15.0) ** 2,                       # quadratic (Delta^2 != 0)
+    np.arange(15.0) ** 3 - 3.0 * np.arange(15.0),  # cubic
+    np.sin(np.arange(15.0) * 0.7) * 10.0,       # smooth non-polynomial
+])
+@pytest.mark.parametrize("nan_layout", [
+    [2, 3, 7], [1, 4, 9, 10], [1, 3, 7], [3, 4, 5, 9, 11],
+])
+def test_inpaint_1d_noncontiguous_nans_regression(field, nan_layout):
+    """Regression for #155: the 1-D branch built a column-grouped `cols`
+    while `rows`/`data` were interleaved, scrambling the Laplacian for
+    non-consecutive NaN clusters. A linear ramp can't expose this (it lies
+    in the operator's null space), so we compare against an independent
+    clean-room oracle on non-linear fields. The buggy code diverges from
+    the oracle by O(100); the fixed code matches to ~1e-10."""
+    A = field.copy().reshape(-1, 1)
+    for i in nan_layout:
+        A[i, 0] = np.nan
+    B = inpaint_nans(A)
+    np.testing.assert_allclose(B.ravel(), _oracle_inpaint_1d(A), atol=1e-9, rtol=1e-9)

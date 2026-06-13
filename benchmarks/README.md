@@ -37,6 +37,27 @@ pip install -e ".[dev]"
 
 **CI gating:** Default CI runs tiny + medium only. Manual arg `--tier=full` or `--nightly=true` enables wnat-3m.
 
+## Large-domain standard — ENPAC 2003 (#154)
+
+Per operator directive (#154), the **standard large-domain benchmark is ENPAC 2003**
+(`EasternPacific_ENPAC2003.14` — 272,913 nodes / 531,680 elems, continental-scale
+Eastern Pacific, 59.3°×41.9°), replacing WNAT as the large-domain stress case.
+
+- **Gate:** `python benchmarks/bench_enpac.py` — times domain load + SDF build,
+  SDF grid eval, and a coarse full `triangulate()`; reports stage breakdown,
+  per-point SDF cost, and mesh quality.
+- **Portable fixture:** `benchmarks/data/enpac_boundary.json` (240 KB, 10,365-node
+  outer ring extracted from the `.14`). The 29 MB `.14` itself stays in the Valence
+  registry / HuggingFace — **not vendored** here.
+- **Version comparison:** `compare_versions.py --domain benchmarks/data/enpac_boundary.json`
+  (already domain-parametrized; ENPAC is now the documented default target).
+- **WNAT-Onur retained** as a lighter ~7k-node smoke (`benchmarks/bench_wnat.py`,
+  `benchmarks/data/wnat_onur_boundary.json`) — migration ≠ deletion.
+
+> Note: ENPAC's SDF dominates naive full-domain bench cost; a `cKDTree`/vectorized
+> segment-distance optimization in `distance.py` is tracked separately as a perf
+> item (out of scope for #154's standard-switch).
+
 ## Artifacts
 
 **Machine-readable:** `benchmarks/results/{git_sha}-{env_hash}.json`
