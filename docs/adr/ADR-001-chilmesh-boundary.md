@@ -90,3 +90,14 @@ Update this ADR's snapshot date and re-run the inventory if any of the following
 - ADMESH adds a new public `cons` module.
 - A new cross-repo test joins `tests/test_fort14_chilmesh_*.py`.
 - A maintainer disputes a `keep` row.
+
+## Verification log
+
+### 2026-06-12 — boundary re-verified under unification (ADMESH#143 item 3)
+
+Checked as part of the MADMESHing#48 / spec-048 unification effort:
+
+- **Invariants hold.** `import chilmesh` appears nowhere in `src/admesh/` except `viz.py` (lazy, behind the `[viz]` extra). `admesh.fort14` parses independently (stdlib + numpy only). `admesh.Mesh` remains canonical; no shared base class.
+- **Gates green** against sibling CHILmesh **1.2.0** HEAD: `test_unification_api_contract.py` (6), `test_fort14_chilmesh_compat.py` (8), `test_fort14_chilmesh_smoke.py` (1), `test_fort14_roundtrip.py` (6) — 21/21.
+- **Drift noted, not a violation:** `viz.py` now *delegates* plotting to chilmesh (`[viz]` extra = `chilmesh>=1.1`), inverting this ADR's original "moving forces CHILmesh install for plotting — net negative" rationale for the viz row. Disposition ("keep in ADMESH") unchanged; dependency is optional + lazy, so the no-hard-dep boundary stands.
+- **Reverification triggers have fired** (CHILmesh 1.0.0 major shipped 2026-05-22, the day after the snapshot; surface since grew `element_quality`, `submesh`, `paths_on_outer_vertices`, mutations, `quad_from_tri_pair`). Full inventory re-run is deliberately deferred: spec-048 **D5** (operator) decides whether this ADR is superseded (P6: single mesh type + single fort.14 parser in CHILmesh, tasks T20/T21) or kept. Re-running the inventory before D5 would be churn; if D5 = keep, re-run it then.
