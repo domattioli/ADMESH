@@ -634,6 +634,7 @@ def triangulate(
     size_field: Callable[[np.ndarray], np.ndarray] | None = None,
     user_contribs: tuple[Callable[[np.ndarray], np.ndarray], ...] = (),
     combine: Callable[[list[np.ndarray]], np.ndarray] = np.minimum.reduce,
+    background: str = "uniform",
     seed: int | None = None,
     max_iter: int | None = None,
     initial_points: "np.ndarray | None" = None,
@@ -662,6 +663,9 @@ def triangulate(
         User-defined size field contributions.
     combine : callable
         Function to combine multiple size fields (default: np.minimum.reduce).
+    background : str
+        Background grid strategy: 'uniform' (default) or 'octree' (adaptive
+        octree-backed size field from spec-029).
     seed : int or None
         Random seed for reproducibility.
     max_iter : int or None
@@ -819,6 +823,19 @@ def triangulate(
         )
     else:
         fh = size_field  # may still be None — uniform sizing
+
+    if background == "octree":
+        from admesh.octree import octree_size_field
+        _bbox = port_domain.bbox
+        _hmax_o = float(h_max) if h_max is not None else h0
+        _hmin_o = float(h_min) if h_min is not None else _hmax_o / 100.0
+        _base = fh if fh is not None else (
+            lambda pts: np.full(len(np.atleast_2d(pts)), _hmax_o, dtype=float))
+        class _BBoxShim:
+            bbox = _bbox
+        fh = octree_size_field(_BBoxShim, _base, h_min=_hmin_o, h_max=_hmax_o)
+    elif background != "uniform":
+        raise ValueError(f"triangulate: background must be 'uniform' or 'octree', got {background!r}")
 
     # Issue #2: if the domain carries explicit boundary vertices (pts), seed
     # intermediate points along each edge so short boundary segments get
