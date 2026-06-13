@@ -34,6 +34,20 @@ Build + leaf_graph, main lineage vs branch module extracted standalone. Leaf cou
 - **Build**: branch ≈ 17–18k leaves/s vs main ≈ 7.5–8.7k — **~2.2× faster per leaf**, stable scaling. Neither hits SC-002 (<30 s @ ratio-1000) headroom comfortably in pure Python at main's leaf counts.
 - **Branch `leaf_graph` is O(N²) despite its O(N) docstring**: index map built by scanning all `_nodes` per leaf (identity compare), and the `OctreeLeaf.neighbors` back-compat property recounts leaf rank by prefix scan per call (plus a module-global `_nodes` hack). Both fixable with one precomputed node→leaf-rank array; after the fix the branch design should dominate on every axis.
 
+### 2b. Third data point — vectorized SoA prototype (2026-06-13, answers "can we implement a less expensive octree?")
+
+Yes — by an order of magnitude over the branch and two over main. Prototype at [`prototype_octree_vec.py`](prototype_octree_vec.py) (Haiku-dispatched per coding policy; reviewed + independently re-benched by orchestrator): **level-synchronous build** (one **batched** oracle call per depth level over all active centers — both existing impls call the oracle per cell, thousands of 1-point SDF evals), **struct-of-arrays** (parallel `cx/cy/size/depth/ix/iy` arrays, zero per-cell Python objects), integer cell coords + `(depth,ix,iy)` dict for Samet-equivalent neighbor finding, worklist 2:1 balance, dict-ladder `locate`.
+
+Correctness gates all pass: exact cover (1e-9), partition/no-ancestor-overlap, 2:1 balance on every edge, **`leaf_graph` bit-identical to brute-force O(N²) adjacency**, 1000-point `locate` containment.
+
+| ratio | main lv / build / graph | branch lv / build / graph | **vec lv / build / graph** |
+|---|---|---|---|
+| 10 | 7 489 / 0.85 s / 0.07 | 688 / 0.022 / 0.01 | **316 / 0.002 / 0.00** |
+| 100 | 61 618 / 7.11 / 0.72 | 6 028 / 0.34 / 0.83 | **2 968 / 0.013 / 0.02** |
+| 1000 | 336 286 / 42.0 / 4.56 | 49 000 / 2.64 / (O(N²)) | **24 436 / 0.136 / 0.16** |
+
+~180k leaves/s (≈10× branch per-leaf, ≈22× main); SC-001 (<5 s @ ratio-100) met at 0.013 s, SC-002 (<30 s @ ratio-1000) at 0.136 s — **~200× headroom in pure NumPy**. Leaf-count deltas reflect slightly different stop criteria (normalize in P0); per-leaf rates are the comparison that holds.
+
 ## 3. Faithfulness contract — to the **concept**, not to MATLAB (operator clarification 2026-06-13)
 
 The octree has no MATLAB counterpart and owes it nothing. "Completely faithful" = faithful to the **quadtree/octree concept** as published (Samet 1990). Binding concept invariants, each pinned by a test:
@@ -70,7 +84,7 @@ If pure Python misses budget 1 or 2 after the O(N²) fixes: Numba gate (T018/T01
 
 | Phase | Work | Gate |
 |---|---|---|
-| **P0 salvage** | Port branch flat-index implementation onto `src/admesh/_stages/octree_grid.py` (keep main's public fn names: `build_octree`, `size_field_octree`, `leaf_graph`, `locate`, `interpolate`); fix the two O(N²) defects (precomputed leaf-rank array; kill `_nodes` global); port branch tests; salvage spec-022 clarifications CL-001..004 + SC-001..007 into `specs/021-octree-size-field-perf/` | existing 15 octree tests + ported tests green |
+| **P0 salvage** | **Revised 2026-06-13**: keeper core = the §2b vectorized SoA design (batched oracle, level-synchronous, integer-coord neighbors) productionized onto `src/admesh/_stages/octree_grid.py` under main's public fn names (`build_octree`, `size_field_octree`, `leaf_graph`, `locate`, `interpolate`). Branch contributes the `size_oracle` API shape, CL-001..004 decisions, tests, and Samet references — its per-cell build loop is retired along with main's object tree. §3 concept-invariant tests (cover/partition/2:1/brute-force-graph/locate) become the permanent test suite. Salvage spec-022 CL/SC into `specs/021-octree-size-field-perf/` | existing 15 octree tests + concept-invariant tests green |
 | **P1 perf proof** | Committed `scripts/bench_octree.py` (build/balance/leaf_graph/locate at ratios 10/100/1000 on `tests/fixtures/octree/`); record SC-001..SC-004 + §4b budgets 1/5 in `benchmarks/` (pinned baseline, regression lock §4b.6) | SC-001..004 met **and** §4b budgets within bounds, or Numba gate (T018/T019) closes the gap; else spec-023-native (Rust/C++, CL-001 deferral) activates |
 | **P2 workflow wiring** | `triangulate(background="octree")` opt-in path: oracle = size-field stack, leaf graph → gradient limiter → `fh()` → distmesh | SC-005 parity gate + full suite green; 13 locked stages untouched |
 | **P3 quality benchmark** | Uniform vs octree on the §4b.3 target-domain matrix (registry domains, not toys; salvage branch's WNAT-Onur graded-mesh scripts): wall-clock + pipeline-share, node count, min_q/mean_q, structural validity, peak RSS; SC-007 river-bay channel ≥ 3 nodes across | report committed; structural validity 100%; §4b budgets 1+2 hold on every row |
@@ -81,8 +95,8 @@ Implementation sessions: speckit chain on this scoping doc; code via Haiku subag
 
 ## 6. Open decisions (operator)
 
-- **D-029a**: approve salvage-by-port + close PR #132 (vs attempting rebase — not recommended, §1).
+- ~~**D-029a**: approve salvage-by-port + close PR #132~~ — **RESOLVED 2026-06-13: approved** ("approve"). PR #132 closed; branch retained read-only until P0 salvage complete, then operator deletes (proxy blocks session deletes).
 - **D-029b**: spec numbering — branch's `021-octree-size-field`/`022-octree-perf-rewrite` dirs collide conceptually (not by name) with main's `021-octree-size-field-perf`/`022-fem-smoother-order`; salvage into canonical 021-perf dir and retire branch dirs?
-- **D-029c**: pure-Python perf bar — accept Numba gate as the SC-002 closer, or pre-authorize spec-023 native rewrite scoping.
+- ~~**D-029c**: pure-Python perf bar — Numba vs native~~ — **RESOLVED-BY-EVIDENCE 2026-06-13 (recommendation): pure Python/NumPy.** §2b prototype clears every SC target and §4b budget with ~200× headroom; language question answered by measurement: (1) Constitution Article II bars C extensions in first cut anyway; (2) pure NumPy runs unmodified in the Pyodide GitHub-Pages demo — a cpp/rust extension would need emscripten wheels; (3) the batched oracle means build cost is dominated by the size-field stack itself, which is the same NumPy cost under any host language — a native octree shell would optimize <1% of pipeline wall-clock; (4) flat SoA arrays remain `@njit`-ready (T018 env-gate) and spec-023 native stays dormant as the documented escape hatch if a registry-class domain ever breaches §4b. CHILmesh's C++ backend precedent was justified by measured need; here the measurement says no.
 - ~~**D-029d**: P5 default flip intent~~ — **RESOLVED 2026-06-13**: operator approved P5 in principle ("5 looks good"), gated on §4b never-worse rule across all registry-class domains. P3 benchmarks gate hard accordingly.
 - Operator clarifications absorbed 2026-06-13: faithfulness = concept-fidelity (§3 rewritten, MATLAB-parity framing dropped); computational-cost envelope added (§4b) — octree must not increase admesh cost on the domains we actually make.
