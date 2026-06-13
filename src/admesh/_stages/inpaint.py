@@ -100,7 +100,7 @@ def _inpaint_nans_method_0(A: NDArray[np.float64]) -> NDArray[np.float64]:
         nw = len(work)
         # fda: nw x nm sparse with [1 -2 1] at columns [work-1, work, work+1].
         rows = np.repeat(np.arange(nw), 3)
-        cols = np.concatenate([work - 1, work, work + 1])
+        cols = np.column_stack([work - 1, work, work + 1]).ravel()
         data = np.tile(np.array([1.0, -2.0, 1.0]), nw)
         fda = coo_matrix((data, (rows, cols)), shape=(nw, nm)).tocsr()
     else:
