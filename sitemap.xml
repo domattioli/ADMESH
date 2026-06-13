@@ -185,6 +185,22 @@
          <lastmod>2026-06-13</lastmod>
     </url>
     <url>
+         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-12T19Z/</loc>
+         <lastmod>2026-06-13</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T01Z/</loc>
+         <lastmod>2026-06-13</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T07Z/</loc>
+         <lastmod>2026-06-13</lastmod>
+    </url>
+    <url>
+         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T13Z/</loc>
+         <lastmod>2026-06-13</lastmod>
+    </url>
+    <url>
          <loc>https://admesh.domattioli.com/planning/SPEC_005_GMSH_IO/</loc>
          <lastmod>2026-06-13</lastmod>
     </url>
@@ -318,42 +334,6 @@
     </url>
     <url>
          <loc>https://admesh.domattioli.com/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Architecture-Overview/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Concepts/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Contributing/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Ecosystem/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/FAQ/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Pipeline/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/Roadmap/</loc>
-         <lastmod>2026-06-13</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/wiki/fort14-Cheat-Sheet/</loc>
          <lastmod>2026-06-13</lastmod>
     </url>
 </urlset>
