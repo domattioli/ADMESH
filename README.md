@@ -25,7 +25,7 @@
   <sup>†</sup>Corresponding author | <sup>1</sup>Unaffiliated | <sup>2</sup>Ohio State University (CHIL)
 </p>
 
-> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is kept in-repo at [`src/matlab/`](src/matlab/) for provenance. Version 1.0.0 will ship with a MATLAB wrapper of the modernized code (Est. Aug 2026).
+> **Attention MATLAB users:** This Python library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original ADMESH MATLAB library is kept in-repo at [`src/matlab/`](src/matlab/) for provenance.
 
 ---
 
@@ -112,7 +112,7 @@ flowchart LR
 
 ## Performance
 
-Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline), all columns measured directly at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel; `v1.1.0` (planned) completes the full C++ rewrite of all 13 stages.
+Per-stage timings on the **WNAT** domain (144-ring Western North Atlantic coastline) at `hmin=0.05` / `g=0.10`, fixed `niter=120` to isolate per-call cost. The `v0.2.1` / `v0.5.0` / `v1.0.0` columns are measured directly (the v1.0.0 C++ distmesh kernel is benched in `benchmarks/cpp_benchmark_v1.0.0.json` but not yet released); `v1.1.0` is a projection of the full C++ rewrite. `v0.5.0` adds a Numba-JIT SDF kernel + `solve_iter` smoother; `v1.0.0` adds Triangle Delaunay + a C++ force kernel; `v1.1.0` (planned) completes the full C++ rewrite of all 13 stages.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/papers/fig8_admesh_wnat.png" alt="ADMESH mesh of the Western North Atlantic, Gulf of Mexico, and Caribbean Sea." width="100%">
@@ -160,7 +160,7 @@ Add a `--ref <tag>="<label>"` per version to compare; the table writes to `bench
 
 ## Status & roadmap
 
-- **Shipped (v0.2.1).** Pythonic API + fort.14 round-trip + 13-stage faithful port + valence balancing + custom size-field hooks. Published to [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
+- **Shipped (v0.5.0).** Pythonic API + fort.14 round-trip + 13-stage faithful port + valence balancing + custom size-field hooks + Numba-JIT SDF/solver kernels. Published to [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
 - **In flight.** Spec 009 release-readiness (CI workflows, mkdocs site, stage-module reorg into `admesh/_stages/`). Spec 008 Gmsh I/O.
 - **Next.** Default size-field stack consolidation; paired-edge IBTYPE 3 / 4 / 13 / 24 promoted to named `BoundaryType` members.
 
