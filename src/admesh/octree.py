@@ -15,8 +15,7 @@ from typing import Callable
 
 import numpy as np
 
-__all__ = ["Octree", "build_octree", "leaf_graph", "locate", "interpolate"]
-
+__all__ = ["Octree", "build_octree", "leaf_graph", "locate", "interpolate", "octree_size_field"]
 
 SizeFieldFn = Callable[[np.ndarray], np.ndarray]
 
@@ -89,7 +88,7 @@ def build_octree(
     *,
     h_min: float,
     h_max: float,
-    oracle: SizeFieldFn,
+    oracle: "SizeFieldFn | Callable",
     max_depth: int = 16,
     padding: float | None = None,
     balance: bool = True,
@@ -425,3 +424,89 @@ def interpolate(tree: Octree, values: np.ndarray, pts: np.ndarray) -> np.ndarray
     """
     leaf_indices = locate(tree, pts)
     return values[leaf_indices]
+
+
+def octree_size_field(
+    domain,
+    oracle: SizeFieldFn,
+    *,
+    h_min: float,
+    h_max: float,
+    g: float = 0.2,
+    max_depth: int = 16,
+    balance: bool = True,
+    gradient_limit: bool = True,
+    max_relax_iter: int = 200,
+) -> SizeFieldFn:
+    """Build an octree-backed size field from a batched size oracle.
+
+    Builds an adaptive octree over domain.bbox refined by ``oracle``, samples
+    the oracle at leaf centers, optionally applies a mesh-grading gradient
+    limit on the leaf-adjacency graph (enforce |h_i - h_j| <= g * dist_ij,
+    the ADMESH gradation constraint), and returns a size-field callable
+    fh(pts:(N,2)) -> (N,) that nearest-leaf-interpolates the limited sizes.
+
+    Parameters
+    ----------
+    domain : object with .bbox
+        Bounding box ``(xmin, ymin, xmax, ymax)`` tuple.
+    oracle : callable
+        Batched target size function. Takes ``pts`` (N, 2) → (N,) float64.
+    h_min, h_max : float
+        Refinement floor and root size.
+    g : float, optional
+        Max allowed |dh|/dist (gradation slope); default 0.2.
+    max_depth : int, optional
+        Maximum octree depth; default 16.
+    balance : bool, optional
+        Enforce 2:1 balance constraint; default True.
+    gradient_limit : bool, optional
+        Apply leaf-graph limiter; default True.
+    max_relax_iter : int, optional
+        Maximum relaxation iterations; default 200.
+
+    Returns
+    -------
+    callable
+        Size-field function (pts) -> sizes.
+    """
+    # Build octree refined by oracle
+    tree = build_octree(
+        domain,
+        h_min=h_min,
+        h_max=h_max,
+        oracle=oracle,
+        max_depth=max_depth,
+        balance=balance,
+    )
+
+    # Sample oracle at leaf centers and clip
+    sizes = np.clip(
+        np.asarray(oracle(tree.centers), dtype=np.float64),
+        h_min,
+        h_max,
+    ).copy()
+
+    # Apply gradient limiter if enabled
+    if gradient_limit and tree.n_leaves > 1:
+        edges, spacing = leaf_graph(tree)
+        if len(edges) > 0:
+            # Iterative relaxation: enforce |h_i - h_j| <= g * d_ij
+            for _ in range(max_relax_iter):
+                sizes_old = sizes.copy()
+
+                # Both directions per sweep
+                i_idx, j_idx = edges[:, 0], edges[:, 1]
+                np.minimum.at(sizes, i_idx, sizes[j_idx] + g * spacing)
+                np.minimum.at(sizes, j_idx, sizes[i_idx] + g * spacing)
+
+                max_change = np.max(np.abs(sizes - sizes_old))
+                if max_change < 1e-9 * h_max:
+                    break
+
+            # Re-clip after relaxation
+            np.clip(sizes, h_min, h_max, out=sizes)
+
+    # Return interpolation closure
+    return lambda pts: interpolate(tree, sizes, np.atleast_2d(np.asarray(pts, dtype=np.float64)))
+
