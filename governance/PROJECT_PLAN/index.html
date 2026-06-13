@@ -1104,6 +1104,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1375,6 +1386,15 @@
 <h1 id="admesh-project-plan">ADMESH Project Plan<a class="headerlink" href="#admesh-project-plan" title="Permanent link">&para;</a></h1>
 <p>Phased roadmap for porting <code>QuADMesh-MATLAB/01_ADMESH_Library</code> to Python. Governance rules in <code>CONSTITUTION.md</code>; code layout in <code>CLAUDE.md</code>.</p>
 <hr />
+<h2 id="where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready">Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)<a class="headerlink" href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" title="Permanent link">&para;</a></h2>
+<p>Octree adaptive background grid wired into <code>triangulate(background="octree")</code> (additive; locked routine untouched, Principle I held). Built from the prototype that resolved the cheaper-octree + language questions (pure NumPy, vectorized struct-of-arrays, batched oracle).</p>
+<ul>
+<li><strong>P0</strong> — <code>src/admesh/octree.py</code>: vectorized SoA quadtree, level-synchronous build, O(N) <code>leaf_graph</code> (prior branch O(N²) defect fixed), 2:1 balance. 16 concept-invariant tests.</li>
+<li><strong>P0b/P2</strong> — <code>octree_size_field()</code> (ADMESH gradation limit <code>|h_i−h_j|≤g·dist</code> on leaf graph) + <code>background=</code> kwarg. 7 wiring tests.</li>
+<li><strong>P3</strong> — IDW smooth interpolation clears SC-005 (0.0296 &lt; 0.05). Benchmarks: <code>scripts/bench_octree_quality.py</code>, <code>scripts/bench_octree_enpac.py</code>; results <code>benchmarks/results/octree_benchmark.md</code>. Tier-2 standard = ENPAC 2003 (replaces WNAT, #154).</li>
+<li><strong>Merge gates</strong>: structural validity, quality parity vs uniform, SC-005, concept invariants, gradation — all PASS.</li>
+<li><strong>Deferred (post-merge)</strong>: P5 default-flip stays <code>background="uniform"</code> until operator sign-off; legacy <code>_stages/octree_grid.py</code> (dead object-tree lineage) cleanup; ENPAC end-to-end mesh quality (in-session only build-cost measured). Spec: <code>specs/029-octree-unification-and-workflow/</code>.</li>
+</ul>
 <h2 id="where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete">Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)<a class="headerlink" href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" title="Permanent link">&para;</a></h2>
 <p><strong>Spec 012 (<code>specs/012-background-grid-stage-tests/</code>) planning shipped on <code>daily-maintenance</code>.</strong></p>
 <ul>
