@@ -108,7 +108,22 @@ The octree's whole justification is cost *reduction* on multiscale coastal domai
 
 If pure Python misses budget 1 or 2 after the O(N²) fixes: Numba gate (T018/T019) first, spec-023 native rewrite second (D-029c) — budgets stay fixed, implementations move.
 
-## 5. Phase plan
+## 4c. Implementation status (2026-06-13)
+
+P0–P3 **shipped** on `development` (this session). P4 = the merge PR; P5 deferred.
+
+| Phase | Status | Artifacts |
+|---|---|---|
+| P0 core | ✅ | `src/admesh/octree.py` (SoA, level-sync build, O(N) leaf_graph, 2:1 balance); `tests/test_octree.py` (16 invariant tests) |
+| P0b/P2 | ✅ | `octree_size_field()` + leaf-graph gradation limiter; `triangulate(background="octree")`; `tests/test_octree_size_field.py` (7) |
+| P1 perf | ✅ | `scripts/bench_octree_enpac.py`, `scripts/bench_octree_quality.py`; ENPAC 393k leaves build 3.4s, leaf_graph linear |
+| P3 quality+parity | ✅ | `benchmarks/results/octree_benchmark.md`; all merge gates PASS (validity, parity, SC-005 0.0296, gradation) |
+| P4 fold to main | ▶ | merge PR `development → main` (this session) |
+| P5 default flip | ⏸ deferred | stays opt-in until operator sign-off on registry-class quality |
+
+Keeper core = the vectorized SoA design (not the object-tree or the O(N²) branch). Legacy `_stages/octree_grid.py` left untouched (dead, its 15 tests still green) — cleanup is a post-merge follow-up, out of scope here to keep the merge surface additive.
+
+## 5. Phase plan (original scoping — superseded by §4c status)
 
 | Phase | Work | Gate |
 |---|---|---|

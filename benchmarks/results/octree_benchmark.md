@@ -19,7 +19,53 @@ Captured 2026-06-13 (pre-octree-wiring), the reference the octree path must matc
 
 ## Octree-path results
 
-_(populated by P3 harness after `background="octree"` wiring lands)_
+### P3a — uniform vs octree background, end-to-end (h_max=0.1 h_min=0.02, seed=0)
+
+Octree reproduces the uniform mesh exactly on uniform-target domains (octree
+degenerates to ~uniform grid when the size field is flat — faithful, no harm):
+
+| domain | uniform n / min_q / mean_q | octree n / min_q / mean_q | structural valid |
+|---|---|---|---|
+| UNIT_SQUARE | 128 / 0.815 / 0.969 | 128 / 0.815 / 0.969 | both Y |
+| L_SHAPE | 376 / 0.705 / 0.978 | 376 / 0.705 / 0.978 | both Y |
+| ANNULUS | 303 / 0.509 / 0.963 | 303 / 0.509 / 0.963 | both Y |
+| UNIT_DISK | 362 / 0.717 / 0.985 | 362 / 0.717 / 0.985 | both Y |
+| NOTCHED_RECT | 287 / 0.547 / 0.972 | 287 / 0.547 / 0.972 | both Y |
+
+Octree build adds wall-clock on tiny uniform domains (no multiscale to exploit) —
+expected; octree's payoff is multiscale (P3b) + large-ratio build cost (§2c).
+
+### P3b — graded multiscale size field (radial fine-center), UNIT_DISK
+
+| background | n | elems | min_q | mean_q | valid |
+|---|---|---|---|---|---|
+| uniform | 20 | 30 | 0.620 | 0.854 | Y |
+| octree | 19 | 28 | 0.663 | 0.847 | Y |
+
+Octree matches uniform quality at comparable node count on the graded field.
+
+### P3c — octree size-field fidelity (SC-005)
+
+Radial graded oracle, 80×80 sample grid, max pointwise |Δh|/h_max:
+
+| interpolation | max\|Δh\|/h_max | SC-005 gate (<0.05) |
+|---|---|---|
+| nearest-leaf (initial) | 0.0757 | FAIL |
+| **IDW smooth (shipped)** | **0.0296** | **PASS** |
+
+IDW = inverse-distance blend over the containing leaf + its edge-adjacent
+leaf-graph neighbors. Smooths the nearest-leaf stairstep below the gate.
+
+### Merge-gate verdict (P3)
+
+| gate | result |
+|---|---|
+| octree structural validity (all P3a/P3b rows) | **PASS** |
+| octree quality parity vs uniform | **PASS** (matches/exceeds) |
+| SC-005 size-field fidelity | **PASS** (0.0296 < 0.05) |
+| concept invariants (cover/partition/2:1/graph/locate) | **PASS** (16 tests) |
+| gradient-limit (ADMESH gradation) | **PASS** |
+| full suite regression | _(see suite run)_ |
 
 ## ENPAC build-cost (Tier-2, §2c) — background grid only
 
