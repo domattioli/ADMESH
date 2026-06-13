@@ -48,6 +48,34 @@ Correctness gates all pass: exact cover (1e-9), partition/no-ancestor-overlap, 2
 
 ~180k leaves/s (≈10× branch per-leaf, ≈22× main); SC-001 (<5 s @ ratio-100) met at 0.013 s, SC-002 (<30 s @ ratio-1000) at 0.136 s — **~200× headroom in pure NumPy**. Leaf-count deltas reflect slightly different stop criteria (normalize in P0); per-leaf rates are the comparison that holds.
 
+### 2c. ENPAC real-domain benchmark (2026-06-13, operator-requested) — the language question, settled empirically
+
+Bench: `scripts/bench_octree_enpac.py` over **ENPAC 2003** (`EasternPacific_ENPAC2003.14`, Valence registry, 272,913-node / 531,680-elem ADCIRC tidal DB; bbox 59.3°×41.9°). Loaded via `admesh.load_domain_from_fort14`. Real domain SDF = **~2 ms/point** (brute-force point-to-272k-segment distance) — this single fact decides the architecture and the language.
+
+**Regime A — structural (cheap oracle, octree machinery only), vec prototype:**
+
+| ratio | leaves | build | graph |
+|---|---|---|---|
+| 10 | 873 | 0.005 s | 0.004 s |
+| 100 | 7 875 | 0.031 s | 0.039 s |
+| 1000 | 64 269 | 0.364 s | 0.429 s |
+
+**Regime B — realistic (real ENPAC SDF oracle), ratio 10:**
+
+| impl | leaves | build | **oracle calls / points evaluated** |
+|---|---|---|---|
+| **vec** (batched per level) | 882 | 0.19 s | **4 calls / 1 080 pts** |
+| branch #132 (per-cell scalar) | 2 287 | 0.16 s | 5 878 / 5 878 |
+| main (per-leaf-center) | 27 772 | 3.39 s | 29 405 / 29 405 |
+
+**Interpretation (this is the answer to "C++/Rust/Python?"):**
+
+1. **The octree shell is never the cost — the size oracle is.** At 2 ms/pt SDF, main's 29 405 evals ≈ 59 s of pure SDF; vec's 1 080 evals ≈ 2 s. The octree machinery itself (Regime A) is sub-second at every ratio in pure NumPy. **A native (C++/Rust) octree would optimize the part that is already free and leave the 2 ms/pt SDF — itself NumPy/scipy — untouched.** Wrong layer.
+2. **The real lever is fewer + batched oracle calls**, which is an *algorithm* property (level-synchronous build), not a *language* property. vec wins by calling the oracle 4× (batched) vs thousands of times (1 point each) — that advantage is identical in any host language, so it does not motivate a rewrite.
+3. **If anything ever needs native, it is the SDF**, not the tree — and that is `distance.py` / scipy territory (`cKDTree`, vectorized segment distance), addressable in pure Python/NumPy/Numba first. Independent of the octree.
+
+**Verdict: implement in Python (vectorized NumPy), Numba-gate the SDF if needed, native never (this layer).** Recorded as D-029c. The ENPAC numbers are the regression baseline candidate (§4b.6) and supersede the toy unit-square bench.
+
 ## 3. Faithfulness contract — to the **concept**, not to MATLAB (operator clarification 2026-06-13)
 
 The octree has no MATLAB counterpart and owes it nothing. "Completely faithful" = faithful to the **quadtree/octree concept** as published (Samet 1990). Binding concept invariants, each pinned by a test:
@@ -73,7 +101,7 @@ The octree's whole justification is cost *reduction* on multiscale coastal domai
 
 1. **Pipeline-share budget**: on every benchmark domain, octree build + balance + leaf_graph + locate-total ≤ **15% of end-to-end `triangulate()` wall-clock** (distmesh iteration dominates legitimately; the background grid never should). Measured per-stage in `bench_octree.py` output, asserted in the P3 report.
 2. **Never-worse rule vs uniform**: for each target-domain benchmark row, octree-path total `triangulate()` time ≤ **1.10×** uniform-path time at equal `hmin`/`hmax`/`g`. Domains where octree loses get documented — if any *registry-class* domain loses, P5 default-flip is off the table until fixed.
-3. **Target-domain matrix is the registry we actually mesh**, not toy squares: Tier-0 (notch, river-into-bay ratios 10–1000), Tier-1 (registry small/medium: annulus-class, Test_Cases), Tier-2 (WNAT-Onur ~7k-node graded; WNAT/HSOFS-class scale extrapolation). ADMESH-Domains registry entries are the ground truth for "domains we want to make."
+3. **Target-domain matrix is the registry we actually mesh**, not toy squares: Tier-0 (notch, river-into-bay ratios 10–1000), Tier-1 (registry small/medium: annulus-class, Test_Cases), **Tier-2 = ENPAC 2003** (`EasternPacific_ENPAC2003.14`, 272,913 nodes — the new standard large-domain gate, **replaces WNAT for future benchmarking** per operator 2026-06-13; WNAT-Onur ~7k retained only as a lighter smoke). ENPAC's 2 ms/pt SDF over a continental-scale bbox is the realistic stress case; ADMESH-Domains registry entries are ground truth for "domains we want to make."
 4. **Hard runtime caps with graceful degradation**: `max_depth` cap (existing), plus a **leaf budget** (default ~4× expected mesh node count); breaching either raises a warning and the build either coarsens or falls back to the uniform stage-02 grid — never hangs, never OOMs silently. Fallback is loud (warning names the cap hit).
 5. **Memory**: flat index arrays (CL-001) keep per-leaf cost to a few dozen bytes vs object-tree pointers; peak RSS recorded in benchmarks; budget ≤ 2× uniform-grid arrays at equal effective resolution near boundaries.
 6. **Regression lock**: P1's `bench_octree.py` numbers land in `benchmarks/` as the pinned baseline; the existing benchmark-gate lane (#101 pattern) flags >20% build-time regression on the ratio-100 fixture in CI.
