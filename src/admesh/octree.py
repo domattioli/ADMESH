@@ -15,7 +15,7 @@ from typing import Callable
 
 import numpy as np
 
-__all__ = ["Octree", "build_octree", "leaf_graph", "locate", "interpolate", "octree_size_field"]
+__all__ = ["Octree", "build_octree", "leaf_graph", "locate", "interpolate", "interpolate_smooth", "octree_size_field"]
 
 SizeFieldFn = Callable[[np.ndarray], np.ndarray]
 
@@ -426,6 +426,76 @@ def interpolate(tree: Octree, values: np.ndarray, pts: np.ndarray) -> np.ndarray
     return values[leaf_indices]
 
 
+def interpolate_smooth(tree: Octree, values: np.ndarray, pts: np.ndarray) -> np.ndarray:
+    """Interpolate per-leaf values at query points using inverse-distance weighting.
+
+    For each query point, locates the containing leaf and its edge-adjacent
+    neighbors, then blends their values using inverse-distance-squared weights
+    based on distance to leaf centers. Smoother and more faithful than
+    nearest-leaf interpolation, especially on steeply graded size fields.
+
+    Parameters
+    ----------
+    values : ndarray
+        Shape ``(L,)``, dtype ``float64``. Value per leaf.
+    pts : ndarray
+        Shape ``(M, 2)``, dtype ``float64``. Query points.
+
+    Returns
+    -------
+    ndarray
+        Shape ``(M,)``, dtype ``float64``. Smoothly interpolated values.
+    """
+    # Build adjacency list (precompute once)
+    edges, _ = leaf_graph(tree)
+
+    # Build neighbor dict from edges
+    n_leaves = tree.n_leaves
+    neighbors = [[] for _ in range(n_leaves)]
+    if len(edges) > 0:
+        for i, j in edges:
+            neighbors[i].append(j)
+            neighbors[j].append(i)
+
+    # Precompute leaf centers and epsilon for IDW
+    centers = tree.centers  # (L, 2)
+    v_min, v_max = np.min(values), np.max(values)
+    eps = (tree.root_size * 1e-6) ** 2
+
+    result = np.zeros(len(pts), dtype=np.float64)
+
+    # IDW blend over neighborhood for each query point
+    for m, (px, py) in enumerate(pts):
+        # Locate containing leaf
+        leaf_idx = locate(tree, np.array([[px, py]]))
+        i = int(leaf_idx[0])
+
+        # Neighborhood = leaf + edge-adjacent neighbors
+        neighborhood = [i] + neighbors[i]
+
+        # Compute distances and weights
+        weights = np.zeros(len(neighborhood), dtype=np.float64)
+        for k, leaf_id in enumerate(neighborhood):
+            cx, cy = centers[leaf_id]
+            d_sq = (px - cx) ** 2 + (py - cy) ** 2
+            # IDW: weight = 1 / (d^2 + eps), avoid division by zero
+            weights[k] = 1.0 / (d_sq + eps)
+
+        # Normalize weights
+        w_sum = np.sum(weights)
+        weights /= w_sum
+
+        # Blend values
+        blended = 0.0
+        for k, leaf_id in enumerate(neighborhood):
+            blended += weights[k] * values[leaf_id]
+
+        # Clip to [v_min, v_max] to handle floating-point rounding
+        result[m] = np.clip(blended, v_min, v_max)
+
+    return result
+
+
 def octree_size_field(
     domain,
     oracle: SizeFieldFn,
@@ -444,7 +514,8 @@ def octree_size_field(
     the oracle at leaf centers, optionally applies a mesh-grading gradient
     limit on the leaf-adjacency graph (enforce |h_i - h_j| <= g * dist_ij,
     the ADMESH gradation constraint), and returns a size-field callable
-    fh(pts:(N,2)) -> (N,) that nearest-leaf-interpolates the limited sizes.
+    fh(pts:(N,2)) -> (N,) that smoothly interpolates the limited sizes via
+    inverse-distance weighting over leaf neighborhoods.
 
     Parameters
     ----------
@@ -507,6 +578,6 @@ def octree_size_field(
             # Re-clip after relaxation
             np.clip(sizes, h_min, h_max, out=sizes)
 
-    # Return interpolation closure
-    return lambda pts: interpolate(tree, sizes, np.atleast_2d(np.asarray(pts, dtype=np.float64)))
+    # Return smooth interpolation closure
+    return lambda pts: interpolate_smooth(tree, sizes, np.atleast_2d(np.asarray(pts, dtype=np.float64)))
 
