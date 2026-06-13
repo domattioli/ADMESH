@@ -4,6 +4,16 @@ Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Govern
 
 ---
 
+## Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)
+
+Octree adaptive background grid wired into `triangulate(background="octree")` (additive; locked routine untouched, Principle I held). Built from the prototype that resolved the cheaper-octree + language questions (pure NumPy, vectorized struct-of-arrays, batched oracle).
+
+- **P0** — `src/admesh/octree.py`: vectorized SoA quadtree, level-synchronous build, O(N) `leaf_graph` (prior branch O(N²) defect fixed), 2:1 balance. 16 concept-invariant tests.
+- **P0b/P2** — `octree_size_field()` (ADMESH gradation limit `|h_i−h_j|≤g·dist` on leaf graph) + `background=` kwarg. 7 wiring tests.
+- **P3** — IDW smooth interpolation clears SC-005 (0.0296 < 0.05). Benchmarks: `scripts/bench_octree_quality.py`, `scripts/bench_octree_enpac.py`; results `benchmarks/results/octree_benchmark.md`. Tier-2 standard = ENPAC 2003 (replaces WNAT, #154).
+- **Merge gates**: structural validity, quality parity vs uniform, SC-005, concept invariants, gradation — all PASS.
+- **Deferred (post-merge)**: P5 default-flip stays `background="uniform"` until operator sign-off; legacy `_stages/octree_grid.py` (dead object-tree lineage) cleanup; ENPAC end-to-end mesh quality (in-session only build-cost measured). Spec: `specs/029-octree-unification-and-workflow/`.
+
 ## Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)
 
 **Spec 012 (`specs/012-background-grid-stage-tests/`) planning shipped on `daily-maintenance`.**
