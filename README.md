@@ -24,7 +24,7 @@
   <em>A graded <a href="https://github.com/domattioli/ADMESH-Domains">Delaware Bay</a> mesh — fine in the upper river, coarse in the open bay — evolving through the pipeline: <strong>1.</strong> initialization → <strong>2.</strong> DistMesh truss solver → <strong>3.</strong> FEM smoothing. Element color tracks quality (magenta = poor → cyan = equilateral).</em>
 </p>
 
-> **MATLAB users:** This library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original is kept in-repo at [`src/matlab/`](src/matlab/) for provenance. Version 1.0.0 ships with a MATLAB wrapper of the modernized code (est. Aug 2026).
+> **MATLAB users:** This library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original is kept in-repo at [`src/matlab/`](src/matlab/) for provenance.
 
 ---
 
@@ -123,7 +123,7 @@ python benchmarks/compare_versions.py --hist \
 
 ## Status & roadmap
 
-- **Shipped (v0.2.1).** Pythonic API, fort.14 round-trip, 13-stage faithful port, valence balancing, custom size-field hooks. On [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
+- **Shipped (v0.5.0).** Pythonic API, fort.14 round-trip, 13-stage faithful port, valence balancing, custom size-field hooks, Numba-JIT SDF/solver kernels. On [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
 - **In flight.** Octree adaptive background grid (`background="octree"`); C++ force kernel and native stage rewrite; Gmsh I/O; default size-field-stack consolidation.
 - **Next.** Paired-edge IBTYPE 3/4/13/24 promoted to named `BoundaryType` members; hosted mkdocs site.
 
