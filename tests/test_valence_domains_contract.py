@@ -15,8 +15,8 @@ valence_domains = pytest.importorskip("valence_domains")
 
 
 # Pin per docs/ADMESH_DOMAINS_CONTRACT.md and pyproject.toml.
-PIN_LOWER = (0, 3, 0)
-PIN_UPPER_EXCLUSIVE = (0, 4, 0)
+PIN_LOWER = (0, 4, 0)
+PIN_UPPER_EXCLUSIVE = (0, 5, 0)
 
 
 def _version_tuple(v: str) -> tuple[int, ...]:
