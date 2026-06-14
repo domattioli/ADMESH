@@ -690,7 +690,7 @@ def triangulate(
     ValueError
         If domain source cannot be resolved or quality gates fail.
     ImportError
-        If registry lookup is attempted without admesh-domains installed.
+        If registry lookup is attempted without valence-domains installed.
 
     Adapts the v1 :class:`Domain` onto the faithful-port driver
     :func:`admesh.routine.triangulate` without modifying it (Constitution

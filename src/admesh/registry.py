@@ -1,11 +1,11 @@
-"""Integration with ADMESH-Domains 0.3.x registry.
+"""Integration with Valence-Domains 0.4.x registry.
 
-Provides functions to discover and load mesh domains from the ADMESH-Domains
+Provides functions to discover and load mesh domains from the Valence-Domains
 package, enabling the seamless pipeline:
 ``load_domain_from_registry(name) -> triangulate(domain)``.
 
-This adapter targets the ``admesh-domains>=0.3.0,<0.4`` API surface
-documented in ``docs/ADMESH_DOMAINS_CONTRACT.md``. Network fetches use
+This adapter targets the ``valence-domains>=0.4`` API surface
+documented in ``docs/VALENCE_DOMAINS_CONTRACT.md``. Network fetches use
 ``huggingface_hub`` and require the optional ``[registry]`` extra
 (``pip install admesh2D[registry]``).
 """
@@ -30,8 +30,8 @@ __all__ = [
 
 
 _REGISTRY_IMPORT_HINT = (
-    "admesh-domains package required for registry access. Install with:\n"
-    "  pip install admesh-domains"
+    "valence-domains package required for registry access. Install with:\n"
+    "  pip install valence-domains"
 )
 _HF_HUB_IMPORT_HINT = (
     "huggingface_hub required to download registry meshes. Install with:\n"
@@ -39,13 +39,13 @@ _HF_HUB_IMPORT_HINT = (
 )
 
 
-def _import_admesh_domains() -> Any:
-    """Lazy import ``admesh_domains`` with a friendly install hint."""
+def _import_valence_domains() -> Any:
+    """Lazy import ``valence_domains`` with a friendly install hint."""
     try:
-        import admesh_domains
+        import valence_domains
     except ImportError as e:
         raise ImportError(_REGISTRY_IMPORT_HINT) from e
-    return admesh_domains
+    return valence_domains
 
 
 def _resolve_mesh(name: str, mesh_id: str) -> Any:
@@ -66,15 +66,15 @@ def _resolve_mesh(name: str, mesh_id: str) -> Any:
     Returns
     -------
     Any
-        ``admesh_domains.Mesh`` reference with a populated local ``.path``.
+        ``valence_domains.Mesh`` reference with a populated local ``.path``.
     """
-    admesh_domains = _import_admesh_domains()
+    valence_domains = _import_valence_domains()
 
     try:
-        ad_domain = admesh_domains.get_domain(name)
+        ad_domain = valence_domains.get_domain(name)
     except (KeyError, AttributeError) as e:
         raise ValueError(
-            f"Domain '{name}' not found in ADMESH-Domains registry"
+            f"Domain '{name}' not found in Valence-Domains registry"
         ) from e
 
     mesh_ref = None
@@ -106,7 +106,7 @@ def _resolve_mesh(name: str, mesh_id: str) -> Any:
 def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
     """Fetch a domain from the ADMESH-Domains registry by ``name``.
 
-    Requires the ``admesh-domains`` package. Network downloads through
+    Requires the ``valence-domains`` package. Network downloads through
     ``Mesh.load()`` additionally require the optional ``[registry]`` extra
     (``pip install admesh2D[registry]``).
 
@@ -126,7 +126,7 @@ def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
     Raises
     ------
     ImportError
-        If ``admesh-domains`` is not installed, or if ``huggingface_hub``
+        If ``valence-domains`` is not installed, or if ``huggingface_hub``
         is needed for a network fetch and is not installed.
     ValueError
         If the domain name is not in the registry.
@@ -145,9 +145,9 @@ def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
 
 
 def list_available_domains() -> dict[str, str]:
-    """List domains available in the ADMESH-Domains registry.
+    """List domains available in the Valence-Domains registry.
 
-    Requires the ``admesh-domains`` package.
+    Requires the ``valence-domains`` package.
 
     Returns
     -------
@@ -159,10 +159,10 @@ def list_available_domains() -> dict[str, str]:
     Raises
     ------
     ImportError
-        If ``admesh-domains`` is not installed.
+        If ``valence-domains`` is not installed.
     """
-    admesh_domains = _import_admesh_domains()
-    items = admesh_domains.list_domains()
+    valence_domains = _import_valence_domains()
+    items = valence_domains.list_domains()
     return {
         d.name: (getattr(d, "full_name", None) or getattr(d, "description", None) or "")
         for d in sorted(items, key=lambda d: d.name)
@@ -196,20 +196,20 @@ def load_domain_with_metadata(
     Raises
     ------
     ImportError
-        If ``admesh-domains`` (or ``huggingface_hub`` for the download)
+        If ``valence-domains`` (or ``huggingface_hub`` for the download)
         is not installed.
     ValueError
         If the domain name is not in the registry.
     """
     from admesh.fort14 import read_fort14
 
-    admesh_domains = _import_admesh_domains()
+    valence_domains = _import_valence_domains()
 
     try:
-        ad_domain = admesh_domains.get_domain(name)
+        ad_domain = valence_domains.get_domain(name)
     except (KeyError, AttributeError) as e:
         raise ValueError(
-            f"Domain '{name}' not found in ADMESH-Domains registry"
+            f"Domain '{name}' not found in Valence-Domains registry"
         ) from e
 
     mesh_ref = _resolve_mesh(name, mesh_id)
@@ -253,21 +253,21 @@ def load_domain_with_metadata(
     return domain, metadata
 
 
-def _convert_to_admesh_domain(admesh_domains_obj: object) -> Domain:
-    """Convert a legacy ADMESH-Domains domain object to ``admesh.Domain``.
+def _convert_to_valence_domain(valence_domains_obj: object) -> Domain:
+    """Convert a legacy Valence-Domains domain object to ``admesh.Domain``.
 
-    Retained for tests that exercise the 0.2.x legacy shape
+    Retained for tests that exercise the 0.3.x legacy shape
     (``.rings``/``.bbox``/``.fixed_points``). New callers should use
-    :func:`load_domain_from_registry`, which routes through the 0.3.x
+    :func:`load_domain_from_registry`, which routes through the 0.4.x
     ``Mesh.load()`` / ``read_fort14`` chain.
     """
-    rings_attr = getattr(admesh_domains_obj, "rings", None)
+    rings_attr = getattr(valence_domains_obj, "rings", None)
     if rings_attr is None:
-        rings_attr = getattr(admesh_domains_obj, "boundaries", None)
+        rings_attr = getattr(valence_domains_obj, "boundaries", None)
 
     if not rings_attr:
         raise ValueError(
-            "ADMESH-Domains domain object must have 'rings' or 'boundaries' attribute"
+            "Valence-Domains domain object must have 'rings' or 'boundaries' attribute"
         )
 
     rings = [
@@ -275,7 +275,7 @@ def _convert_to_admesh_domain(admesh_domains_obj: object) -> Domain:
         for r in (rings_attr if isinstance(rings_attr, (list, tuple)) else [rings_attr])
     ]
 
-    bbox_attr = getattr(admesh_domains_obj, "bbox", None)
+    bbox_attr = getattr(valence_domains_obj, "bbox", None)
     if bbox_attr is None:
         all_coords = np.vstack(rings)
         bbox = (
@@ -287,7 +287,7 @@ def _convert_to_admesh_domain(admesh_domains_obj: object) -> Domain:
     else:
         bbox = tuple(float(x) for x in bbox_attr)  # type: ignore[arg-type]
 
-    pfix = getattr(admesh_domains_obj, "fixed_points", None)
+    pfix = getattr(valence_domains_obj, "fixed_points", None)
     if pfix is not None and not isinstance(pfix, np.ndarray):
         pfix = np.array(pfix, dtype=np.float64) if pfix else None
 
