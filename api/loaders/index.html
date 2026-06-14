@@ -1863,7 +1863,7 @@ coords = [[-1, -1], [1, 1]]
     <div class="doc doc-contents first">
 
         <p>Fetch a domain from the ADMESH-Domains registry by <code>name</code>.</p>
-<p>Requires the <code>admesh-domains</code> package. Network downloads through
+<p>Requires the <code>valence-domains</code> package. Network downloads through
 <code>Mesh.load()</code> additionally require the optional <code>[registry]</code> extra
 (<code>pip install admesh2D[registry]</code>).</p>
 
@@ -1959,7 +1959,7 @@ back to the first available mesh if the id is unknown.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>admesh-domains</code> is not installed, or if <code>huggingface_hub</code>
+                <p>If <code>valence-domains</code> is not installed, or if <code>huggingface_hub</code>
 is needed for a network fetch and is not installed.</p>
               </div>
             </td>
@@ -2028,7 +2028,7 @@ is needed for a network fetch and is not installed.</p>
 <span class="normal"><a href="#__codelineno-0-144">144</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-106" name="__codelineno-0-106"></a><span class="k">def</span><span class="w"> </span><span class="nf">load_domain_from_registry</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mesh_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default@v1&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Domain</span><span class="p">:</span>
 <a id="__codelineno-0-107" name="__codelineno-0-107"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Fetch a domain from the ADMESH-Domains registry by ``name``.</span>
 <a id="__codelineno-0-108" name="__codelineno-0-108"></a>
-<a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">    Requires the ``admesh-domains`` package. Network downloads through</span>
+<a id="__codelineno-0-109" name="__codelineno-0-109"></a><span class="sd">    Requires the ``valence-domains`` package. Network downloads through</span>
 <a id="__codelineno-0-110" name="__codelineno-0-110"></a><span class="sd">    ``Mesh.load()`` additionally require the optional ``[registry]`` extra</span>
 <a id="__codelineno-0-111" name="__codelineno-0-111"></a><span class="sd">    (``pip install admesh2D[registry]``).</span>
 <a id="__codelineno-0-112" name="__codelineno-0-112"></a>
@@ -2048,7 +2048,7 @@ is needed for a network fetch and is not installed.</p>
 <a id="__codelineno-0-126" name="__codelineno-0-126"></a><span class="sd">    Raises</span>
 <a id="__codelineno-0-127" name="__codelineno-0-127"></a><span class="sd">    ------</span>
 <a id="__codelineno-0-128" name="__codelineno-0-128"></a><span class="sd">    ImportError</span>
-<a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="sd">        If ``admesh-domains`` is not installed, or if ``huggingface_hub``</span>
+<a id="__codelineno-0-129" name="__codelineno-0-129"></a><span class="sd">        If ``valence-domains`` is not installed, or if ``huggingface_hub``</span>
 <a id="__codelineno-0-130" name="__codelineno-0-130"></a><span class="sd">        is needed for a network fetch and is not installed.</span>
 <a id="__codelineno-0-131" name="__codelineno-0-131"></a><span class="sd">    ValueError</span>
 <a id="__codelineno-0-132" name="__codelineno-0-132"></a><span class="sd">        If the domain name is not in the registry.</span>
@@ -2193,7 +2193,7 @@ are skipped).</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>admesh-domains</code> (or <code>huggingface_hub</code> for the download)
+                <p>If <code>valence-domains</code> (or <code>huggingface_hub</code> for the download)
 is not installed.</p>
               </div>
             </td>
@@ -2322,20 +2322,20 @@ is not installed.</p>
 <a id="__codelineno-0-196" name="__codelineno-0-196"></a><span class="sd">    Raises</span>
 <a id="__codelineno-0-197" name="__codelineno-0-197"></a><span class="sd">    ------</span>
 <a id="__codelineno-0-198" name="__codelineno-0-198"></a><span class="sd">    ImportError</span>
-<a id="__codelineno-0-199" name="__codelineno-0-199"></a><span class="sd">        If ``admesh-domains`` (or ``huggingface_hub`` for the download)</span>
+<a id="__codelineno-0-199" name="__codelineno-0-199"></a><span class="sd">        If ``valence-domains`` (or ``huggingface_hub`` for the download)</span>
 <a id="__codelineno-0-200" name="__codelineno-0-200"></a><span class="sd">        is not installed.</span>
 <a id="__codelineno-0-201" name="__codelineno-0-201"></a><span class="sd">    ValueError</span>
 <a id="__codelineno-0-202" name="__codelineno-0-202"></a><span class="sd">        If the domain name is not in the registry.</span>
 <a id="__codelineno-0-203" name="__codelineno-0-203"></a><span class="sd">    &quot;&quot;&quot;</span>
 <a id="__codelineno-0-204" name="__codelineno-0-204"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.fort14</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_fort14</span>
 <a id="__codelineno-0-205" name="__codelineno-0-205"></a>
-<a id="__codelineno-0-206" name="__codelineno-0-206"></a>    <span class="n">admesh_domains</span> <span class="o">=</span> <span class="n">_import_admesh_domains</span><span class="p">()</span>
+<a id="__codelineno-0-206" name="__codelineno-0-206"></a>    <span class="n">valence_domains</span> <span class="o">=</span> <span class="n">_import_valence_domains</span><span class="p">()</span>
 <a id="__codelineno-0-207" name="__codelineno-0-207"></a>
 <a id="__codelineno-0-208" name="__codelineno-0-208"></a>    <span class="k">try</span><span class="p">:</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="n">ad_domain</span> <span class="o">=</span> <span class="n">admesh_domains</span><span class="o">.</span><span class="n">get_domain</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>        <span class="n">ad_domain</span> <span class="o">=</span> <span class="n">valence_domains</span><span class="o">.</span><span class="n">get_domain</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 <a id="__codelineno-0-210" name="__codelineno-0-210"></a>    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
 <a id="__codelineno-0-211" name="__codelineno-0-211"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="sa">f</span><span class="s2">&quot;Domain &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; not found in ADMESH-Domains registry&quot;</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a>            <span class="sa">f</span><span class="s2">&quot;Domain &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; not found in Valence-Domains registry&quot;</span>
 <a id="__codelineno-0-213" name="__codelineno-0-213"></a>        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
 <a id="__codelineno-0-214" name="__codelineno-0-214"></a>
 <a id="__codelineno-0-215" name="__codelineno-0-215"></a>    <span class="n">mesh_ref</span> <span class="o">=</span> <span class="n">_resolve_mesh</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mesh_id</span><span class="p">)</span>
@@ -2397,8 +2397,8 @@ is not installed.</p>
 
     <div class="doc doc-contents first">
 
-        <p>List domains available in the ADMESH-Domains registry.</p>
-<p>Requires the <code>admesh-domains</code> package.</p>
+        <p>List domains available in the Valence-Domains registry.</p>
+<p>Requires the <code>valence-domains</code> package.</p>
 
 
     <p><span class="doc-section-title">Returns:</span></p>
@@ -2441,7 +2441,7 @@ sorted by domain name.</p>
             </td>
             <td>
               <div class="doc-md-description">
-                <p>If <code>admesh-domains</code> is not installed.</p>
+                <p>If <code>valence-domains</code> is not installed.</p>
               </div>
             </td>
           </tr>
@@ -2474,9 +2474,9 @@ sorted by domain name.</p>
 <span class="normal"><a href="#__codelineno-0-167">167</a></span>
 <span class="normal"><a href="#__codelineno-0-168">168</a></span>
 <span class="normal"><a href="#__codelineno-0-169">169</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-147" name="__codelineno-0-147"></a><span class="k">def</span><span class="w"> </span><span class="nf">list_available_domains</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<a id="__codelineno-0-148" name="__codelineno-0-148"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;List domains available in the ADMESH-Domains registry.</span>
+<a id="__codelineno-0-148" name="__codelineno-0-148"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;List domains available in the Valence-Domains registry.</span>
 <a id="__codelineno-0-149" name="__codelineno-0-149"></a>
-<a id="__codelineno-0-150" name="__codelineno-0-150"></a><span class="sd">    Requires the ``admesh-domains`` package.</span>
+<a id="__codelineno-0-150" name="__codelineno-0-150"></a><span class="sd">    Requires the ``valence-domains`` package.</span>
 <a id="__codelineno-0-151" name="__codelineno-0-151"></a>
 <a id="__codelineno-0-152" name="__codelineno-0-152"></a><span class="sd">    Returns</span>
 <a id="__codelineno-0-153" name="__codelineno-0-153"></a><span class="sd">    -------</span>
@@ -2488,10 +2488,10 @@ sorted by domain name.</p>
 <a id="__codelineno-0-159" name="__codelineno-0-159"></a><span class="sd">    Raises</span>
 <a id="__codelineno-0-160" name="__codelineno-0-160"></a><span class="sd">    ------</span>
 <a id="__codelineno-0-161" name="__codelineno-0-161"></a><span class="sd">    ImportError</span>
-<a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">        If ``admesh-domains`` is not installed.</span>
+<a id="__codelineno-0-162" name="__codelineno-0-162"></a><span class="sd">        If ``valence-domains`` is not installed.</span>
 <a id="__codelineno-0-163" name="__codelineno-0-163"></a><span class="sd">    &quot;&quot;&quot;</span>
-<a id="__codelineno-0-164" name="__codelineno-0-164"></a>    <span class="n">admesh_domains</span> <span class="o">=</span> <span class="n">_import_admesh_domains</span><span class="p">()</span>
-<a id="__codelineno-0-165" name="__codelineno-0-165"></a>    <span class="n">items</span> <span class="o">=</span> <span class="n">admesh_domains</span><span class="o">.</span><span class="n">list_domains</span><span class="p">()</span>
+<a id="__codelineno-0-164" name="__codelineno-0-164"></a>    <span class="n">valence_domains</span> <span class="o">=</span> <span class="n">_import_valence_domains</span><span class="p">()</span>
+<a id="__codelineno-0-165" name="__codelineno-0-165"></a>    <span class="n">items</span> <span class="o">=</span> <span class="n">valence_domains</span><span class="o">.</span><span class="n">list_domains</span><span class="p">()</span>
 <a id="__codelineno-0-166" name="__codelineno-0-166"></a>    <span class="k">return</span> <span class="p">{</span>
 <a id="__codelineno-0-167" name="__codelineno-0-167"></a>        <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;full_name&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;description&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
 <a id="__codelineno-0-168" name="__codelineno-0-168"></a>        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">items</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
