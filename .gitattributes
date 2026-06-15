@@ -1,8 +1,9 @@
-# Exclude Claude-derived development files from source archives (git archive,
-# GitHub release tarball, Zenodo snapshot). Keeps them in the repo but off any
-# published source distribution. Mirrors the MANIFEST.in prune set so the
-# Zenodo tarball matches the PyPI sdist/wheel exclusions.
+# Exclude Claude/agent + dev-process files from source archives
+# (git archive, PyPI sdist, GitHub release tarball, Zenodo snapshot).
+# Strictly library-running code ships downstream; these stay in the repo.
 .claude/             export-ignore
+CLAUDE.md            export-ignore
+AGENTS.md            export-ignore
 .specify/            export-ignore
 .planning/           export-ignore
 specs/               export-ignore
