@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] — 2026-06-15
+
+First PyPI release since 0.2.1 — consolidates the unreleased 0.3–0.5 development line.
+
+### Changed
+- Dependency pins: `valence-domains>=0.4 → >=0.4.2`; `[viz]` `chilmesh>=1.1,<2 → >=1.2.1,<2`.
+- Source archives (git archive / sdist / GitHub-release tarball / Zenodo) exclude agent + dev-process files via `.gitattributes` `export-ignore`.
+
+### Fixed
+- `__version__` corrected `0.2.1 → 0.5.1` (had drifted from `pyproject.toml`).
+
+### Notes
+- Consolidated since 0.2.1: octree size-field, valence-domains registry redirect (was admesh-domains), README canonicalization, ENPAC standard-benchmark migration (#154), `bench_wnat.py` canonical-loader fix (#158).
+
 ## [0.2.1] - 2026-05-18
 
 ### Documentation
