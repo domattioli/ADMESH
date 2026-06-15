@@ -9,4 +9,6 @@ AGENTS.md            export-ignore
 specs/               export-ignore
 docs/sessions/       export-ignore
 docs/introspections/ export-ignore
+CLAUDE.md            export-ignore
+AGENTS.md            export-ignore
 .domi-pin            export-ignore
