@@ -35,7 +35,7 @@ from admesh.valence import (
     get_valence_report,
 )
 
-__version__ = "0.2.1"
+__version__ = "0.5.1"
 
 # Public, semver-guarded API surface for ADMESH 0.1.0.
 #
