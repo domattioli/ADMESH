@@ -6,8 +6,10 @@ either `Parameters`/`Returns` (functions) or attribute documentation
 (classes / dataclasses). At least one runnable `Examples` block is
 recommended but not strictly required for very small wrappers.
 
-Per spec 009 R3 (FR-025). Treated as a soft warning (skip) for the
-0.1.0 tag and tightened to a hard gate at 0.2.0.
+Per spec 009 R3 (FR-025). The Parameters/Returns gate was a soft
+warning (skip) through the 0.1.0 tag; the public-surface backlog
+reached zero past the planned 0.2.0 tightening, so the gate is now a
+hard assertion (current version 0.5.x).
 """
 
 from __future__ import annotations
@@ -93,11 +95,11 @@ def test_callable_docstrings_have_parameters_or_returns(
             for section in ("Parameters", "Returns", "Yields", "Raises")
         ):
             weak.append(name)
-    # Soft-warn for 0.1.0; not yet a hard fail since some legacy docstrings
-    # are short summaries only. Tighten to assert (no `if weak: pytest.skip`)
-    # at 0.2.0.
-    if weak:
-        pytest.skip(
-            f"{len(weak)} public callables lack Parameters/Returns sections: {weak}. "
-            f"Tighten to a hard fail at 0.2.0."
-        )
+    # Hard gate: every public callable taking arguments must reference a
+    # NumPy sectional header. The backlog reached zero past the 0.2.0 tag,
+    # so the former soft-skip is now an assertion — this guards against a
+    # silent regression when a new public callable is added without sections.
+    assert not weak, (
+        f"{len(weak)} public callables lack Parameters/Returns sections: {weak}. "
+        f"Add NumPy-style Parameters/Returns/Yields/Raises per spec 009 FR-025."
+    )
