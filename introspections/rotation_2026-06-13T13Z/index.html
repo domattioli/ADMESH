@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/sessions/session_5_plan/">
+        <link rel="canonical" href="https://admesh.domattioli.com/introspections/rotation_2026-06-13T13Z/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Session 5 — Faithful-port backfill: curvature + medial_axis - ADMESH</title>
+        <title>rotation 2026 06 13T13Z - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#session-5-faithful-port-backfill-curvature-medial_axis" class="md-skip">
+        <a href="#admesh-rotation-2026-06-13t13z-maintenance-slot-hour-13-overhaul-rotation" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Session 5 — Faithful-port backfill: curvature + medial_axis
+              rotation 2026 06 13T13Z
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ws0-env-check" class="md-nav__link">
+  <a href="#summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WS0 — Env check
+        Summary
       
     </span>
   </a>
@@ -829,10 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-gate" class="md-nav__link">
+  <a href="#what-worked-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding gate
+        What worked (top 3, evidence)
       
     </span>
   </a>
@@ -840,71 +840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workstreams" class="md-nav__link">
+  <a href="#what-didnt-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workstreams
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Workstreams">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ws1-04_curvature_function-faithful-port" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS1 — 04_Curvature_Function faithful port
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws2-05_medial_axis-faithful-port" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS2 — 05_Medial_Axis faithful port
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws3-re-render-demos-update-docs-close-session" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS3 — Re-render demos, update docs, close session
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope-for-session-5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope for session 5
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#session-budget" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Session budget
+        What didn't (top 3, evidence)
       
     </span>
   </a>
@@ -931,139 +870,72 @@
   
 
 
-<h1 id="session-5-faithful-port-backfill-curvature-medial_axis">Session 5 — Faithful-port backfill: curvature + medial_axis<a class="headerlink" href="#session-5-faithful-port-backfill-curvature-medial_axis" title="Permanent link">&para;</a></h1>
-<p><strong>Goal (plain English):</strong> replace the session-2 clean-room
-implementations of <code>curvature.py</code> and <code>medial_axis.py</code> with
-faithful ports from MATLAB <code>04_Curvature_Function/</code> and
-<code>05_Medial_Axis/</code> at <code>19b2eb9</code>. With session-4 unblocking the
-source-of-truth clone, both modules are one-session-each ports.
-After this session the three Domain-path demo meshes (unit_disk
-medial, notched_rect medial) should improve the same way the
-annulus PTS demo did in session 4.</p>
-<p><strong>Session-start read order</strong> (per <code>CLAUDE.md</code> + Article VII):
-<code>CONSTITUTION.md</code> → <code>PROJECT_PLAN.md</code> → <code>CLAUDE.md</code> →
-<code>docs/session_4_state.md</code> → <code>docs/session_4_report.md</code> → this plan.</p>
+<!-- Session introspection + corpus entry. Caveman ultra. -->
 <hr />
-<h2 id="ws0-env-check">WS0 — Env check<a class="headerlink" href="#ws0-env-check" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ls<span class="w"> </span>/workspace/QuADMesh-MATLAB/01_ADMESH_Library/
-</code></pre></div>
-<p>Should exist from session 4. If not, re-clone from
-<code>https://github.com/domattioli/QuADMesh-MATLAB.git</code> at
-<code>19b2eb9f078a648daec3fd40d5d4c6e072f467ac</code>. No clean-room fallback
-this session — Article II.1 is binding now that the source is
-accessible.</p>
+<p>date: 2026-06-13
+session: 2026-06-13T13Z-rotation
+repo: domattioli/ADMESH
+severity: low
+freq: recurring
+issues: [154, 155]
+wasted_min: 5
+wasted_tok: 8000
+missing_skill: null</p>
 <hr />
-<h2 id="binding-gate">Binding gate<a class="headerlink" href="#binding-gate" title="Permanent link">&para;</a></h2>
-<p>All of:</p>
+<h1 id="admesh-rotation-2026-06-13t13z-maintenance-slot-hour-13-overhaul-rotation">ADMESH rotation 2026-06-13T13Z — maintenance slot (hour-13 overhaul rotation)<a class="headerlink" href="#admesh-rotation-2026-06-13t13z-maintenance-slot-hour-13-overhaul-rotation" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Hour-13 → ADMESH. Spec-048 A-tasks operator-gated (T8/T9→D1, T12→D4, P6→D5); #155 inpaint Laplacian already shipped 07Z (<code>8f7e005</code>) → maintenance track. Claimed + shipped <strong>A#154</strong> (operator directive: large-domain benchmark standard WNAT→ENPAC 2003): extracted portable <code>enpac_boundary.json</code> (240 KB, 10,365-node ring) from the 29 MB <code>.14</code> (stays in Valence/HF), added <code>bench_enpac.py</code> standard gate, retargeted <code>compare_versions.py</code> default + domain-stem PNG name, kept WNAT as smoke, doc'd the switch. <code>e3d7391</code> → <code>development</code> → rolling PR #150. Code → Haiku subagent; orchestrator extracted boundary + measured SDF/triangulate cost + re-ran bench before commit. Pin in-sync. Claim+checklist on #48.</p>
+<h2 id="what-worked-top-3-evidence">What worked (top 3, evidence)<a class="headerlink" href="#what-worked-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><code>admesh/curvature.py</code> faithfully ports
-   <code>04_Curvature_Function/CurvatureFunction.m</code> (+ any helpers).
-   Clean-room docstring block removed; MATLAB-port docstring added
-   per <code>CLAUDE.md</code> template.</li>
-<li><code>admesh/medial_axis.py</code> faithfully ports
-   <code>05_Medial_Axis/{MedialAxisFunction.m, medial_distance_FMM.m,
-   heap.m, min_sort.m}</code> (+ helpers). Clean-room scipy-EDT fallback
-   retired.</li>
-<li><code>scripts/export_matlab_fixtures.m</code> gains curvature + medial
-   fixture emitter blocks (replacing the session-4 <code>[defer]</code>
-   stubs).</li>
-<li><code>tests/test_matlab_port.py</code> extended with hand-derived
-   port-correctness tests for both modules + fixture-parity tests
-   (skip-if-absent).</li>
-<li>MVP M.4 gate regression-clean.</li>
-<li>Notched_rect medial demo and unit_disk medial demo both
-   improve — <code>min_q</code> target <code>≥ 0.30</code> on each.</li>
-<li><code>pytest tests/ -q</code> green with ≥ 105 tests.</li>
+<li>Map-first (#48 read before write) → caught that #155 (top of queue) was already fixed 07Z (<code>8f7e005</code>, git blame) → re-picked #154, zero duplicate work.</li>
+<li>Verify-don't-assume on the target: #155's described buggy line (<code>np.concatenate</code>) did NOT match the live file (already <code>column_stack(...).ravel()</code>) → surfaced "already shipped" instead of re-fixing a fixed bug.</li>
+<li>Measured SDF cost (warm 0.012 ms/pt) + coarse-triangulate timing BEFORE sizing the Haiku bench spec → bench completes ~12 s, no hang; Haiku produced correct code first pass.</li>
 </ol>
-<hr />
-<h2 id="workstreams">Workstreams<a class="headerlink" href="#workstreams" title="Permanent link">&para;</a></h2>
-<h3 id="ws1-04_curvature_function-faithful-port">WS1 — <code>04_Curvature_Function</code> faithful port<a class="headerlink" href="#ws1-04_curvature_function-faithful-port" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> <code>admesh/curvature.py</code> (rewritten),
-<code>tests/test_matlab_port.py</code> curvature section,
-<code>scripts/export_matlab_fixtures.m</code> curvature block.</p>
-<p><strong>Steps:</strong></p>
+<h2 id="what-didnt-top-3-evidence">What didn't (top 3, evidence)<a class="headerlink" href="#what-didnt-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Read <code>CurvatureFunction.m</code> + any helper <code>.m</code> files. Note
-   stencil width, boundary handling (MATLAB uses <code>gradient()</code> which
-   has its own boundary semantics), masking of undefined-κ cells
-   near corners.</li>
-<li>Port line-by-line, keeping variable names where practical.
-   <code>CLAUDE.md</code> docstring template cites MATLAB source path + commit.</li>
-<li>Add fixture emitter: <code>unit_disk</code> + <code>annulus</code> on a 100×100 grid.</li>
-<li>Port-correctness tests: analytic κ=1/r on disk + analytic on
-   both rings of the annulus.</li>
-<li>Verify the existing <code>test_curvature.py</code> tests still pass (they
-   test analytic references; the faithful port should satisfy the
-   same analytic bounds unless MATLAB is doing something
-   fundamentally different).</li>
+<li>
+<h1 id="48-comment-fetch-99-kb-mcp-result-token-cap-overflow-manual-pythonjq-slicing-of-the-dumped-file-recurring-class-also-06-12t19z-entry-4-min">48 comment fetch = 99 KB → MCP result token-cap overflow → manual python/jq slicing of the dumped file. Recurring class (also 06-12T19Z entry). ~4 min.<a class="headerlink" href="#48-comment-fetch-99-kb-mcp-result-token-cap-overflow-manual-pythonjq-slicing-of-the-dumped-file-recurring-class-also-06-12t19z-entry-4-min" title="Permanent link">&para;</a></h1>
+</li>
+<li>Caveman plugin not loaded at bootstrap → <code>Unknown skill: caveman:caveman</code> → #168 fallback line emitted. Known #268; warm-load fix (<code>ensure_caveman.sh</code>, 12Z hub) not yet on <code>main</code> → 3rd confirmed post-fix instance.</li>
+<li><code>bench_wnat.py</code> reads a <code>{vertices,boundaries,bathymetry}</code> JSON schema but the committed <code>wnat_onur_boundary.json</code> is <code>{name,bbox,rings}</code> → bench_wnat KeyErrors on its own fixture. Latent dead/divergent benchmark code; on-theme for #48 redundancy. Filed ADMESH#158.</li>
 </ol>
-<p><strong>Risk:</strong> MATLAB <code>gradient()</code> vs. our <code>grad_sdf</code> may differ in
-boundary handling. Boundary-cell masking needs to match MATLAB's
-exact output for fixture parity. If the divergence is large, log a
-<code>PORTING_NOTES</code> entry and use fixture parity as the authoritative
-gate.</p>
-<h3 id="ws2-05_medial_axis-faithful-port">WS2 — <code>05_Medial_Axis</code> faithful port<a class="headerlink" href="#ws2-05_medial_axis-faithful-port" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> <code>admesh/medial_axis.py</code> (rewritten),
-<code>tests/test_matlab_port.py</code> medial section,
-<code>scripts/export_matlab_fixtures.m</code> medial block.</p>
-<p><strong>Steps:</strong></p>
-<ol>
-<li>Read the 4 files side-by-side — <code>heap.m</code> (101 lines),
-   <code>min_sort.m</code> (24 lines), <code>medial_distance_FMM.m</code> (142 lines),
-   <code>MedialAxisFunction.m</code> (102 lines). ~370 lines total.</li>
-<li>Port <code>heap.m</code> + <code>min_sort.m</code> first (leaf utilities). Pure Python
-   <code>heapq</code> likely suffices; document the substitution.</li>
-<li>Port <code>medial_distance_FMM.m</code> — this is the FMM driver; careful
-   with 4-vs-8 neighbor stencil choice.</li>
-<li>Port <code>MedialAxisFunction.m</code> — the driver that calls FMM.</li>
-<li>Retire the clean-room scipy-EDT implementation entirely (do NOT
-   keep it as a fallback unless there's a strong reason — the
-   session-3 <code>PORTING_NOTES</code> flagged this as deferred-faithful-port
-   debt; time to pay it).</li>
-<li>Fixtures on <code>unit_disk</code> (medial at origin), <code>annulus</code> (medial
-   ring at r=0.7), <code>notched_rectangle</code> (complex skeleton — the
-   reason this module matters).</li>
-</ol>
-<p><strong>Risk:</strong> FMM numerics are sensitive to grid resolution + neighbor
-stencil. The <code>notched_rectangle</code> medial skeleton is the real test;
-if the Python output doesn't match MATLAB to within a cell spacing,
-debug the stencil and priority-queue ordering before anything else.</p>
-<h3 id="ws3-re-render-demos-update-docs-close-session">WS3 — Re-render demos, update docs, close session<a class="headerlink" href="#ws3-re-render-demos-update-docs-close-session" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> re-rendered <code>demo_*.png</code>, session report / state /
-session 6 plan.</p>
-<p><strong>Steps:</strong></p>
-<ol>
-<li><code>python scripts/render_p1p3_demos.py</code> — confirm unit_disk +
-   notched_rect demos improved. Expected: both cross 0.30 gate.</li>
-<li>Update <code>PORTING_NOTES.md</code>: flip session-2 clean-room entries for
-   curvature + medial_axis to "faithful-port".</li>
-<li>Update <code>PROJECT_PLAN.md</code> "Where we are today" post-session 5.</li>
-<li>Session 5 report + state + draft <code>session_6_plan.md</code> targeting
-   Phase P2 (bathymetry + tide + inpaint) — now with all sizing
-   modules on faithful ports.</li>
-<li>Commit + push. No auto-PR.</li>
-</ol>
-<hr />
-<h2 id="out-of-scope-for-session-5">Out of scope for session 5<a class="headerlink" href="#out-of-scope-for-session-5" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Phase P2 (bathymetry / tide / inpaint) — session 6.</li>
-<li><code>08_Enforce_Boundary_Conditions/</code> faithful-port backfill — a third
-  clean-room module still owes a port; session 6 candidate.</li>
-<li>Full <code>ADmeshRoutine.m</code> orchestration — session 7+.</li>
-</ul>
-<hr />
-<h2 id="session-budget">Session budget<a class="headerlink" href="#session-budget" title="Permanent link">&para;</a></h2>
-<ul>
-<li>WS0: ≤ 1%.</li>
-<li>WS1 (curvature): ~25%.</li>
-<li>WS2 (medial_axis): ~55%.</li>
-<li>WS3: ~15%.</li>
-<li>Misc (report, rereader): ~5%.</li>
-</ul>
-<p>If WS2 overflows due to FMM subtlety, drop the
-<code>notched_rectangle</code> medial fixture (it's the hardest case); ship
-disk + annulus fixtures only. Notched medial can regress to the
-next session.</p>
+<h2 id="pain-matrix-rows">Pain → matrix rows<a class="headerlink" href="#pain-matrix-rows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pain</th>
+<th>Severity</th>
+<th>Freq</th>
+<th>Tracking</th>
+<th>Saved-min/session</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MCP large-thread fetch overflow → manual slicing</td>
+<td>low</td>
+<td>recurring class</td>
+<td>— (habit: paginate <code>perPage</code> + jq from start)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>caveman warm-load not on <code>main</code> yet (#268 AC1)</td>
+<td>low</td>
+<td>recurring (3rd)</td>
+<td>DomI#268</td>
+<td>2</td>
+</tr>
+<tr>
+<td>bench_wnat.py schema vs committed fixture mismatch</td>
+<td>low</td>
+<td>one-off (found)</td>
+<td>ADMESH#158</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p>Resolved since last A entry: "ADMESH has no <code>development</code> branch" (06-12T19Z pain) — <code>development</code> now exists + rolling PR #150; shipped there directly, no harness-branch ambiguity this slot.</p>
+<p>No new <code>request: skill</code> — #203 probation respected.</p>
 
 
 

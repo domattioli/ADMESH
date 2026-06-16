@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/sessions/session_1_plan/">
+        <link rel="canonical" href="https://admesh.domattioli.com/introspections/rotation_2026-06-13T07Z/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Session 1 — ADMESH MVP M.4 + governance tightening - ADMESH</title>
+        <title>rotation 2026 06 13T07Z - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#session-1-admesh-mvp-m4-governance-tightening" class="md-skip">
+        <a href="#admesh-rotation-2026-06-13t07z-maintenance-slot" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Session 1 — ADMESH MVP M.4 + governance tightening
+              rotation 2026 06 13T07Z
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#revision-2026-04-21-mid-session" class="md-nav__link">
+  <a href="#summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Revision 2026-04-21 (mid-session)
+        Summary
       
     </span>
   </a>
@@ -829,10 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-gate" class="md-nav__link">
+  <a href="#what-worked-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding gate
+        What worked (top 3, evidence)
       
     </span>
   </a>
@@ -840,71 +840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workstreams" class="md-nav__link">
+  <a href="#what-didnt-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workstreams
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Workstreams">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ws1-mvp-triangulation-tests-png-rendering" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS1 — MVP triangulation tests + PNG rendering
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws2-governance-tightening" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS2 — Governance tightening
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws3-numba-benchmark-stretch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS3 — Numba benchmark (stretch)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws-final-wrap-up-per-claudeskillssession-handoffskillmd" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS-final — Wrap-up (per .claude/skills/session-handoff/SKILL.md)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope-for-session-1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope for session 1
+        What didn't (top 3, evidence)
       
     </span>
   </a>
@@ -912,10 +851,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#session-budget" class="md-nav__link">
+  <a href="#pain-matrix-rows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Session budget
+        Pain → matrix rows
       
     </span>
   </a>
@@ -942,145 +881,69 @@
   
 
 
-<h1 id="session-1-admesh-mvp-m4-governance-tightening">Session 1 — ADMESH MVP M.4 + governance tightening<a class="headerlink" href="#session-1-admesh-mvp-m4-governance-tightening" title="Permanent link">&para;</a></h1>
-<p><strong>Goal (plain English):</strong> close out the MVP by triangulating all 5
-test domains end-to-end, committing a rendered PNG for each as
-reviewable evidence, and tightening the governance docs with the
-persistence-cadence lesson from session 0. When this session ships,
-the MVP acceptance gate in <code>PROJECT_PLAN.md</code> is met and the port
-pivots to Phase P1 (sizing enrichments — curvature + medial-axis).</p>
-<p><strong>Session-start read order</strong> (per <code>CLAUDE.md</code>):
-<code>CONSTITUTION.md</code> → <code>PROJECT_PLAN.md</code> → <code>CLAUDE.md</code> →
-<code>docs/session_0_state.md</code> → <code>docs/session_0_report.md</code> → this plan.</p>
-<h2 id="revision-2026-04-21-mid-session">Revision 2026-04-21 (mid-session)<a class="headerlink" href="#revision-2026-04-21-mid-session" title="Permanent link">&para;</a></h2>
-<p>Baseline render on session-start revealed <code>unit_square</code> hits
-<code>min_q=0.000</code> — three boundary-projected nodes at <code>x=0.5±1e-10</code> form
-a zero-area sliver because <code>distmesh2d</code> never re-runs Delaunay after
-the final force-step before returning. Preview PNGs from commit
-<code>fb6d5b4</code> are already on disk but reproducing them fails the binding
-gate's <code>min_q ≥ 0.30</code> on <code>unit_square</code>.</p>
-<p>Plan revision:</p>
-<ul>
-<li><strong>Prepend WS0 — fix stale-triangulation bug in <code>distmesh2d</code>.</strong> Add
-  a final Delaunay + centroid-filter step after the iteration loop
-  exits (either via <code>niter</code> or <code>dptol</code>), before <code>fixmesh</code>. This is a
-  correctness fix, not a gate widener — per the plan's falsifier rule.</li>
-<li><strong>Re-render PNGs in WS1 after WS0 ships</strong> (the preview PNGs will
-  change under the bugfix).</li>
-<li>Everything else in WS1/WS2/WS3/WS-final stands as written.</li>
-</ul>
+<!-- Session introspection + corpus entry. Caveman ultra. -->
 <hr />
-<h2 id="binding-gate">Binding gate<a class="headerlink" href="#binding-gate" title="Permanent link">&para;</a></h2>
-<p>All five of:</p>
+<p>date: 2026-06-13
+session: 2026-06-13T07Z-rotation
+repo: domattioli/ADMESH
+severity: low
+freq: recurring
+issues: [155, 286, 150, 48]
+wasted_min: 5
+wasted_tok: 12000
+missing_skill: null</p>
+<hr />
+<h1 id="admesh-rotation-2026-06-13t07z-maintenance-slot">ADMESH rotation 2026-06-13T07Z — maintenance slot<a class="headerlink" href="#admesh-rotation-2026-06-13t07z-maintenance-slot" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Hour-07 → ADMESH (3rd A slot today: 01Z PR#153/probe, 04Z octree PR#156, now 07Z). Overhaul A-slice operator-gated/shipped → maintenance track. Shipped 2 fixes on <code>development</code> → rolling PR#150: (1) <strong>#155</strong> <code>inpaint_nans</code> 1-D Laplacian column misalignment — locked stage-13, fix mirrors correct 2-D branch, moves toward MATLAB fidelity; (2) <strong>dead drift-gate</strong> — startup hook false-passed while pin behind when <code>sync-from-domi</code> absent/403 (hit at own bootstrap) → ported Valence #147 offline sibling-clone fallback + smoke. Hub loop: filed <strong>DomI#286</strong> (canonicalize the now-divergent per-repo drift-gate copies — on-mission for #48). Suite 439 pass / 14 skip / 1 xfail. 3 Haiku dispatches (2 inpaint passes + 1 hook), Fable 5 orchestrate/review.</p>
+<h2 id="what-worked-top-3-evidence">What worked (top 3, evidence)<a class="headerlink" href="#what-worked-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><code>admesh.triangulate(domain, h0=&lt;per-domain&gt;)</code> returns a valid mesh
-   (<code>_assert_valid_mesh</code> helper, same contract as <code>tests/test_distmesh.py</code>)
-   for each of: <code>unit_square</code>, <code>l_shape</code>, <code>unit_disk</code>, <code>annulus</code>,
-   <code>notched_rectangle</code>.</li>
-<li><code>mean_q ≥ 0.60</code> and <code>min_q ≥ 0.30</code> on every domain.</li>
-<li>One PNG per domain committed to <code>tests/output/mvp_&lt;name&gt;.png</code>
-   (force-add — the dir is gitignored per
-   <code>CONSTITUTION.md</code> Article II.6 style).</li>
-<li><code>pytest tests/ -q</code> green (target: 55+ tests).</li>
-<li><code>docs/PORTING_NOTES.md</code> populated with the four MATLAB→Python
-   divergences noted in <code>docs/session_0_report.md</code> (InPolygon
-   mex-only; SignedDistanceFunction MVP subset; distmesh2d canonical
-   vs. ADMESH variant; <code>.mex*</code> binaries discarded).</li>
+<li><strong>Revert-check caught a false regression test.</strong> Haiku's first #155 test passed even with the bug stashed (linear ramp ∈ operator null space). Stash-and-rerun before commit exposed it → replaced with an independent clean-room del² oracle that genuinely discriminates (buggy diverges O(100)). Never trust a regression test that wasn't seen to fail.</li>
+<li><strong>Sibling DomI clone on disk = live verification surface.</strong> <code>/home/user/DomI</code> @ <code>3e46639</code> let the offline drift fix be verified against a real checkout, not a mock — live hook flipped from dead warn to <code>✓ pin current (offline sibling clone)</code>.</li>
+<li><strong>Map-first + branch-policy precedence.</strong> Read #48 before write; harness mandated <code>claude/zealous-noether-efnuo9</code> but <code>development</code> exists w/ rolling PR#150 → worked there per branching.md. Pin stale only on the harness branch, current on <code>development</code>.</li>
 </ol>
-<hr />
-<h2 id="workstreams">Workstreams<a class="headerlink" href="#workstreams" title="Permanent link">&para;</a></h2>
-<h3 id="ws1-mvp-triangulation-tests-png-rendering">WS1 — MVP triangulation tests + PNG rendering<a class="headerlink" href="#ws1-mvp-triangulation-tests-png-rendering" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> <code>tests/test_mvp_domains.py</code>,
-<code>scripts/render_mvp_meshes.py</code>, 5 PNGs under <code>tests/output/</code>.</p>
-<p><strong>Steps:</strong>
-1. Write <code>scripts/render_mvp_meshes.py</code>: for each <code>Domain</code> in
-   <code>admesh.domains.ALL</code>, call <code>triangulate(...)</code> with the per-domain
-   <code>h0</code> defaults (see below), and save a <code>matplotlib.tri.triplot</code>
-   PNG to <code>tests/output/mvp_&lt;name&gt;.png</code>. No CLI flags needed; one
-   entry point: <code>python scripts/render_mvp_meshes.py</code>.
-2. Write <code>tests/test_mvp_domains.py</code> with one parametrized test
-   asserting the M.4 gate per domain. Use
-   <code>_assert_valid_mesh(p, t, fd, geps)</code> from
-   <code>tests/test_distmesh.py</code> (promote it to a shared helper in
-   <code>tests/conftest.py</code> if that's cleaner).
-3. Per-domain <code>h0</code> defaults (first cut; tune if a domain misses the
-   quality gate): <code>unit_square=0.12</code>, <code>unit_disk=0.15</code>,
-   <code>l_shape=0.15</code>, <code>annulus=0.12</code>, <code>notched_rectangle=0.08</code>. Adjust
-   <code>niter</code> upward from default 500 only if a domain doesn't
-   converge — document in the test why.
-4. Commit PNGs. <code>git add -f tests/output/mvp_*.png</code>.</p>
-<p><strong>Falsifier:</strong> If a domain fails completion (e.g. <code>annulus</code> loses a
-ring of triangles because the inner boundary has no pinned
-fixed-points), do NOT widen the quality gate. The correct fix is
-usually adding explicit <code>fixed_points</code> to the <code>Domain</code> definition in
-<code>admesh/domains.py</code> (inner ring sample for annulus; top-rim points
-for notched_rectangle).</p>
-<p><strong>Risk + mitigation:</strong> Persson's DistMesh on multiply-connected
-domains can strand boundary nodes. If the <code>annulus</code> mesh looks
-degenerate, sample <code>N = 2π·r_inner / h0</code> points uniformly around the
-inner circle and add them as <code>fixed_points</code> in <code>_sdf_annulus</code>'s
-registry entry. Document in a PNG comparison (<code>mvp_annulus_nofix.png</code>
-vs. <code>mvp_annulus.png</code>) the first time this comes up.</p>
-<h3 id="ws2-governance-tightening">WS2 — Governance tightening<a class="headerlink" href="#ws2-governance-tightening" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> Article VII added to <code>CONSTITUTION.md</code>; amendments
-log updated. <code>docs/PORTING_NOTES.md</code> populated.</p>
-<p><strong>Steps:</strong>
-1. Append <code>Article VII — Persistent-session cadence</code> to
-   <code>CONSTITUTION.md</code> with three rules: (a) report-and-advance after
-   every milestone, (b) zero AskUserQuestion outside destructive
-   actions, (c) session-start reads must include the latest
-   <code>session_&lt;N-1&gt;_state.md</code>. Log the amendment with today's date
-   and cite session 0's persistence retro.
-2. Populate <code>docs/PORTING_NOTES.md</code> with four entries (one per
-   divergence named in the session 0 report). Use the template at
-   the top of that file.
-3. Update <code>PROJECT_PLAN.md</code> "Where we are today" to mark M.4 shipped
-   and name Phase P1 as the next entry point.</p>
-<h3 id="ws3-numba-benchmark-stretch">WS3 — Numba benchmark (stretch)<a class="headerlink" href="#ws3-numba-benchmark-stretch" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverable:</strong> <code>scripts/bench_mesh_size.py</code>, run result committed
-to session 1 report.</p>
-<p><strong>Steps:</strong>
-1. Generate a realistic <code>h0</code>, <code>D</code> pair (e.g. annulus at <code>delta=0.02</code>
-   — <code>~5000×5000</code> would be extreme; <code>200×200</code> is plenty).
-2. Time <code>solve_iter(..., use_numba=True)</code> vs <code>use_numba=False</code>; also
-   record total iterations.
-3. Commit <code>scripts/bench_mesh_size.py</code> plus the numeric result in
-   the session 1 report. Gate: Numba path is ≤ 2× a "reasonable"
-   C baseline if one is reachable (sidecar build; otherwise just
-   record Numba/Python ratio).</p>
-<p>If session budget is tight, WS3 skips and ports over to session 2.</p>
-<h3 id="ws-final-wrap-up-per-claudeskillssession-handoffskillmd">WS-final — Wrap-up (per <code>.claude/skills/session-handoff/SKILL.md</code>)<a class="headerlink" href="#ws-final-wrap-up-per-claudeskillssession-handoffskillmd" title="Permanent link">&para;</a></h3>
+<h2 id="what-didnt-top-3-evidence">What didn't (top 3, evidence)<a class="headerlink" href="#what-didnt-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Run <code>pytest tests/ -q</code>; ensure green.</li>
-<li>Update <code>PROJECT_PLAN.md</code> "Where we are today" for post-M.4 state.</li>
-<li>Write <code>docs/session_1_report.md</code> (template: session 0's report).</li>
-<li>Write <code>docs/session_1_state.md</code> (overwrites if any).</li>
-<li>Draft <code>docs/session_2_plan.md</code> targeting Phase P1 kickoff
-   (<code>04_Curvature_Function</code> + <code>05_Medial_Axis</code> → richer size fields).</li>
-<li>Roll up the persistence journal: any trigger class ≥ 3 this
-   session → propose plan/constitution edit.</li>
-<li>Commit + push. Do NOT auto-open a PR.</li>
+<li><strong>Caveman plugin <code>Unknown skill</code> at bootstrap</strong> → #168 SKILL.md fallback (manual ultra). Known #268; marketplace network-add fails in routine container. Nth confirmed instance.</li>
+<li><strong>MCP large-thread/issue-list fetch overflow.</strong> Both #48 comments (86KB) and DomI open-issues (60KB) overflowed the tool result → manual python/jq slicing. Recurring class; paginate from the start.</li>
+<li><strong>Drift-gate fix is being hand-ported per repo</strong> (Valence #147, now ADMESH) — divergent copies of identical logic. Filed DomI#286 to canonicalize, but until DomI ships it the redundancy grows with each consumer that hits the dead gate.</li>
 </ol>
-<hr />
-<h2 id="out-of-scope-for-session-1">Out of scope for session 1<a class="headerlink" href="#out-of-scope-for-session-1" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Phase P1+ (curvature, medial-axis, bathymetry, tide, boundary,
-  inpaint) — session 2+.</li>
-<li>Reference fixture round-trip from MATLAB (post-MVP P4).</li>
-<li>PyPI publish / public repo flip — Phase P5.</li>
-</ul>
-<hr />
-<h2 id="session-budget">Session budget<a class="headerlink" href="#session-budget" title="Permanent link">&para;</a></h2>
-<p>Session 0 burned the user's usage budget by end-of-evening. Session 1
-should budget conservatively:</p>
-<ul>
-<li>WS1 (mandatory): ~60% of budget.</li>
-<li>WS2 (mandatory): ~25%.</li>
-<li>WS3 (stretch): ~15%; drops if WS1+WS2 take longer.</li>
-<li>WS-final: fixed ~10% overhead on top.</li>
-</ul>
-<p>If WS1 blows past the 60% mark because a domain needs <code>pfix</code> tuning,
-drop WS3, finish WS1+WS2, and call it a session.</p>
+<h2 id="pain-matrix-rows">Pain → matrix rows<a class="headerlink" href="#pain-matrix-rows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pain</th>
+<th>Severity</th>
+<th>Freq</th>
+<th>Tracking</th>
+<th>Saved-min/session</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>caveman warm-load inert (marketplace network-add fail)</td>
+<td>low</td>
+<td>recurring</td>
+<td>DomI#268 / #286-adjacent</td>
+<td>2</td>
+</tr>
+<tr>
+<td>MCP large-thread fetch overflow → manual slicing</td>
+<td>low</td>
+<td>recurring class</td>
+<td>habit: paginate</td>
+<td>4</td>
+</tr>
+<tr>
+<td>drift-gate fix hand-ported per repo (divergent copies)</td>
+<td>medium</td>
+<td>recurring</td>
+<td>DomI#286</td>
+<td>6</td>
+</tr>
+</tbody>
+</table>
+<p>No new <code>request: skill</code> — #203 probation respected. DomI#286 filed as <code>type: bug</code>, not a skill request.</p>
 
 
 

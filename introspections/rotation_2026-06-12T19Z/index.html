@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/sessions/session_6_plan/">
+        <link rel="canonical" href="https://admesh.domattioli.com/introspections/rotation_2026-06-12T19Z/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Session 6 — Boundary backfill + notched polish; bathymetry/tide last - ADMESH</title>
+        <title>rotation 2026 06 12T19Z - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#session-6-boundary-backfill-notched-polish-bathymetrytide-last" class="md-skip">
+        <a href="#admesh-rotation-2026-06-12t19z-maintenance-slot-first-a-slot-post-overhaul" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Session 6 — Boundary backfill + notched polish; bathymetry/tide last
+              rotation 2026 06 12T19Z
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ws0-env-check" class="md-nav__link">
+  <a href="#summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WS0 — Env check
+        Summary
       
     </span>
   </a>
@@ -829,10 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-gate" class="md-nav__link">
+  <a href="#what-worked-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding gate
+        What worked (top 3, evidence)
       
     </span>
   </a>
@@ -840,104 +840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#workstreams-reordered-bathymetry-tide-last" class="md-nav__link">
+  <a href="#what-didnt-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Workstreams (reordered: bathymetry + tide LAST)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Workstreams (reordered: bathymetry + tide LAST)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ws1-08_enforce_boundary_conditions-faithful-backfill" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS1 — 08_Enforce_Boundary_Conditions faithful backfill
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws2-notched_rect-demo-polish" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS2 — notched_rect demo polish
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws3-13_in_paint_nans-port" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS3 — 13_In_Paint_NaNs port
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws4-06_bathymetry_function-port" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS4 — 06_Bathymetry_Function port
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws5-07_dominate_tide-port" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS5 — 07_Dominate_Tide port
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws-final-wrap-up" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS-final — wrap-up
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope-for-session-6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope for session 6
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#session-budget" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Session budget
+        What didn't (top 3, evidence)
       
     </span>
   </a>
@@ -964,105 +870,77 @@
   
 
 
-<h1 id="session-6-boundary-backfill-notched-polish-bathymetrytide-last">Session 6 — Boundary backfill + notched polish; bathymetry/tide last<a class="headerlink" href="#session-6-boundary-backfill-notched-polish-bathymetrytide-last" title="Permanent link">&para;</a></h1>
-<p><strong>Goal (plain English):</strong> retire the last clean-room module
-(<code>admesh/boundary.py</code>) by faithful-porting
-<code>08_Enforce_Boundary_Conditions/</code>, polish the notched_rect demo,
-port <code>13_In_Paint_NaNs</code> (a utility bathymetry + tide will need),
-then land the physical-field modules (<code>06_Bathymetry_Function</code>,
-<code>07_Dominate_Tide</code>) on top of that foundation. After this session
-all 13 ADMESH library stages have faithful Python ports; the
-port's north star (bit-for-bit MATLAB parity within FP tolerance)
-becomes directly testable.</p>
-<p><strong>Session-start read order</strong> (per <code>CLAUDE.md</code> + Article VII):
-<code>CONSTITUTION.md</code> → <code>PROJECT_PLAN.md</code> → <code>CLAUDE.md</code> →
-<code>docs/session_5_state.md</code> → <code>docs/session_5_report.md</code> → this plan.</p>
+<!-- Session introspection + corpus entry. Caveman ultra. -->
 <hr />
-<h2 id="ws0-env-check">WS0 — Env check<a class="headerlink" href="#ws0-env-check" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ls<span class="w"> </span>/workspace/QuADMesh-MATLAB/01_ADMESH_Library/
-</code></pre></div>
-<p>Must exist. Article II.1 is binding — no clean-room fallback.</p>
+<p>date: 2026-06-12
+session: 2026-06-12T19Z-rotation
+repo: domattioli/ADMESH
+severity: low
+freq: recurring
+issues: [143, 146, 151]
+wasted_min: 6
+wasted_tok: 9000
+missing_skill: null</p>
 <hr />
-<h2 id="binding-gate">Binding gate<a class="headerlink" href="#binding-gate" title="Permanent link">&para;</a></h2>
-<p>All of:</p>
+<h1 id="admesh-rotation-2026-06-12t19z-maintenance-slot-first-a-slot-post-overhaul">ADMESH rotation 2026-06-12T19Z — maintenance slot (first A slot post-overhaul)<a class="headerlink" href="#admesh-rotation-2026-06-12t19z-maintenance-slot-first-a-slot-post-overhaul" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Hour-19 rotation → ADMESH. Spec-048 A-tasks all operator-gated (T8/T9→D1, T12→D4, P6→D5) → maintenance track. Shipped: (1) DomI pin 69fdeb7→04f5d53 via sibling clone, #146 closed; (2) #143 item 3 — ADR-001 fort.14/CHILmesh boundary verified vs chilmesh 1.2.0, verification log appended to ADR; (3) gates green — boundary 21/21, full suite 409 pass / 9 skip / 1 xfail (by-design). PR #151 (draft → main). #140 verified fully shipped, parked operator sign-off. Claim + checklist on MADMESHing#48. No DomI bugs hit. No code edits → no Haiku dispatch needed (docs/verification only).</p>
+<h2 id="what-worked-top-3-evidence">What worked (top 3, evidence)<a class="headerlink" href="#what-worked-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><code>admesh/boundary.py</code> rewritten as faithful port of
-   <code>08_Enforce_Boundary_Conditions/{EnforceBoundaryConditions,
-   create_polygon_structure}.m</code> (retires last session-3 clean-room).</li>
-<li><code>admesh/inpaint.py</code> faithful port of
-   <code>13_In_Paint_NaNs/inpaint_nans.m</code>.</li>
-<li><code>admesh/bathymetry.py</code> faithful port of
-   <code>06_Bathymetry_Function/BathymetryFunction.m</code> (+ helpers).</li>
-<li><code>admesh/dominate_tide.py</code> faithful port of
-   <code>07_Dominate_Tide/Dominate_tide.m</code> (+ helpers).</li>
-<li><code>build_h</code> extended to take <code>bathymetry</code> + <code>tide_scale</code> kwargs
-   that route to the new ports.</li>
-<li><code>tests/test_matlab_port.py</code> extended — port-correctness tests
-   for each new module.</li>
-<li><code>scripts/export_matlab_fixtures.m</code> populated for each new
-   module.</li>
-<li>MVP M.4 gate regression-clean; demo suite regenerates; <code>pytest
-   tests/ -q</code> green with ≥ 110 tests.</li>
-<li><strong>All 13 ADMESH library stages on faithful ports.</strong> PROJECT_PLAN
-   "Faithful-port backfill remaining" line is gone.</li>
-<li>notched_rect medial demo crosses the 0.30 min_q gate.</li>
+<li>Sibling-clone pin path (#230/#223): <code>update_pin.sh</code> refreshed pin w/o network plugin install. Zero friction.</li>
+<li>Map-first discipline: #48 read before write → A-slice unambiguous (digest's "rolls to rotation" line + #143 items); no invented scope.</li>
+<li>Installing sibling CHILmesh editable (1.2.0) into venv → ADR boundary check ran against live HEAD, not stale PyPI — caught viz-row rationale drift.</li>
 </ol>
-<hr />
-<h2 id="workstreams-reordered-bathymetry-tide-last">Workstreams (reordered: bathymetry + tide LAST)<a class="headerlink" href="#workstreams-reordered-bathymetry-tide-last" title="Permanent link">&para;</a></h2>
-<h3 id="ws1-08_enforce_boundary_conditions-faithful-backfill">WS1 — <code>08_Enforce_Boundary_Conditions</code> faithful backfill<a class="headerlink" href="#ws1-08_enforce_boundary_conditions-faithful-backfill" title="Permanent link">&para;</a></h3>
-<p><strong>Priority #1</strong> — retires the last clean-room module; unblocks
-honest Article II.1 compliance across all ported stages.</p>
-<p>Rewrite <code>admesh/boundary.py</code> against
-<code>EnforceBoundaryConditions.m</code> + <code>create_polygon_structure.m</code>.
-PTS struct should grow any fields the MATLAB version has that the
-session-3 port skipped. <code>enforce_boundary_conditions</code> maps
-per-ring BC tags into h-field adjustments (MATLAB line 37:
-<code>h_ic(D &gt; hmin) = hmax</code>; line 47: <code>h_ic(IB) = hmax</code> for open-ocean
-boundaries).</p>
-<h3 id="ws2-notched_rect-demo-polish">WS2 — notched_rect demo polish<a class="headerlink" href="#ws2-notched_rect-demo-polish" title="Permanent link">&para;</a></h3>
-<p><strong>Priority #2 — cheap, high-visibility win.</strong> Route
-<code>demo_notched_rect_medial</code> through the PTS path, same way the
-annulus demo works — <code>distmesh2d_admesh</code>'s density control +
-best-q tracking will clean up the transition-zone slivers.
-Target: min_q ≥ 0.30.</p>
-<h3 id="ws3-13_in_paint_nans-port">WS3 — <code>13_In_Paint_NaNs</code> port<a class="headerlink" href="#ws3-13_in_paint_nans-port" title="Permanent link">&para;</a></h3>
-<p><strong>Priority #3 — utility prerequisite for WS4/WS5.</strong>
-NaN-fill on a grid for sparse physical-field inputs. Small module.
-Used by bathymetry + tide when depth data has gaps.</p>
-<h3 id="ws4-06_bathymetry_function-port">WS4 — <code>06_Bathymetry_Function</code> port<a class="headerlink" href="#ws4-06_bathymetry_function-port" title="Permanent link">&para;</a></h3>
-<p><strong>Priority #4.</strong> Depth-driven size field. Wire into <code>build_h</code>.</p>
-<h3 id="ws5-07_dominate_tide-port">WS5 — <code>07_Dominate_Tide</code> port<a class="headerlink" href="#ws5-07_dominate_tide-port" title="Permanent link">&para;</a></h3>
-<p><strong>Priority #5.</strong> Long-wave <code>λ = sqrt(g·depth)·period</code>; tide-size
-contribution to the composed h.</p>
-<h3 id="ws-final-wrap-up">WS-final — wrap-up<a class="headerlink" href="#ws-final-wrap-up" title="Permanent link">&para;</a></h3>
-<p>Standard: pytest green, PORTING_NOTES updated, PROJECT_PLAN
-rolled forward, session 6 report/state, session 7 plan targeting
-Phase P3 (full <code>ADmeshRoutine.m</code> orchestration — the final port).</p>
-<hr />
-<h2 id="out-of-scope-for-session-6">Out of scope for session 6<a class="headerlink" href="#out-of-scope-for-session-6" title="Permanent link">&para;</a></h2>
+<h2 id="what-didnt-top-3-evidence">What didn't (top 3, evidence)<a class="headerlink" href="#what-didnt-top-3-evidence" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Caveman plugin late-connect at bootstrap → <code>Unknown skill</code> → #168 fallback line; real Skill call succeeded only mid-session after marketplace connect. Known #268 (fix inert until DomI PR #274 merges) — 2nd confirmed instance post-fix-on-development.</li>
+<li>
+<h1 id="48-comment-thread-fetch-56kb-mcp-result-overflow-manual-pythonjq-slicing-large-thread-reads-need-pagination-habit-from-start">48 comment thread fetch = 56KB → MCP result overflow → manual python/jq slicing. Large-thread reads need pagination habit from start.<a class="headerlink" href="#48-comment-thread-fetch-56kb-mcp-result-overflow-manual-pythonjq-slicing-large-thread-reads-need-pagination-habit-from-start" title="Permanent link">&para;</a></h1>
+</li>
+<li>ADMESH has no <code>development</code> branch; harness mandates <code>claude/epic-sagan-hkmynu</code> while DomI branching.md says development → shipped on harness branch → PR → main. Policy ambiguity persists in A repo only (C/Q/M migrated).</li>
+</ol>
+<h2 id="pain-matrix-rows">Pain → matrix rows<a class="headerlink" href="#pain-matrix-rows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pain</th>
+<th>Severity</th>
+<th>Freq</th>
+<th>Tracking</th>
+<th>Saved-min/session</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>caveman warm-load inert until DomI#274 merges (#268 AC1)</td>
+<td>low</td>
+<td>recurring (2nd)</td>
+<td>DomI#268</td>
+<td>2</td>
+</tr>
+<tr>
+<td>MCP large-thread fetch overflow → manual slicing</td>
+<td>low</td>
+<td>recurring class</td>
+<td>— (habit: paginate)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>ADMESH branch policy vs harness branch (no <code>development</code>)</td>
+<td>medium</td>
+<td>recurring</td>
+<td>branching.md migration gap</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>No new <code>request: skill</code> — #203 probation respected.</p>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Full <code>ADmeshRoutine.m</code> orchestration — session 7.</li>
-<li>PyPI publish / public repo flip — Phase P4.</li>
+<li>[ ] Operator: merge PR #151 (pin + ADR log); sign off #140.</li>
+<li>[ ] D1/D4/D5 remain the A-side gates; next A slot stays maintenance unless decided.</li>
+<li>[ ] If D5 = keep → re-run ADR-001 inventory (triggers fired, deferred deliberately).</li>
 </ul>
-<hr />
-<h2 id="session-budget">Session budget<a class="headerlink" href="#session-budget" title="Permanent link">&para;</a></h2>
-<ul>
-<li>WS0: ≤ 1%.</li>
-<li>WS1 (boundary backfill): ~30%.</li>
-<li>WS2 (notched polish): ~5%.</li>
-<li>WS3 (inpaint): ~10%.</li>
-<li>WS4 (bathymetry): ~20%.</li>
-<li>WS5 (tide): ~15%.</li>
-<li>WS-final: ~20%.</li>
-</ul>
-<p>If WS1 overruns, drop WS5 to session 7 — bathymetry alone is still
-a meaningful P2 ship. If WS1+WS2 run clean and WS3/4/5 all land,
-session 6 completes the full 13-stage port.</p>
-<p>Reordering rationale (user call, post-S5): finishing the
-clean-room backfill and getting a visible demo win first gives
-session 6 a strong spine even if P2 physical-field work slips;
-bathymetry and tide are more speculative (caller hasn't driven
-them in any demo yet) and build on inpaint, so they belong last.</p>
 
 
 

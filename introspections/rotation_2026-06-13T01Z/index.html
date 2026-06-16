@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/sessions/session_3_plan/">
+        <link rel="canonical" href="https://admesh.domattioli.com/introspections/rotation_2026-06-13T01Z/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Session 3 — Phase P3 lift: boundary + mesh_size + distmesh - ADMESH</title>
+        <title>rotation 2026 06 13T01Z - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#session-3-phase-p3-lift-boundary-mesh_size-distmesh" class="md-skip">
+        <a href="#admesh-rotation-2026-06-13t01z-maintenance-slot" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Session 3 — Phase P3 lift: boundary + mesh_size + distmesh
+              rotation 2026 06 13T01Z
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#ws0-environment-check-short" class="md-nav__link">
+  <a href="#summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WS0 — Environment check (short)
+        Summary
       
     </span>
   </a>
@@ -829,104 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#binding-gate" class="md-nav__link">
+  <a href="#what-worked-top-3-evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Binding gate
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#workstreams" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Workstreams
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Workstreams">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#ws1-admeshboundarypy-pts-bc-enforcement" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS1 — admesh/boundary.py (PTS + BC enforcement)
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws2-build_h-pts-aware-reduction" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS2 — build_h PTS-aware reduction
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws3-admesh-variant-distmesh-pathway" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS3 — ADMESH-variant distmesh pathway
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ws-final" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WS-final
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#out-of-scope-for-session-3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Out of scope for session 3
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#session-budget" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Session budget
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#falsifier" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Falsifier
+        What worked (top 3, evidence)
       
     </span>
   </a>
@@ -953,202 +859,77 @@
   
 
 
-<h1 id="session-3-phase-p3-lift-boundary-mesh_size-distmesh">Session 3 — Phase P3 lift: boundary + mesh_size + distmesh<a class="headerlink" href="#session-3-phase-p3-lift-boundary-mesh_size-distmesh" title="Permanent link">&para;</a></h1>
-<p><strong>Goal (plain English):</strong> lift the three core-algorithm modules
-above MVP level in one coordinated pass.</p>
+<!-- Session introspection + corpus entry. Caveman ultra. -->
+<hr />
+<p>date: 2026-06-13
+session: 2026-06-13T01Z-rotation
+repo: domattioli/ADMESH
+severity: low
+freq: recurring
+issues: [152]
+wasted_min: 5
+wasted_tok: 7000
+missing_skill: null</p>
+<hr />
+<h1 id="admesh-rotation-2026-06-13t01z-maintenance-slot">ADMESH rotation 2026-06-13T01Z — maintenance slot<a class="headerlink" href="#admesh-rotation-2026-06-13t01z-maintenance-slot" title="Permanent link">&para;</a></h1>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<p>Hour-1 rotation → ADMESH. Spec-048 A-tasks still operator-gated (D1/D4/D5); #140 + #133 parked on operator merge → maintenance track. Shipped: (1) DomI pin 69fdeb7→3e46639 via sibling clone (supersedes pin portion of unmerged PR #151); (2) #152 Q3 acquisition probe — younghun-kang/ADMESH still 404, Zenodo/GMD/doi.org all 403 from env, hosted-runner path confirmed as only acquisition route, evidence on #152; (3) suite gate green — 409 pass / 9 skip / 1 xfail, matches spec-048 "A=green" baseline. Claim + checklist on MADMESHing#48. No code edits → no Haiku dispatch (config/docs/probe only).</p>
+<h2 id="what-worked-top-3-evidence">What worked (top 3, evidence)<a class="headerlink" href="#what-worked-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Add a <strong>boundary</strong> module that models ADMESH's "PTS" domain
-   (polygonal boundaries + per-segment boundary-condition tags) and
-   can enforce BCs on a mesh node set.</li>
-<li>Extend <strong>mesh_size</strong> so <code>build_h</code> can take a PTS and shrink <code>h</code>
-   near BC segments by configurable per-type weights — a more
-   faithful analogue of the MATLAB size-field composition than the
-   current pure-SDF composer.</li>
-<li>Add an <strong>ADMESH-variant distmesh</strong> pathway that layers boundary
-   constraints, a better boundary-cleanup pass, and a structured
-   mesh output on top of the canonical Persson loop shipped in M.3.</li>
+<li>Sibling-clone pin path again zero-friction: ancestry check (<code>merge-base --is-ancestor</code>) confirmed behind-not-forked before bump.</li>
+<li>
+<h1 id="48-comment-index-listing-iddatefirst-line-before-selective-full-reads-64kb-thread-handled-in-2-passes-no-overflow-retries">48 comment-index listing (id/date/first-line) before selective full reads → 64KB thread handled in 2 passes, no overflow retries.<a class="headerlink" href="#48-comment-index-listing-iddatefirst-line-before-selective-full-reads-64kb-thread-handled-in-2-passes-no-overflow-retries" title="Permanent link">&para;</a></h1>
+</li>
+<li>Plain <code>curl</code> against allowlisted github.com beat ambiguous <code>git ls-remote</code> credential prompt for 404-vs-private discrimination on #152 probe.</li>
 </ol>
-<p>When this session ships, <code>triangulate(domain_or_pts, ...)</code> can
-consume either a bare <code>Domain</code> (MVP path, unchanged) or a <code>PTS</code>
-with BCs (P3 path, richer), and the downstream modules compose
-naturally.</p>
-<blockquote>
-<p><strong>Scope note.</strong> This plan replaces the original 2-branch session
-3 plan (Branch A faithful-port backfill / Branch B Phase P2
-clean-room) drafted at session-2 close. The 2-branch plan is
-preserved in git history under commit <code>d2fb540</code>. Bathymetry,
-tide, and inpaint are explicitly <strong>out of scope</strong> for this
-session — deferred to Phase P2 under a later plan.</p>
-</blockquote>
-<p><strong>Session-start read order</strong> (per <code>CLAUDE.md</code> + Article VII):
-<code>CONSTITUTION.md</code> → <code>PROJECT_PLAN.md</code> → <code>CLAUDE.md</code> →
-<code>docs/session_2_state.md</code> → <code>docs/session_2_report.md</code> → this plan.</p>
-<hr />
-<h2 id="ws0-environment-check-short">WS0 — Environment check (short)<a class="headerlink" href="#ws0-environment-check-short" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ls<span class="w"> </span>/workspace/QuADMesh-MATLAB/01_ADMESH_Library/<span class="w"> </span><span class="m">2</span>&gt;/dev/null
-</code></pre></div>
-<ul>
-<li><strong>If present:</strong> Article II.1 applies normally — faithful port;
-  add MATLAB-parity fixtures under <code>tests/fixtures/&lt;stage&gt;/</code>.</li>
-<li><strong>If absent:</strong> continue clean-room, log a <code>SOURCE_UNAVAILABLE</code>
-  row in <code>docs/persistence_journal.md</code>. If this is the 3rd
-  occurrence, propose a Constitution amendment (Article II.1
-  codicil: clean-room + deferred-faithful-port is the default mode
-  when <code>/workspace/QuADMesh-MATLAB</code> is absent).</li>
-</ul>
-<hr />
-<h2 id="binding-gate">Binding gate<a class="headerlink" href="#binding-gate" title="Permanent link">&para;</a></h2>
-<p>All six of:</p>
+<h2 id="what-didnt-top-3-evidence">What didn't (top 3, evidence)<a class="headerlink" href="#what-didnt-top-3-evidence" title="Permanent link">&para;</a></h2>
 <ol>
-<li><code>admesh.boundary</code> exposes a <code>PTS</code> (or equivalently named)
-   dataclass with: outer + inner polygon rings, per-segment BC
-   type (enum: <code>OPEN</code>, <code>WALL</code>, or a 2–3 value clean-room subset),
-   and a <code>from_domain(domain, *, n_bnd)</code> constructor that samples a
-   <code>Domain</code>'s zero-level set into a discrete polygon.</li>
-<li><code>admesh.boundary.enforce_boundary_conditions(pts, p)</code> returns a
-   per-node classification (interior / boundary-with-type) with
-   parity on a small fixture (unit square: 4 corner nodes, each
-   side labeled WALL).</li>
-<li><code>admesh.mesh_size.build_h</code> accepts a <code>pts</code> keyword (optional);
-   when provided, <code>h</code> is multiplicatively reduced within a
-   user-supplied <code>boundary_scale</code> band of each BC segment. The
-   zero-argument path still returns a uniform lambda (MVP default).</li>
-<li><code>admesh.distmesh.distmesh2d_admesh</code> (or <code>distmesh2d(..., pts=,
-   cleanup=True)</code>) runs the canonical loop plus: (a) per-PTS-segment
-   fixed-point interpolation into <code>pfix</code>; (b) a post-loop
-   <code>_boundary_cleanup</code> pass that culls slivers at the boundary;
-   (c) returns a <code>MeshOutput</code> dataclass with <code>p</code>, <code>t</code>, and a
-   node→BC-type label vector.</li>
-<li><code>admesh.routine.triangulate</code> accepts a <code>PTS</code> (dispatched to the
-   ADMESH path) or a <code>Domain</code> (existing MVP path). The MVP binding
-   gate from session 1 (<code>tests/test_mvp_domains.py</code>:
-   <code>min_q ≥ 0.30, mean_q ≥ 0.60</code> on all 5 domains) continues to
-   pass unchanged.</li>
-<li><code>pytest tests/ -q</code> green; new files: <code>tests/test_boundary.py</code>,
-   <code>tests/test_distmesh_admesh.py</code>; extensions to
-   <code>tests/test_mesh_size.py</code>. Target ≥ 80 tests (65 → 80, +15).</li>
+<li>Caveman plugin install failed at bootstrap (marketplace add network fail) → #168 fallback emulation. First instance AFTER DomI PR #274 merged (3e46639) — fix did not cover container-start marketplace network failure. Data point posted to DomI#268.</li>
+<li>Pin supersession churn: PR #151 (pin→04f5d53) unmerged at slot start; this slot bumps to 3e46639 on a second branch → guaranteed <code>.domi-pin</code> merge conflict for operator. Hourly rotation outpaces operator merge cadence.</li>
+<li>ADMESH still has no <code>development</code> branch → harness work branch → draft PR → main remains the A-repo workaround (3rd session running).</li>
 </ol>
-<hr />
-<h2 id="workstreams">Workstreams<a class="headerlink" href="#workstreams" title="Permanent link">&para;</a></h2>
-<h3 id="ws1-admeshboundarypy-pts-bc-enforcement">WS1 — <code>admesh/boundary.py</code> (PTS + BC enforcement)<a class="headerlink" href="#ws1-admeshboundarypy-pts-bc-enforcement" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> <code>admesh/boundary.py</code>, <code>tests/test_boundary.py</code>.</p>
-<p><strong>Algorithm:</strong>
-- <code>PTS</code> dataclass: <code>rings: list[np.ndarray]</code> (each <code>(N,2)</code>, ring 0
-  is outer, rings 1+ are inner/holes), <code>bc_type: list[np.ndarray]</code>
-  (same length, each <code>(N,)</code> enum array aligned to segment start),
-  <code>attributes: dict</code> (opaque passthrough).
-- <code>BoundaryType(IntEnum)</code>: <code>OPEN=0</code>, <code>WALL=1</code>. (Clean-room: 2-type
-  minimum. MATLAB has more; expand in a faithful-port backfill.)
-- <code>PTS.from_domain(domain, *, n_bnd)</code> — marches a contour along
-  the zero-level set of <code>domain.fd</code> using a grid evaluation + a
-  simple contour tracer (or <code>matplotlib._contour</code> if stable). Emits
-  <code>(n_bnd,)</code> roughly-evenly-spaced boundary samples per ring.
-- <code>enforce_boundary_conditions(pts, p, *, tol)</code> — for each node in
-  <code>p</code>, returns the index of the nearest <code>pts</code> segment if distance
-  &lt; <code>tol</code>, else <code>-1</code>. Resulting <code>(N,)</code> int array is consumed by
-  downstream modules.</p>
-<p><strong>Tests:</strong>
-- Unit square → 4 rings with BC=WALL everywhere; corner nodes
-  detected at 4 known locations.
-- Annulus → 2 rings (outer + 1 inner), lengths in ratio π·outer :
-  π·inner to within grid tolerance.
-- <code>enforce_boundary_conditions</code> on synthetic nodes at known (x,y)
-  returns correct segment labels.</p>
-<p><strong>Risk:</strong> the contour tracer. Cheap alternative: re-use the M.4
-mesh's boundary edges — since <code>triangulate(domain)</code> already
-produces boundary-coincident nodes, sample those instead of
-contour-tracing. Fallback documented inline.</p>
-<h3 id="ws2-build_h-pts-aware-reduction">WS2 — <code>build_h</code> PTS-aware reduction<a class="headerlink" href="#ws2-build_h-pts-aware-reduction" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> updated <code>admesh/mesh_size.py::build_h</code>,
-extensions in <code>tests/test_mesh_size.py</code>.</p>
-<p><strong>Algorithm:</strong>
-- New optional kwarg <code>pts: PTS | None = None</code> and
-  <code>boundary_scale: dict[BoundaryType, float] | float | None = None</code>.
-- Effect: for each grid cell, compute the distance to the nearest
-  PTS segment of each type, then <code>h_bnd[type] = max(boundary_scale
-  [type], d_to_type_segment)</code>. Final <code>h = min(h, min(h_bnd[t] for
-  t))</code>. Composes with existing <code>curvature_scale</code>, <code>medial_scale</code>.
-- When <code>pts=None</code>, behavior is identical to the current <code>build_h</code>.</p>
-<p><strong>Tests:</strong>
-- Unit square with <code>boundary_scale=0.03</code>: <code>fh</code> near a side is
-  ≤ 0.04, <code>fh</code> at the center is ≈ <code>base</code>.
-- End-to-end <code>triangulate(unit_square, fh=build_h(..., pts=pts,
-  boundary_scale=0.03))</code> passes M.4 quality gate and shows a
-  higher node density near boundaries than the uniform-fh version.
-- Regression: the MVP M.4 gate still passes on all 5 domains.</p>
-<h3 id="ws3-admesh-variant-distmesh-pathway">WS3 — ADMESH-variant distmesh pathway<a class="headerlink" href="#ws3-admesh-variant-distmesh-pathway" title="Permanent link">&para;</a></h3>
-<p><strong>Deliverables:</strong> extensions in <code>admesh/distmesh.py</code>
-(<code>_boundary_cleanup</code>, <code>distmesh2d_admesh</code>), updated
-<code>admesh/routine.py</code> dispatcher,
-<code>tests/test_distmesh_admesh.py</code>.</p>
-<p><strong>Algorithm:</strong>
-- <code>MeshOutput</code> dataclass: <code>p</code>, <code>t</code>, <code>node_bc: np.ndarray</code> (int, -1
-  interior / else BoundaryType).
-- <code>_boundary_cleanup(p, t, pts, *, min_area)</code> — after the main
-  loop, drop triangles whose minimum altitude is below
-  <code>min_area_factor * h_local</code> AND that have two or more boundary
-  nodes on the same segment (classic sliver). Reindex.
-- <code>distmesh2d_admesh(pts, *, fh, h0, **opts)</code> — canonical loop
-  seeded with PTS ring vertices as initial <code>pfix</code>; post-loop runs
-  <code>_boundary_cleanup</code>; returns <code>MeshOutput</code>.
-- <code>triangulate</code> in <code>routine.py</code> gets a thin dispatcher: if the
-  first arg is a <code>PTS</code>, call <code>distmesh2d_admesh</code>; else preserve
-  the existing <code>Domain</code> path.</p>
-<p><strong>Tests:</strong>
-- <code>unit_square</code> via PTS path produces mesh with
-  <code>(node_bc == WALL).sum() == N_boundary_nodes</code>.
-- <code>annulus</code> via PTS path has 2 BC rings, both labeled WALL.
-- Sliver-removal: construct a degenerate input (repeat an old
-  failure case like the pre-M.4 <code>unit_square</code>) and verify
-  <code>_boundary_cleanup</code> would have caught it.
-- MVP regression: <code>tests/test_mvp_domains.py</code> unchanged-and-green.</p>
-<h3 id="ws-final">WS-final<a class="headerlink" href="#ws-final" title="Permanent link">&para;</a></h3>
-<ol>
-<li><code>pytest tests/ -q</code> green; target ≥ 80 tests.</li>
-<li>3 new <code>docs/PORTING_NOTES.md</code> entries (boundary / build_h-PTS /
-   distmesh-admesh), each flagged with the clean-room status.</li>
-<li><code>PROJECT_PLAN.md</code> "Where we are today" rolled to post-P3-lift.</li>
-<li><code>docs/session_3_report.md</code> + <code>docs/session_3_state.md</code> +
-   <code>docs/session_4_plan.md</code> (Phase P2 kickoff: bathymetry + tide</li>
-<li>inpaint, now that the PTS structure can carry per-segment
-   physical data).</li>
-<li>Commit + push to the session's designated branch. Do NOT
-   auto-open a PR.</li>
-</ol>
-<hr />
-<h2 id="out-of-scope-for-session-3">Out of scope for session 3<a class="headerlink" href="#out-of-scope-for-session-3" title="Permanent link">&para;</a></h2>
+<h2 id="pain-matrix-rows">Pain → matrix rows<a class="headerlink" href="#pain-matrix-rows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Pain</th>
+<th>Severity</th>
+<th>Freq</th>
+<th>Tracking</th>
+<th>Saved-min/session</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>caveman bootstrap fallback persists post-#274 merge</td>
+<td>low</td>
+<td>recurring (1st post-merge)</td>
+<td>DomI#268</td>
+<td>2</td>
+</tr>
+<tr>
+<td>unmerged rolling drafts → pin supersession conflicts</td>
+<td>medium</td>
+<td>recurring (2nd)</td>
+<td>— (operator merge cadence)</td>
+<td>5</td>
+</tr>
+<tr>
+<td>ADMESH branch policy vs harness branch (no <code>development</code>)</td>
+<td>medium</td>
+<td>recurring (3rd)</td>
+<td>branching.md migration gap</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<p>No new <code>request: skill</code> — #203 probation respected.</p>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Bathymetry + tide + inpaint</strong> (Phase P2) — deferred per user
-  redirect at session-3 start.</li>
-<li><strong>Faithful-port backfill</strong> of session-2 curvature / medial /
-  composer — blocked on MATLAB clone.</li>
-<li><strong>Full MATLAB PTS field set</strong> — our clean-room PTS is
-  minimum-viable (rings + 2 BC types + opaque attrs). Additional
-  MATLAB fields (hydraulic sub-types, node attributes) backfill in
-  a later session with MATLAB source.</li>
-<li><strong>Quad conversion</strong> — permanently out of ADMESH (see 2026-04-18
-  project-plan revision).</li>
+<li>[ ] Operator: merge PR #151 then this slot's PR (resolve <code>.domi-pin</code> to 3e46639), or close #151 pin-portion as superseded.</li>
+<li>[ ] #152 Q1/Q2 stay blocked on hosted-runner Zenodo pull (#77 pattern); license check first.</li>
+<li>[ ] D1/D4/D5 remain A-side gates; next A slot stays maintenance unless operator decides.</li>
 </ul>
-<hr />
-<h2 id="session-budget">Session budget<a class="headerlink" href="#session-budget" title="Permanent link">&para;</a></h2>
-<ul>
-<li>WS0: ≤ 3%.</li>
-<li>WS1 (boundary + PTS): ~35%.</li>
-<li>WS2 (build_h PTS-aware): ~20%.</li>
-<li>WS3 (distmesh-admesh + cleanup + dispatcher): ~30%.</li>
-<li>WS-final: ~12%.</li>
-</ul>
-<p>If WS1 overflows, WS2 can ship with a simplified "boundary_scale
-applied uniformly to the domain boundary, ignoring BC type" — still
-a net forward step. WS3 is the item most likely to compress; if so,
-the dispatcher + <code>MeshOutput</code> land without the cleanup pass, and
-cleanup rolls to session 4.</p>
-<hr />
-<h2 id="falsifier">Falsifier<a class="headerlink" href="#falsifier" title="Permanent link">&para;</a></h2>
-<p>If WS3's <code>_boundary_cleanup</code> tries to remove triangles that pass
-the M.4 binding gate — STOP. That means the cleanup criterion is
-wrong, not that the MVP gate is too strict. Revert, diagnose,
-adjust. Never widen the M.4 gate to accommodate cleanup behavior.</p>
 
 
 

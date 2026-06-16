@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/sessions/session_2_state/">
+        <link rel="canonical" href="https://admesh.domattioli.com/introspections/2026-06-15T09Z-admesh-rotation/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Session 2 — state snapshot - ADMESH</title>
+        <title>ADMESH rotation — 2026-06-15T09Z - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#session-2-state-snapshot" class="md-skip">
+        <a href="#admesh-rotation-2026-06-15t09z" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Session 2 — state snapshot
+              ADMESH rotation — 2026-06-15T09Z
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#shipped-this-session" class="md-nav__link">
+  <a href="#what-changed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shipped this session
+        What changed
       
     </span>
   </a>
@@ -829,10 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#in-flight" class="md-nav__link">
+  <a href="#findings" class="md-nav__link">
     <span class="md-ellipsis">
       
-        In-flight
+        Findings
       
     </span>
   </a>
@@ -840,10 +840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#open-blockers" class="md-nav__link">
+  <a href="#branch-pr-state" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Open blockers
+        Branch / PR state
       
     </span>
   </a>
@@ -851,10 +851,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-concrete-action" class="md-nav__link">
+  <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next concrete action
+        Next steps
       
     </span>
   </a>
@@ -862,10 +862,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#live-interrupts" class="md-nav__link">
+  <a href="#open-questions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Live interrupts
+        Open questions
       
     </span>
   </a>
@@ -892,83 +892,44 @@
   
 
 
-<h1 id="session-2-state-snapshot">Session 2 — state snapshot<a class="headerlink" href="#session-2-state-snapshot" title="Permanent link">&para;</a></h1>
-<p><strong>Last updated:</strong> 2026-04-23T(end-of-session)
-<strong>Session plan:</strong> <code>docs/session_2_plan.md</code> (with mid-session revision)
-<strong>Session report:</strong> <code>docs/session_2_report.md</code>
-<strong>Active milestone:</strong> Phase P1 — sizing enrichments. Clean-room
-ports of curvature + medial_axis + composer shipped; faithful-port
-pass against MATLAB source deferred (source unavailable).
-<strong>Active workstream:</strong> <code>session 2 CLOSED</code>. Next-session open point
-is <code>docs/session_3_plan.md</code> WS0 (MATLAB-clone provisioning check)
-then WS1 (Phase P2 kickoff — <code>06_Bathymetry_Function</code>).
-<strong>Repo head:</strong> to be updated after commit. Branch
-<code>claude/review-execute-plan-WnoNk</code>.</p>
-<hr />
-<h2 id="shipped-this-session">Shipped this session<a class="headerlink" href="#shipped-this-session" title="Permanent link">&para;</a></h2>
+<h1 id="admesh-rotation-2026-06-15t09z">ADMESH rotation — 2026-06-15T09Z<a class="headerlink" href="#admesh-rotation-2026-06-15t09z" title="Permanent link">&para;</a></h1>
+<h2 id="what-changed">What changed<a class="headerlink" href="#what-changed" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Plan revision</strong> — session 2 scope narrowed to clean-room after
-  MATLAB clone absent; logged as <code>SOURCE_UNAVAILABLE</code> trigger.</li>
-<li><strong>WS1</strong> — <code>admesh/curvature.py</code> + <code>tests/test_curvature.py</code>
-  (3 cases).</li>
-<li><strong>WS2</strong> — <code>admesh/medial_axis.py</code> + <code>tests/test_medial_axis.py</code>
-  (4 cases).</li>
-<li><strong>WS3</strong> — <code>admesh.mesh_size.build_h</code> + 4 new tests (composer,
-  uniform default, curvature refinement, medial refinement,
-  end-to-end <code>triangulate</code>).</li>
-<li><strong>3 PORTING_NOTES entries</strong> (composer, medial clean-room,
-  curvature clean-room) with deferred-faithful-port flags.</li>
-<li><strong>65 pytest tests passing</strong>; no known failures.</li>
+<li><strong>No new commits.</strong> Maintenance slot: queue was already cleared by hour-07 slot (2h prior).</li>
+<li>Posted #154 merge-readiness verification comment (ENPAC standard-switch complete on <code>development</code>).</li>
 </ul>
-<h2 id="in-flight">In-flight<a class="headerlink" href="#in-flight" title="Permanent link">&para;</a></h2>
-<p>NONE. Session 2 is closed. Phase P2 is a fresh start for session 3.</p>
-<h2 id="open-blockers">Open blockers<a class="headerlink" href="#open-blockers" title="Permanent link">&para;</a></h2>
-<p><strong>Faithful-port backfill pass</strong> is blocked on the MATLAB clone
-becoming available in the session environment. Session 3 plan
-starts with a provisioning check (WS0).</p>
-<h2 id="next-concrete-action">Next concrete action<a class="headerlink" href="#next-concrete-action" title="Permanent link">&para;</a></h2>
-<p>Open <code>docs/session_3_plan.md</code>. WS0 is a short env check:</p>
+<h2 id="findings">Findings<a class="headerlink" href="#findings" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>ls /workspace/QuADMesh-MATLAB/01_ADMESH_Library/</code> → if present,
-  proceed with faithful-port backfill of WS1 (curvature) + WS2
-  (medial_axis) + WS3 (composer) against MATLAB output; append a
-  PORTING_NOTES "resolved clean-room divergence" entry per module.</li>
-<li>If absent, the plan pivots to Phase P2 (<code>06_Bathymetry_Function</code></li>
-<li><code>07_Dominate_Tide</code> + <code>13_In_Paint_NaNs</code>) as clean-room, logs
-  another <code>SOURCE_UNAVAILABLE</code> row, and flags the pattern as a
-  systemic issue (3rd recurrence → amendment proposal).</li>
+<li><strong>Caveman:</strong> NOT loaded (plugin absent from skill menu) → emulated from CLAUDE.md ultra rules.</li>
+<li><strong>DomI drift hard-stop was a FALSE ALARM.</strong> <code>instructions_on_start.sh</code> reported pin <code>3e46639</code> behind sibling <code>69b073d</code> — but that stale pin was on the harness-injected <code>claude/modest-clarke-htcmbx</code> branch. <code>development</code> already had the correct pin (<code>69b073d</code>, synced by hour-07 <code>2372ab2</code>). My initial <code>update_pin.sh</code> on the wrong branch + stash-pop produced only a <code>pinned_at:</code> timestamp churn commit → reset it. Lesson: switch to <code>development</code> BEFORE running the drift check / pin refresh; the startup hook runs against whatever branch the harness drops you on.</li>
+<li><strong>#154 ENPAC migration verified complete</strong> on <code>development</code> @ <code>1be70ef</code>: <code>bench_enpac.py</code> (syntax-clean), <code>enpac_boundary.json</code> (canonical schema, 10,365-node ring), <code>compare_versions.py</code> <code>--domain</code>-parametrized, WNAT retained as smoke (#158 fixed its schema bug), docs (README/BENCHMARK_DELIVERABLE/PROJECT_PLAN) all carry the standard-switch. Only deferred cKDTree perf item remains (separate ticket). Merge-ready via #163.</li>
+<li><strong>Fresh-bug queue empty:</strong> #133 (spec-028), #158, #155 all fixed-pending-merge on <code>development</code>. Remaining open issues are research/someday/brainstorm (#86/#90/#99/#152/#160/#8/#25) or needs-operator (#140).</li>
 </ul>
-<h2 id="live-interrupts">Live interrupts<a class="headerlink" href="#live-interrupts" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>time</th>
-<th>trigger</th>
-<th>ws</th>
-<th>was_doing</th>
-<th>user_said</th>
-<th>cost</th>
-<th>lesson</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>2026-04-23T(start)</td>
-<td>SOURCE_UNAVAILABLE</td>
-<td>WS1</td>
-<td>Trying to read CurvatureFunction.m</td>
-<td>N/A (env lacks clone)</td>
-<td>med</td>
-<td>New trigger class. Pivoted to clean-room; flagged for faithful-port backfill.</td>
-</tr>
-</tbody>
-</table>
+<h2 id="branch-pr-state">Branch / PR state<a class="headerlink" href="#branch-pr-state" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>development</code> @ <code>1be70ef</code>, 136 ahead / 4 behind <code>origin/main</code>.</li>
+<li>Rolling PR <strong>#163</strong> (<code>development → main</code>, draft) up to date from hour-07; no new commits this slot → not touched.</li>
+<li>Operator-flagged: <code>main → development</code> reconcile advised before #163 merge (#162 introspect-corpus migration on main; potential <code>docs/introspections/</code> conflict). NOT auto-performed (operator reconciliation, high-risk).</li>
+</ul>
+<h2 id="next-steps">Next steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Operator: merge #163 (<code>development → main</code>) → auto-closes #133/#155/#158/#154; redeploys Pages demo (verifies #133 browser-behavioral acceptance).</li>
+<li>Consider <code>main → development</code> reconcile first (corpus-migration conflict risk).</li>
+<li>Future slot: cKDTree/vectorized segment-distance perf item (ENPAC SDF ≈ 2 ms/pt) — file as own ticket if not already.</li>
+</ul>
+<h2 id="open-questions">Open questions<a class="headerlink" href="#open-questions" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Should the harness <code>claude/*</code> branch's stale <code>.domi-pin</code> be a hard-stop at all? It repeatedly trips the drift gate before the session can switch to <code>development</code>. Candidate DomI improvement: run drift check AFTER branch-switch in <code>instructions_on_start.sh</code>. (Pain logged; #203 probation = no new request:skill.)</li>
+</ul>
 
 
 
 
 
 
+
+  
+  
 
 
 
