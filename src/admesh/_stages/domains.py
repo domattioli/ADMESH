@@ -13,6 +13,21 @@ The 5 domains mirror the MVP acceptance set declared in
 - ``unit_disk``         — smooth curved boundary
 - ``annulus``           — doubly-connected topology
 - ``notched_rectangle`` — tight pinch / keyhole stress test
+
+Does NOT belong in the ``valence-domains`` registry (see #165). Two reasons:
+
+1. The :class:`Domain` SDF dataclass below is core engine infrastructure —
+   the locked faithful-port stages ``routine.py`` (01) and ``boundary.py``
+   (08) import it directly. Moving it downstream would invert the dependency
+   direction (ADMESH is the engine; Valence is the data registry that
+   consumes it) and break Constitution-Principle-I-locked modules.
+2. The 5 domains here are *synthetic* SDF toy fixtures. Valence's Mesh
+   Acquisition Policy hard-stops on synthetic meshes — it catalogs real,
+   provenanced ADCIRC grids only, and its ``Domain`` is a geographic
+   grouping of real meshes, a different concept entirely.
+
+Real-mesh registry redundancy with Valence was already resolved by the
+spec-005 registry adapter (``registry.py`` → ``valence-domains``, PR #159).
 """
 
 from __future__ import annotations
