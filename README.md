@@ -42,8 +42,7 @@
 
 ## Status & Roadmap
 
-**Current status (June 2026): Stable and actively-maintained.
-** Octree adaptive background grid (`background="octree"`) to improve medial axis and channel feature widths.
+**Current status (June 2026): stable and actively maintained.** Most recent feature: an octree adaptive background grid (`background="octree"`) that improves medial-axis and channel-feature width resolution.
 
 - **Now:** address open issues.
 - **Next:** enhanced pre- and post-processing for quality improvement; performance optimization; evaluate a C++ or Rust backend; parallelization.
