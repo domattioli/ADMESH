@@ -76,7 +76,8 @@ class TestNotchedRectangleBoundaryCoverage:
     """Verify that 1D seeding guarantees adequate notch-wall node coverage."""
 
     @pytest.fixture(scope="class")
-    def mesh(self):
+    @staticmethod
+    def mesh():
         p, t = triangulate(NOTCHED_RECTANGLE, h0=0.05, seed=0, niter=300)
         return p, t
 
