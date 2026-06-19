@@ -188,3 +188,6 @@ scripts/viz_data/
 
 # Octave/MATLAB intermediate fixture exports (.npz is the committed artifact)
 tests/fixtures/matlab/*.mat
+
+# Self-referential symlink injected by the cloud session harness (-> /workspace); never commit
+/ADMESH
