@@ -1,28 +1,27 @@
-<h1 align="center">ADMESH</h1>
+<h1 align="center">
+  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/assets/hero/admesh_delbay_hero.gif" alt="ADMESH meshing Delaware Bay through three stages: initialized point cloud, DistMesh truss-solver relaxation, then FEM smoothing — element color tracks quality from magenta (poor) to cyan (equilateral)." width="100%">
+</h1>
 
 <p align="center">
-  <strong>An ADvanced, automatic unstructured MESH generator for 2D shallow-water models.</strong><br>
-  A faithful Python port of the MATLAB ADMESH library, with a Pythonic API.
+  <strong>An ADvanced, automatic unstructured MESH generator for 2D shallow-water models</strong><br>
+  Python API and port of the original MATLAB library
+
 </p>
 
 <p align="center">
   <strong><a href="https://scholar.google.com/citations?user=IBFSkOcAAAAJ&hl=en">Dominik Mattioli</a><sup>1†</sup>, Colton Conroy, Dustin West, <a href="https://scholar.google.com/citations?user=mYPzjIwAAAAJ&hl=en">Ethan Kubatko</a><sup>2</sup></strong><br>
-  <sup>†</sup>Corresponding author | <sup>1</sup>Unaffiliated | <sup>2</sup>Ohio State University (CHIL)
+  <sup>†</sup>Corresponding author | <sup>1</sup>Unaffiliated | <sup>2</sup>Ohio State University (<a href="https://ceg.osu.edu/computational-hydrodynamics-and-informatics-laboratory"><img src="https://img.shields.io/badge/The CHIL-a7b1b7?labelColor=ba0c2f&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iNCIgeT0iMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjIwIiByeD0iNyIgZmlsbD0iI2ZmZmZmZiIvPjxyZWN0IHg9IjguNSIgeT0iNyIgd2lkdGg9IjciIGhlaWdodD0iMTAiIHJ4PSIzIiBmaWxsPSIjYmEwYzJmIi8+PC9zdmc+" alt="CHIL"></a>)
 </p>
 
 <p align="center">
   <a href="https://pypi.org/project/admesh2D/"><img src="https://img.shields.io/pypi/v/admesh2D.svg?label=PyPI" alt="PyPI version"></a>
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
   <a href="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml"><img src="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <a href="https://github.com/domattioli/ADMESH/issues"><img src="https://img.shields.io/github/issues/domattioli/ADMESH.svg" alt="Open issues"></a>
   <a href="https://doi.org/10.5281/zenodo.20264101"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.20264101-blue" alt="DOI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
 </p>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/assets/hero/admesh_delbay_hero.gif" alt="ADMESH meshing Delaware Bay through three stages: initialized point cloud, DistMesh truss-solver relaxation, then FEM smoothing — element color tracks quality from magenta (poor) to cyan (equilateral)." width="100%">
-  <br>
-  <em>A graded <a href="https://github.com/domattioli/ADMESH-Domains">Delaware Bay</a> mesh — fine in the upper river, coarse in the open bay — evolving through the pipeline: <strong>1.</strong> initialization → <strong>2.</strong> DistMesh truss solver → <strong>3.</strong> FEM smoothing. Element color tracks quality (magenta = poor → cyan = equilateral).</em>
-</p>
 
 > **MATLAB users:** This library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original is kept in-repo at [`src/matlab/`](src/matlab/) for provenance.
 
@@ -30,28 +29,38 @@
 
 ## Table of Contents
 
+- [Status & roadmap](#status--roadmap)
 - [Why ADMESH](#why-admesh)
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Pipeline](#pipeline)
 - [Performance](#performance)
-- [Status & roadmap](#status--roadmap)
 - [Citation](#citation)
 - [Contributing](#contributing) · [Documentation](#documentation) · [License](#license)
 
 ---
 
+## Status & Roadmap
+
+**Current status (June 2026): Stable and actively-maintained.
+** Octree adaptive background grid (`background="octree"`) to improve medial axis and channel feature widths.
+
+- **Now:** address open issues.
+- **Next:** enhanced pre- and post-processing for quality improvement; performance optimization; evaluate a C++ or Rust backend; parallelization.
+- **Future:** formal integration within a unified ecoystem including <a href="https://github.com/domattioli/QuADMESH"><img src="https://img.shields.io/pypi/v/quadmesh?label=QuADMESH&color=f5d0fe&labelColor=c026d3&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI%2BPHBhdGggZD0iTTMgNCBIMjEgTTMgMTIgSDIxIE0zIDIwIEgyMSBNNCAzIFYyMSBNMTIgMyBWMjEgTTIwIDMgVjIxIi8%2BPC9zdmc%2B" alt="QuADMESH PyPI version"></a> and <a href="https://github.com/domattioli/CHILmesh"><img src="https://img.shields.io/pypi/v/chilmesh?label=CHILmesh&color=caf0f8&labelColor=0077b6&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48cGF0aCBkPSJNMSA4IHEzIC00IDYgMCB0NiAwIHQ2IDAgdDYgMCBNMSAxMyBxMyAtNCA2IDAgdDYgMCB0NiAwIHQ2IDAgTTEgMTggcTMgLTQgNiAwIHQ2IDAgdDYgMCB0NiAwIi8%2BPC9zdmc%2B" alt="CHILmesh PyPI version"></a>
+
+---
+
 ## Why ADMESH
 
-For shallow-water modelers who need ADCIRC-ready meshes from Python:
+For shallow-water modelers who need ADCIRC-ready meshes with minimal user input:
 
-- **The port does not change your meshes.** Thirteen stages reproduced 1:1 from the OSU CHIL Lab `01_ADMESH_Library`, with a 430-test suite tracking numerical agreement against the MATLAB reference.
 - **Native ADCIRC `fort.14` I/O.** Bit-faithful read/mesh/write round-trip, including paired-edge boundary records (IBTYPE 3/4/13/24). ADCIRC format only — not gmsh, not generic.
 - **Element size follows the physics.** Size adapts to boundary curvature, channel width, bathymetric gradient, and tidal wavelength through automatic `min`-stack composition; custom contributions layer on top. No hand-tuned scalar.
 - **An adaptive background grid for multiscale domains.** `triangulate(background="octree")` refines the size field on a quadtree instead of a uniform grid, concentrating evaluation where the geometry demands it — opt-in; the uniform grid remains the default.
 - **Pythonic surface, faithful internals.** `Domain` / `Mesh` / `BoundarySegment` are frozen, typed dataclasses; the numerics stay inside the locked faithful-port modules.
 
-Not the right tool for 3-D, anisotropic, or non-triangular elements — use `gmsh` for those.
+Not the right tool for 3-D, anisotropic, or non-triangular elements — use <a href="https://github.com/domattioli/QuADMESH"><img src="https://img.shields.io/pypi/v/quadmesh?label=QuADMESH&color=f5d0fe&labelColor=c026d3&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI%2BPHBhdGggZD0iTTMgNCBIMjEgTTMgMTIgSDIxIE0zIDIwIEgyMSBNNCAzIFYyMSBNMTIgMyBWMjEgTTIwIDMgVjIxIi8%2BPC9zdmc%2B" alt="QuADMESH PyPI version"></a> for quads, or `gmsh` otherwise.
 
 ## Installation
 
@@ -121,14 +130,6 @@ python benchmarks/compare_versions.py --hist \
     --hmin 0.05 --g 0.10 --niter 120
 ```
 
-## Status & roadmap
-
-- **Shipped (v0.5.0).** Pythonic API, fort.14 round-trip, 13-stage faithful port, valence balancing, custom size-field hooks, Numba-JIT SDF/solver kernels. On [PyPI](https://pypi.org/project/admesh2D/) and archived on [Zenodo](https://doi.org/10.5281/zenodo.20264101).
-- **In flight.** Octree adaptive background grid (`background="octree"`); C++ force kernel and native stage rewrite; Gmsh I/O; default size-field-stack consolidation.
-- **Next.** Paired-edge IBTYPE 3/4/13/24 promoted to named `BoundaryType` members; hosted mkdocs site.
-
-Open epics live as labeled issues — see [planning-required](https://github.com/domattioli/ADMESH/issues?q=is%3Aissue+label%3Aplanning-required).
-
 ## Citation
 
 **Algorithm** (cite the original paper):
@@ -149,8 +150,8 @@ API reference lives in the docstrings (`triangulate`, `Domain`, `Mesh`, `Boundar
 
 Issues and pull requests are welcome on [GitHub](https://github.com/domattioli/ADMESH).
 
-- **Theory** (algorithm, size-field formulation, ADCIRC integration): Colton Conroy | Ethan Kubatko — [kubatko.3@osu.edu](mailto:kubatko.3@osu.edu)
-- **Python port** (this repository): Dominik Mattioli — [github.com/domattioli](https://github.com/domattioli)
+- **Theory** (algorithm, size-field formulation, ADCIRC integration): [Colton Conroy](https://github.com/coltonjconroy) | [Ethan Kubatko](https://ceg.osu.edu/people/kubatko.3)
+- **This repository** (python port, active maintenance): [Dominik Mattioli](https://github.com/domattioli)
 
 ## License
 
