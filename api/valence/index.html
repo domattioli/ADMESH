@@ -1624,6 +1624,88 @@ are never altered.</p>
         <p>Return a human-readable valence statistics report for <em>mesh</em>.</p>
 
 
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>mesh</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="admesh.Mesh
+
+
+  
+      dataclass
+   (admesh.api.Mesh)" href="../types/#admesh.Mesh">Mesh</a></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Mesh whose interior-node vertex valences are summarized.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>config</code>
+            </td>
+            <td>
+                  <code><a class="autorefs autorefs-internal" title="admesh.BalanceConfig
+
+
+  
+      dataclass
+   (admesh.valence.BalanceConfig)" href="#admesh.BalanceConfig">BalanceConfig</a> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Valence-balancing configuration; supplies the <code>ideal_valence</code>
+target. Defaults to <code>BalanceConfig()</code> when <code>None</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Multi-line report: interior-node count, min/mean/max valence, and the
+percentage of interior nodes at the ideal valence.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/admesh/valence.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"><a href="#__codelineno-0-207">207</a></span>
@@ -1637,18 +1719,48 @@ are never altered.</p>
 <span class="normal"><a href="#__codelineno-0-215">215</a></span>
 <span class="normal"><a href="#__codelineno-0-216">216</a></span>
 <span class="normal"><a href="#__codelineno-0-217">217</a></span>
-<span class="normal"><a href="#__codelineno-0-218">218</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_valence_report</span><span class="p">(</span><span class="n">mesh</span><span class="p">:</span> <span class="s2">&quot;Mesh&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BalanceConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a human-readable valence statistics report for *mesh*.&quot;&quot;&quot;</span>
-<a id="__codelineno-0-209" name="__codelineno-0-209"></a>    <span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">BalanceConfig</span><span class="p">()</span>
-<a id="__codelineno-0-210" name="__codelineno-0-210"></a>    <span class="n">bnd</span> <span class="o">=</span> <span class="n">_boundary_mask</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
-<a id="__codelineno-0-211" name="__codelineno-0-211"></a>    <span class="n">val</span> <span class="o">=</span> <span class="n">compute_valence</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
-<a id="__codelineno-0-212" name="__codelineno-0-212"></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">_valence_stats</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">ideal_valence</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">bnd</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-<a id="__codelineno-0-213" name="__codelineno-0-213"></a>    <span class="k">return</span> <span class="p">(</span>
-<a id="__codelineno-0-214" name="__codelineno-0-214"></a>        <span class="sa">f</span><span class="s2">&quot;Valence Report (ideal=</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">ideal_valence</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-215" name="__codelineno-0-215"></a>        <span class="sa">f</span><span class="s2">&quot;  Interior nodes : </span><span class="si">{</span><span class="nb">int</span><span class="p">((</span><span class="o">~</span><span class="n">bnd</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-216" name="__codelineno-0-216"></a>        <span class="sa">f</span><span class="s2">&quot;  Min/Mean/Max   : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">min_val</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_val</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-<a id="__codelineno-0-217" name="__codelineno-0-217"></a>        <span class="sa">f</span><span class="s2">&quot;  At ideal       : </span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">s</span><span class="o">.</span><span class="n">pct_at_ideal</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
-<a id="__codelineno-0-218" name="__codelineno-0-218"></a>    <span class="p">)</span>
+<span class="normal"><a href="#__codelineno-0-218">218</a></span>
+<span class="normal"><a href="#__codelineno-0-219">219</a></span>
+<span class="normal"><a href="#__codelineno-0-220">220</a></span>
+<span class="normal"><a href="#__codelineno-0-221">221</a></span>
+<span class="normal"><a href="#__codelineno-0-222">222</a></span>
+<span class="normal"><a href="#__codelineno-0-223">223</a></span>
+<span class="normal"><a href="#__codelineno-0-224">224</a></span>
+<span class="normal"><a href="#__codelineno-0-225">225</a></span>
+<span class="normal"><a href="#__codelineno-0-226">226</a></span>
+<span class="normal"><a href="#__codelineno-0-227">227</a></span>
+<span class="normal"><a href="#__codelineno-0-228">228</a></span>
+<span class="normal"><a href="#__codelineno-0-229">229</a></span>
+<span class="normal"><a href="#__codelineno-0-230">230</a></span>
+<span class="normal"><a href="#__codelineno-0-231">231</a></span>
+<span class="normal"><a href="#__codelineno-0-232">232</a></span>
+<span class="normal"><a href="#__codelineno-0-233">233</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-207" name="__codelineno-0-207"></a><span class="k">def</span><span class="w"> </span><span class="nf">get_valence_report</span><span class="p">(</span><span class="n">mesh</span><span class="p">:</span> <span class="s2">&quot;Mesh&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">BalanceConfig</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-0-208" name="__codelineno-0-208"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a human-readable valence statistics report for *mesh*.</span>
+<a id="__codelineno-0-209" name="__codelineno-0-209"></a>
+<a id="__codelineno-0-210" name="__codelineno-0-210"></a><span class="sd">    Parameters</span>
+<a id="__codelineno-0-211" name="__codelineno-0-211"></a><span class="sd">    ----------</span>
+<a id="__codelineno-0-212" name="__codelineno-0-212"></a><span class="sd">    mesh : Mesh</span>
+<a id="__codelineno-0-213" name="__codelineno-0-213"></a><span class="sd">        Mesh whose interior-node vertex valences are summarized.</span>
+<a id="__codelineno-0-214" name="__codelineno-0-214"></a><span class="sd">    config : BalanceConfig | None, optional</span>
+<a id="__codelineno-0-215" name="__codelineno-0-215"></a><span class="sd">        Valence-balancing configuration; supplies the ``ideal_valence``</span>
+<a id="__codelineno-0-216" name="__codelineno-0-216"></a><span class="sd">        target. Defaults to ``BalanceConfig()`` when ``None``.</span>
+<a id="__codelineno-0-217" name="__codelineno-0-217"></a>
+<a id="__codelineno-0-218" name="__codelineno-0-218"></a><span class="sd">    Returns</span>
+<a id="__codelineno-0-219" name="__codelineno-0-219"></a><span class="sd">    -------</span>
+<a id="__codelineno-0-220" name="__codelineno-0-220"></a><span class="sd">    str</span>
+<a id="__codelineno-0-221" name="__codelineno-0-221"></a><span class="sd">        Multi-line report: interior-node count, min/mean/max valence, and the</span>
+<a id="__codelineno-0-222" name="__codelineno-0-222"></a><span class="sd">        percentage of interior nodes at the ideal valence.</span>
+<a id="__codelineno-0-223" name="__codelineno-0-223"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-224" name="__codelineno-0-224"></a>    <span class="n">cfg</span> <span class="o">=</span> <span class="n">config</span> <span class="ow">or</span> <span class="n">BalanceConfig</span><span class="p">()</span>
+<a id="__codelineno-0-225" name="__codelineno-0-225"></a>    <span class="n">bnd</span> <span class="o">=</span> <span class="n">_boundary_mask</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+<a id="__codelineno-0-226" name="__codelineno-0-226"></a>    <span class="n">val</span> <span class="o">=</span> <span class="n">compute_valence</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+<a id="__codelineno-0-227" name="__codelineno-0-227"></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">_valence_stats</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">cfg</span><span class="o">.</span><span class="n">ideal_valence</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="o">~</span><span class="n">bnd</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<a id="__codelineno-0-228" name="__codelineno-0-228"></a>    <span class="k">return</span> <span class="p">(</span>
+<a id="__codelineno-0-229" name="__codelineno-0-229"></a>        <span class="sa">f</span><span class="s2">&quot;Valence Report (ideal=</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">ideal_valence</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-230" name="__codelineno-0-230"></a>        <span class="sa">f</span><span class="s2">&quot;  Interior nodes : </span><span class="si">{</span><span class="nb">int</span><span class="p">((</span><span class="o">~</span><span class="n">bnd</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-231" name="__codelineno-0-231"></a>        <span class="sa">f</span><span class="s2">&quot;  Min/Mean/Max   : </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">min_val</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">mean_val</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">max_val</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-232" name="__codelineno-0-232"></a>        <span class="sa">f</span><span class="s2">&quot;  At ideal       : </span><span class="si">{</span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">s</span><span class="o">.</span><span class="n">pct_at_ideal</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
