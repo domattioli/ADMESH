@@ -144,6 +144,22 @@ def read_msh(path: "str | os.PathLike[str] | TextIO") -> Mesh:
     Triangles become ``Mesh.elements`` (0-based); dim-1 physical groups
     become ordered :class:`BoundarySegment` records; node ``z`` becomes
     ``bathymetry`` when any value is non-zero.
+
+    Parameters
+    ----------
+    path : str | os.PathLike[str] | TextIO
+        Source ``.msh`` file path, or an already-open text stream.
+
+    Returns
+    -------
+    Mesh
+        Mesh with 0-based triangle connectivity, ordered boundary segments
+        recovered from dim-1 physical groups, and bathymetry from node ``z``.
+
+    Raises
+    ------
+    GmshParseError
+        If the file is not ASCII Gmsh format 2.x or is otherwise malformed.
     """
     lines, handle = _open_text(path)
     cursor = _Cursor(lines)
@@ -306,6 +322,28 @@ def write_msh(
     Emits a dim-2 ``domain`` physical group for the triangles and one
     dim-1 group per boundary segment (``<label>_<index>``). Node ``z``
     carries bathymetry/elevation (``0`` when unset).
+
+    Parameters
+    ----------
+    mesh : Mesh
+        Triangulation to serialize. Triangles, boundary segments, and optional
+        bathymetry are written.
+    path : str | os.PathLike[str] | TextIO
+        Destination file path, or an already-open text stream (written to in
+        place and left open by the caller).
+    precision : int, optional
+        Number of decimal places for emitted coordinates (default ``6``).
+        Must be ``>= 1``.
+
+    Returns
+    -------
+    None
+        The mesh is written to ``path`` for its side effect.
+
+    Raises
+    ------
+    ValueError
+        If ``precision < 1``.
     """
     if precision < 1:
         raise ValueError(f"precision must be ≥ 1, got {precision}")

@@ -329,6 +329,28 @@ def write_fort14(
 
     Applies 0-based → 1-based index conversion and elevation → depth sign
     flip. Coordinates are emitted with ``precision`` decimal places.
+
+    Parameters
+    ----------
+    mesh : Mesh
+        Triangulation to serialize. Node coordinates, element connectivity,
+        optional bathymetry, and boundary segments are all written.
+    path : str | os.PathLike[str] | TextIO
+        Destination file path, or an already-open text stream (written to in
+        place and left open by the caller).
+    precision : int, optional
+        Number of decimal places for emitted coordinates (default ``6``).
+        Must be ``>= 1``.
+
+    Returns
+    -------
+    None
+        The mesh is written to ``path`` for its side effect.
+
+    Raises
+    ------
+    ValueError
+        If ``precision < 1``.
     """
     if precision < 1:
         raise ValueError(f"precision must be ≥ 1, got {precision}")
