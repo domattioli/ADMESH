@@ -158,3 +158,43 @@ coords = [[0, 0], [1, 0], [1, 1], [0, 1]]
 
     assert domain.pfix is None
     assert domain.bbox == (0.0, 0.0, 1.0, 1.0)
+
+
+def test_load_domain_from_fort14():
+    """Test fort.14 loader with land boundaries."""
+    fixture_path = "tests/fixtures/fort14/adcirc_examples/wetting_and_drying_test.14"
+    domain = load_domain_from_fort14(fixture_path)
+
+    assert isinstance(domain, Domain)
+    assert callable(domain.sdf)
+    assert len(domain.bbox) == 4
+    assert domain.bbox[0] < domain.bbox[2], "bbox min_x < max_x"
+    assert domain.bbox[1] < domain.bbox[3], "bbox min_y < max_y"
+
+    assert domain.pfix is not None
+    assert domain.pfix.shape == (3, 2)
+
+    # Test SDF evaluation at bbox center
+    cx = (domain.bbox[0] + domain.bbox[2]) / 2
+    cy = (domain.bbox[1] + domain.bbox[3]) / 2
+    p_center = np.array([[cx, cy]])
+    d_center = domain.sdf(p_center)
+    assert d_center[0] < 0, "Point at bbox center should be inside domain"
+
+
+def test_load_domain_from_fort14_no_land_boundary():
+    """Test fort.14 loader error when no land boundary exists."""
+    fixture_path = "tests/fixtures/fort14/adcirc_examples/wnat_test.14"
+
+    with pytest.raises(ValueError, match="No land boundary"):
+        load_domain_from_fort14(fixture_path)
+
+
+def test_json_missing_rings(tmp_path):
+    """Test JSON loader error on missing rings."""
+    json_data = {"name": "bad", "bbox": [0, 0, 1, 1]}
+    file_path = tmp_path / "bad.json"
+    file_path.write_text(json.dumps(json_data))
+
+    with pytest.raises(ValueError, match="rings must contain at least one ring"):
+        load_domain_from_json(file_path)
