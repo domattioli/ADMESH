@@ -71,7 +71,7 @@ Test asserts parity to `atol=1e-10`. Public `solve_iter()` dispatches to Numba b
 
 ## Spec-Kit Integration
 
-Active feature spec tracked in docs. All specs live under `specs/NNN-feature-name/` with: spec.md, plan.md, research.md, data-model.md, quickstart.md, tasks.md.
+Active feature spec tracked in docs. All specs live under `.specify/specs/NNN-feature-name/` with: spec.md, plan.md, research.md, data-model.md, quickstart.md, tasks.md.
 
 Constitution Principle I: 13 faithful-port modules stay numerically identical. Specs 001–005 are additive.
 

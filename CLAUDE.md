@@ -194,7 +194,7 @@ scripts/
   wnat_demo.py                 # WNAT structural-validity gate driver
   pre_tag_check.sh             # release-gate pre-flight
 
-specs/
+.specify/specs/
   001-pythonize-and-fort14-integration/  # SHIPPED — Pythonic API + fort.14 I/O
   002-size-field-defaults/               # IN-FLIGHT — default size-field stack (0.1.0 blocker)
   004-quad-prep-smoother/                # IN-FLIGHT — pre-quad triangle smoother

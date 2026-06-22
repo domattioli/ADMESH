@@ -205,7 +205,22 @@ def balance_valence_triangles(
 
 
 def get_valence_report(mesh: "Mesh", config: BalanceConfig | None = None) -> str:
-    """Return a human-readable valence statistics report for *mesh*."""
+    """Return a human-readable valence statistics report for *mesh*.
+
+    Parameters
+    ----------
+    mesh : Mesh
+        Mesh whose interior-node vertex valences are summarized.
+    config : BalanceConfig | None, optional
+        Valence-balancing configuration; supplies the ``ideal_valence``
+        target. Defaults to ``BalanceConfig()`` when ``None``.
+
+    Returns
+    -------
+    str
+        Multi-line report: interior-node count, min/mean/max valence, and the
+        percentage of interior nodes at the ideal valence.
+    """
     cfg = config or BalanceConfig()
     bnd = _boundary_mask(mesh)
     val = compute_valence(mesh.elements)
