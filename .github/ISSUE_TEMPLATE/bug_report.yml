@@ -36,18 +36,6 @@ body:
         2. Observe error...
     validations:
       required: true
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      description: "Informational — maintainer applies the label. Default: `priority: normal`."
-      options:
-        - "now"
-        - "normal"
-        - "someday"
-      default: 1
-    validations:
-      required: true
   - type: textarea
     id: env
     attributes:
