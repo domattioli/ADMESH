@@ -2,166 +2,130 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://admesh.domattioli.com/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/ADMESH_DOMAINS_CONTRACT/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/BENCHMARK_DELIVERABLE/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/CONTACT_LOG/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/DOMAIN_IO/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/HOOKS-AUDIT/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/PFIX_CONTRACT/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/PORTING_NOTES/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/PUBLISH_RELEASE/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/PYPI_CLAIM_TASKS/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/SCRIPT_AUDIT/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/contributing/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/persistence_journal/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/quickstart/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/testing/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/adr/ADR-001-chilmesh-boundary/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/io/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/loaders/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/quality/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/size_field/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/triangulate/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/types/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/api/valence/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/governance/CONSTITUTION/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/governance/PROJECT_PLAN/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/2026-06-15T07Z-admesh-rotation/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/2026-06-15T09Z-admesh-rotation/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/2026-06-17T17Z-admesh-rotation/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/2026-06-18T17Z-admesh-rotation/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/2026-06-20T09Z-admesh-rotation/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-12T19Z/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T01Z/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T07Z/</loc>
-         <lastmod>2026-06-25</lastmod>
-    </url>
-    <url>
-         <loc>https://admesh.domattioli.com/introspections/rotation_2026-06-13T13Z/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/SPEC_005_GMSH_IO/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/TASKS_005_GMSH_IO/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/issue-57-audits/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/issue-57-plan/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/issue-57-specification/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/planning/issue-57-tasks/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
     <url>
          <loc>https://admesh.domattioli.com/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY/</loc>
-         <lastmod>2026-06-25</lastmod>
+         <lastmod>2026-06-29</lastmod>
     </url>
 </urlset>
