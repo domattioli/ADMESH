@@ -191,3 +191,6 @@ tests/fixtures/matlab/*.mat
 
 # Self-referential symlink injected by the cloud session harness (-> /workspace); never commit
 /ADMESH
+.introspect/
+docs/introspections/
+.planning/introspections/
