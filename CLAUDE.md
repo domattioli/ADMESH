@@ -32,7 +32,7 @@ This repo = downstream consumer of [`domattioli/DomI`](https://github.com/domatt
 **Plumbing:**
 - `.domi-pin` (committed) — ledger of upstream SHA + MANIFEST.md sha256.
 - `scripts/instructions_on_start.sh` — startup hook with drift gate.
-- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed from DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
+- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed from DomI marketplace (`claude plugin marketplace add domattioli/DomI`). In practice the marketplace `add` step fails from this network in most sessions (see corpus entries `development_2feb33a`, `development_848293d`, `rotation_2026-06-12T19Z`, `cpp-distmesh_d69677b`, `daily-issue-fixing_ca1fcb4`); the documented fallback is a sibling clone of `domattioli/DomI` (or the DomI plugin-cache directory if already present from a prior session) read directly, without going through the marketplace network path.
 
 **MUST NOT** edit DomI-owned skills directly in this repo. Submit changes upstream via `request-from-domi`; downstream = pull-only.
 
