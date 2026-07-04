@@ -5,7 +5,7 @@
 Operational reference for Claude Code sessions on ADMESH.
 
 **Read these three at every session start (in order):**
-`CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md`.
+`docs/governance/CONSTITUTION.md` → `docs/governance/PROJECT_PLAN.md` → `CLAUDE.md`.
 
 If CLAUDE.md contradicts constitution, constitution wins.
 
@@ -13,7 +13,7 @@ If CLAUDE.md contradicts constitution, constitution wins.
 
 ## Project overview
 
-Python port of `01_ADMESH_Library` from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See `CONSTITUTION.md` Article I for north star; Article II for hard rules (faithful port, no C extensions in first cut, 0-based indexing).
+Python port of `01_ADMESH_Library` from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See `docs/governance/CONSTITUTION.md` Article I for north star; Article II for hard rules (faithful port, no C extensions in first cut, 0-based indexing).
 
 Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch `main`). Source tree of interest: `01_ADMESH_Library/`.
 
@@ -50,7 +50,7 @@ skipping a sync.
 routine targeting this repo):
 
 > Read https://raw.githubusercontent.com/domattioli/DomI/main/claude_routine_instructions.md
-> then CONSTITUTION.md → PROJECT_PLAN.md → CLAUDE.md.
+> then docs/governance/CONSTITUTION.md → docs/governance/PROJECT_PLAN.md → CLAUDE.md.
 
 ---
 
@@ -285,11 +285,11 @@ Test in `tests/test_mesh_size.py` asserts they agree to `atol=1e-10` on fixed in
 ## Session cadence (lightweight)
 
 Each working session:
-1. **Orient** — read `CONSTITUTION.md`, `PROJECT_PLAN.md`, this file.
-2. **Pick stage** from current phase in `PROJECT_PLAN.md`.
+1. **Orient** — read `docs/governance/CONSTITUTION.md`, `docs/governance/PROJECT_PLAN.md`, this file.
+2. **Pick stage** from current phase in `docs/governance/PROJECT_PLAN.md`.
 3. **Port** MATLAB source, committing per file/function.
 4. **Test** against fixtures; iterate until green.
-5. **Commit + push.** Update `PROJECT_PLAN.md` "Where we are today" if phase milestone landed.
+5. **Commit + push.** Update `docs/governance/PROJECT_PLAN.md` "Where we are today" if phase milestone landed.
 
 No mandatory session reports, no 4-agent planning, no dispatch queue — this = port, not research project. Keep simple.
 
