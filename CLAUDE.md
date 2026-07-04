@@ -5,7 +5,7 @@
 Operational reference for Claude Code sessions on ADMESH.
 
 **Read these three at every session start (in order):**
-`CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md`.
+`docs/governance/CONSTITUTION.md` → `docs/governance/PROJECT_PLAN.md` → `CLAUDE.md`.
 
 If CLAUDE.md contradicts constitution, constitution wins.
 
@@ -13,9 +13,11 @@ If CLAUDE.md contradicts constitution, constitution wins.
 
 ## Project overview
 
-Python port of `01_ADMESH_Library` from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See `CONSTITUTION.md` Article I for north star; Article II for hard rules (faithful port, no C extensions in first cut, 0-based indexing).
+Python port of `01_ADMESH_Library` from [`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB) at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. See `docs/governance/CONSTITUTION.md` Article I for north star; Article II for hard rules (faithful port, no C extensions in first cut, 0-based indexing).
 
 Local MATLAB reference clone: `/workspace/QuADMesh-MATLAB` (branch `main`). Source tree of interest: `01_ADMESH_Library/`.
+
+**Package:** Published on PyPI as `admesh2D` (v0.5.1+). Installed with `pip install admesh2D[dev]`. Source lives in `src/admesh/` per PEP 517 layout.
 
 ---
 
@@ -50,7 +52,7 @@ skipping a sync.
 routine targeting this repo):
 
 > Read https://raw.githubusercontent.com/domattioli/DomI/main/claude_routine_instructions.md
-> then CONSTITUTION.md → PROJECT_PLAN.md → CLAUDE.md.
+> then docs/governance/CONSTITUTION.md → docs/governance/PROJECT_PLAN.md → CLAUDE.md.
 
 ---
 
@@ -141,29 +143,29 @@ See `docs/DOMAIN_IO.md` for complete examples + format specifications.
 
 Package has **two layers**:
 
-1. **Faithful-port stage modules** (Constitution Principle I — locked, must stay numerically identical to MATLAB). One module per MATLAB stage, bottom-up dependency order.
-2. **Additive Pythonic API layer** (spec-001 through spec-005). Public user-facing surface — `triangulate()`, `Mesh`, `Domain`, fort.14 I/O, loaders, registry integration, viz, quad-prep. Composes stage modules; never modifies them.
+1. **Faithful-port stage modules** (Constitution Principle I — locked, must stay numerically identical to MATLAB). One module per MATLAB stage, bottom-up dependency order. Located in `src/admesh/_stages/`.
+2. **Additive Pythonic API layer** (spec-001+ ~ spec-029). Public user-facing surface — `triangulate()`, `Mesh`, `Domain`, fort.14 I/O, loaders, registry integration, viz, quad-prep. Composes stage modules; never modifies them.
 
 ```
-admesh/
+src/admesh/
   __init__.py          # public API re-exports (Domain, Mesh, triangulate, …)
 
-  # Faithful-port stage modules (locked) ------------------------------
-  routine.py           # 01 — top-level driver (ADmeshRoutine, ADmeshSubMeshRoutine)
-  background_grid.py   # 02 — CreateBackgroundGrid
-  distance.py          # 03 — SignedDistanceFunction, PTS2PointList
-  curvature.py         # 04 — CurvatureFunction
-  medial_axis.py       # 05 — MedialAxisFunction, TriMedialAxisFunction, medial_distance_FMM
-  bathymetry.py        # 06 — BathymetryFunction
-  dominate_tide.py     # 07 — DominateTideFunction
-  boundary.py          # 08 — EnforceBoundaryConditions, create_polygon_structure
-  mesh_size.py         # 09 — MeshSizeFunction + Numba-JIT iterative solver
-  distmesh.py          # 10 — distmesh2d + fixmesh (triangulation only; tri2quad out of scope)
-  quality.py           # 11 — MeshQuality
-  in_polygon.py        # 12 — InPolygon
-  inpaint.py           # 13 — inpaint_nans
+  _stages/             # Faithful-port MATLAB stage modules (locked) -----------
+    routine.py           # 01 — top-level driver (ADmeshRoutine, ADmeshSubMeshRoutine)
+    background_grid.py   # 02 — CreateBackgroundGrid
+    distance.py          # 03 — SignedDistanceFunction, PTS2PointList
+    curvature.py         # 04 — CurvatureFunction
+    medial_axis.py       # 05 — MedialAxisFunction, TriMedialAxisFunction, medial_distance_FMM
+    bathymetry.py        # 06 — BathymetryFunction
+    dominate_tide.py     # 07 — DominateTideFunction
+    boundary.py          # 08 — EnforceBoundaryConditions, create_polygon_structure
+    mesh_size.py         # 09 — MeshSizeFunction + Numba-JIT iterative solver
+    distmesh.py          # 10 — distmesh2d + fixmesh (triangulation only; tri2quad out of scope)
+    quality.py           # 11 — MeshQuality
+    in_polygon.py        # 12 — InPolygon
+    inpaint.py           # 13 — inpaint_nans
 
-  # Additive Pythonic API layer (spec-001+, strictly composes above)
+  # Additive Pythonic API layer (spec-001+, strictly composes _stages/)
   api.py               # spec-001 — Domain/Mesh/BoundarySegment dataclasses + triangulate()
   boundary_types.py    # spec-001 — BoundaryType enum (ADCIRC IBTYPE codes incl. 3/4/13/24)
   fort14.py            # spec-001 — read_fort14 / write_fort14 round-trip I/O
@@ -173,6 +175,8 @@ admesh/
   viz.py               # optional matplotlib mesh.plot() (extras=[viz])
   quad_prep.py         # spec-004 — smooth_for_quadrangulation (right-isoceles smoother)
   registry.py          # spec-005 — load_domain_from_registry, list_available_domains
+
+  _cpp/                # Optional C++ extensions (post-v0.5.1 exploration)
 
 tests/
   test_<stage>.py              # faithful-port stage tests (one per stage)
@@ -194,9 +198,10 @@ scripts/
   wnat_demo.py                 # WNAT structural-validity gate driver
   pre_tag_check.sh             # release-gate pre-flight
 
-.specify/specs/
+.specify/specs/                # ~29 active specs (001–029 range)
   001-pythonize-and-fort14-integration/  # SHIPPED — Pythonic API + fort.14 I/O
   002-size-field-defaults/               # IN-FLIGHT — default size-field stack (0.1.0 blocker)
+  003/ through 029/                      # Additional feature/refactor specs (see .specify/specs/ for full list)
   004-quad-prep-smoother/                # IN-FLIGHT — pre-quad triangle smoother
   005-adcirc-mesh-registry/              # IN-FLIGHT — federated mesh registry
 
@@ -285,11 +290,11 @@ Test in `tests/test_mesh_size.py` asserts they agree to `atol=1e-10` on fixed in
 ## Session cadence (lightweight)
 
 Each working session:
-1. **Orient** — read `CONSTITUTION.md`, `PROJECT_PLAN.md`, this file.
-2. **Pick stage** from current phase in `PROJECT_PLAN.md`.
+1. **Orient** — read `docs/governance/CONSTITUTION.md`, `docs/governance/PROJECT_PLAN.md`, this file.
+2. **Pick stage** from current phase in `docs/governance/PROJECT_PLAN.md`.
 3. **Port** MATLAB source, committing per file/function.
 4. **Test** against fixtures; iterate until green.
-5. **Commit + push.** Update `PROJECT_PLAN.md` "Where we are today" if phase milestone landed.
+5. **Commit + push.** Update `docs/governance/PROJECT_PLAN.md` "Where we are today" if phase milestone landed.
 
 No mandatory session reports, no 4-agent planning, no dispatch queue — this = port, not research project. Keep simple.
 

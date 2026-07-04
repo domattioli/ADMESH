@@ -1,0 +1,24 @@
+# facts.yml — spec-019 Cycle-2 drift guards for ADMESH
+# Validates that key architectural / structural decisions are not regressed.
+
+facts:
+  - id: domi-pin-wired
+    type: line-match
+    doc: CLAUDE.md
+    expect: '\.domi-pin|DomI Sync Contract|pin.*drift'
+    severity: warn
+    note: "DomI sync contract requires .domi-pin ledger pinned at session start."
+
+  - id: pyproject-version-mentioned
+    type: line-match
+    doc: CLAUDE.md
+    expect: 'pyproject\.toml|version'
+    severity: warn
+    note: "Package configuration lives in pyproject.toml; root CLAUDE.md should mention it."
+
+  - id: specs-ecosystem-scoped
+    type: line-match
+    doc: CLAUDE.md
+    expect: 'spec-00[0-9]|spec-0[1-9][0-9]|\.specify/specs'
+    severity: warn
+    note: "Ecosystem has evolved beyond initial 5 specs (001-005). Docs should note modern spec landscape."
