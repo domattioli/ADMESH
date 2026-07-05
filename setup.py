@@ -81,7 +81,14 @@ if HAS_PYBIND11 and eigen_path is not None:
             ],
             include_dirs=include_dirs,
             language='c++',
-            extra_compile_args=['-O3', '-march=native'] if sys.platform != 'win32' else ['/O2'],
+            # No -march=native: this builds distributed PyPI wheels, not a
+            # local binary. -march=native ties the wheel's instruction set
+            # to the exact build-machine CPU (crashes with "illegal
+            # instruction" on end users' older/different CPUs), and breaks
+            # outright when cross-compiling (cibuildwheel's macOS x86_64
+            # leg on an Apple Silicon arm64 runner resolves "native" to
+            # the host's arm64 CPU while targeting -arch x86_64).
+            extra_compile_args=['-O3'] if sys.platform != 'win32' else ['/O2'],
         ),
     ]
 
