@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADMESH — Interactive Truss-Solver Demo</title>
+<style>
+  :root {
+    --bg: #263238;          /* blue-grey slate, matches mkdocs-material */
+    --panel: #2f3e46;
+    --fg: #eceff1;
+    --muted: #b0bec5;
+    --accent: #42a5f5;
+    --accent2: #66bb6a;
+    --edge: rgba(236,239,241,0.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  header {
+    padding: 1.4rem 1.2rem 1rem; border-bottom: 1px solid var(--edge);
+  }
+  header h1 { margin: 0 0 .3rem; font-size: 1.5rem; font-weight: 600; }
+  header p { margin: 0; color: var(--muted); font-size: .92rem; max-width: 60ch; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 1.2rem; }
+  .controls {
+    display: flex; flex-wrap: wrap; gap: 1rem; align-items: center;
+    background: var(--panel); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;
+  }
+  .controls label { font-size: .82rem; color: var(--muted); display: block; margin-bottom: .25rem; }
+  select, button {
+    background: #37474f; color: var(--fg); border: 1px solid var(--edge);
+    border-radius: 6px; padding: .5rem .7rem; font-size: .9rem; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #0d1b24; border-color: var(--accent); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 820px) { .grid { grid-template-columns: 2fr 1fr; } }
+  .card { background: var(--panel); border-radius: 10px; padding: 1rem; }
+  canvas { width: 100%; height: auto; display: block; background: #1c272c; border-radius: 8px; }
+  .scrubrow { display: flex; align-items: center; gap: .8rem; margin-top: .8rem; }
+  .scrubrow input[type=range] { flex: 1; accent-color: var(--accent); }
+  .stat { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--edge); font-size: .9rem; }
+  .stat:last-child { border-bottom: none; }
+  .stat b { color: var(--accent2); font-variant-numeric: tabular-nums; }
+  .legend { display: flex; gap: 1rem; margin-top: .6rem; font-size: .78rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: .35rem; }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  footer {
+    margin-top: 1.5rem; padding: 1.2rem; background: var(--panel);
+    border-radius: 10px; font-size: .82rem; color: var(--muted);
+  }
+  footer h3 { margin: 0 0 .5rem; color: var(--fg); font-size: .95rem; }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  footer .cite { margin: 0 0 .8rem; }
+  .badge { font-size: .7rem; background: #37474f; padding: .15rem .5rem; border-radius: 20px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding-bottom:0">
+    <h1>ADMESH — Interactive Truss-Solver Demo <span class="badge">prototype</span></h1>
+    <p>Watch the DistMesh force-equilibration solver relax a point cloud into a
+       high-quality unstructured triangular mesh, iteration by iteration. Frames
+       are pre-computed by the real <code>admesh</code> pipeline.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="controls">
+    <div>
+      <label for="domain">Domain</label>
+      <select id="domain"></select>
+    </div>
+    <div>
+      <label for="speed">Speed</label>
+      <select id="speed">
+        <option value="0.5">0.5×</option>
+        <option value="1">1×</option>
+        <option value="2" selected>2×</option>
+        <option value="4">4×</option>
+        <option value="8">8×</option>
+      </select>
+    </div>
+    <div>
+      <label for="inp-hmin">h<sub>min</sub> <span class="badge" title="Phase 2: in-browser compute will use this">phase 2</span></label>
+      <input type="number" id="inp-hmin" value="0.05" min="0.01" max="0.5" step="0.01"
+             style="width:5.5rem;background:#37474f;color:var(--fg);border:1px solid var(--edge);border-radius:6px;padding:.5rem .6rem;font-size:.9rem">
+    </div>
+    <div>
+      <label for="inp-hmax">h<sub>max</sub> <span class="badge" title="Phase 2: in-browser compute will use this">phase 2</span></label>
+      <input type="number" id="inp-hmax" value="0.25" min="0.05" max="1.0" step="0.01"
+             style="width:5.5rem;background:#37474f;color:var(--fg);border:1px solid var(--edge);border-radius:6px;padding:.5rem .6rem;font-size:.9rem">
+    </div>
+    <div>
+      <label for="inp-g">g (gradient) <span class="badge" title="Phase 2: in-browser compute will use this">phase 2</span></label>
+      <input type="number" id="inp-g" value="0.20" min="0.05" max="1.0" step="0.01"
+             title="Size growth rate: 0 = uniform mesh, higher = coarser elements away from center"
+             style="width:5.5rem;background:#37474f;color:var(--fg);border:1px solid var(--edge);border-radius:6px;padding:.5rem .6rem;font-size:.9rem">
+    </div>
+    <div style="align-self:flex-end;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button id="play" class="primary">▶ Play</button>
+      <button id="restart">⟲ Restart</button>
+    </div>
+    <div id="draw-controls" style="align-self:flex-end;display:none;gap:.5rem;flex-wrap:wrap">
+      <button id="close-poly" style="background:#66bb6a;color:#0d1b24;border-color:#66bb6a;font-weight:600">✓ Close polygon</button>
+      <button id="clear-draw">✗ Clear</button>
+    </div>
+    <div style="align-self:flex-end">
+      <button id="btn-compute" style="background:#5c6bc0;border-color:#5c6bc0;color:#fff;font-weight:600">⚡ Compute in browser</button>
+      <button id="btn-stop" style="background:#ef5350;border-color:#ef5350;color:#fff;font-weight:600;display:none">⏹ Stop</button>
+      <span id="compute-status" style="display:block;font-size:.72rem;color:var(--muted);text-align:center;margin-top:.15rem">phase 2 — click to load</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <canvas id="mesh" width="800" height="640"></canvas>
+      <div class="scrubrow">
+        <span id="frameLabel" style="font-variant-numeric:tabular-nums;color:var(--muted);font-size:.85rem">0 / 0</span>
+        <input type="range" id="scrub" min="0" max="0" value="0">
+      </div>
+      <div class="legend">
+        <span><i class="swatch" style="background:#ff00ff"></i> low quality</span>
+        <span><i class="swatch" style="background:#00ffff"></i> high quality</span>
+        <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:18px;height:0;border-top:2px dashed rgba(255,255,255,0.75);display:inline-block;margin-top:1px"></span> input boundary</span>
+      </div>
+      <p style="color:var(--muted);font-size:.8rem;margin:.6rem 0 .3rem">Element size distribution</p>
+      <canvas id="histogram" width="800" height="160" style="background:#1c272c"></canvas>
+    </div>
+
+    <div class="card">
+      <div class="stat"><span>Domain</span><b id="sTitle">—</b></div>
+      <div class="stat"><span>Iteration</span><b id="sIter">—</b></div>
+      <div class="stat"><span>Nodes</span><b id="sNodes">—</b></div>
+      <div class="stat"><span>Elements</span><b id="sElems">—</b></div>
+      <div class="stat"><span>Min quality</span><b id="sQmin">—</b></div>
+      <div class="stat"><span>Mean quality</span><b id="sQmean">—</b></div>
+      <p style="color:var(--muted);font-size:.8rem;margin:.8rem 0 .3rem">Mean quality over iterations</p>
+      <canvas id="chart" width="320" height="120" style="background:#1c272c"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <h3>Citation</h3>
+    <p class="cite">If you use ADMESH, please cite both the algorithm paper and the archived software release.</p>
+    <p class="cite"><strong>Algorithm</strong> — Conroy, C. J., Kubatko, E. J., &amp; West, D. W. (2012).
+      ADMESH: an advanced, automatic unstructured mesh generator for shallow water models.
+      <em>Ocean Dynamics</em>, 62(10), 1503–1517.
+      <a href="https://doi.org/10.1007/s10236-012-0574-0" target="_blank" rel="noopener">doi:10.1007/s10236-012-0574-0</a></p>
+    <p class="cite"><strong>Software</strong> — Mattioli, D. et&nbsp;al. ADMESH (Python port). Zenodo.
+      <a href="https://doi.org/10.5281/zenodo.20264101" target="_blank" rel="noopener">doi:10.5281/zenodo.20264101</a></p>
+    <p style="margin:0"><a href="https://github.com/domattioli/ADMESH" target="_blank" rel="noopener">github.com/domattioli/ADMESH</a>
+      · DistMesh: Persson &amp; Strang, <em>SIAM Review</em> 46(2), 2004.</p>
+  </footer>
+</div>
+
+<script>
+const DATA_BASE = "data/";
+const meshCv = document.getElementById("mesh");
+const mctx = meshCv.getContext("2d");
+const chartCv = document.getElementById("chart");
+const cctx = chartCv.getContext("2d");
+const histCv = document.getElementById("histogram");
+const hctx = histCv.getContext("2d");
+const sel = document.getElementById("domain");
+const scrub = document.getElementById("scrub");
+const playBtn = document.getElementById("play");
+const restartBtn = document.getElementById("restart");
+const speedSel = document.getElementById("speed");
+const frameLabel = document.getElementById("frameLabel");
+
+let current = null;   // loaded domain {frames, bbox, ...}
+let frameIdx = 0;
+let playing = false;
+let lastTs = 0;
+let zoomScale = 1.0, panX = 0, panY = 0;
+let isPanning = false, panStartX = 0, panStartY = 0;
+let isComputing = false;
+
+// --- triangle quality (radius-ratio form, matches admesh mesh_quality) ----
+function triQuality(ax, ay, bx, by, cx, cy) {
+  const a = Math.hypot(bx - cx, by - cy);
+  const b = Math.hypot(cx - ax, cy - ay);
+  const c = Math.hypot(ax - bx, ay - by);
+  const denom = a * b * c;
+  if (denom === 0) return 0;
+  return ((b + c - a) * (c + a - b) * (a + b - c)) / denom;
+}
+
+function qColor(q) {
+  // cool colormap: 0 -> magenta, 1 -> cyan
+  const t = Math.max(0, Math.min(1, q));
+  const r = Math.round(255 * (1 - t));
+  const g = Math.round(255 * t);
+  const b = 255;
+  return `rgb(${r},${g},${b})`;
+}
+
+function fitTransform(bbox, w, h, pad) {
+  const [x0, y0, x1, y1] = bbox;
+  const sx = (w - 2 * pad) / (x1 - x0);
+  const sy = (h - 2 * pad) / (y1 - y0);
+  const s = Math.min(sx, sy);
+  const ox = pad + (w - 2 * pad - s * (x1 - x0)) / 2;
+  const oy = pad + (h - 2 * pad - s * (y1 - y0)) / 2;
+  // flip y so domain y-up renders correctly; apply zoom/pan
+  const scale = s * zoomScale;
+  return (px, py) => [ox + scale * (px - x0) + panX, h - (oy + scale * (py - y0)) + panY];
+}
+
+function drawFrame(i) {
+  if (!current) return;
+  const fr = current.frames[i];
+  const w = meshCv.width, h = meshCv.height;
+  mctx.clearRect(0, 0, w, h);
+  const T = fitTransform(current.bbox, w, h, 24);
+  // t === null means "same topology as the previous frame" (payload dedupe).
+  let TR = fr.t;
+  if (TR === null) {
+    for (let j = i; j >= 0; j--) { if (current.frames[j].t !== null) { TR = current.frames[j].t; break; } }
+  }
+  const P = fr.p;
+  // fill triangles by quality
+  for (let k = 0; k < TR.length; k++) {
+    const [ia, ib, ic] = TR[k];
+    const [ax, ay] = T(P[ia][0], P[ia][1]);
+    const [bx, by] = T(P[ib][0], P[ib][1]);
+    const [cx, cy] = T(P[ic][0], P[ic][1]);
+    const q = triQuality(P[ia][0], P[ia][1], P[ib][0], P[ib][1], P[ic][0], P[ic][1]);
+    mctx.beginPath();
+    mctx.moveTo(ax, ay); mctx.lineTo(bx, by); mctx.lineTo(cx, cy); mctx.closePath();
+    mctx.fillStyle = qColor(q);
+    mctx.globalAlpha = 0.85; mctx.fill(); mctx.globalAlpha = 1;
+    mctx.strokeStyle = "rgba(28,39,44,0.9)"; mctx.lineWidth = 0.6; mctx.stroke();
+  }
+  // domain boundary rings
+  if (current.boundary && current.boundary.length) {
+    mctx.save();
+    mctx.strokeStyle = "rgba(255,255,255,0.85)";
+    mctx.lineWidth = 1.8;
+    mctx.setLineDash([5, 4]);
+    for (const ring of current.boundary) {
+      if (!ring.length) continue;
+      mctx.beginPath();
+      const [rx0, ry0] = T(ring[0][0], ring[0][1]);
+      mctx.moveTo(rx0, ry0);
+      for (let ri = 1; ri < ring.length; ri++) {
+        const [rxi, ryi] = T(ring[ri][0], ring[ri][1]);
+        mctx.lineTo(rxi, ryi);
+      }
+      mctx.closePath();
+      mctx.stroke();
+    }
+    mctx.restore();
+  }
+  // scale bar — element size range visualization
+  mctx.save();
+  const scalePixels = 80;
+  const barX = w - 8 - scalePixels, barY = h - 16;
+
+  mctx.strokeStyle = "rgba(236,239,241,0.7)"; mctx.lineWidth = 1;
+  mctx.beginPath(); mctx.moveTo(barX, barY); mctx.lineTo(barX + scalePixels, barY); mctx.stroke();
+  mctx.beginPath(); mctx.moveTo(barX, barY - 3); mctx.lineTo(barX, barY + 3); mctx.stroke();
+  mctx.beginPath(); mctx.moveTo(barX + scalePixels, barY - 3); mctx.lineTo(barX + scalePixels, barY + 3); mctx.stroke();
+  mctx.fillStyle = "rgba(236,239,241,0.6)"; mctx.font = "9px monospace"; mctx.textAlign = "center";
+  mctx.fillText("h range", barX + scalePixels / 2, barY + 10);
+  mctx.restore();
+  // stats
+  document.getElementById("sIter").textContent = fr.iter < 0 ? "final" : fr.iter;
+  document.getElementById("sNodes").textContent = P.length;
+  document.getElementById("sElems").textContent = TR.length;
+  document.getElementById("sQmin").textContent = fr.q_min.toFixed(3);
+  document.getElementById("sQmean").textContent = fr.q_mean.toFixed(3);
+  frameLabel.textContent = `${i + 1} / ${current.frames.length}`;
+  scrub.value = i;
+  drawChart(i);
+  // histogram is decorative — never let a render error abort init/button wiring
+  try { drawHistogram(i); } catch (e) { console.error("drawHistogram:", e); }
+}
+
+function drawChart(upto) {
+  const w = chartCv.width, h = chartCv.height, pad = 6;
+  cctx.clearRect(0, 0, w, h);
+  const fs = current.frames;
+  if (fs.length < 2) return;
+  // gridline at q=1
+  cctx.strokeStyle = "rgba(236,239,241,0.12)"; cctx.lineWidth = 1;
+  cctx.beginPath(); cctx.moveTo(pad, pad); cctx.lineTo(w - pad, pad); cctx.stroke();
+  cctx.beginPath();
+  for (let i = 0; i < fs.length; i++) {
+    const x = pad + (w - 2 * pad) * (i / (fs.length - 1));
+    const y = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[i].q_mean));
+    if (i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
+  }
+  cctx.strokeStyle = "#00ffff"; cctx.lineWidth = 2; cctx.stroke();
+  // marker at current
+  const mx = pad + (w - 2 * pad) * (upto / (fs.length - 1));
+  const my = h - pad - (h - 2 * pad) * Math.max(0, Math.min(1, fs[upto].q_mean));
+  cctx.fillStyle = "#42a5f5"; cctx.beginPath(); cctx.arc(mx, my, 3.5, 0, 7); cctx.fill();
+}
+
+function drawHistogram(i) {
+  if (!current) return;
+  const w = histCv.width, h = histCv.height, pad = 6;
+  hctx.clearRect(0, 0, w, h);
+  const fr = current.frames[i];
+  const P = fr.p;
+  // resolve deduped topology (t === null reuses an earlier frame's t)
+  let TR = fr.t;
+  if (TR === null || TR === undefined) {
+    for (let j = i; j >= 0; j--) { if (current.frames[j].t) { TR = current.frames[j].t; break; } }
+  }
+  if (!TR || !TR.length) return;
+
+  // compute edge lengths and quality
+  const edges = [];
+  for (let k = 0; k < TR.length; k++) {
+    const [ia, ib, ic] = TR[k];
+    const q = triQuality(P[ia][0], P[ia][1], P[ib][0], P[ib][1], P[ic][0], P[ic][1]);
+    const len_ab = Math.hypot(P[ib][0]-P[ia][0], P[ib][1]-P[ia][1]);
+    const len_bc = Math.hypot(P[ic][0]-P[ib][0], P[ic][1]-P[ib][1]);
+    const len_ca = Math.hypot(P[ia][0]-P[ic][0], P[ia][1]-P[ic][1]);
+    edges.push({len: len_ab, q});
+    edges.push({len: len_bc, q});
+    edges.push({len: len_ca, q});
+  }
+
+  if (edges.length === 0) return;
+
+  // min/max edge length — loop, not spread (edges can be 10k+, spread overflows stack)
+  let minLen = Infinity, maxLen = -Infinity;
+  for (const e of edges) { if (e.len < minLen) minLen = e.len; if (e.len > maxLen) maxLen = e.len; }
+  const nbins = Math.min(30, Math.max(5, Math.ceil(Math.sqrt(edges.length))));
+  const binWidth = (maxLen - minLen) / nbins || 0.01;
+  const bins = Array(nbins).fill(null).map(() => ({count: 0, q: 0}));
+
+  for (const e of edges) {
+    const idx = Math.min(nbins - 1, Math.floor((e.len - minLen) / binWidth));
+    bins[idx].count++;
+    bins[idx].q += e.q;
+  }
+  bins.forEach(b => { if (b.count > 0) b.q /= b.count; });
+
+  let maxCount = 0;
+  for (const b of bins) { if (b.count > maxCount) maxCount = b.count; }
+  const xStep = (w - 2*pad) / nbins;
+  const labelH = 24;  // reserved pixels at bottom for axis labels
+
+  for (let i = 0; i < nbins; i++) {
+    const barH = bins[i].count > 0 ? (h - 2*pad - labelH) * (bins[i].count / maxCount) : 0;
+    const x = pad + i * xStep;
+    const y = h - pad - labelH - barH;
+    hctx.fillStyle = qColor(bins[i].q);
+    hctx.fillRect(x + 1, y, xStep - 2, barH);
+  }
+
+  // axis labels — left/right aligned so text stays inside canvas
+  hctx.fillStyle = "rgba(236,239,241,0.55)"; hctx.font = "9px monospace";
+  hctx.textAlign = "left";  hctx.fillText(minLen.toFixed(3), pad, h - 14);
+  hctx.textAlign = "right"; hctx.fillText(maxLen.toFixed(3), w - pad, h - 14);
+  hctx.textAlign = "center"; hctx.fillStyle = "rgba(236,239,241,0.35)";
+  hctx.fillText("edge length", w / 2, h - 2);
+}
+
+function loop(ts) {
+  if (!playing) return;
+  const fps = 12 * parseFloat(speedSel.value);
+  if (ts - lastTs > 1000 / fps) {
+    lastTs = ts;
+    frameIdx++;
+    if (frameIdx >= current.frames.length) { frameIdx = current.frames.length - 1; setPlaying(false); }
+    else drawFrame(frameIdx);
+  }
+  if (playing) requestAnimationFrame(loop);
+}
+
+function setPlaying(p) {
+  playing = p;
+  playBtn.textContent = p ? "⏸ Pause" : "▶ Play";
+  if (p) { if (frameIdx >= current.frames.length - 1) frameIdx = 0; lastTs = 0; requestAnimationFrame(loop); }
+}
+
+async function loadDomain(key) {
+  const res = await fetch(DATA_BASE + key + ".json");
+  current = await res.json();
+  zoomScale = 1.0; panX = 0; panY = 0;
+  document.getElementById("sTitle").textContent = current.title;
+  scrub.max = current.frames.length - 1;
+  frameIdx = 0;
+  drawFrame(0);
+}
+
+// ── draw mode ────────────────────────────────────────────────────────────────
+const DRAW_BBOX = [-1.5, -1.5, 1.5, 1.5];
+const SNAP_PX = 14;
+let drawMode = false, drawVerts = [], drawClosed = false, drawMouse = null;
+let _lastAddTime = 0;
+
+function _dt(wx, wy) {
+  const [x0, y0, x1, y1] = DRAW_BBOX;
+  const w = meshCv.width, h = meshCv.height, pad = 24;
+  const sx = (w - 2*pad)/(x1-x0), sy = (h - 2*pad)/(y1-y0), s = Math.min(sx, sy);
+  const ox = pad + (w - 2*pad - s*(x1-x0))/2, oy = pad + (h - 2*pad - s*(y1-y0))/2;
+  return [ox + s*(wx-x0), h - (oy + s*(wy-y0))];
+}
+function _dti(cx, cy) {
+  const [x0, y0, x1, y1] = DRAW_BBOX;
+  const w = meshCv.width, h = meshCv.height, pad = 24;
+  const sx = (w - 2*pad)/(x1-x0), sy = (h - 2*pad)/(y1-y0), s = Math.min(sx, sy);
+  const ox = pad + (w - 2*pad - s*(x1-x0))/2, oy = pad + (h - 2*pad - s*(y1-y0))/2;
+  return [(cx - ox)/s + x0, (h - cy - oy)/s + y0];
+}
+function _cpx(evt) {
+  const r = meshCv.getBoundingClientRect();
+  return { x: (evt.clientX - r.left) * (meshCv.width / r.width),
+           y: (evt.clientY - r.top) * (meshCv.height / r.height) };
+}
+
+function renderDraw() {
+  const w = meshCv.width, h = meshCv.height;
+  mctx.clearRect(0, 0, w, h);
+  mctx.save();
+  mctx.textAlign = "center"; mctx.textBaseline = "top"; mctx.font = "13px sans-serif";
+  if (!drawClosed) {
+    mctx.fillStyle = "rgba(236,239,241,0.30)";
+    const hint = drawVerts.length === 0
+      ? "Click to place polygon vertices  ·  double-click or snap to first vertex to close"
+      : drawVerts.length < 3
+        ? `${drawVerts.length} vertex${drawVerts.length > 1 ? 'es' : ''}  ·  keep clicking to build polygon`
+        : "Click the first vertex (blue dot) or double-click to close the polygon";
+    mctx.fillText(hint, w/2, 10);
+  } else {
+    mctx.fillStyle = "rgba(102,187,106,0.85)";
+    mctx.fillText("Polygon closed  ·  Phase 2 in-browser compute will mesh this domain", w/2, 10);
+  }
+  if (drawVerts.length === 0) { mctx.restore(); return; }
+  // polygon edges
+  mctx.strokeStyle = "rgba(255,255,255,0.85)"; mctx.lineWidth = 1.8;
+  mctx.setLineDash([5, 4]); mctx.beginPath();
+  const [px0, py0] = _dt(drawVerts[0][0], drawVerts[0][1]);
+  mctx.moveTo(px0, py0);
+  for (let i = 1; i < drawVerts.length; i++) {
+    const [pxi, pyi] = _dt(drawVerts[i][0], drawVerts[i][1]);
+    mctx.lineTo(pxi, pyi);
+  }
+  if (drawClosed) { mctx.closePath(); }
+  mctx.stroke();
+  // rubber-band to cursor
+  if (!drawClosed && drawMouse) {
+    const [lx, ly] = _dt(drawVerts[drawVerts.length-1][0], drawVerts[drawVerts.length-1][1]);
+    mctx.setLineDash([3, 6]); mctx.strokeStyle = "rgba(255,255,255,0.30)";
+    mctx.beginPath(); mctx.moveTo(lx, ly); mctx.lineTo(drawMouse.x, drawMouse.y); mctx.stroke();
+  }
+  mctx.setLineDash([]);
+  // vertex dots
+  for (let i = 0; i < drawVerts.length; i++) {
+    const [vx, vy] = _dt(drawVerts[i][0], drawVerts[i][1]);
+    const r0 = i === 0 ? 6 : 4;
+    if (i === 0 && !drawClosed && drawVerts.length >= 3) {
+      mctx.strokeStyle = "rgba(66,165,245,0.45)"; mctx.lineWidth = 1.2;
+      mctx.beginPath(); mctx.arc(vx, vy, SNAP_PX, 0, 2*Math.PI); mctx.stroke();
+    }
+    mctx.beginPath(); mctx.arc(vx, vy, r0, 0, 2*Math.PI);
+    mctx.fillStyle = i === 0 ? "#42a5f5" : "#eceff1"; mctx.fill();
+    mctx.strokeStyle = "#1c272c"; mctx.lineWidth = 1;
+    mctx.beginPath(); mctx.arc(vx, vy, r0, 0, 2*Math.PI); mctx.stroke();
+  }
+  mctx.restore();
+}
+
+function closePoly() {
+  if (drawVerts.length < 3 || drawClosed) return;
+  drawClosed = true;
+  document.getElementById("close-poly").disabled = true;
+  document.getElementById("sNodes").textContent = drawVerts.length + " (boundary verts)";
+  document.getElementById("sIter").textContent = "—";
+  document.getElementById("sElems").textContent = "—";
+  document.getElementById("sQmin").textContent = "—";
+  document.getElementById("sQmean").textContent = "phase 2 required";
+  frameLabel.textContent = "—";
+  renderDraw();
+}
+
+function enterDrawMode() {
+  drawMode = true; drawVerts = []; drawClosed = false; drawMouse = null;
+  zoomScale = 1.0; panX = 0; panY = 0;
+  meshCv.style.cursor = "crosshair";
+  document.getElementById("draw-controls").style.display = "flex";
+  document.getElementById("close-poly").disabled = false;
+  playBtn.disabled = true; restartBtn.disabled = true; scrub.disabled = true;
+  document.getElementById("sTitle").textContent = "Custom domain";
+  document.getElementById("sIter").textContent = "—";
+  document.getElementById("sNodes").textContent = "0 vertices";
+  document.getElementById("sElems").textContent = "—";
+  document.getElementById("sQmin").textContent = "—";
+  document.getElementById("sQmean").textContent = "phase 2 required";
+  frameLabel.textContent = "—";
+  renderDraw();
+}
+
+function exitDrawMode() {
+  drawMode = false; drawVerts = []; drawClosed = false; drawMouse = null;
+  meshCv.style.cursor = "";
+  document.getElementById("draw-controls").style.display = "none";
+  playBtn.disabled = false; restartBtn.disabled = false; scrub.disabled = false;
+}
+
+meshCv.addEventListener("mousemove", evt => {
+  if (!drawMode || drawClosed) return;
+  drawMouse = _cpx(evt); renderDraw();
+});
+meshCv.addEventListener("mouseleave", () => {
+  if (!drawMode) return; drawMouse = null; renderDraw();
+});
+meshCv.addEventListener("click", evt => {
+  if (!drawMode || drawClosed) return;
+  const {x, y} = _cpx(evt);
+  if (drawVerts.length >= 3) {
+    const [fx, fy] = _dt(drawVerts[0][0], drawVerts[0][1]);
+    if (Math.hypot(x - fx, y - fy) < SNAP_PX) { closePoly(); return; }
+  }
+  const [wx, wy] = _dti(x, y);
+  drawVerts.push([wx, wy]); _lastAddTime = Date.now();
+  document.getElementById("sNodes").textContent = drawVerts.length + " vertices";
+  renderDraw();
+});
+meshCv.addEventListener("dblclick", evt => {
+  if (!drawMode || drawClosed) return;
+  // remove the vertex added by the second click of this double-click, then close
+  if (drawVerts.length > 0 && Date.now() - _lastAddTime < 400) drawVerts.pop();
+  closePoly();
+});
+
+// ── canvas zoom and pan ──────────────────────────────────────────────────────
+meshCv.addEventListener("wheel", evt => {
+  if (!current || drawMode) return;
+  evt.preventDefault();
+  const factor = evt.deltaY > 0 ? 0.9 : 1.1;
+  const rect = meshCv.getBoundingClientRect();
+  const cx = evt.clientX - rect.left, cy = evt.clientY - rect.top;
+  panX = panX * factor + cx * (1 - factor);
+  panY = panY * factor + cy * (1 - factor);
+  zoomScale *= factor;
+  zoomScale = Math.max(0.5, Math.min(5, zoomScale));
+  drawFrame(frameIdx);
+});
+meshCv.addEventListener("mousedown", evt => {
+  if (!current || drawMode) return;
+  isPanning = true;
+  panStartX = evt.clientX;
+  panStartY = evt.clientY;
+  meshCv.style.cursor = "grab";
+});
+meshCv.addEventListener("mousemove", evt => {
+  if (!isPanning) return;
+  const dx = evt.clientX - panStartX;
+  const dy = evt.clientY - panStartY;
+  panX += dx;
+  panY += dy;
+  panStartX = evt.clientX;
+  panStartY = evt.clientY;
+  drawFrame(frameIdx);
+});
+meshCv.addEventListener("mouseup", () => {
+  isPanning = false;
+  meshCv.style.cursor = "";
+});
+meshCv.addEventListener("mouseleave", () => {
+  isPanning = false;
+  meshCv.style.cursor = "";
+});
+
+// ── phase 2: pyodide in-browser compute ──────────────────────────────────────
+const PYTHON_CODE = `
+import numpy as np
+from scipy.spatial import Delaunay
+import json as _json
+
+def _initial_distribution(bbox, h0):
+    xmin, ymin, xmax, ymax = bbox
+    xs = np.arange(xmin, xmax + 0.5*h0, h0)
+    ys = np.arange(ymin, ymax + 0.5*h0, h0 * np.sqrt(3) / 2)
+    X, Y = np.meshgrid(xs, ys, indexing='xy')
+    X[1::2] += h0 / 2
+    return np.column_stack([X.ravel(), Y.ravel()])
+
+def _rejection_method(p, fh, rng):
+    r = fh(p); r0 = r.min()
+    return p[rng.random(len(p)) < (r0 / r) ** 2]
+
+def _unique_bars(t, n):
+    e = np.vstack([t[:, [0,1]], t[:, [0,2]], t[:, [1,2]]])
+    key = e[:, 0].astype(np.int64) * n + e[:, 1]
+    uk = np.unique(key)
+    return np.column_stack([uk // n, uk % n]).astype(e.dtype)
+
+def _mesh_quality(p, t):
+    if not len(t): return 0.0, 0.0
+    a = np.hypot(p[t[:,1],0]-p[t[:,0],0], p[t[:,1],1]-p[t[:,0],1])
+    b = np.hypot(p[t[:,2],0]-p[t[:,1],0], p[t[:,2],1]-p[t[:,1],1])
+    c = np.hypot(p[t[:,0],0]-p[t[:,2],0], p[t[:,0],1]-p[t[:,2],1])
+    denom = a * b * c
+    q = np.where(denom > 0, ((b+c-a)*(c+a-b)*(a+b-c)) / denom, 0.0)
+    q = np.clip(q, 0, 1)
+    return float(q.min()), float(q.mean())
+
+async def _distmesh2d_live(fd, fh, h0, bbox, pfix=None, niter=300,
+                dptol=2e-3, ttol=0.27, Fscale=1.2, deltat=0.2,
+                geps_factor=1e-3, seed=42, on_iter=None):
+    import asyncio
+    rng = np.random.default_rng(seed)
+    geps = geps_factor * h0
+    deps = np.sqrt(np.finfo(float).eps) * h0
+    p = _initial_distribution(bbox, h0)
+    p = p[fd(p) < geps]
+    p = _rejection_method(p, fh, rng)
+    nfix = 0
+    if pfix is not None:
+        pfix = np.asarray(pfix, float).reshape(-1, 2)
+        if len(pfix):
+            if len(p):
+                dist = np.min(np.linalg.norm(p[:,None]-pfix[None], axis=2), axis=1)
+                p = p[dist > geps]
+            p = np.vstack([pfix, p])
+            nfix = len(pfix)
+    pold = np.full_like(p, np.inf)
+    t = np.empty((0, 3), dtype=np.int64)
+    bars = np.empty((0, 2), dtype=np.int64)
+    for k in range(niter):
+        if _stop_compute: break
+        moved = np.sqrt(((p - pold)**2).sum(axis=1)) / h0
+        if moved.max() > ttol:
+            pold = p.copy()
+            t_all = Delaunay(p).simplices
+            centroids = p[t_all].mean(axis=1)
+            keep = fd(centroids) < -geps
+            t = np.sort(t_all[keep], axis=1)
+            bars = _unique_bars(t, len(p))
+            if on_iter:
+                await on_iter(k, p, t)
+                await asyncio.sleep(0)
+        if bars.size == 0: break
+        if _stop_compute: break
+        barvec = p[bars[:,0]] - p[bars[:,1]]
+        L = np.sqrt((barvec**2).sum(axis=1))
+        hbars = fh((p[bars[:,0]] + p[bars[:,1]]) / 2)
+        L0 = hbars * Fscale * np.sqrt((L**2).sum() / (hbars**2).sum())
+        F = np.maximum(L0 - L, 0)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            Fvec = np.where(L[:,None] > 0, (F / L)[:,None] * barvec, 0.0)
+        Ftot = np.zeros_like(p)
+        np.add.at(Ftot, bars[:,0], Fvec)
+        np.add.at(Ftot, bars[:,1], -Fvec)
+        if nfix > 0: Ftot[:nfix] = 0
+        p_new = p + deltat * Ftot
+        d = fd(p_new); outside = d > 0
+        if outside.any():
+            po = p_new[outside]; d_o = d[outside]
+            dx = (fd(po + np.array([deps, 0.0])) - d_o) / deps
+            dy = (fd(po + np.array([0.0, deps])) - d_o) / deps
+            denom2 = dx*dx + dy*dy; safe = denom2 > 0
+            shift = np.zeros_like(po)
+            shift[safe, 0] = d_o[safe] * dx[safe] / denom2[safe]
+            shift[safe, 1] = d_o[safe] * dy[safe] / denom2[safe]
+            p_new[outside] = po - shift
+        if nfix < len(p_new):
+            dp_i = np.linalg.norm(p_new[nfix:] - p[nfix:], axis=1)
+            if dp_i.size and dp_i.max() / h0 < dptol:
+                p = p_new; break
+        p = p_new
+    if len(p) >= 3:
+        t_all = Delaunay(p).simplices
+        centroids = p[t_all].mean(axis=1)
+        t = np.sort(t_all[fd(centroids) < -geps], axis=1)
+    return p, t
+
+def _sdf_l_shape(p):
+    p = np.atleast_2d(p)
+    x, y = p[:,0], p[:,1]
+    d_big = np.maximum(np.maximum(-1-x, x-1), np.maximum(-1-y, y-1))
+    d_cut = np.maximum(np.maximum(-x, x-1), np.maximum(-y, y-1))
+    return np.maximum(d_big, -d_cut)
+
+def _sdf_annulus(p):
+    p = np.atleast_2d(p)
+    r = np.sqrt(p[:,0]**2 + p[:,1]**2)
+    return np.maximum(r - 1.0, 0.4 - r)
+
+def _sdf_polygon(verts):
+    V = np.array(verts, float); n = len(V)
+    def sdf(p):
+        p = np.atleast_2d(p)
+        px, py = p[:,0], p[:,1]; N = len(p)
+        d = np.full(N, np.inf)
+        for i in range(n):
+            ax, ay = V[i]; bx, by = V[(i+1)%n]
+            edx, edy = bx-ax, by-ay; l2 = edx*edx + edy*edy
+            if l2 < 1e-20:
+                d = np.minimum(d, np.hypot(px-ax, py-ay)); continue
+            tc = np.clip(((px-ax)*edx + (py-ay)*edy) / l2, 0, 1)
+            d = np.minimum(d, np.hypot(px-(ax+tc*edx), py-(ay+tc*edy)))
+        inside = np.zeros(N, dtype=bool)
+        for i in range(n):
+            ax, ay = float(V[i,0]), float(V[i,1])
+            bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])
+            m = (ay > py) != (by > py)
+            if m.any() and abs(by-ay) > 1e-12:
+                x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)
+                inside[m] ^= px[m] < x_int
+        return np.where(inside, -d, d)
+    return sdf
+
+_h0v = float(_h0); _hmaxv = float(_hmax); _gv = float(_g)
+_pfix = None; _boundary = []
+
+if _domain_key == 'l_shape':
+    _fd = _sdf_l_shape; _bbox = (-1,-1,1,1)
+    _pfix = [[-1,-1],[1,-1],[1,0],[0,0],[0,1],[-1,1]]
+    _boundary = [_pfix]
+elif _domain_key == 'annulus':
+    _fd = _sdf_annulus; _bbox = (-1,-1,1,1)
+    _th = np.linspace(0, 2*np.pi, 64, endpoint=False)
+    _boundary = [
+        np.column_stack([np.cos(_th), np.sin(_th)]).round(3).tolist(),
+        np.column_stack([0.4*np.cos(_th), 0.4*np.sin(_th)]).round(3).tolist()
+    ]
+elif _domain_key == 'seamount':
+    _rings_list = _json.loads(_seamount_rings_json)
+    def _sdf_seamount(p):
+        p = np.atleast_2d(p)
+        px, py = p[:,0], p[:,1]; N = len(p)
+        d = np.full(N, np.inf)
+        for ring_idx, ring in enumerate(_rings_list):
+            V = np.array(ring, float); n = len(V)
+            for i in range(n):
+                ax, ay = V[i]; bx, by = V[(i+1)%n]
+                edx, edy = bx-ax, by-ay; l2 = edx*edx + edy*edy
+                if l2 < 1e-20:
+                    d = np.minimum(d, np.hypot(px-ax, py-ay)); continue
+                tc = np.clip(((px-ax)*edx + (py-ay)*edy) / l2, 0, 1)
+                d = np.minimum(d, np.hypot(px-(ax+tc*edx), py-(ay+tc*edy)))
+        inside = np.zeros(N, dtype=bool)
+        for ring_idx, ring in enumerate(_rings_list):
+            V = np.array(ring, float); n = len(V)
+            for i in range(n):
+                ax, ay = float(V[i,0]), float(V[i,1]); bx, by = float(V[(i+1)%n,0]), float(V[(i+1)%n,1])\n                m = (ay > py) != (by > py)\n                if m.any() and abs(by-ay) > 1e-12:\n                    x_int = ax + (py[m]-ay)*(bx-ax)/(by-ay)\n                    if ring_idx == 0:\n                        inside[m] ^= px[m] < x_int\n                    else:\n                        inside[m] ^= ~(px[m] < x_int)\n        return np.where(inside, -d, d)\n    _fd = _sdf_seamount; _boundary = _rings_list
+    _pts = np.vstack(_rings_list) if len(_rings_list) > 0 else np.array([[0,0]])\n    _margin = max(_h0v * 2, 0.05)\n    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),\n             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))\nelif _domain_key == 'custom':
+    _verts_list = _json.loads(_verts_json)
+    _fd = _sdf_polygon(_verts_list)
+    _pts = np.atleast_2d(np.array(_verts_list, dtype=float))
+    if _pts.shape[-1] != 2: _pts = _pts.reshape(-1, 2)
+    if len(_pts) < 3: raise ValueError("Custom domain needs at least 3 vertices")
+    _margin = max(_h0v * 2, 0.05)
+    _bbox = (float(_pts[:,0].min()-_margin), float(_pts[:,1].min()-_margin),
+             float(_pts[:,0].max()+_margin), float(_pts[:,1].max()+_margin))
+    _boundary = [_verts_list]
+else:
+    raise ValueError(f'Domain {_domain_key!r} not supported in Phase 2')
+
+def _fh(p):
+    p = np.atleast_2d(p)
+    if _domain_key == 'seamount':
+        z = -50.0 * (p[:,0] + 1.0) + 4.0 * np.exp(-((p[:,0] + 0.8)**2 + p[:,1]**2) / 0.08)
+        depth = np.clip(-z, 0.0, None)
+        return np.clip(0.07 + 0.22 * (depth / 100.0), 0.07, 0.27)
+    else:
+        r = np.sqrt(p[:,0]**2 + p[:,1]**2)
+        return np.clip(_h0v + _gv * r, _h0v, _hmaxv)
+
+_MAX_FRAMES = 60
+_frames = []
+_result_json = ""
+_stop_compute = False
+
+async def _main():
+    import asyncio, js
+    global _frames, _result_json, _stop_compute
+    _frames = []
+
+    async def _on_iter(k, p, t):
+        qmin, qmean = _mesh_quality(p, t)
+        frame = {"iter": int(k), "p": np.round(p, 3).tolist(), "t": t.tolist(),
+                 "q_min": round(qmin, 4), "q_mean": round(qmean, 4)}
+        _frames.append(frame)
+        js.liveFrameCallback(_json.dumps(frame))
+
+    _p, _t = await _distmesh2d_live(fd=_fd, fh=_fh, h0=_h0v, bbox=_bbox,
+                                     pfix=_pfix, seed=42, on_iter=_on_iter)
+    _qmin_f, _qmean_f = _mesh_quality(_p, _t)
+    _frames.append({"iter": -1, "p": np.round(_p, 3).tolist(), "t": _t.tolist(),
+                    "q_min": round(_qmin_f, 4), "q_mean": round(_qmean_f, 4)})
+
+    if len(_frames) > _MAX_FRAMES:
+        _idx = np.linspace(0, len(_frames)-1, _MAX_FRAMES).round().astype(int)
+        _frames = [_frames[i] for i in sorted(set(_idx.tolist()))]
+
+    _prev_t = None
+    for _fr in _frames:
+        if _fr['t'] == _prev_t: _fr['t'] = None
+        else: _prev_t = _fr['t']
+
+    _labels = {'l_shape': 'L-shape', 'annulus': 'Annulus', 'custom': 'Custom polygon'}
+    _result_json = _json.dumps({
+        "title": f"{_labels.get(_domain_key, _domain_key)} — h₀={_h0v}, g={_gv}",
+        "bbox": list(_bbox),
+        "boundary": _boundary,
+        "frames": _frames,
+        "n_nodes": int(len(_p)),
+        "n_elements": int(len(_t)),
+        "q_min": round(_qmin_f, 4),
+        "q_mean": round(_qmean_f, 4),
+    })
+
+await _main()
+`;
+
+let pyodideInstance = null;
+let pyodideLoading = false;
+
+function setComputeStatus(msg) {
+  document.getElementById("compute-status").textContent = msg;
+}
+
+async function ensurePyodide() {
+  if (pyodideInstance) return pyodideInstance;
+  if (pyodideLoading) return null;
+  pyodideLoading = true;
+  setComputeStatus("Loading Pyodide (~8 MB)…");
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/pyodide.js";
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+  setComputeStatus("Initializing Pyodide…");
+  pyodideInstance = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.27.0/full/" });
+  setComputeStatus("Loading numpy + scipy…");
+  await pyodideInstance.loadPackage(["numpy", "scipy"]);
+  setComputeStatus("Pyodide ready ✓");
+  pyodideLoading = false;
+  return pyodideInstance;
+}
+
+async function runCompute() {
+  const btn = document.getElementById("btn-compute");
+  const stopBtn = document.getElementById("btn-stop");
+  btn.disabled = true;
+  isComputing = true;
+  stopBtn.style.display = "inline-block";
+
+  try {
+    const py = await ensurePyodide();
+    if (!py) { setComputeStatus("Still loading — try again"); btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return; }
+
+    const domainKey = sel.value;
+    if (domainKey === "custom" && !drawClosed) {
+      setComputeStatus("Draw and close a polygon first");
+      btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return;
+    }
+
+    const h0 = parseFloat(document.getElementById("inp-hmin").value);
+    const hmax = parseFloat(document.getElementById("inp-hmax").value);
+    const g = parseFloat(document.getElementById("inp-g").value);
+
+    // pre-compute live bbox + boundary for canvas during computation
+    let liveBbox, liveBoundary, seamountData = null;
+    if (domainKey === "l_shape") {
+      liveBbox = [-1, -1, 1, 1];
+      liveBoundary = [[[-1,-1],[1,-1],[1,0],[0,0],[0,1],[-1,1]]];
+    } else if (domainKey === "annulus") {
+      liveBbox = [-1, -1, 1, 1];
+      const th = Array.from({length: 64}, (_, i) => i * 2 * Math.PI / 64);
+      liveBoundary = [th.map(t => [Math.cos(t), Math.sin(t)]),
+                      th.map(t => [0.4*Math.cos(t), 0.4*Math.sin(t)])];
+    } else if (domainKey === "seamount") {
+      try {
+        const res = await fetch(DATA_BASE + "seamount.json");
+        seamountData = await res.json();
+        liveBbox = seamountData.bbox;
+        liveBoundary = seamountData.boundary;
+      } catch (e) {
+        setComputeStatus("Failed to load seamount data");
+        btn.disabled = false; isComputing = false; stopBtn.style.display = "none"; return;
+      }
+    } else {
+      const xs = drawVerts.map(v => v[0]), ys = drawVerts.map(v => v[1]);
+      const margin = Math.max(h0 * 2, 0.05);
+      liveBbox = [Math.min(...xs)-margin, Math.min(...ys)-margin,
+                  Math.max(...xs)+margin, Math.max(...ys)+margin];
+      liveBoundary = [drawVerts.map(v => [...v])];
+    }
+
+    // seed live player — frames fill in as Python streams them
+    const capturedVerts = (domainKey === "custom") ? drawVerts.slice() : null;
+    if (drawMode) exitDrawMode();
+    setPlaying(false);
+    zoomScale = 1.0; panX = 0; panY = 0;
+    current = { title: "Computing…", frames: [], bbox: liveBbox, boundary: liveBoundary };
+    scrub.max = 0; frameIdx = 0;
+
+    window.liveFrameCallback = (jsonStr) => {
+      const frame = JSON.parse(jsonStr);
+      current.frames.push(frame);
+      scrub.max = Math.max(0, current.frames.length - 1);
+      frameIdx = current.frames.length - 1;
+      drawFrame(frameIdx);
+      setComputeStatus(`iter ${frame.iter} · ${frame.p.length} nodes · q=${frame.q_mean}`);
+    };
+
+    py.globals.set("_domain_key", domainKey);
+    py.globals.set("_h0", h0);
+    py.globals.set("_hmax", hmax);
+    py.globals.set("_g", g);
+    py.globals.set("_stop_compute", false);
+    if (capturedVerts !== null) {
+      py.globals.set("_verts_json", JSON.stringify(capturedVerts));
+    }
+    if (seamountData) {
+      py.globals.set("_seamount_rings_json", JSON.stringify(seamountData.boundary));
+    }
+
+    setComputeStatus("Computing…");
+    await py.runPythonAsync(PYTHON_CODE);
+
+    // replace live frames with deduped final result
+    const resultStr = py.globals.get("_result_json");
+    const data = JSON.parse(resultStr);
+    current = data;
+    document.getElementById("sTitle").textContent = data.title;
+    scrub.max = data.frames.length - 1;
+    frameIdx = data.frames.length - 1;
+    drawFrame(frameIdx);
+    const isStopped = py.globals.get("_stop_compute");
+    if (isStopped) {
+      setComputeStatus(`Stopped — ${current.frames.length > 0 ? current.frames.length + ' frames' : 'no frames'}`);
+    } else {
+      setComputeStatus(`Done ✓ — ${data.n_nodes} nodes, q_mean=${data.q_mean}`);
+    }
+  } catch (err) {
+    const msg = err.message || String(err);
+    if (/at least 3 vertices/i.test(msg)) {
+      setComputeStatus("Draw at least 3 vertices to define a domain");
+    } else {
+      setComputeStatus("Error: " + msg.split("\n").slice(-3).join(" | "));
+    }
+    console.error(err);
+  }
+  btn.disabled = false;
+  isComputing = false;
+  stopBtn.style.display = "none";
+}
+
+async function init() {
+  const res = await fetch(DATA_BASE + "manifest.json");
+  const manifest = await res.json();
+  for (const d of manifest) {
+    const opt = document.createElement("option");
+    opt.value = d.key; opt.textContent = d.title;
+    sel.appendChild(opt);
+  }
+  await loadDomain(manifest[0].key);
+
+  const customOpt = document.createElement("option");
+  customOpt.value = "custom"; customOpt.textContent = "Custom — draw your own domain";
+  sel.appendChild(customOpt);
+
+  sel.addEventListener("change", async () => {
+    if (sel.value === "custom") { setPlaying(false); enterDrawMode(); return; }
+    exitDrawMode(); setPlaying(false); await loadDomain(sel.value);
+  });
+  scrub.addEventListener("input", () => { setPlaying(false); frameIdx = parseInt(scrub.value, 10); drawFrame(frameIdx); });
+  playBtn.addEventListener("click", () => setPlaying(!playing));
+  restartBtn.addEventListener("click", () => { setPlaying(false); frameIdx = 0; drawFrame(0); });
+  document.getElementById("close-poly").addEventListener("click", closePoly);
+  document.getElementById("clear-draw").addEventListener("click", () => {
+    drawVerts = []; drawClosed = false; drawMouse = null;
+    document.getElementById("close-poly").disabled = false;
+    document.getElementById("sNodes").textContent = "0 vertices";
+    renderDraw();
+  });
+  document.getElementById("btn-compute").addEventListener("click", runCompute);
+  document.getElementById("btn-stop").addEventListener("click", () => {
+    if (pyodideInstance) {
+      pyodideInstance.globals.set("_stop_compute", true);
+      setComputeStatus("Stopping…");
+    }
+  });
+}
+
+init().catch(err => {
+  document.querySelector(".wrap").insertAdjacentHTML("afterbegin",
+    `<div class="card" style="color:#ef5350">Failed to load demo data: ${err}. Run <code>python scripts/gen_demo_frames.py</code> first.</div>`);
+});
+</script>
+</body>
+</html>

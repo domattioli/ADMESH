@@ -1,0 +1,1435 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Advanced, automatic unstructured mesh generator for 2D shallow-water domains.">
+      
+      
+      
+        <link rel="canonical" href="https://admesh.domattioli.com/governance/PROJECT_PLAN/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>ADMESH Project Plan - ADMESH</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#admesh-project-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ADMESH" class="md-header__button md-logo" aria-label="ADMESH" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ADMESH
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              ADMESH Project Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/domattioli/ADMESH" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    domattioli/ADMESH
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ADMESH" class="md-nav__button md-logo" aria-label="ADMESH" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ADMESH
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/domattioli/ADMESH" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    domattioli/ADMESH
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/triangulate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Triangulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesh + Domain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I/O
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/size_field/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Size fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/quality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality + smoothing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/loaders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domain loaders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/valence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Valence balancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ADMESH_DOMAINS_CONTRACT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    admesh-domains contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../PORTING_NOTES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Porting notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://www.domattioli.com/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ecosystem wiki
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-05-17, spec 009 release-readiness-for-0.1.0 COMPLETE — tag push pending)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-05-15-sub-plan-spec-009-release-readiness-for-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-05-15, sub-plan: spec 009 release-readiness-for-0.1.0)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Where we are today (2026-05-15, sub-plan: spec 009 release-readiness-for-0.1.0)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#010-release-readiness-sub-plan-specs009-release-readiness-for-010" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.1.0 Release-Readiness Sub-Plan → specs/009-release-readiness-for-0.1.0/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-26-main-merged-298-tests-green-open-blockers-101112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-26, main merged — 298 tests green, open blockers #10/#11/#12)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-25-post-spec-001" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-25, post-spec-001)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-24-post-session-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-24, post-session 6)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-23-post-session-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-23, post-session 5)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-23-post-session-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-23, post-session 4)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-23-post-session-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-23, post-session 3)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-23-post-session-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-23, post-session 2)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-04-21-post-session-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-04-21, post-session 1)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#north-star" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        North star
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mvp-triangulation-on-well-planned-test-domains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MVP — Triangulation on well-planned test domains
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MVP — Triangulation on well-planned test domains">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#test-domains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test domains
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mvp-acceptance-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MVP acceptance criteria
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mvp-phasing-sub-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MVP phasing (sub-steps)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#post-mvp-phases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-MVP phases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deferred-parking-lot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deferred / parking lot
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#revision-history" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Revision history
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Revision history">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#2026-04-18-initial-plan-mvp-triangulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-04-18 — Initial plan; MVP = triangulation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="admesh-project-plan">ADMESH Project Plan<a class="headerlink" href="#admesh-project-plan" title="Permanent link">&para;</a></h1>
+<p>Phased roadmap for porting <code>QuADMesh-MATLAB/01_ADMESH_Library</code> to Python. Governance rules in <code>CONSTITUTION.md</code>; code layout in <code>CLAUDE.md</code>.</p>
+<hr />
+<h2 id="where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready">Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)<a class="headerlink" href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" title="Permanent link">&para;</a></h2>
+<p>Octree adaptive background grid wired into <code>triangulate(background="octree")</code> (additive; locked routine untouched, Principle I held). Built from the prototype that resolved the cheaper-octree + language questions (pure NumPy, vectorized struct-of-arrays, batched oracle).</p>
+<ul>
+<li><strong>P0</strong> — <code>src/admesh/octree.py</code>: vectorized SoA quadtree, level-synchronous build, O(N) <code>leaf_graph</code> (prior branch O(N²) defect fixed), 2:1 balance. 16 concept-invariant tests.</li>
+<li><strong>P0b/P2</strong> — <code>octree_size_field()</code> (ADMESH gradation limit <code>|h_i−h_j|≤g·dist</code> on leaf graph) + <code>background=</code> kwarg. 7 wiring tests.</li>
+<li><strong>P3</strong> — IDW smooth interpolation clears SC-005 (0.0296 &lt; 0.05). Benchmarks: <code>scripts/bench_octree_quality.py</code>, <code>scripts/bench_octree_enpac.py</code>; results <code>benchmarks/results/octree_benchmark.md</code>. Tier-2 standard = ENPAC 2003 (replaces WNAT, #154).</li>
+<li><strong>Merge gates</strong>: structural validity, quality parity vs uniform, SC-005, concept invariants, gradation — all PASS.</li>
+<li><strong>Deferred (post-merge)</strong>: P5 default-flip stays <code>background="uniform"</code> until operator sign-off; legacy <code>_stages/octree_grid.py</code> (dead object-tree lineage) cleanup; ENPAC end-to-end mesh quality (in-session only build-cost measured). Spec: <code>specs/029-octree-unification-and-workflow/</code>.</li>
+</ul>
+<h2 id="where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete">Where we are today (2026-05-19, spec 012 background-grid-stage-tests planning COMPLETE)<a class="headerlink" href="#where-we-are-today-2026-05-19-spec-012-background-grid-stage-tests-planning-complete" title="Permanent link">&para;</a></h2>
+<p><strong>Spec 012 (<code>specs/012-background-grid-stage-tests/</code>) planning shipped on <code>daily-maintenance</code>.</strong></p>
+<ul>
+<li>Tracks issue #73 (TEST-AUDIT.md backlog B-05 / finding F-MED-01) — <code>admesh/_stages/background_grid.py</code> has no eponymous test file.</li>
+<li>Planning surfaced that the canonical module is a 7-line stub; the original issue's parity-test proposal cannot satisfy at <code>atol=1e-10</code> until the MATLAB port lands.</li>
+<li>Resolution: two-track spec. Track A (test scaffold + smoke + <code>xfail(strict=True)</code> parity scaffolds) closes the audit gap immediately without the port. Track B (numerical parity at <code>atol=1e-10</code>) gates on the new follow-up impl issue #78.</li>
+<li>Issue #78 opened to track the actual port of <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code>. Verified: <code>scripts/export_matlab_fixtures.m</code> does not yet export a stage-02 fixture (OQ-1 resolved → fixture work belongs to #78).</li>
+<li>Constitution Principle I (numerical identity) cited in spec 012 §1 and issue #78. Branch policy: all work on <code>daily-maintenance</code>.</li>
+<li>Spec 012 deliverables landing this run: <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>, issue #78, plus this PROJECT_PLAN entry. Track A implementation (T-012-2 / T-012-3) deferred to next run per the planning-mode mandate.</li>
+</ul>
+<hr />
+<h2 id="where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending">Where we are today (2026-05-17, spec 009 release-readiness-for-0.1.0 COMPLETE — tag push pending)<a class="headerlink" href="#where-we-are-today-2026-05-17-spec-009-release-readiness-for-010-complete-tag-push-pending" title="Permanent link">&para;</a></h2>
+<p><strong>Spec 009 R1–R4 implemented; awaiting maintainer <code>git tag v0.1.0 &amp;&amp; git push origin v0.1.0</code>.</strong></p>
+<ul>
+<li>All 4 phases done on branch <code>009-release-readiness-for-0.1.0</code> (PR #63):</li>
+<li>R1: version reconciled (<code>pyproject.toml</code> and <code>__init__.py</code> both <code>0.1.0</code>); <code>scripts/pre_tag_check.sh</code> extended with 4 new gates (version-match, plan staleness, coverage artifact, durations artifact); <code>output/coverage.json</code> + <code>output/durations.txt</code> committed; TEST-AUDIT B-04/B-06 closed.</li>
+<li>R2: <code>.github/workflows/tests.yml</code> (Python 3.10/3.11/3.12, <code>not slow</code>) + <code>tests-slow.yml</code> (weekly + on-tag); <code>CONTRIBUTING.md</code> + <code>TESTING.md</code>; <code>docs/ADMESH_DOMAINS_CONTRACT.md</code>; pin tightened to <code>admesh-domains&gt;=0.3.0,&lt;0.4</code>; <code>tests/test_admesh_domains_contract.py</code> (6 tests). Drift discovered: <code>admesh/registry.py</code> adapter is broken against <code>admesh-domains</code> 0.3.x — filed as #64 (post-0.1.0 rewrite).</li>
+<li>R3: Constitution amendment (proposed Article VIII) — <code>admesh/_stages/</code> subpackage created; 14 faithful-port modules moved with backward-compat stubs preserving both public and private-name imports; <code>__all__</code> cleaned (25 public symbols, no stage-module noise); <code>mkdocs-material</code> + <code>mkdocstrings</code> site (<code>docs/index.md</code>, <code>docs/quickstart.md</code>, 7 API ref pages, <code>.github/workflows/docs.yml</code> deploys to GitHub Pages); <code>tests/test_docstring_completeness.py</code> (3 tests, 2 callables soft-flagged).</li>
+<li>R4: Tier-1 + Tier-2 + Tier-0 structural-validity tests already green (no <code>xfail</code>); README ship-ready; pre_tag_check gate 2 inverted to accept either pre-ship or ship-ready README state; <strong>issue #10 closed</strong>; quality-improvement follow-up filed as #65 (3-step plan from #10's May 13 planning comment, scoped post-0.1.0).</li>
+<li><strong>366 tests</strong> pass (slow lane included), <strong>9/9 pre_tag_check gates</strong> green.</li>
+<li>Path to tag: maintainer runs <code>git tag -a v0.1.0 -m "Release 0.1.0" &amp;&amp; git push origin v0.1.0</code> → <code>publish.yml</code> ships <code>admesh2D==0.1.0</code> to PyPI.</li>
+<li>Bonus fixes during spec 009 R1 (pre-existing regressions from user commit <code>072d669</code>): restored 530 lines of <code>admesh/_stages/distmesh.py</code> (<code>fixmesh</code>, <code>MeshOutput</code>, <code>distmesh2d_admesh</code>) that had been accidentally dropped; threaded <code>initial_points</code> through <code>api.py::triangulate()</code> → <code>opts</code> → <code>distmesh2d</code> so the issue-#45 warm-start path works end-to-end.</li>
+</ul>
+<hr />
+<h2 id="where-we-are-today-2026-05-15-sub-plan-spec-009-release-readiness-for-010">Where we are today (2026-05-15, sub-plan: spec 009 release-readiness-for-0.1.0)<a class="headerlink" href="#where-we-are-today-2026-05-15-sub-plan-spec-009-release-readiness-for-010" title="Permanent link">&para;</a></h2>
+<p><strong>Status snapshot (3 weeks since the 2026-04-26 entry):</strong>
+- Issue <strong>#11</strong> (<code>Domain.from_mesh</code> outer-ring sort) — <strong>closed 2026-05-06</strong>. The mechanical half of the "Path to 0.1.0" gate is done. Got its own spec <code>003-fix-outer-ring-sorting</code>.
+- Issue <strong>#10</strong> (default size-field overshoots domain on real-world coastal fixtures) — <strong>closed 2026-05-17</strong> against structural-validity gate as part of spec 009 R4; quality-improvement follow-up filed as #65.
+- Six new specs landed that this plan did not previously mention:
+  - <code>003-fix-outer-ring-sorting</code> (closed #11)
+  - <code>004-quad-prep-smoother</code> (issue #15, right-isosceles smoother for quad fusion prep — shipped, lives in <code>admesh/quad_prep.py</code>)
+  - <code>005-adcirc-mesh-registry</code> (federated mesh-discovery registry — shipped, lives in <code>admesh/registry.py</code> + <code>admesh/loaders.py</code>)
+  - <code>006-verify-h-parameter-usage</code> (investigation for issue #37)
+  - <code>007-1d-boundary-seeding</code> (issue #2, in progress)
+  - <code>008-gmsh-io-integration</code> (issue #5, planning)
+- ~20 ADMESH issues closed since the 2026-04-26 entry; issue #15 (right-isoceles smoother), #27 (valence balancing) and #36 (<code>distmesh2d</code> undefined <code>_boundary_cleanup</code>) are among the larger ones.
+- New "daily-maintenance" workflow adopted: one long-lived integration branch, no PR proliferation, autonomous routine driven by DomI skill marketplace. ADMESH consumes DomI v1.9 manifest (pinned at commit <code>ab5bb49e</code>, <code>manifest_sha256</code> recorded in <code>.domi-pin</code>).
+- <code>TEST-AUDIT.md</code> shipped on 2026-05-15 (issue #59). Surfaced <strong>F-CRIT-01</strong>: only <code>publish.yml</code> exists, no CI workflow runs the 310 test functions. Sibling audit issues #60 (test surface, routes to DomI #63) and #61 (Claude Code hooks, routes to DomI #64) are open.
+- <code>admesh-domains&gt;=0.1.0</code> is now a hard runtime dependency (<code>pyproject.toml:22</code>). The registry sibling is part of the public surface for 0.1.0.</p>
+<p><strong>Known drift to fix before tag:</strong>
+- <strong>Version mismatch</strong>: <code>pyproject.toml</code> declares <code>version = "0.1.0"</code> but <code>admesh/__init__.py</code> declares <code>__version__ = "0.2.0"</code>. Both must agree at the moment the tag is pushed.
+- <strong>Test gate missing</strong>: no CI workflow runs <code>pytest</code>. Wheel can be tagged on a broken suite today.
+- <strong>Docs</strong>: no <code>CONTRIBUTING.md</code>, no <code>TESTING.md</code>, no rendered API reference. README still says "0.1.0 in progress."</p>
+<h3 id="010-release-readiness-sub-plan-specs009-release-readiness-for-010">0.1.0 Release-Readiness Sub-Plan → <code>specs/009-release-readiness-for-0.1.0/</code><a class="headerlink" href="#010-release-readiness-sub-plan-specs009-release-readiness-for-010" title="Permanent link">&para;</a></h3>
+<p>The remaining work to ship 0.1.0 is bundled into spec 009. Four phases:</p>
+<ul>
+<li><strong>Phase R1 — Tag-gate hygiene</strong>: reconcile the <code>pyproject.toml</code> ↔ <code>__init__.py</code> version strings; extend <code>scripts/pre_tag_check.sh</code> with version-match, plan-staleness, and audit-artifact gates; commit <code>output/coverage.json</code> + <code>output/durations.txt</code> to close TEST-AUDIT backlog items B-04 / B-06.</li>
+<li><strong>Phase R2 — CI + onboarding + contract</strong>: add <code>.github/workflows/tests.yml</code> (closes F-CRIT-01) on Python 3.10/3.11/3.12; introduce a <code>slow</code> pytest marker with a weekly lane; ship <code>CONTRIBUTING.md</code>, <code>TESTING.md</code>, and <code>docs/ADMESH_DOMAINS_CONTRACT.md</code>; tighten the <code>admesh-domains</code> pin to <code>&gt;=0.1.0,&lt;0.2</code>; add a contract-parity test.</li>
+<li><strong>Phase R3 — Reorg (gated) + API reference</strong>: draft a Constitution amendment for splitting <code>admesh/</code> into a public-surface layer + <code>admesh/_stages/</code> faithful-port internals; if it passes, do the split with back-compat re-exports; ship mkdocs-material + GitHub Pages with auto-generated API reference via <code>mkdocstrings</code>.</li>
+<li><strong>Phase R4 — Issue #10 + tag</strong>: resolve the size-field-overshoot blocker; un-<code>xfail</code> <code>test_tier1_wetting_and_drying_round_trip</code> and <code>test_tier2_wnat_release_gate</code>; push <code>v0.1.0</code> and let <code>publish.yml</code> ship the wheel to PyPI as <code>admesh2D==0.1.0</code>.</li>
+</ul>
+<p>See <code>specs/009-release-readiness-for-0.1.0/spec.md</code> for the full feature spec (4 user stories, 26 functional requirements across the 4 phases, 8 measurable success criteria). The path to the actual 0.1.0 tag goes through that spec.</p>
+<hr />
+<h2 id="where-we-are-today-2026-04-26-main-merged-298-tests-green-open-blockers-101112">Where we are today (2026-04-26, main merged — 298 tests green, open blockers #10/#11/#12)<a class="headerlink" href="#where-we-are-today-2026-04-26-main-merged-298-tests-green-open-blockers-101112" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped this session (spec 002 — default size-field stack, implementation phase):</strong>
+- All 41 tasks from <code>specs/002-size-field-defaults/tasks.md</code> walked through. T001-T015 + T018-T028 + T032-T037 done; T016/T017 (Tier-1 / Tier-2 acceptance) marked <code>xfail</code> pending issue #10; T029-T031 (Shinnecock fixture) deferred (network-dependent, not gating 0.1.0).
+- <strong>Headline behavior change</strong>: <code>admesh.triangulate(domain)</code> with no size-field arguments now invokes default Phase-1 stack (curvature + medial-axis always-on; bathymetry + tide opt-in via <code>Domain</code> fields). Spec-001 uniform-<code>h</code> fallback reachable via <code>enable_curvature=False, enable_medial_axis=False</code>.
+- <code>admesh/api.py</code> extended: <code>Domain.bathymetry</code>, <code>Domain.tide_period</code>, <code>Domain.polygons</code>, <code>Domain.from_mesh(...)</code> classmethod, <code>_build_default_size_field(...)</code> private helper, new <code>triangulate()</code> kwargs (<code>h_target</code>, <code>enable_curvature</code>, <code>enable_medial_axis</code>, <code>default_depth</code>, <code>tide_elements_per_wavelength</code>), extended <code>Mesh.equals</code> for paired-edge + barrier_data.
+- <code>admesh/boundary_types.py</code> extended: <code>EXTERNAL_BARRIER=3</code>, <code>EXTERNAL_BARRIER_FLUX=4</code>, <code>INTERNAL_BARRIER_PIPE=13</code>, <code>INTERNAL_BARRIER=24</code>.
+- <code>admesh/fort14.py</code> extended: paired-edge / single-node-barrier reader/writer for IBTYPE 3 / 4 / 13 / 23 / 24 / 25 with column-agnostic <code>barrier_data</code>. Open- and land-segment header parsers tolerate inline <code>=</code> comments. <code>wetting_and_drying_test.14</code> corpus round-trip went RED → GREEN.
+- New tests: <code>test_default_size_field.py</code> (8 tests), <code>test_fort14_paired.py</code> (5 tests), <code>test_backward_compat.py</code> (4 tests), <code>tests/_structural_validity.py</code>. Final suite: <strong>259 passed, 8 skipped, 2 xfailed</strong>.
+- Constitution amendment v1.0.2 (T023): documents spec-002 default stack as precondition for fort.14-contract release readiness.
+- README "0.1.0 in progress" callouts restored (T024/T025); ADCIRC compatibility tagline preserved.
+- Cleanup (T026/T027/T028): <code>papers/wnat_admesh.png</code>, <code>dist/</code>, <code>build/</code>, 3 stale diagnostic PNGs under <code>tests/output/</code> removed.
+- <code>scripts/pre_tag_check.sh</code> (T032): 5-gate pre-tag verification script. Currently PASSES.
+- <code>docs/PORTING_NOTES.md</code> (T019): new entry for fort.14 paired-edge / barrier BC records.
+- <code>requirements.txt</code> cleanup: removed accidentally-duplicated matplotlib.
+- New quality-comparison artifacts in <code>tests/output/</code>: <code>wnat_quality.png</code> (4-panel histogram) and <code>tier1_source_vs_fresh.png</code> (side-by-side comparison, shape-q-mean 0.92 vs source 0.99).</p>
+<p><strong>Open follow-up issues</strong> (filed this session):
+- #8 — GPU + CPU-parallel acceleration for size-field stack (post-v1).
+- #9 — admesh-segmenter sibling project (post-v1).
+- #10 — <strong>Default size-field stack overshoots domain on real-world coastal fixtures</strong> (severity:high). Tier-1/Tier-2 acceptance gates blocked. 0.1.0 tag contingent on resolving #10.
+- #11 — <code>Domain.from_mesh</code> picks wrong outer ring on WNAT (sorts by node count, not area). Independently breaks Tier-2 path; resolution is mechanical (~M effort).</p>
+<p><strong>Branch state</strong>: <code>002-size-field-defaults</code> on origin, head <code>1149adf</code>. Spec-001 branch (<code>001-pythonize-and-fort14-integration</code>, head <code>f1ce987</code>) preserved for archive.</p>
+<p><strong>Path to 0.1.0</strong>: resolve #11 (mechanical) + #10 (tuning), un-xfail Tier-1/Tier-2 tests, run <code>bash scripts/pre_tag_check.sh</code>, tag.</p>
+<hr />
+<h2 id="where-we-are-today-2026-04-25-post-spec-001">Where we are today (2026-04-25, post-spec-001)<a class="headerlink" href="#where-we-are-today-2026-04-25-post-spec-001" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (spec 001 — Pythonic API + fort.14 I/O):</strong>
+- v1 Pythonic surface in <code>admesh/api.py</code>, <code>admesh/fort14.py</code>, <code>admesh/boundary_types.py</code>, <code>admesh/size_field.py</code>, <code>admesh/viz.py</code> — strictly additive over 13 faithful-port stage modules. 142-test faithful-port baseline still passes.
+- 3-line happy path runs end-to-end on all 5 MVP domains: <code>domain_from_polygon([ring])</code> → <code>triangulate(domain)</code> → <code>mesh.to_fort14(path)</code>. Round-trip equal at <code>atol=1e-5</code>.
+- ADCIRC v55 fort.14 reader/writer with <code>Fort14ParseError</code> carrying <code>line_no/expected/actual</code>. Open-segments / land-segments round-trip; named and unmapped numeric BC codes both preserved.
+- Real-world stress test: <code>tests/fixtures/fort14/adcirc_examples/wnat_test.14</code> (1.2 MB, 9,934 nodes) parses, round-trips, and re-triangulates.
+- chilmesh round-trip: 8 compat tests cover BC label preservation across fort.14 boundary.
+- Two-phase size-field composer (<code>compose_size_field</code>): Phase-1 builtins always min-stack (Principle I); Phase-2 user contributions combine via caller-chosen reduction.
+- Test totals: 239 passed / 6 skipped.
+- Constitution PATCH amendment removes <code>ADCIRC .fort.14 I/O</code> from deferred-list; version bumped to 1.0.1.</p>
+<p>Open work in spec 001: T027 (≥ 3 community fixtures, needs external acquisition).</p>
+<hr />
+<h2 id="where-we-are-today-2026-04-24-post-session-6">Where we are today (2026-04-24, post-session 6)<a class="headerlink" href="#where-we-are-today-2026-04-24-post-session-6" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 6 — faithful-port completion across all 13 stages):</strong>
+- <strong><code>admesh/boundary.py</code></strong> rewritten as faithful port of <code>08_Enforce_Boundary_Conditions/</code>. New <code>BCSegment</code> + <code>PolygonStructure</code> + <code>create_polygon_structure</code> + MATLAB-faithful <code>enforce_boundary_conditions</code>. <strong>Retires last clean-room stage.</strong>
+- <strong><code>admesh/inpaint.py</code></strong> rewritten as faithful port of MATLAB <code>inpaint_nans.m</code> method 0 (default). Column-major sparse del² operator + lsqr solve.
+- <strong><code>admesh/bathymetry.py</code></strong> rewritten as faithful port of <code>06_Bathymetry_Function/</code>. Formula <code>h_bathy = s·|Z|/|∇Z|</code> with 4th-order interior ∇Z stencil.
+- <strong><code>admesh/dominate_tide.py</code></strong> rewritten as faithful port of <code>07_Dominate_Tide/Dominate_tide.m</code>. <code>h_tide = (T/sz)·√(g·|Z|)</code> with <code>g = 9.81</code>.
+- <strong><code>admesh.mesh_size.build_h</code></strong> extended with <code>bathymetry</code>, <code>bathy_scale</code>, <code>tide_period</code>, <code>tide_scale</code> kwargs routing to faithful ports.
+- <strong>4 new PORTING_NOTES entries</strong>, <strong><code>scripts/export_matlab_fixtures.m</code></strong> gains 4 new fixture emitter blocks.
+- Test count: <strong>131 → 134 passing</strong>, 5 skipped (MATLAB fixtures).
+- <strong>All 13 ADMESH library stages now on faithful ports.</strong> Article II.1 compliance restored.</p>
+<p><strong>Next entry point:</strong> session 7 — Phase P3, full <code>01_ADMESH_Routine/ADmeshRoutine.m</code> + <code>ADmeshSubMeshRoutine.m</code> orchestration.</p>
+<h2 id="where-we-are-today-2026-04-23-post-session-5">Where we are today (2026-04-23, post-session 5)<a class="headerlink" href="#where-we-are-today-2026-04-23-post-session-5" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 5 — faithful port of <code>04_Curvature_Function/</code> + <code>05_Medial_Axis/</code>):</strong>
+- <strong><code>admesh/curvature.py</code></strong> rewritten as faithful port. New <code>apply_curvature</code> uses MATLAB's narrow-band formula.
+- <strong><code>admesh/medial_axis.py</code></strong> rewritten as faithful port. New <code>apply_medial_axis</code> + <code>_average_outward_flux</code> + <code>_skeletonize_zhang_suen</code> (vectorized) + <code>_remove_isolated</code>.
+- <strong><code>admesh.mesh_size.build_h</code></strong> routes <code>curvature_scale</code> / <code>medial_scale</code> kwargs to faithful ports.
+- <strong><code>admesh.distmesh.distmesh2d</code></strong> gains final <code>_boundary_cleanup(p, t, None)</code> call (MATLAB does this; Persson's reference doesn't).
+- <strong>95 pytest tests passing, 4 skipped</strong> (MATLAB fixtures); MVP M.4 gate regression-clean.</p>
+<h2 id="where-we-are-today-2026-04-23-post-session-4">Where we are today (2026-04-23, post-session 4)<a class="headerlink" href="#where-we-are-today-2026-04-23-post-session-4" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 4 — faithful port of <code>10_Distmesh_2d/</code>):</strong>
+- MATLAB reference clone at <code>/workspace/QuADMesh-MATLAB</code> @ <code>19b2eb9</code> — unblocks Article II.1 faithful-port rule.
+- <strong><code>admesh.distmesh.distmesh2d_admesh</code></strong> rewritten as faithful port. Clean-room session-3 version retired.
+- <strong><code>admesh.distmesh._boundary_cleanup</code></strong> rewritten as faithful port of <code>BoundaryCleanUp.m</code>. Signature changed <code>(p, t, pts)</code> → <code>(p, t, C)</code>.
+- <strong><code>admesh.distmesh._project_back_to_boundary</code></strong> new port of <code>projectBackToBoundary.m</code>.
+- <strong>90 pytest tests passing, 4 skipped</strong>; MVP M.4 gate regression-clean.</p>
+<h2 id="where-we-are-today-2026-04-23-post-session-3">Where we are today (2026-04-23, post-session 3)<a class="headerlink" href="#where-we-are-today-2026-04-23-post-session-3" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 3 — P3 core-algorithm lift; still clean-room):</strong>
+- <code>admesh/boundary.py</code> — clean-room <code>PTS</code> dataclass + <code>BoundaryType</code> + <code>PTS.from_polygons</code> + <code>PTS.from_domain</code> + <code>enforce_boundary_conditions</code>.
+- <code>admesh.mesh_size.build_h</code> extended with <code>pts=</code> + <code>boundary_scale=</code> kwargs.
+- <code>admesh.distmesh.distmesh2d_admesh</code> ADMESH-variant path: PTS-seeded <code>pfix</code>, polygon-SDF synthesis, typed <code>MeshOutput</code> dataclass.
+- <strong>82 pytest tests passing</strong> (65 → 82). MVP M.4 gate regression-clean.</p>
+<h2 id="where-we-are-today-2026-04-23-post-session-2">Where we are today (2026-04-23, post-session 2)<a class="headerlink" href="#where-we-are-today-2026-04-23-post-session-2" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 2 — Phase P1 opened; faithful-port pass deferred):</strong>
+- Clean-room <code>admesh/curvature.py</code> — 4th-order <code>κ = ∇·(∇f/|∇f|)</code> grid computation. 3 analytic-reference tests.
+- Clean-room <code>admesh/medial_axis.py</code> — scipy EDT + gradient threshold + EDT for medial distance. 4 analytic-reference tests.
+- <strong><code>admesh.mesh_size.build_h</code> composer</strong> — wires curvature + medial optional contributions, gradient-limits via <code>solve_iter</code>. 4 new tests.
+- 3 PORTING_NOTES entries with deferred-faithful-port flags.
+- <strong>65 pytest tests passing</strong> (54 → 65).</p>
+<h2 id="where-we-are-today-2026-04-21-post-session-1">Where we are today (2026-04-21, post-session 1)<a class="headerlink" href="#where-we-are-today-2026-04-21-post-session-1" title="Permanent link">&para;</a></h2>
+<p><strong>Shipped (session 0 + session 1 — MVP complete):</strong>
+- Repo live at <code>domattioli/ADMESH</code> (private, Apache-2.0).
+- Governance: <code>CONSTITUTION.md</code> (7 articles), <code>PROJECT_PLAN.md</code>, <code>CLAUDE.md</code>, <code>README.md</code>, full session artifact set under <code>docs/</code>.
+- <strong>M.0</strong> scaffold: 14-module <code>admesh/</code> package, <code>pyproject.toml</code>, <code>requirements.txt</code> + <code>requirements-dev.txt</code>, smoke test.
+- <strong>M.1</strong> leaf utilities: <code>in_polygon.py</code>, <code>quality.py</code>, <code>domains.py</code> (5 MVP SDFs).
+- <strong>M.2</strong> distance + mesh_size: <code>distance.py</code>, <code>mesh_size.py</code> (pure-Python + Numba solver, parity to <code>atol=1e-10</code>).
+- <strong>M.3</strong> distmesh + driver: <code>distmesh.py</code> (Persson DistMesh2D + <code>fixmesh</code>), <code>routine.py::triangulate()</code>.
+- <strong>M.4</strong> end-to-end validation + PNGs: <code>tests/test_mvp_domains.py</code> parametrized over all 5 domains; quality metrics (<code>min_q ≥ 0.30, mean_q ≥ 0.60</code>) met on every domain.
+- <strong>Correctness bugfix in <code>distmesh2d</code></strong> (S1): added final Delaunay + centroid-filter step after iteration loop. Raised <code>unit_square</code> min_q from <code>0.000 → 0.804</code>.
+- 54 pytest tests passing.</p>
+<hr />
+<h2 id="north-star">North star<a class="headerlink" href="#north-star" title="Permanent link">&para;</a></h2>
+<p>Python package reproducing MATLAB ADMESH pipeline on reference test domains within documented floating-point tolerance, installs without C toolchain, exposes each of the 13 stages as independently-callable function.</p>
+<hr />
+<h2 id="mvp-triangulation-on-well-planned-test-domains">MVP — Triangulation on well-planned test domains<a class="headerlink" href="#mvp-triangulation-on-well-planned-test-domains" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: given 2D domain polygon (straight-edge, possibly non-convex, possibly multiply-connected), produce triangular mesh.</p>
+<p><strong>In scope for MVP:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>MATLAB source</th>
+<th>Python module</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Leaf utilities</td>
+<td><code>12_In_Polygon/</code>, <code>11_Mesh_Quality/MeshQuality.m</code></td>
+<td><code>in_polygon.py</code>, <code>quality.py</code></td>
+</tr>
+<tr>
+<td>Signed distance</td>
+<td><code>03_Distance_Function/SignedDistanceFunction.m</code> + <code>PTS2PointList.m</code></td>
+<td><code>distance.py</code></td>
+</tr>
+<tr>
+<td>Mesh-size field</td>
+<td><code>09_Mesh_Size/MeshSizeIterativeSolver.c</code> (Numba port)</td>
+<td><code>mesh_size.py</code></td>
+</tr>
+<tr>
+<td>Triangulation engine</td>
+<td><code>10_Distmesh_2d/distmesh2d.m</code> + <code>fixmesh.m</code></td>
+<td><code>distmesh.py</code> (triangulation only — NO <code>tri2quad</code> yet)</td>
+</tr>
+<tr>
+<td>Driver</td>
+<td>minimal subset of <code>01_ADMESH_Routine/ADmeshRoutine.m</code></td>
+<td><code>routine.py::triangulate(domain, params)</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Explicitly OUT of MVP scope</strong> (deferred to post-MVP phases):
+- Quad conversion (<code>tri2quad</code>) and mixed-element output.
+- Bathymetry-driven sizing, tidal-wavelength sizing, medial-axis sizing, curvature field.
+- Boundary-condition enforcement, NaN in-painting.
+- Full <code>ADmeshRoutine.m</code> + <code>ADmeshSubMeshRoutine.m</code> orchestration.</p>
+<h3 id="test-domains">Test domains<a class="headerlink" href="#test-domains" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Unit square</strong> <code>[0,1]²</code> — trivial sanity; uniform mesh size.</li>
+<li><strong>L-shape</strong> — non-convex re-entrant corner.</li>
+<li><strong>Unit disk</strong> (curved) — tests boundary resolution with non-polygonal SDF.</li>
+<li><strong>Annulus</strong> — doubly-connected topology.</li>
+<li><strong>Notched rectangle</strong> — tight pinch point, mirrors MADMESHR's <code>pinch_figure8</code>.</li>
+</ol>
+<p>Each domain in <code>admesh/domains.py</code> as <code>(signed_distance_fn, bounding_box, fixed_points)</code>. Tests assert: completion (no orphaned regions), element-count within ±15% of target, min-quality ≥ 0.30.</p>
+<h3 id="mvp-acceptance-criteria">MVP acceptance criteria<a class="headerlink" href="#mvp-acceptance-criteria" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>admesh.triangulate(domain, params)</code> returns <code>(vertices, triangles)</code> for all 5 test domains.</li>
+<li><code>pytest tests/test_mvp_*.py</code> all green.</li>
+<li>At least one rendered PNG per domain committed to <code>output/mvp_&lt;domain&gt;.png</code>.</li>
+<li>Runtime ≤ 60 s per domain on laptop.</li>
+</ul>
+<hr />
+<h2 id="mvp-phasing-sub-steps">MVP phasing (sub-steps)<a class="headerlink" href="#mvp-phasing-sub-steps" title="Permanent link">&para;</a></h2>
+<p><strong>M.0 — Scaffold</strong> — Package layout, docs, empty stubs, passing import-smoke test.</p>
+<p><strong>M.1 — Leaf utilities + domain registry</strong> — Port <code>in_polygon.py</code>, <code>quality.py</code>. Define 5 test domains in <code>admesh/domains.py</code>.</p>
+<p><strong>M.2 — Signed distance + mesh-size solver</strong> — Port <code>distance.py</code>. Port <code>mesh_size.py</code> including Numba solver.</p>
+<p><strong>M.3 — DistMesh triangulation + driver</strong> — Port <code>distmesh2d.m</code> → <code>distmesh.py::distmesh2d()</code>. Wire top-level <code>admesh.triangulate()</code>.</p>
+<p><strong>M.4 — Validate + visualize</strong> — Run on all 5 test domains; generate PNGs; tune tolerances.</p>
+<hr />
+<h2 id="post-mvp-phases">Post-MVP phases<a class="headerlink" href="#post-mvp-phases" title="Permanent link">&para;</a></h2>
+<p><strong>Phase P1 — Sizing enrichments.</strong>
+- <code>04_Curvature_Function</code> → <code>curvature.py</code>
+- <code>05_Medial_Axis</code> → <code>medial_axis.py</code> (FMM + heap helper)
+- Integrate into <code>mesh_size.py</code> size-field composition.</p>
+<p><strong>Phase P2 — Physical-field sizing.</strong>
+- <code>06_Bathymetry_Function</code> → <code>bathymetry.py</code>
+- <code>07_Dominate_Tide</code> → <code>dominate_tide.py</code>
+- <code>13_In_Paint_NaNs</code> → <code>inpaint.py</code></p>
+<p><strong>Phase P3 — Boundary + full routine.</strong>
+- <code>08_Enforce_Boundary_Conditions</code> → <code>boundary.py</code>
+- <code>01_ADMESH_Routine/ADmeshRoutine.m</code> + <code>ADmeshSubMeshRoutine.m</code> → full <code>routine.py</code></p>
+<p><strong>Phase P4 — Polish &amp; release.</strong>
+- Public API review, type hints, optional PyPI publish, flip repo to public.</p>
+<hr />
+<h2 id="deferred-parking-lot">Deferred / parking lot<a class="headerlink" href="#deferred-parking-lot" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>GUI / visualization.</strong> MATLAB repo has GUI (not in <code>01_ADMESH_Library</code>); not in scope.</li>
+<li><strong>ADCIRC <code>.fort.14</code> I/O.</strong> Downstream concern.</li>
+<li><strong>Zero-C-extension permanence.</strong> Article II.2 permits Cython/C fallback if Numba underperforms.</li>
+</ul>
+<hr />
+<h2 id="revision-history">Revision history<a class="headerlink" href="#revision-history" title="Permanent link">&para;</a></h2>
+<h3 id="2026-04-18-initial-plan-mvp-triangulation">2026-04-18 — Initial plan; MVP = triangulation<a class="headerlink" href="#2026-04-18-initial-plan-mvp-triangulation" title="Permanent link">&para;</a></h3>
+<p>Adopted at session 0. MVP defined as triangulation-only on 5 test domains, deferring quad conversion and advanced sizing to post-MVP phases.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/domattioli/ADMESH" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/admesh2D/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.tracking", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

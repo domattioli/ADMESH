@@ -1,0 +1,1433 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Advanced, automatic unstructured mesh generator for 2D shallow-water domains.">
+      
+      
+      
+        <link rel="canonical" href="https://admesh.domattioli.com/PORTING_NOTES/">
+      
+      
+        <link rel="prev" href="../ADMESH_DOMAINS_CONTRACT/">
+      
+      
+        <link rel="next" href="../contributing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Porting notes - ADMESH</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#porting-notes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="ADMESH" class="md-header__button md-logo" aria-label="ADMESH" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ADMESH
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Porting notes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue-grey" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 6H7c-3.31 0-6 2.69-6 6s2.69 6 6 6h10c3.31 0 6-2.69 6-6s-2.69-6-6-6m0 10H7c-2.21 0-4-1.79-4-4s1.79-4 4-4h10c2.21 0 4 1.79 4 4s-1.79 4-4 4M7 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue-grey" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 7H7a5 5 0 0 0-5 5 5 5 0 0 0 5 5h10a5 5 0 0 0 5-5 5 5 0 0 0-5-5m0 8a3 3 0 0 1-3-3 3 3 0 0 1 3-3 3 3 0 0 1 3 3 3 3 0 0 1-3 3"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/domattioli/ADMESH" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    domattioli/ADMESH
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="ADMESH" class="md-nav__button md-logo" aria-label="ADMESH" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ADMESH
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/domattioli/ADMESH" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    domattioli/ADMESH
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Interactive Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/triangulate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Triangulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mesh + Domain
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/io/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    I/O
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/size_field/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Size fields
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/quality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality + smoothing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/loaders/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domain loaders
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/valence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Valence balancing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ADMESH_DOMAINS_CONTRACT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    admesh-domains contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Porting notes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Porting notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-harness-145" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark harness (#145)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-05-25-stage-02-createbackgroundgrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-25 — stage 02 — CreateBackgroundGrid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#issue-11-ring-sorting-by-signed-area-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue #11 — Ring sorting by signed area (2026-04-26)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v02-domain-api-consolidation-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.2 — Domain API consolidation (2026-04-26)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v1-pythonic-layer-2026-04-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1 Pythonic layer (2026-04-25)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1 Pythonic layer (2026-04-25)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain_from_polygon-shapely-based-sdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        domain_from_polygon — Shapely-based SDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meshplot-lazy-matplotlib-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mesh.plot() — lazy matplotlib import
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fort14-io-convention-isolation-at-the-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fort.14 I/O — convention isolation at the boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-phase-size-field-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-phase size-field composition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-04-25-quad_prep-leg-not-hypotenuse-h-scaling-spec-004" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-04-25 — quad_prep — leg-not-hypotenuse h scaling (spec-004)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-04-25-quality-right_iso_quality-companion-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-04-25 — quality — right_iso_quality companion metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-13-octree-adaptive-background-grid-spec-029-additive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-13 — octree adaptive background grid (spec 029, additive)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-13-inpaint_nans-1-d-laplacian-column-alignment-stage-13-155" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-13 — inpaint_nans 1-D Laplacian column alignment (stage 13, #155)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://www.domattioli.com/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ecosystem wiki
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#benchmark-harness-145" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmark harness (#145)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-05-25-stage-02-createbackgroundgrid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-05-25 — stage 02 — CreateBackgroundGrid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#issue-11-ring-sorting-by-signed-area-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue #11 — Ring sorting by signed area (2026-04-26)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v02-domain-api-consolidation-2026-04-26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.2 — Domain API consolidation (2026-04-26)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#v1-pythonic-layer-2026-04-25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v1 Pythonic layer (2026-04-25)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="v1 Pythonic layer (2026-04-25)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#domain_from_polygon-shapely-based-sdf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        domain_from_polygon — Shapely-based SDF
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#meshplot-lazy-matplotlib-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mesh.plot() — lazy matplotlib import
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fort14-io-convention-isolation-at-the-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        fort.14 I/O — convention isolation at the boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-phase-size-field-composition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Two-phase size-field composition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-04-25-quad_prep-leg-not-hypotenuse-h-scaling-spec-004" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-04-25 — quad_prep — leg-not-hypotenuse h scaling (spec-004)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-04-25-quality-right_iso_quality-companion-metric" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-04-25 — quality — right_iso_quality companion metric
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-13-octree-adaptive-background-grid-spec-029-additive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-13 — octree adaptive background grid (spec 029, additive)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2026-06-13-inpaint_nans-1-d-laplacian-column-alignment-stage-13-155" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2026-06-13 — inpaint_nans 1-D Laplacian column alignment (stage 13, #155)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="porting-notes">Porting notes<a class="headerlink" href="#porting-notes" title="Permanent link">&para;</a></h1>
+<p>Running log of MATLAB → Python substitutions and behavior differences encountered during the port. One entry per decision; newest at top.</p>
+<p>Template:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>## YYYY-MM-DD — &lt;stage&gt; — &lt;title&gt;
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>**MATLAB**: `function(args)` in `&lt;path&gt;.m`
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>**Python**: `admesh.&lt;module&gt;.function(args)`
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>**Substitution**: &lt;what was replaced&gt;
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>**Behavior diff**: &lt;closed-vs-open boundary, tie-break, ordering, etc.&gt;
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>**Impact**: &lt;how tests / callers are affected&gt;
+</code></pre></div>
+<hr />
+<h2 id="benchmark-harness-145">Benchmark harness (#145)<a class="headerlink" href="#benchmark-harness-145" title="Permanent link">&para;</a></h2>
+<p><code>scripts/bench_pipeline.py</code> is the per-stage wall-clock harness. Monkeypatches stage entry-point callables (defensive: skips on missing) to accumulate elapsed time by stage label across measured runs. Outputs per-stage seconds + percentage of total end-to-end, with "other/unaccounted" row and JSON record for CI integration.</p>
+<p><strong>MVP triangulate path (default)</strong>: distmesh-dominated. The size-field stack (curvature/medial-axis/bathymetry/tide/mesh_size) only invokes when a <code>build_h</code> size field is composed into the call — in the default MVP path (no <code>size_field=</code> arg) it is NOT invoked. Per-stage timing honestly shows only stages that fired; unexercised stages list 0.0 sec or are omitted. Issue #99 parallelization phases (CPU vectorize/prange, batch MP, distmesh accel, GPU) each require a before/after number from this harness for ROI justification.</p>
+<p><strong>Fixtures</strong>: tier-0 in-package (UNIT_SQUARE, L_SHAPE) always present + optional WNAT (coarse h_max=0.0135) if <code>tests/fixtures/fort14/adcirc_examples/wnat_test.14</code> exists. Tier-1 (JSON/TOML domains) skipped gracefully if absent. Warmup run (excluded, triggers Numba JIT) is non-fatal; measured runs use <code>time.perf_counter()</code> median across <code>--runs</code> iterations.</p>
+<hr />
+<h2 id="2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115">2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)<a class="headerlink" href="#2026-06-05-octree_gridpy-adaptive-refinement-bug-fix-spec-021-issue-115" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: N/A — <code>octree_grid.py</code> is new Python-only code, not a MATLAB port.
+<strong>Python</strong>: <code>admesh._stages.octree_grid._build_tree_recursive</code>
+<strong>Bug fixed</strong>: <code>_build_tree_recursive</code> condition <code>d &gt; 2.0 * node.size</code> only skipped far-EXTERIOR cells. Interior cells (d &lt; 0, negative SDF) always passed the check → entire interior subdivided to h_min → O(N²)–like leaf growth at high feature-size ratios.
+<strong>Fix</strong>: Replace exterior-only check with local-feature-size (LFS) adaptive stopping. <code>lfs = max(abs(d), h_min)</code>, <code>target_h = min(lfs, h_max)</code>. Stop subdividing when <code>node.size &lt;= target_h</code>. This halts interior cells at the depth appropriate for their distance to the boundary.
+<strong>Impact</strong>: ratio=1000 build time 26.8s → 6.68s, leaf count 698,644 → 77,800. All 16 octree tests pass. <code>_build_tree_recursive</code> now accepts <code>h_max</code> parameter; <code>build_octree</code> passes it through.</p>
+<hr />
+<h2 id="2026-05-25-stage-02-createbackgroundgrid">2026-05-25 — stage 02 — CreateBackgroundGrid<a class="headerlink" href="#2026-05-25-stage-02-createbackgroundgrid" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: <code>[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)</code> in <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code>
+<strong>Python</strong>: <code>admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1) -&gt; BackgroundGrid</code>
+<strong>Substitution</strong>: MATLAB <code>vertcat(PTS.Points{:})</code> + min/max → <code>domain.bbox</code>. <code>meshgrid(xmin:delta:xmax, ...)</code> → <code>np.arange(xmin, xmax + 0.5*delta, delta)</code> + <code>np.meshgrid(..., indexing="xy")</code>. The bare <code>[X,Y,delta]</code> tuple is packaged as a frozen <code>BackgroundGrid</code> (fields <code>X</code>, <code>Y</code>, <code>delta</code>, <code>bbox</code>).
+<strong>Behavior diff</strong>: MATLAB pads the box by <code>hmax</code>; this signature carries no separate coarse size, so <code>padding</code> defaults to <code>h0</code> (one cell) and is overridable. Spacing maps <code>hmin → h0</code>, so <code>delta = h0 / res</code>. The <code>arange</code> half-open upper bound <code>xmax + 0.5*delta</code> reproduces MATLAB colon inclusivity and matches <code>eval_sdf_grid</code>.
+<strong>Impact</strong>: New callable surface only; routine.py still builds its grid via <code>eval_sdf_grid</code> (delegation deferred to a MATLAB-equipped parity run per spec 013 FR-013-5). <code>tests/test_background_grid.py</code> locks five property/contract tests now; the <code>atol=1e-10</code> MATLAB-fixture parity test stays <code>xfail(strict)</code> until the stage-02 fixture is exported (spec 013 T-013-B5). Shim <code>admesh/background_grid.py</code> re-exports both new names.</p>
+<hr />
+<h2 id="issue-11-ring-sorting-by-signed-area-2026-04-26">Issue #11 — Ring sorting by signed area (2026-04-26)<a class="headerlink" href="#issue-11-ring-sorting-by-signed-area-2026-04-26" title="Permanent link">&para;</a></h2>
+<p><strong>Fix</strong>: <code>_derive_boundary_segments()</code> now sorts rings by <strong>signed area</strong> (shoelace formula) instead of <strong>node count</strong>.</p>
+<p><strong>Rationale</strong>: Multiply-connected domains (e.g., WNAT with interior Gulf of Mexico coastline) have interior coastlines with <strong>more nodes</strong> than outer ocean boundary due to refinement. Sorting by node count incorrectly identified interior ring as outer boundary, causing domain bbox shrinkage and <code>triangulate()</code> failure.</p>
+<p><strong>Behavior change</strong>:
+- <strong>Before</strong>: <code>rings.sort(key=len, reverse=True)</code> — longest ring (by node count) becomes outer
+- <strong>After</strong>: <code>rings.sort(key=lambda ring: _ring_area(ring, nodes), reverse=True)</code> — largest ring (by signed area) becomes outer</p>
+<p><strong>Impact</strong>:
+- <code>Domain.from_mesh(src)</code> now correctly recovers multiply-connected domains
+- WNAT test fixture bbox now matches source to within <code>1e-9</code> tolerance
+- Ring ordering now <strong>canonical</strong> and independent of mesh node sampling
+- No change to faithful-port modules; only <code>admesh/api.py</code></p>
+<p><strong>Alignment with MATLAB</strong>: MATLAB original uses area-based sorting; this fix aligns Python port with reference implementation.</p>
+<hr />
+<h2 id="v02-domain-api-consolidation-2026-04-26">v0.2 — Domain API consolidation (2026-04-26)<a class="headerlink" href="#v02-domain-api-consolidation-2026-04-26" title="Permanent link">&para;</a></h2>
+<p><strong>Removed from public API:</strong>
+- <code>admesh.domain_from_polygon(rings, *, pfix, bc_segments)</code> — Shapely-based polygon→SDF builder
+- <code>admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)</code> — SDF callable + bbox wrapper</p>
+<p><strong>Rationale:</strong> File-based domain loading (TOML/JSON/fort.14) and ADMESH-Domains registry are now canonical entry points. Storing domain definitions as files enables version control, reproducibility, and registry integration.</p>
+<p><strong>Migration:</strong>
+- Polygon domains → serialize to JSON/TOML once; reload via <code>load_domain_from_json()</code> or <code>load_domain_from_toml()</code>
+- Custom SDF domains → construct <code>Domain(sdf=callable, bbox=(...))</code> directly (dataclass still exported)
+- See <code>CLAUDE.md</code> § "Domain Loading &amp; API (v0.2+)" for code examples</p>
+<p><strong>Internal:</strong> <code>_shapely_sdf</code> and <code>_domain_from_polygon</code> moved to <code>admesh/loaders.py</code> as private helpers for file-loader internals. Tests that require in-memory polygon→Domain conversion import <code>_domain_from_polygon</code> from <code>admesh.loaders</code>.</p>
+<hr />
+<h2 id="v1-pythonic-layer-2026-04-25">v1 Pythonic layer (2026-04-25)<a class="headerlink" href="#v1-pythonic-layer-2026-04-25" title="Permanent link">&para;</a></h2>
+<p>Pythonic API + ADCIRC fort.14 I/O surface in <code>admesh/api.py</code>, <code>admesh/fort14.py</code>, <code>admesh/boundary_types.py</code>, <code>admesh/size_field.py</code>, <code>admesh/viz.py</code>. <strong>Strictly additive</strong> over 13 faithful-port stage modules — Constitution Principle I unbroken. See spec <code>specs/001-pythonize-and-fort14-integration/</code> for full surface contract.</p>
+<h3 id="domain_from_polygon-shapely-based-sdf"><code>domain_from_polygon</code> — Shapely-based SDF<a class="headerlink" href="#domain_from_polygon-shapely-based-sdf" title="Permanent link">&para;</a></h3>
+<p><strong>Python</strong>: <code>admesh.api.domain_from_polygon(rings, *, pfix=None, bc_segments=())</code> builds <code>Domain</code> whose <code>sdf</code> is constructed from Shapely <code>Polygon</code>. Distance to <code>polygon.boundary</code> LineString gives <code>|d|</code>; <code>prepared.contains(point)</code> flips sign for interior points.</p>
+<p><strong>Substitution</strong>: replaces ad-hoc <code>inpolygon</code> + per-edge distance loops. Shapely already transitive dependency; no new install graph cost.</p>
+<p><strong>Behavior diff</strong>: Shapely uses GEOS under the hood; tie behaviour on boundary is "point on boundary returns distance 0 with sign 0", matching <code>d = 0</code> boundary convention.</p>
+<p><strong>Impact</strong>: callers can omit explicit fixed-point lists for simple polygon domains; bbox auto-derived from outer ring extent.</p>
+<h3 id="meshplot-lazy-matplotlib-import"><code>Mesh.plot()</code> — lazy matplotlib import<a class="headerlink" href="#meshplot-lazy-matplotlib-import" title="Permanent link">&para;</a></h3>
+<p><strong>Python</strong>: <code>admesh.viz.plot_mesh</code> imported only when <code>Mesh.plot()</code> called, not at module-import time. <code>pyproject.toml</code> <code>[viz]</code> extra (<code>matplotlib&gt;=3.7</code>) is opt-in.</p>
+<p><strong>Substitution</strong>: keeps <code>import admesh</code> cheap (no matplotlib backend init) and lets headless/CI environments use package without display dependency. On <code>ImportError</code>, re-raises with message naming <code>admesh2D[viz]</code> extra.</p>
+<p><strong>Behavior diff</strong>: none vs. raw <code>matplotlib.pyplot.triplot</code>; helper adds boundary-segment coloring (per <code>BoundaryType</code>) and sets <code>aspect='equal'</code> by default.</p>
+<h3 id="fort14-io-convention-isolation-at-the-boundary">fort.14 I/O — convention isolation at the boundary<a class="headerlink" href="#fort14-io-convention-isolation-at-the-boundary" title="Permanent link">&para;</a></h3>
+<p><strong>Python</strong>: <code>admesh.fort14.{read_fort14, write_fort14}</code> are the <strong>only</strong> code path that knows about ADCIRC's 1-based node IDs and positive-down depth convention. Every internal <code>Mesh</code> is 0-based and stores bathymetry as elevation (positive-up). Conversions:
+- <code>node_id_disk = node_id_internal + 1</code>
+- <code>depth_disk = -elevation_internal</code></p>
+<p><strong>Behavior diff</strong>: <code>Mesh.bathymetry</code> of all-zeros round-trips as <code>None</code>. Real bathymetry round-trips bit-for-bit within writer's <code>precision=</code> (default 6 decimal places).</p>
+<h3 id="two-phase-size-field-composition">Two-phase size-field composition<a class="headerlink" href="#two-phase-size-field-composition" title="Permanent link">&para;</a></h3>
+<p><strong>Python</strong>: <code>admesh.size_field.compose_size_field(builtins, user_contribs, combine, hmin, hmax)</code> composes <code>(N, 2) -&gt; (N,)</code> callable. Phase 1 (built-ins) <strong>always</strong> uses <code>np.minimum.reduce</code> regardless of <code>combine</code> — Constitution Principle I. Phase 2 (user contributions) combined via caller's chosen reduction.</p>
+<p><strong>Behavior diff</strong>: invalid user-contribution outputs (NaN, ≤ 0, out of <code>[hmin, hmax]</code>) are clamped with <code>UserWarning</code>. More lenient than faithful-port path.</p>
+<hr />
+<h2 id="2026-04-25-quad_prep-leg-not-hypotenuse-h-scaling-spec-004">2026-04-25 — quad_prep — leg-not-hypotenuse <code>h</code> scaling (spec-004)<a class="headerlink" href="#2026-04-25-quad_prep-leg-not-hypotenuse-h-scaling-spec-004" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: n/a — new module (spec-004), not a port.
+<strong>Python</strong>: <code>admesh.quad_prep.smooth_for_quadrangulation</code>, specifically per-element scale <code>sigma_k = h(centroid) / sqrt(2)</code>.
+<strong>Substitution</strong>: For right-isoceles target with legs <code>L</code> and hypotenuse <code>L * sqrt(2)</code>, user-supplied size field <code>h</code> is interpreted as desired <strong>leg</strong> length. So <code>sigma_k = h / sqrt(2)</code>. Rationale: after downstream tri-to-quad fusion, each pair of right-isoceles triangles fuses along shared hypotenuse, and resulting quad inherits <strong>leg</strong> as its edge length.
+<strong>Behavior diff</strong>: None — no MATLAB analog. Convention documented per Constitution Principle II so choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between leg lengths and <code>h(centroid)</code>).
+<strong>Impact</strong>: Callers passing OceanMesh2D-style mesh-size function get expected behavior: triangle legs (and downstream quad edges) track <code>h</code> directly, no <code>sqrt(2)</code> rescaling needed.</p>
+<h2 id="2026-04-25-quality-right_iso_quality-companion-metric">2026-04-25 — quality — <code>right_iso_quality</code> companion metric<a class="headerlink" href="#2026-04-25-quality-right_iso_quality-companion-metric" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: n/a — additive (not a port). Original <code>MeshQuality.m</code> measures equilateral-ness only.
+<strong>Python</strong>: <code>admesh.quality.right_iso_quality</code>. Right-isoceles deviation score in <code>[0, 1]</code> per spec-004 FR-006. Per-element score = product of three terms: leg-equality, right-angle-fit, hypotenuse-fit. Mesh score = unweighted mean. Constitutionally additive: existing <code>mesh_quality</code> (equilateral target) <strong>not</strong> modified (Principle I).
+<strong>Behavior diff</strong>: None to MATLAB (no analog). Metric documented in public-api.md contract. ADMESH distmesh output typically scores ~1.0 on <code>mesh_quality</code> and ~0.5 on <code>right_iso_quality</code>; spec-004 smoother trades former for latter (validated on Block_O.14: 0.977 → 0.923 for <code>mesh_quality</code>, 0.498 → 0.686 for <code>right_iso_quality</code>).
+<strong>Impact</strong>: Downstream consumers running tri-to-quad fusion have quality metric meaningfully scoring mesh suitability.</p>
+<h2 id="2026-06-08-background_grid-stage-02-grid-construction-78-spec-012">2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)<a class="headerlink" href="#2026-06-08-background_grid-stage-02-grid-construction-78-spec-012" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: <code>02_Create_Background_Grid/CreateBackgroundGrid.m</code> @ 19b2eb9 — <code>[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)</code>. Bbox padded by <code>hmax</code> each side; <code>delta = (1/res)*hmin</code>; grid <code>meshgrid(xmin:delta:xmax, ymin:delta:ymax)</code>.
+<strong>Python</strong>: <code>admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1)</code> returns frozen <code>BackgroundGrid(X, Y, delta, bbox)</code>.</p>
+<p><strong>Substitutions / behavior diffs</strong>:
+- <code>hmin</code> role → <code>h0</code> (grid spacing); <code>delta = h0/res</code> matches <code>(1/res)*hmin</code>.
+- <code>hmax</code> pad → <code>padding</code> kwarg, default <code>h0</code>. The MATLAB signature carries a separate coarse <code>hmax</code>; this port has no second size in scope, so one cell (<code>h0</code>) of pad is the faithful minimum. A caller wanting MATLAB parity passes <code>padding=hmax</code>.
+- MATLAB colon <code>xmin:delta:xmax</code> (inclusive, stops at the largest <code>xmin+k*delta &lt;= xmax</code>) → NumPy <code>np.arange(xmin, xmax + 0.5*delta, delta)</code>. The <code>0.5*delta</code> upper-bound guard absorbs float rounding so the terminal <code>~xmax</code> node is retained. Edge case: when <code>(xmax-xmin)/delta</code> lands near an integer, the half-open arange can keep one node the colon would also keep — counts match for the unit-square fixture (13×13 at h0=0.1).
+- <code>meshgrid(..., indexing="xy")</code> keeps MATLAB column-major X-along-columns layout; <code>(X, Y)</code> align with <code>eval_sdf_grid</code> for the same bbox+delta.</p>
+<p><strong>Parity status (RESOLVED 2026-06-09, #78)</strong>: all 6 <code>tests/test_background_grid.py</code> tests pass, including bit-exact MATLAB parity (<code>test_matlab_parity_unit_square</code>, <code>atol=1e-10</code>). Fixture <code>tests/fixtures/matlab/background_grid_unit_square.npz</code> generated by running the stage-02 target of <code>scripts/export_matlab_fixtures.m</code> under <strong>GNU Octave 8.4</strong> — the archived MATLAB source <code>src/matlab/admesh_library/02_Create_Background_Grid/CreateBackgroundGrid.m</code> runs unmodified in Octave. Port vs Octave reference agree to <code>max|ΔX| = 4.4e-16</code> (float epsilon — NumPy <code>arange</code> and the Octave/MATLAB colon emit identical doubles for the unit-square grid). <code>xfail(strict)</code> removed.
+- <strong>Exporter bug fixed in the same change</strong>: the stage-02 <code>PTS_sq</code> used the <code>[0,1]²</code> square, but the Python <code>UNIT_SQUARE</code> domain it mirrors is the centered <code>[-0.5,0.5]²</code> (bbox <code>(-0.5,-0.5,0.5,0.5)</code>). Corrected <code>PTS_sq</code> to the centered corners so the regenerated fixture matches <code>create_background_grid(UNIT_SQUARE, 0.1)</code>.
+- <strong>Regen</strong>: <code>octave --no-gui scripts/export_matlab_fixtures.m</code> (stage-02 block) → <code>.mat</code>; <code>scipy.io.loadmat</code> → <code>np.savez</code> to the <code>.npz</code> the test loads. MATLAB and Octave both regenerate it identically.</p>
+<h2 id="2026-06-13-octree-adaptive-background-grid-spec-029-additive">2026-06-13 — octree adaptive background grid (spec 029, additive)<a class="headerlink" href="#2026-06-13-octree-adaptive-background-grid-spec-029-additive" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: n/a — no MATLAB origin. Additive accelerator, faithful to the <em>quadtree concept</em> (Samet 1990), not to any ported source. Constitution Principle I untouched: locked <code>background_grid.py</code> (uniform stage-02) stays the default.
+<strong>Python</strong>: <code>admesh.octree</code> — struct-of-arrays vectorized quadtree. <code>build_octree(domain, *, h_min, h_max, oracle, …) -&gt; Octree</code>; <code>leaf_graph</code>, <code>locate</code>, <code>interpolate</code> (nearest-leaf), <code>interpolate_smooth</code> (IDW), <code>octree_size_field(domain, oracle, *, h_min, h_max, g=0.2, gradient_limit=True)</code>. Wired via <code>triangulate(background="octree")</code>.</p>
+<p><strong>Design decisions (spec-029 §2b/§2c, evidence-driven)</strong>:
+- <strong>Storage</strong>: parallel arrays (<code>cx,cy,size,depth,ix,iy</code>), integer cell coords + <code>(depth,ix,iy)</code> dict for Samet neighbor finding. No per-cell objects. Chosen over the object-tree (slow) and the flat-list branch (O(N²) <code>leaf_graph</code> defect).
+- <strong>Build</strong>: level-synchronous — oracle called once per depth level on all active centers (batched), not per cell. On the ENPAC domain (2 ms/pt SDF) this cut oracle evals from ~29k (per-cell) to ~1k (batched).
+- <strong>Language</strong>: pure NumPy. Measured: octree machinery is sub-second to 393k leaves; build cost is dominated by the size oracle (SDF), itself NumPy/scipy — a native rewrite would optimize the already-free layer. Numba/native stay dormant escape hatches (spec-023).
+- <strong>Gradation</strong>: leaf-graph relaxation enforces <code>|h_i − h_j| ≤ g·dist</code> (ADMESH grading), mirroring the mesh_size.py gradient-limit concept on the irregular leaf graph.
+- <strong>Interpolation</strong>: nearest-leaf stairstep gave SC-005 fidelity 0.076·h_max (&gt; 0.05 gate); IDW blend over leaf + edge neighbors → 0.0296·h_max (PASS).</p>
+<p><strong>Behavior diff</strong>: <code>background="uniform"</code> (default) is byte-identical to prior behavior. <code>background="octree"</code> reproduces uniform meshes on flat size fields and matches/exceeds quality on graded fields (benchmarks/results/octree_benchmark.md).</p>
+<h2 id="2026-06-13-inpaint_nans-1-d-laplacian-column-alignment-stage-13-155">2026-06-13 — inpaint_nans 1-D Laplacian column alignment (stage 13, #155)<a class="headerlink" href="#2026-06-13-inpaint_nans-1-d-laplacian-column-alignment-stage-13-155" title="Permanent link">&para;</a></h2>
+<p><strong>MATLAB</strong>: <code>01_ADMESH_Library/.../inpaint_nans.m</code> method 0, 1-D branch (lines 109–125) — builds the <code>[1 -2 1]</code> second-difference operator with row/column/value triples in matching per-row order.
+<strong>Python</strong>: <code>admesh._stages.inpaint._inpaint_nans_method_0</code>, <code>if m == 1 or n == 1</code> branch.</p>
+<p><strong>Behavior diff (port artifact, now fixed)</strong>: the COO <code>cols</code> array was assembled column-grouped (<code>np.concatenate([work-1, work, work+1])</code>) while <code>rows</code>/<code>data</code> were interleaved per-row (<code>np.repeat(arange(nw),3)</code> / <code>np.tile([1,-2,1],nw)</code>). COO maps triple <code>k → (rows[k], cols[k], data[k])</code>, so the stencil only landed on the right columns when <code>work</code> was perfectly consecutive; any gap between NaN clusters scattered the <code>[1,-2,1]</code> coefficients into wrong columns → silently-wrong inpaint on non-contiguous interior NaNs. The sibling 2-D branch already built <code>cols</code> interleaved (<code>np.column_stack([...]).ravel()</code>) — the fix mirrors it. Moves the port <em>toward</em> MATLAB fidelity (the MATLAB original is correct). A linear ramp cannot expose the defect (it lies in the operator's null space); <code>tests/test_inpaint.py::test_inpaint_1d_noncontiguous_nans_regression</code> compares against an independent clean-room del² oracle on quadratic/cubic/sine fields (buggy diverged O(100), fixed matches to ~1e-10).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/domattioli/ADMESH" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://pypi.org/project/admesh2D/" target="_blank" rel="noopener" title="pypi.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.8 200.5c-7.7-30.9-22.3-54.2-53.4-54.2h-40.1v47.4c0 36.8-31.2 67.8-66.8 67.8H172.7c-29.2 0-53.4 25-53.4 54.3v101.8c0 29 25.2 46 53.4 54.3 33.8 9.9 66.3 11.7 106.8 0 26.9-7.8 53.4-23.5 53.4-54.3v-40.7H226.2v-13.6h160.2c31.1 0 42.6-21.7 53.4-54.2 11.2-33.5 10.7-65.7 0-108.6M286.2 444.7a20.4 20.4 0 1 1 0-40.7 20.4 20.4 0 1 1 0 40.7M167.8 248.1h106.8c29.7 0 53.4-24.5 53.4-54.3V91.9c0-29-24.4-50.7-53.4-55.6-35.8-5.9-74.7-5.6-106.8.1-45.2 8-53.4 24.7-53.4 55.6v40.7h106.9v13.6h-147c-31.1 0-58.3 18.7-66.8 54.2-9.8 40.7-10.2 66.1 0 108.6 7.6 31.6 25.7 54.2 56.8 54.2H101v-48.8c0-35.3 30.5-66.4 66.8-66.4m-6.6-183.4a20.4 20.4 0 1 1 0 40.8 20.4 20.4 0 1 1 0-40.8"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.tracking", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
