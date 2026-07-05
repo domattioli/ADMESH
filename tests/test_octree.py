@@ -113,10 +113,7 @@ class TestOctreeInvariants:
                 f"2:1 constraint violated: max depth diff = {max_depth_diff}"
 
     def test_leaf_graph_matches_bruteforce(self, oracle_graded, ratio):
-        """Test (d): leaf_graph matches O(N^2) brute-force (ratio=10 only)."""
-        if ratio != 10:
-            pytest.skip("Brute-force test only for ratio=10 (too slow for ratio=100)")
-
+        """Test (d): leaf_graph matches O(N^2) brute-force."""
         h_max = 0.25
         h_min = h_max / ratio
 
