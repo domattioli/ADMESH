@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pre-tag verification — gates the 0.1.0 release tag.
+# Pre-tag verification — gates release tags (version-agnostic since 0.6.0).
 #
 # Gates:
 #   1. constitution version >= 1.0.2
@@ -31,7 +31,17 @@ pass() {
     echo "PASS: $*"
 }
 
-# 1. Constitution version >= 1.0.2 -----------------------------------------
+# Target version — derived once from pyproject.toml -------------------------
+TARGET_VERSION=$(grep -E '^version *= *"' pyproject.toml | head -1 | sed -E 's/^version *= *"([^"]+)".*/\1/')
+if [[ -z "$TARGET_VERSION" ]]; then
+    echo "FAIL: could not derive TARGET_VERSION from pyproject.toml" >&2
+    exit 1
+fi
+# grep-safe form (dots escaped)
+ver_re=$(printf '%s' "$TARGET_VERSION" | sed 's/\./\\./g')
+
+# 1. Constitution version >= 1.0.0 -----------------------------------------
+# speckit constitution migration re-versioned the banner to 1.0.0 (2026); the 1.0.2 floor was the pre-migration numbering (spec-009 FR-017 era)
 constitution_version=$(
     grep -E '^\*\*Version\*\*:' .specify/memory/constitution.md \
         | head -1 \
@@ -39,22 +49,22 @@ constitution_version=$(
 )
 if [[ -z "$constitution_version" ]]; then
     fail "could not read constitution version banner"
-elif [[ "$(printf '%s\n%s' '1.0.2' "$constitution_version" | sort -V | head -1)" != '1.0.2' ]]; then
-    fail "constitution version $constitution_version < 1.0.2 (spec FR-017)"
+elif [[ "$(printf '%s\n%s' '1.0.0' "$constitution_version" | sort -V | head -1)" != '1.0.0' ]]; then
+    fail "constitution version $constitution_version < 1.0.0 (spec FR-017)"
 else
-    pass "constitution version $constitution_version >= 1.0.2"
+    pass "constitution version $constitution_version >= 1.0.0"
 fi
 
 # 2. README status reflects shipping reality ----------------------------
-# Pre-ship: README carries "0.1.0 in progress" callout.
+# Pre-ship: README carries "<version> in progress" callout.
 # Ship-ready: README mentions the tag version explicitly.
 # Either state is acceptable; the gate fails only when both are absent.
-if grep -q '0\.1\.0 in progress' README.md; then
-    pass "README in pre-ship state ('0.1.0 in progress' callout present)"
-elif grep -qE '\*\*0\.1\.0\*\*|^# .*0\.1\.0|admesh2D==0\.1\.0' README.md; then
-    pass "README in ship-ready state (0.1.0 version mentioned)"
+if grep -q "${ver_re} in progress" README.md; then
+    pass "README in pre-ship state ('${TARGET_VERSION} in progress' callout present)"
+elif grep -qE "${ver_re}" README.md; then
+    pass "README in ship-ready state (${TARGET_VERSION} version mentioned)"
 else
-    fail "README must reference 0.1.0 either as 'in progress' or as a shipped version"
+    fail "README must reference ${TARGET_VERSION} either as 'in progress' or as a shipped version"
 fi
 
 # 3. No docs/papers/wnat_admesh.png in the working tree ------------------------
@@ -87,22 +97,27 @@ else
 fi
 
 # 6. Version string consistency -----------------------------------------------
-pyproject_version=$(
-    grep -E '^version\s*=' pyproject.toml \
-        | head -1 \
-        | sed -E 's/^version\s*=\s*"([^"]+)".*/\1/'
-)
-init_version=$(
-    grep -E '^__version__\s*=' admesh/__init__.py \
-        | head -1 \
-        | sed -E 's/^__version__\s*=\s*"([^"]+)".*/\1/'
-)
-if [[ -z "$pyproject_version" || -z "$init_version" ]]; then
-    fail "VERSION_MISSING: could not parse version from pyproject.toml or admesh/__init__.py"
-elif [[ "$pyproject_version" != "$init_version" ]]; then
-    fail "VERSION_MISMATCH: pyproject.toml=$pyproject_version admesh/__init__.py=$init_version"
+# PEP 517 src-layout is canonical; legacy flat layout kept as fallback.
+init_file=""
+if [[ -f src/admesh/__init__.py ]]; then
+    init_file="src/admesh/__init__.py"
+elif [[ -f admesh/__init__.py ]]; then
+    init_file="admesh/__init__.py"
+fi
+init_version=""
+if [[ -n "$init_file" ]]; then
+    init_version=$(
+        grep -E '^__version__\s*=' "$init_file" \
+            | head -1 \
+            | sed -E 's/^__version__\s*=\s*"([^"]+)".*/\1/'
+    )
+fi
+if [[ -z "$init_version" ]]; then
+    fail "VERSION_MISSING: could not parse __version__ from src/admesh/__init__.py or admesh/__init__.py"
+elif [[ "$TARGET_VERSION" != "$init_version" ]]; then
+    fail "VERSION_MISMATCH: pyproject.toml=$TARGET_VERSION $init_file=$init_version"
 else
-    pass "version strings agree: $pyproject_version"
+    pass "version strings agree: $TARGET_VERSION"
 fi
 
 # 7. PROJECT_PLAN.md staleness (most recent entry within 30 days of HEAD) -----
@@ -163,11 +178,11 @@ fi
 # Summary -----------------------------------------------------------------
 if [[ "$failed" -eq 0 ]]; then
     echo
-    echo "ALL PRE-TAG CHECKS PASSED — 0.1.0 tag is unblocked from this script's"
+    echo "ALL PRE-TAG CHECKS PASSED — ${TARGET_VERSION} tag is unblocked from this script's"
     echo "perspective. Verify pytest tests/ -q is green before tagging."
     exit 0
 else
     echo
-    echo "$failed PRE-TAG CHECK(S) FAILED — 0.1.0 tag BLOCKED."
+    echo "$failed PRE-TAG CHECK(S) FAILED — ${TARGET_VERSION} tag BLOCKED."
     exit 1
 fi

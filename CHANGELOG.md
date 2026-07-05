@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] — 2026-07-05
+
+### Added
+- Octree size-field production (spec-029): vectorized SoA octree backend, leaf-graph gradient limiting, IDW smooth interpolation for curvature/medial-axis fallback, WNAT/ENPAC benchmark integration.
+
+### Changed
+- Benchmark standard migration: WNAT → ENPAC 2003 (#154) for Tier-2 evaluation; ENPAC timing baseline, quality targets, and fixture set now canonical.
+- Documentation: parallel-branches lineage corrected (#185); rolling PR `development → main` formalized (#182).
+
+### Fixed
+- Test suite: consolidate additive-layer tests, resolve skip debt (#184); correct `inpaint_nans` 1-D Laplacian column alignment (#155).
+
 ## [0.5.1] — 2026-06-15
 
 First PyPI release since 0.2.1 — consolidates the unreleased 0.3–0.5 development line.
