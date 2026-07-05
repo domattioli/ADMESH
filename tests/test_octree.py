@@ -34,7 +34,7 @@ def oracle_graded():
     return oracle
 
 
-@pytest.mark.parametrize("ratio", [10, 100])
+@pytest.mark.parametrize("ratio", [10, pytest.param(100, marks=pytest.mark.slow)])
 class TestOctreeInvariants:
     """Test the five core quadtree invariants."""
 
