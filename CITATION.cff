@@ -36,6 +36,35 @@ keywords:
   - finite-element
   - coastal-modeling
   - python
+references:
+  - type: article
+    title: "An automatic mesh generator for coupled 1D-2D hydrodynamic models"
+    authors:
+      - family-names: Kang
+        given-names: Younghun
+      - family-names: Kubatko
+        given-names: Ethan J.
+    journal: "Geoscientific Model Development"
+    year: 2024
+    volume: 17
+    start: 1603
+    end: 1625
+    doi: 10.5194/gmd-17-1603-2024
+    notes: "Describes ADMESH+ v3, the original group's current MATLAB line; this repository is a parallel Python port of the 2012 library."
+  - type: software
+    title: "Younghun-Kang/ADMESH: v3.0.1"
+    authors:
+      - family-names: Kang
+        given-names: Younghun
+      - family-names: Kubatko
+        given-names: Ethan J.
+      - family-names: Conroy
+        given-names: Colton J.
+      - family-names: West
+        given-names: Dustin W.
+    year: 2023
+    doi: 10.5281/zenodo.10242565
+    repository-code: "https://github.com/OSU-CHIL/ADMESH"
 preferred-citation:
   type: article
   title: "ADMESH: an advanced, automatic unstructured mesh generator for shallow water models"
