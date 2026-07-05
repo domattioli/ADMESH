@@ -352,7 +352,7 @@ See **Constitution Article VI rules 5–8** for binding rules. Quick operational
 
 **In-flight specs** (read each spec's `spec.md` + `plan.md` before touching its modules):
 
-- `002-size-field-defaults` — wire MATLAB-faithful size-field stack (curvature → medial-axis → bathymetry → tide, `min`-stacked) as Phase-1 default in `triangulate()`; extends fort.14 with IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. **0.1.0 release blocker** — gated on WNAT structural-validity gate ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
+- `002-size-field-defaults` — wire MATLAB-faithful size-field stack (curvature → medial-axis → bathymetry → tide, `min`-stacked) as Phase-1 default in `triangulate()`; extends fort.14 with IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. (Originally the 0.1.0 release blocker, gated on the WNAT structural-validity gate [issue #10](https://github.com/domattioli/ADMESH/issues/10) — now closed; 0.1.0 has since shipped, see `docs/governance/PROJECT_PLAN.md`.)
 - `004-quad-prep-smoother` — `smooth_for_quadrangulation()` nudges ADMESH triangulations toward right-isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`, OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
 - `005-adcirc-mesh-registry` — federated mesh registry for ADCIRC meshes (TOML manifests, HuggingFace mirror for redistributable licenses, slug + SHA-256 IDs). Split-out `ADMESH-Domains` repo = upstream catalog; this spec wires registry lookup into `triangulate(mesh_id)`.
 
