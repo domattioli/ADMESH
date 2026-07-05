@@ -6,6 +6,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 concurrency:
   group: publish
   cancel-in-progress: false
@@ -26,6 +29,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install cibuildwheel
         run: pip install cibuildwheel==2.21.*
@@ -61,6 +65,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install build tools
         run: pip install build
@@ -87,6 +92,7 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Download wheels
         uses: actions/download-artifact@v4
