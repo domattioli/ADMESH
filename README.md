@@ -110,7 +110,7 @@ flowchart LR
 
 ## Performance
 
-The Numba-JIT SDF kernel and `solve_iter` smoother cut end-to-end mesh generation on the Western North Atlantic benchmark from **1257.5 s to 47.2 s — a 26.7× speedup** at unchanged quality (`mean 0.963`), measured at `hmin=0.05` / `g=0.10` / `niter=120`.
+The Numba-JIT SDF kernel and `solve_iter` smoother cut end-to-end mesh generation on the Western North Atlantic benchmark from **1257.5 s to 47.2 s — a 26.6× speedup** at unchanged quality (`mean 0.963`), measured at `hmin=0.05` / `g=0.10` / `niter=120`.
 
 | | v0.2.1 | v0.5.0 (Numba) |
 |---|---|---|
