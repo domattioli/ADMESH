@@ -136,6 +136,14 @@ Two cautions keep this at benchmark-only rather than adopt:
    candidate against `medial_distance_FMM` on the WNAT and octree fixtures for both
    runtime and robustness. Until that read happens, T4 stays benchmark-only.
 
+**Baseline landed (#200).** A runtime + robustness baseline of the current grid-based
+path is now measured — see `docs/upstream/T4-medial-axis-benchmark.md` +
+`scripts/bench_medial_axis.py`. Key result: cost is O(1/δ²) and accuracy on a *curved*
+medial axis is δ-bounded (≈ 0.9 δ on the annulus, never converging below O(δ)); the thin
+channel stayed robust across all tested δ. The paper full-text read remains network-blocked,
+so the adopt/decline verdict is still deferred — but the baseline now pins *where* an exact
+grid-free method would have to win.
+
 ### T5 — GUI (`ADMESH.mlapp`, MATLAB App Designer)
 
 **Verdict: decline for the package; note as UI reference only.**
