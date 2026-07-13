@@ -10,6 +10,7 @@ import numpy as np
 
 from admesh.medial_axis import medial_distance_fmm, medial_axis_mask
 from admesh._stages.distance import eval_sdf_grid
+from admesh.loaders import load_domain_from_json
 from admesh import domains
 
 
@@ -27,6 +28,7 @@ def rect_sdf(p, hx=1.0, hy=0.05):
 def main():
     part_a = []
     part_b = []
+    part_c = []
 
     # PART A: runtime + accuracy vs δ
     print("=" * 90)
@@ -103,12 +105,58 @@ def main():
 
         print(f"{delta:<10.3f} {ratio:<15.2f} {ma_cells:<12} {str(detected):<10}")
 
+    # PART C: real WNAT coastal fixture (reconstructed boundary, 144 rings)
+    print("\n" + "=" * 90)
+    print("PART C: Real WNAT Coastal Fixture (wnat_onur_boundary.json)")
+    print("=" * 90)
+    print(f"{'delta':<10} {'grid_cells':<12} {'sdf_secs':<12} {'total_secs':<12} {'ma_secs':<12} {'finite':<10}")
+    print("-" * 90)
+
+    wnat_path = "/home/user/ADMESH/benchmarks/data/wnat_onur_boundary.json"
+    d = load_domain_from_json(wnat_path)
+    bb = d.bbox
+    diag = float(np.hypot(bb[2] - bb[0], bb[3] - bb[1]))
+
+    # Warmup (untimed): trigger Numba JIT + shapely SDF build so timings are steady-state.
+    medial_distance_fmm(d.sdf, bb, diag / 30)
+
+    for frac in [30, 60, 120]:
+        delta = diag / frac
+        # SDF-eval cost measured separately from skeletonize cost (min of 3 runs each).
+        sdf_times, total_times = [], []
+        X = med = None
+        for _ in range(3):
+            s = time.perf_counter()
+            eval_sdf_grid(d.sdf, bb, delta)
+            sdf_times.append(time.perf_counter() - s)
+            s = time.perf_counter()
+            X, Y, med = medial_distance_fmm(d.sdf, bb, delta)
+            total_times.append(time.perf_counter() - s)
+        sdf_secs = min(sdf_times)
+        total_secs = min(total_times)
+        ma_secs = max(total_secs - sdf_secs, 0.0)
+        grid_cells = int(X.size)
+        finite = int(np.isfinite(med).sum())
+
+        part_c.append({
+            "domain": "WNAT_Onur",
+            "delta": float(delta),
+            "grid_cells": grid_cells,
+            "sdf_secs": float(sdf_secs),
+            "total_secs": float(total_secs),
+            "ma_secs": float(ma_secs),
+            "finite": finite,
+        })
+
+        print(f"{delta:<10.4f} {grid_cells:<12} {sdf_secs:<12.4f} "
+              f"{total_secs:<12.4f} {ma_secs:<12.4f} {finite:<10}")
+
     # Write JSON
     output_dir = "/home/user/ADMESH/output"
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "T4_medial_baseline.json")
     with open(output_file, "w") as f:
-        json.dump({"part_a": part_a, "part_b": part_b}, f, indent=2)
+        json.dump({"part_a": part_a, "part_b": part_b, "part_c": part_c}, f, indent=2)
 
     print("\n" + "=" * 90)
     print(f"Baseline written to {output_file}")
