@@ -55,6 +55,22 @@ channel half-width.
 | 0.020 | 2.50 |      101 | yes      |
 | 0.010 | 5.00 |      208 | yes      |
 
+### Part C — real WNAT coastal fixture
+
+`medial_distance_fmm` on the reconstructed WNAT-Onur boundary
+(`benchmarks/data/wnat_onur_boundary.json`: 144 rings — outer ocean perimeter + island
+holes — over a ~38°×38° lon/lat bbox, diagonal ≈ 53.6). This is the production-grade coastal
+target the analytic domains stand in for. δ is set by fraction of the bbox diagonal.
+Wall-clock = min of 3 runs, warmed up once (untimed) to exclude Numba JIT + shapely-SDF build.
+`sdf_secs` = the signed-distance grid evaluation alone; `ma_secs` = the AOF+skeletonize+EDT
+medial-axis step (`total − sdf`); `finite` = medial-distance cells resolved.
+
+| δ      | grid_cells | sdf_secs | total_secs | ma_secs | finite |
+|--------|-----------:|---------:|-----------:|--------:|-------:|
+| 1.7851 |        484 |   0.0030 |     0.0037 |  0.0007 |    263 |
+| 0.8925 |       1849 |   0.0109 |     0.0124 |  0.0015 |   1039 |
+| 0.4463 |       7396 |   0.0438 |     0.0470 |  0.0032 |   4100 |
+
 ## What the numbers say
 
 - **Runtime is quadratic in resolution.** Cost tracks grid-cell count one-to-one (O(1/δ²)):
@@ -77,17 +93,34 @@ channel half-width.
   quadratic runtime are. (A branching or sharply-cornered channel network — the paper's
   actual target case — may still expose skeleton-connectivity artifacts the AOF+Zhang–Suen
   path is prone to; that needs a real coastal fixture, see below.)
+- **On the real WNAT coastline the SDF grid — not the medial-axis morphology — is the
+  bottleneck.** At δ = 0.446 (7396 cells) the AOF+Zhang–Suen+EDT skeleton step costs
+  `ma_secs = 0.0032`, while evaluating the shapely SDF over the 144-ring boundary costs
+  `sdf_secs = 0.0438` — **~14× more**, and it is `sdf_secs` that carries the O(1/δ²) growth
+  (0.003 → 0.011 → 0.044 across the sweep). This sharpens the adopt/decline picture: a
+  grid-free Voronoi/constrained-Delaunay medial axis (the paper's likely construction) would
+  remove `ma_secs`, but `ma_secs` is already ~7 % of total on a real coastline — the dominant
+  cost is the distance-field evaluation the size-field stack needs *regardless* of the
+  medial-axis method. An exact backend therefore wins on the **curved-axis O(δ) accuracy
+  floor** (Part A), not on WNAT wall-clock, where it would shave only the cheap step. The
+  skeleton also stayed fully connected on this 144-ring fixture (`finite` grows monotonically
+  with grid size), so the AOF+Zhang–Suen connectivity-artifact risk flagged above did **not**
+  materialize at these resolutions.
 
 ## Status — verdict still deferred
 
 Acceptance items for #200:
 
 - [x] **Runtime + robustness benchmark of the current `_stages/medial_axis.py`** — this
-  note + `scripts/bench_medial_axis.py` + `output/T4_medial_baseline.json`. Measured on
-  controlled analytic domains (disk, annulus, thin channel) that give exact error and
-  isolate the resolution-dependence, rather than the WNAT/octree fixtures — the octree
-  fixtures are octree-stage inputs (point sets), not medial-axis SDF grids, and a WNAT-scale
-  run needs an SDF built from the WNAT boundary polygon (a further, heavier step).
+  note + `scripts/bench_medial_axis.py` + `output/T4_medial_baseline.json`. Part A/B measure
+  controlled analytic domains (disk, annulus, thin channel) that give exact error and isolate
+  the resolution-dependence; **Part C now measures the real WNAT coastal fixture**
+  (`benchmarks/data/wnat_onur_boundary.json`, 144 rings) — the WNAT-scale SDF-built run the
+  prior revision deferred as "a further, heavier step". Its finding (SDF-eval dominates,
+  medial-axis morphology is ~7 % of total, skeleton stays connected) is folded into "What the
+  numbers say". The octree fixtures remain out of scope for this benchmark — they are
+  octree-stage inputs (point sets), not medial-axis SDF grids, so there is no medial-axis path
+  to time on them.
 - [ ] **Full-text medial-axis method summarized.** BLOCKED — the GMD article and the
   EGUsphere preprint are both refused at the agent-proxy network layer
   (`HTTP 403 CONNECT rejected` for `gmd.copernicus.org` / `egusphere.copernicus.org`,
