@@ -42,7 +42,7 @@
 
 ## Status & Roadmap
 
-**Current status (June 2026): stable and actively-maintained.** The octree adaptive background grid (`background="octree"`) refines the size field on a quadtree to better resolve medial-axis and channel feature widths.
+**Current status (July 2026): stable and actively-maintained.** The octree adaptive background grid (`background="octree"`) refines the size field on a quadtree to better resolve medial-axis and channel feature widths.
 
 - **Now:** address open issues.
 - **Next:** enhanced pre- and post-processing for quality improvement; performance optimization; evaluate a C++ or Rust backend; parallelization.
