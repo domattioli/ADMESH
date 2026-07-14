@@ -48,10 +48,14 @@ run this session):
   thin channels narrower than a few grid cells can under-resolve or fragment the
   skeleton, and morphological thinning near junctions is sensitive to grid-order
   symmetry (documented in `PORTING_NOTES.md`).
-- Fixtures available for a comparison already exist:
-  `tests/fixtures/octree/river-into-bay_ratio{10,20,40,100,1000}.npz` (the exact
-  thin-channel / high-aspect-ratio stress the revised method targets) plus the WNAT
-  reference mesh.
+- Valid benchmark targets are analytic domains with a known medial axis (unit disk,
+  annulus, thin rectangle) plus the real WNAT coastal boundary — see
+  `T4-medial-axis-benchmark.md` (Parts A/B/C), which measures these. **The octree
+  `tests/fixtures/octree/river-into-bay_ratio{10,20,40,100,1000}.npz` fixtures are NOT
+  medial-axis comparison targets:** they are point-set inputs to the octree
+  background-grid stage, not medial-axis SDF grids, so there is no grid medial-axis path
+  to time on them (established in the benchmark note's Part C — do not re-scope them into a
+  medial-axis harness).
 
 ## The candidate (T4)
 
@@ -97,11 +101,15 @@ ResearchGate, HF) is blocked. A hosted-runner fetch or an operator paste of the 
 section is the only remaining path to acceptance box 1 — no further route-hunting is
 worthwhile from a rotation session.
 
-**Handoff:** a session with paper access (hosted runner able to reach Copernicus, or an
-operator paste of the method section) can complete acceptance box 1 (method summary) and,
-with the package/deps installed, boxes 2–3 (benchmark + verdict). The comparison harness
-should time `medial_axis_mask` + `apply_medial_axis` on the octree `river-into-bay_ratio*`
-fixtures and WNAT, and score axis robustness on the high-ratio channels.
+**Handoff:** the baseline runtime + robustness benchmark (box 2) is **already done** — see
+`T4-medial-axis-benchmark.md` + `scripts/bench_medial_axis.py` + `output/T4_medial_baseline.json`
+(analytic disk/annulus/thin-channel giving exact error, plus the real WNAT coastal fixture).
+What remains is box 1 (full-text method summary — blocked, see above) and box 3 (verdict).
+A session with paper access (hosted runner able to reach Copernicus, or an operator paste of
+the method section) reads the method, then scores the revised construction against the
+baseline on the axis the benchmark identified as decisive — the **O(δ) curved-axis accuracy
+floor** and the **quadratic-in-resolution runtime**, not thin-channel survival (which held
+across the tested resolutions). No new octree-fixture benchmark is needed or possible.
 
 ## Interim verdict
 
@@ -114,7 +122,9 @@ read first. No locked module changed under this note.
 ### Acceptance status (#200)
 
 - [ ] Full-text medial-axis method summarized — **blocked** (paper 403; handoff recorded).
-- [ ] Runtime + robustness benchmark vs `_stages/medial_axis.py` on WNAT + octree —
-  **pending** (needs paper method + installed deps).
+- [x] Runtime + robustness benchmark of the baseline `_stages/medial_axis.py` — **done** in
+  `T4-medial-axis-benchmark.md` (analytic disk/annulus/thin-channel + real WNAT coastal
+  fixture). Octree fixtures are point-set octree-stage inputs, not medial-axis SDF grids, so
+  they are out of scope for a medial-axis benchmark (see that note's Part C).
 - [ ] Adopt / decline verdict — **DEFER** recorded above; final verdict pending box 1.
 - [x] No change to any locked `_stages/` module under this issue.
