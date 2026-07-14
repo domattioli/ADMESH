@@ -1,5 +1,7 @@
 """Tests for Valence-Domains registry integration."""
 
+import sys
+
 import pytest
 
 from admesh.api import Domain
@@ -11,36 +13,28 @@ from admesh.registry import (
 )
 
 
-def test_load_domain_from_registry_without_valence_domains():
+def test_load_domain_from_registry_without_valence_domains(monkeypatch):
     """Test that ImportError is raised when valence-domains not installed."""
-    # This test assumes valence-domains is not installed for testing
-    # In a real scenario, if valence-domains IS installed, this test should be skipped
-    try:
-        import valence_domains  # noqa: F401
-        pytest.skip("valence-domains is installed; skipping import error test")
-    except ImportError:
-        with pytest.raises(ImportError, match="valence-domains package required"):
-            load_domain_from_registry("test-mesh")
+    # Monkeypatch to fake absence of valence-domains
+    monkeypatch.setitem(sys.modules, "valence_domains", None)
+    with pytest.raises(ImportError, match="valence-domains package required"):
+        load_domain_from_registry("test-mesh")
 
 
-def test_list_available_domains_without_valence_domains():
+def test_list_available_domains_without_valence_domains(monkeypatch):
     """Test that ImportError is raised for list_available_domains when valence-domains not installed."""
-    try:
-        import valence_domains  # noqa: F401
-        pytest.skip("valence-domains is installed; skipping import error test")
-    except ImportError:
-        with pytest.raises(ImportError, match="valence-domains package required"):
-            list_available_domains()
+    # Monkeypatch to fake absence of valence-domains
+    monkeypatch.setitem(sys.modules, "valence_domains", None)
+    with pytest.raises(ImportError, match="valence-domains package required"):
+        list_available_domains()
 
 
-def test_load_domain_with_metadata_without_valence_domains():
+def test_load_domain_with_metadata_without_valence_domains(monkeypatch):
     """Test that ImportError is raised for load_domain_with_metadata when valence-domains not installed."""
-    try:
-        import valence_domains  # noqa: F401
-        pytest.skip("valence-domains is installed; skipping import error test")
-    except ImportError:
-        with pytest.raises(ImportError, match="valence-domains package required"):
-            load_domain_with_metadata("test-mesh")
+    # Monkeypatch to fake absence of valence-domains
+    monkeypatch.setitem(sys.modules, "valence_domains", None)
+    with pytest.raises(ImportError, match="valence-domains package required"):
+        load_domain_with_metadata("test-mesh")
 
 
 def test_convert_to_valence_domain_with_rings():

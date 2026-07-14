@@ -1,12 +1,36 @@
-"""Smoke test for the v1 public re-export surface (T009).
+"""Smoke tests for package-level import graph and public re-export surface.
 
-Asserts that the names promised in
-``specs/001-pythonize-and-fort14-integration/contracts/python-api.md`` are
-importable from the top-level ``admesh`` namespace at this stage of the
-port.
+Verifies the import graph is intact and the v1 public API surface is
+importable from the top-level ``admesh`` namespace (T009).
 """
 
 from __future__ import annotations
+
+import importlib
+import types
+
+import admesh
+
+
+def test_version() -> None:
+    assert admesh.__version__
+
+
+def test_all_submodules_importable() -> None:
+    """Every name in ``admesh.__all__`` must resolve.
+
+    Submodule names must import as ``admesh.<name>``; the v1 additive
+    layer also re-exports public classes and functions (``Mesh``,
+    ``Domain``, ``triangulate``, …) at the top level, and those are
+    skipped here since they are not submodules.
+    """
+    for name in admesh.__all__:
+        attr = getattr(admesh, name, None)
+        # Only treat as a submodule if it isn't already a non-module
+        # attribute on the package. Class / function re-exports skip.
+        if attr is not None and not isinstance(attr, types.ModuleType):
+            continue
+        importlib.import_module(f"admesh.{name}")
 
 
 def test_top_level_imports():
@@ -19,8 +43,6 @@ def test_top_level_imports():
 
 
 def test_all_includes_v1_types():
-    import admesh
-
     expected = {"BoundarySegment", "BoundaryType", "Domain", "Mesh"}
     assert expected.issubset(set(admesh.__all__))
 
@@ -34,8 +56,6 @@ def test_faithful_port_modules_still_importable():
     every stage module importable at its existing path, not by listing
     them in ``__all__``.
     """
-    import importlib
-
     faithful = (
         "admesh.background_grid",
         "admesh.bathymetry",
