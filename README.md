@@ -23,7 +23,7 @@
 </p>
 
 
-> **MATLAB users:** This library is the actively-developed successor to the original MATLAB codebase by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) (no longer maintained). An unmaintained copy of that original is kept in-repo at [`src/matlab/`](src/matlab/) for provenance.
+> **Lineage:** Two branches of ADMESH descend from the 2012 original by [Conroy et al.](https://github.com/coltonjconroy/ADMESH) The original group's current MATLAB line is **ADMESH+ v3** ([OSU-CHIL/ADMESH](https://github.com/OSU-CHIL/ADMESH); archived at [10.5281/zenodo.10242565](https://doi.org/10.5281/zenodo.10242565)), maintained by Younghun Kang with Ethan Kubatko: it adds constraint extraction for coupled 1D–2D hydrodynamic models, a revised medial-axis method, and GUI components ([Kang & Kubatko, 2024](https://doi.org/10.5194/gmd-17-1603-2024)). This repository is the parallel branch: an independent Python port of the 2012 library, maintained separately. A copy of the ported MATLAB source is vendored at [`src/matlab/`](src/matlab/) for provenance.
 
 ---
 
@@ -42,7 +42,7 @@
 
 ## Status & Roadmap
 
-**Current status (July 2026): stable and actively-maintained.** The octree adaptive background grid (`background="octree"`) refines the size field on a quadtree to better resolve medial-axis and channel feature widths.
+**Current release: 0.6.0 (July 2026), stable and actively-maintained.** The octree adaptive background grid (`background="octree"`) refines the size field on a quadtree to better resolve medial-axis and channel feature widths.
 
 - **Now:** address open issues.
 - **Next:** enhanced pre- and post-processing for quality improvement; performance optimization; evaluate a C++ or Rust backend; parallelization.
@@ -110,7 +110,7 @@ flowchart LR
 
 ## Performance
 
-The Numba-JIT SDF kernel and `solve_iter` smoother cut end-to-end mesh generation on the Western North Atlantic benchmark from **1257.5 s to 47.2 s — a 26.7× speedup** at unchanged quality (`mean 0.963`), measured at `hmin=0.05` / `g=0.10` / `niter=120`.
+The Numba-JIT SDF kernel and `solve_iter` smoother cut end-to-end mesh generation on the Western North Atlantic benchmark from **1257.5 s to 47.2 s — a 26.6× speedup** at unchanged quality (`mean 0.963`), measured at `hmin=0.05` / `g=0.10` / `niter=120`.
 
 | | v0.2.1 | v0.5.0 (Numba) |
 |---|---|---|
@@ -139,6 +139,12 @@ python benchmarks/compare_versions.py --hist \
 
 > Mattioli, D.O., Conroy, C.J., West, D.W., Kubatko, E.J. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
 
+**Upstream MATLAB line** (ADMESH+, if you use or compare against it):
+
+> Kang, Y. & Kubatko, E.J. (2024). An automatic mesh generator for coupled 1D–2D hydrodynamic models. *Geoscientific Model Development* 17, 1603–1625. <https://doi.org/10.5194/gmd-17-1603-2024>
+>
+> Kang, Y., Kubatko, E.J., Conroy, C.J. & West, D.W. (2023). Younghun-Kang/ADMESH: v3.0.1. Zenodo. <https://doi.org/10.5281/zenodo.10242565>
+
 A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101).
 
 ## Documentation
@@ -150,6 +156,7 @@ API reference lives in the docstrings (`triangulate`, `Domain`, `Mesh`, `Boundar
 Issues and pull requests are welcome on [GitHub](https://github.com/domattioli/ADMESH).
 
 - **Theory** (algorithm, size-field formulation, ADCIRC integration): [Colton Conroy](https://github.com/coltonjconroy) | [Ethan Kubatko](https://ceg.osu.edu/people/kubatko.3)
+- **Upstream MATLAB line** (ADMESH+ v3: 1D–2D constraints, medial axis, GUI): [Younghun Kang](https://github.com/Younghun-Kang) | [Ethan Kubatko](https://ceg.osu.edu/people/kubatko.3)
 - **This repository** (python port, active maintenance): [Dominik Mattioli](https://github.com/domattioli)
 
 ## License

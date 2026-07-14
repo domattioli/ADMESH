@@ -34,7 +34,7 @@ This repo = downstream consumer of [`domattioli/DomI`](https://github.com/domatt
 **Plumbing:**
 - `.domi-pin` (committed) — ledger of upstream SHA + MANIFEST.md sha256.
 - `scripts/instructions_on_start.sh` — startup hook with drift gate.
-- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed from DomI marketplace (`claude plugin marketplace add domattioli/DomI`).
+- `sync-from-domi`, `request-from-domi`, `introspect` plugins — installed from DomI marketplace (`claude plugin marketplace add domattioli/DomI`). In practice the marketplace `add` step fails from this network in most sessions (see corpus entries `development_2feb33a`, `development_848293d`, `rotation_2026-06-12T19Z`, `cpp-distmesh_d69677b`, `daily-issue-fixing_ca1fcb4`); the documented fallback is a sibling clone of `domattioli/DomI` (or the DomI plugin-cache directory if already present from a prior session) read directly, without going through the marketplace network path.
 
 **MUST NOT** edit DomI-owned skills directly in this repo. Submit changes upstream via `request-from-domi`; downstream = pull-only.
 
@@ -352,7 +352,7 @@ See **Constitution Article VI rules 5–8** for binding rules. Quick operational
 
 **In-flight specs** (read each spec's `spec.md` + `plan.md` before touching its modules):
 
-- `002-size-field-defaults` — wire MATLAB-faithful size-field stack (curvature → medial-axis → bathymetry → tide, `min`-stacked) as Phase-1 default in `triangulate()`; extends fort.14 with IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. **0.1.0 release blocker** — gated on WNAT structural-validity gate ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
+- `002-size-field-defaults` — wire MATLAB-faithful size-field stack (curvature → medial-axis → bathymetry → tide, `min`-stacked) as Phase-1 default in `triangulate()`; extends fort.14 with IBTYPE 3 / 4 / 13 / 24 paired-edge BC records. (Originally the 0.1.0 release blocker, gated on the WNAT structural-validity gate [issue #10](https://github.com/domattioli/ADMESH/issues/10) — now closed; 0.1.0 has since shipped, see `docs/governance/PROJECT_PLAN.md`.)
 - `004-quad-prep-smoother` — `smooth_for_quadrangulation()` nudges ADMESH triangulations toward right-isoceles so downstream tri-to-quad fusion (CHILmesh `tri2quad`, OceanMesh2D, ADCIRC v55+) produces clean quads instead of rhombi.
 - `005-adcirc-mesh-registry` — federated mesh registry for ADCIRC meshes (TOML manifests, HuggingFace mirror for redistributable licenses, slug + SHA-256 IDs). Split-out `ADMESH-Domains` repo = upstream catalog; this spec wires registry lookup into `triangulate(mesh_id)`.
 

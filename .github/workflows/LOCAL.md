@@ -11,3 +11,4 @@ workflows fail the workflow-conformance gate.
 | `docs.yml` | mkdocs site deploy to admesh.domattioli.com — repo-specific |
 | `publish.yml` | PyPI release, tag-triggered — repo-specific release pipeline |
 | `tests-slow.yml` | slow-lane pytest (block_o fixtures) — migration candidate for the tests.yml template later |
+| `viz-interop.yml` | chilmesh + matplotlib interop tests (#197) — the DomI-managed `tests.yml` installs only `.[dev]` and cannot install the `viz` extra, so these 4 tests would always skip; paths-filtered to the viz surface to minimize CI minutes |

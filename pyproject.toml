@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "admesh2D"
-version = "0.5.1"
+version = "0.6.0"
 description = "ADMESH: an advanced, automatic unstructured mesh generator for 2D shallow-water models."
 readme = "README.md"
 requires-python = ">=3.10"
