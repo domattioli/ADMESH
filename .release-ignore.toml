@@ -1,0 +1,20 @@
+# Repo-local extension of DomI's canonical release-ignore baseline
+# (DomI skills/release-integrity/policy/release-ignore.toml). Additive only.
+# Regenerate channel files: python release_ignore.py generate (release-integrity skill).
+
+[extend]
+# AI dev-workflow docs (operator ruling 2026-07-14): excluded from public
+# archives. Computational docs (PORTING_NOTES.md, T4-medial-axis-benchmark.md,
+# BENCHMARK_DELIVERABLE.md) intentionally NOT listed — they ship.
+exclude = [
+    "docs/HOOKS-AUDIT.md",
+    "docs/persistence_journal.md",
+    "docs/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY.md",
+    "docs/governance/",
+]
+
+[verify]
+# routine.py is a faithful-port stage module, not agent scaffolding.
+allow = [
+    "*/routine.py",
+]
