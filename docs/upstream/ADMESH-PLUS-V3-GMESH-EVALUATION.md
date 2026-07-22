@@ -222,6 +222,9 @@ Principle I is preserved.
    the result.
 2. If T1/T2 are pursued, open a spec for the **internal-constraint edge data model**
    first — the representation `distmesh.py`/`api.py` would need to carry constraint
-   edges — before any DEM-extraction or point-distribution work.
+   edges — before any DEM-extraction or point-distribution work. **Pre-spec design
+   done:** `docs/upstream/T1-T2-constraint-edge-data-model.md` scopes this
+   (Option C — additive `Domain.constraints` + densify-to-`pfix` MVP; the locked
+   `distmesh2d(pfix=)` seam is the only entry point; exact edge recovery deferred).
 3. Any PR that ports a Kang & Kubatko (2024) technique adds `Kang, Younghun` to
    `CITATION.cff` in the same commit (operator directive, above).
