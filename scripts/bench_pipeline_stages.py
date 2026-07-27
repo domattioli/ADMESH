@@ -44,7 +44,7 @@ def bucket_by_stage(profiler: cProfile.Profile) -> dict[str, float]:
             buckets["eikonal-solver"] += tottime
         elif basename == "medial_axis.py":
             buckets["medial-axis"] += tottime
-        elif basename == "distance.py":
+        elif basename in {"distance.py", "in_polygon.py"}:
             buckets["sdf-eval"] += tottime
         elif basename == "distmesh.py":
             buckets["distmesh"] += tottime
@@ -58,10 +58,71 @@ def bucket_by_stage(profiler: cProfile.Profile) -> dict[str, float]:
     return buckets
 
 
+def bench_size_field_stack(fort14_path: str) -> None:
+    """Profile the full size-field stack (curvature+medial+bathymetry) on a
+    real coastal fort.14 domain.
+
+    The default triangulate() path does NOT compose this stack (deferred per
+    issue #65), so it never shows in the default pipeline benchmark. This mode
+    profiles build_h() directly to measure the stack's own cost on real geometry.
+    """
+    import numpy as np
+    from admesh.fort14 import read_fort14
+    from admesh.api import Domain
+    from admesh._stages.domains import Domain as PortDomain
+    from admesh._stages.mesh_size import build_h
+
+    if not os.path.exists(fort14_path):
+        print(f"size-field-stack: SKIP (fixture not found: {fort14_path})")
+        return
+
+    mesh = read_fort14(fort14_path)
+    dom = Domain.from_mesh(mesh)
+    bx = dom.bbox
+    diag = ((bx[2] - bx[0]) ** 2 + (bx[3] - bx[1]) ** 2) ** 0.5
+    h_max = diag / 40.0
+    h_min = h_max / 20.0
+    pd = PortDomain(name="coastal", fd=dom.sdf, bbox=dom.bbox,
+                    fixed_points=np.empty((0, 2)))
+
+    # Warm up (JIT / interpolant caches) so the reported run is steady-state.
+    build_h(pd, base=h_max, curvature_scale=0.25, medial_scale=h_min,
+            bathymetry=dom.bathymetry, bathy_scale=0.5, hmin=h_min, hmax=h_max)
+
+    start = time.perf_counter()
+    profiler = cProfile.Profile()
+    profiler.enable()
+    build_h(pd, base=h_max, curvature_scale=0.25, medial_scale=h_min,
+            bathymetry=dom.bathymetry, bathy_scale=0.5, hmin=h_min, hmax=h_max)
+    profiler.disable()
+    elapsed = time.perf_counter() - start
+
+    n_nodes = mesh.nodes.shape[0]
+    buckets = bucket_by_stage(profiler)
+    total = sum(buckets.values())
+    print(f"size-field-stack ({os.path.basename(fort14_path)}): "
+          f"{n_nodes} nodes, {elapsed:.4f}s build_h wall-clock "
+          f"(h_min={h_min:.4f} h_max={h_max:.4f})")
+    for name, t in sorted(buckets.items(), key=lambda x: -x[1]):
+        if t > 0:
+            pct = 100 * t / total if total > 0 else 0
+            print(f"  {name:20s} {t:8.4f}s {pct:6.1f}%")
+    print(f"  {'sum':20s} {total:8.4f}s")
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--quick", action="store_true", help="Run only coarse configs (3 domains)")
+    parser.add_argument("--size-field", action="store_true",
+                        help="Profile the size-field stack on the WNAT coastal fixture instead")
     args = parser.parse_args()
+
+    if args.size_field:
+        bench_size_field_stack(
+            "tests/fixtures/fort14/adcirc_examples/wnat_test.14"
+        )
+        return
 
     configs = [
         ("L_SHAPE_coarse", D.L_SHAPE, 0.03, 0.12),
