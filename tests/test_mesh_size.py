@@ -12,7 +12,6 @@ from admesh.routine import triangulate
 def _make_inputs(n: int = 21, delta: float = 0.05) -> tuple[np.ndarray, np.ndarray]:
     # Simple setup: 21x21 grid, h0 linear ramp 0.05..0.25 in x; D = 0 everywhere
     # (so the entire interior updates — boundary cells are untouched).
-    xs = np.linspace(0, 1, n)
     h0 = np.broadcast_to(np.linspace(0.05, 0.25, n)[None, :], (n, n)).copy()
     D = np.zeros((n, n), dtype=float)
     return h0, D
@@ -140,7 +139,7 @@ def test_build_h_pts_shrinks_near_boundary() -> None:
     """With ``pts`` + ``boundary_scale``, ``fh`` near a boundary
     segment is close to boundary_scale, and grows with distance to
     the boundary."""
-    from admesh.boundary import PTS, BoundaryType
+    from admesh.boundary import PTS
 
     dom = domains.UNIT_SQUARE
     pts = PTS.from_domain(dom, n_bnd=40)
