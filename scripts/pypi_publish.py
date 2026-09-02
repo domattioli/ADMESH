@@ -39,6 +39,7 @@ import re
 import os
 import time
 import urllib.request
+import urllib.parse
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -65,7 +66,8 @@ def detect_pypi_credentials() -> Tuple[bool, Optional[str]]:
             content = pypirc.read_text()
             if "password" in content and "pypi-" in content:
                 return True, "~/.pypirc"
-        except:
+        except (IOError, OSError):
+            # File read failed; pypirc not usable
             pass
 
     # Try twine check (validates tokens)
@@ -90,7 +92,8 @@ def extract_pyproject_data(project_root: str) -> Tuple[Optional[str], Optional[s
         version = version_match.group(1) if version_match else None
 
         return name, version
-    except:
+    except (IOError, OSError, ValueError) as e:
+        print(f"warning: failed to extract pyproject.toml data: {e}", file=sys.stderr)
         return None, None
 
 
@@ -152,8 +155,13 @@ def verify_on_pypi(pkg_name: str, version: str) -> Tuple[bool, str]:
     """Verify package is on PyPI."""
     url = f"https://pypi.org/project/{pkg_name}/{version}/"
 
+    # Validate HTTPS before proceeding
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme != "https":
+        return False, f"refusing non-HTTPS URL: {url}"
+
     try:
-        with urllib.request.urlopen(url) as response:
+        with urllib.request.urlopen(url) as response:  # nosec B310 - scheme asserted https above
             if response.status == 200:
                 return True, url
             return False, f"PyPI returned {response.status}"
