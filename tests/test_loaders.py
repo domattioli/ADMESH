@@ -71,19 +71,20 @@ def test_load_domain_from_json(sample_json_file):
 
 
 def test_toml_missing_bbox(tmp_path):
-    """Test TOML loader error on missing bbox."""
+    """Test TOML loader auto-computes bbox when omitted (issue #205)."""
     toml_content = """
 [domain]
-name = "bad"
+name = "auto"
 
 [[domain.rings]]
-coords = [[0, 0], [1, 1]]
+coords = [[0, 0], [1, 0], [1, 1], [0, 1]]
 """
-    file_path = tmp_path / "bad.toml"
+    file_path = tmp_path / "auto.toml"
     file_path.write_text(toml_content)
 
-    with pytest.raises(ValueError, match="bbox must be a 4-tuple"):
-        load_domain_from_toml(file_path)
+    # Should auto-compute bbox from ring extent
+    domain = load_domain_from_toml(file_path)
+    assert domain.bbox == (0.0, 0.0, 1.0, 1.0)
 
 
 def test_toml_missing_rings(tmp_path):
@@ -101,13 +102,14 @@ bbox = [-1, -1, 1, 1]
 
 
 def test_json_missing_bbox(tmp_path):
-    """Test JSON loader error on missing bbox."""
-    json_data = {"name": "bad", "rings": [[[0, 0], [1, 1]]]}
-    file_path = tmp_path / "bad.json"
+    """Test JSON loader auto-computes bbox when omitted (issue #205)."""
+    json_data = {"name": "auto", "rings": [[[0, 0], [1, 0], [1, 1], [0, 1]]]}
+    file_path = tmp_path / "auto.json"
     file_path.write_text(json.dumps(json_data))
 
-    with pytest.raises(ValueError, match="bbox must be a 4-tuple"):
-        load_domain_from_json(file_path)
+    # Should auto-compute bbox from ring extent
+    domain = load_domain_from_json(file_path)
+    assert domain.bbox == (0.0, 0.0, 1.0, 1.0)
 
 
 def test_sdf_evaluation(sample_toml_file):
@@ -197,4 +199,105 @@ def test_json_missing_rings(tmp_path):
     file_path.write_text(json.dumps(json_data))
 
     with pytest.raises(ValueError, match="rings must contain at least one ring"):
+        load_domain_from_json(file_path)
+
+
+def test_toml_declared_bbox_overrides_ring_extent(tmp_path):
+    """Test that declared bbox in TOML overrides ring extent (issue #205)."""
+    # Ring is small square [0,0]x[1,1], but bbox declares larger extent
+    toml_content = """
+[domain]
+name = "test_override"
+bbox = [-2.0, -2.0, 3.0, 3.0]
+
+[[domain.rings]]
+coords = [[0, 0], [1, 0], [1, 1], [0, 1]]
+"""
+    file_path = tmp_path / "override.toml"
+    file_path.write_text(toml_content)
+
+    domain = load_domain_from_toml(file_path)
+
+    # bbox should be the declared one, not the ring extent
+    assert domain.bbox == (-2.0, -2.0, 3.0, 3.0)
+
+
+def test_json_declared_bbox_overrides_ring_extent(tmp_path):
+    """Test that declared bbox in JSON overrides ring extent (issue #205)."""
+    # Ring is small square [0,0]x[1,1], but bbox declares larger extent
+    json_data = {
+        "name": "test_override",
+        "bbox": [-2.0, -2.0, 3.0, 3.0],
+        "rings": [[[0, 0], [1, 0], [1, 1], [0, 1]]],
+    }
+    file_path = tmp_path / "override.json"
+    file_path.write_text(json.dumps(json_data))
+
+    domain = load_domain_from_json(file_path)
+
+    # bbox should be the declared one, not the ring extent
+    assert domain.bbox == (-2.0, -2.0, 3.0, 3.0)
+
+
+def test_toml_bbox_auto_computed_when_omitted(tmp_path):
+    """Test that bbox is auto-computed from rings when omitted from TOML."""
+    toml_content = """
+[domain]
+name = "auto_bbox"
+
+[[domain.rings]]
+coords = [[0, 0], [2, 0], [2, 3], [0, 3]]
+"""
+    file_path = tmp_path / "auto.toml"
+    file_path.write_text(toml_content)
+
+    domain = load_domain_from_toml(file_path)
+
+    # bbox should be computed from ring extent: xmin=0, ymin=0, xmax=2, ymax=3
+    assert domain.bbox == (0.0, 0.0, 2.0, 3.0)
+
+
+def test_json_bbox_auto_computed_when_omitted(tmp_path):
+    """Test that bbox is auto-computed from rings when omitted from JSON."""
+    json_data = {
+        "name": "auto_bbox",
+        "rings": [[[0, 0], [2, 0], [2, 3], [0, 3]]],
+    }
+    file_path = tmp_path / "auto.json"
+    file_path.write_text(json.dumps(json_data))
+
+    domain = load_domain_from_json(file_path)
+
+    # bbox should be computed from ring extent: xmin=0, ymin=0, xmax=2, ymax=3
+    assert domain.bbox == (0.0, 0.0, 2.0, 3.0)
+
+
+def test_toml_invalid_bbox_xmin_greater_xmax(tmp_path):
+    """Test TOML loader raises ValueError for invalid bbox (xmin >= xmax)."""
+    toml_content = """
+[domain]
+name = "bad_bbox"
+bbox = [1.0, -1.0, 0.0, 1.0]
+
+[[domain.rings]]
+coords = [[0, 0], [1, 0], [1, 1], [0, 1]]
+"""
+    file_path = tmp_path / "bad.toml"
+    file_path.write_text(toml_content)
+
+    with pytest.raises(ValueError, match="xmin.*must be.*xmax"):
+        load_domain_from_toml(file_path)
+
+
+def test_json_invalid_bbox_ymin_greater_ymax(tmp_path):
+    """Test JSON loader raises ValueError for invalid bbox (ymin >= ymax)."""
+    json_data = {
+        "name": "bad_bbox",
+        "bbox": [-1.0, 1.0, 1.0, 0.0],  # ymin > ymax
+        "rings": [[[0, 0], [1, 0], [1, 1], [0, 1]]],
+    }
+    file_path = tmp_path / "bad.json"
+    file_path.write_text(json.dumps(json_data))
+
+    with pytest.raises(ValueError, match="ymin.*must be.*ymax"):
         load_domain_from_json(file_path)
