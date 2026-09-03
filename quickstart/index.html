@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1154,17 +1154,17 @@ field, and loading a domain from the <code>admesh-domains</code> registry.</p>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
 <a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="nb">print</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">n_elements</span><span class="p">)</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;min quality:&quot;</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">quality</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"min quality:"</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">quality</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
 </code></pre></div>
 <p>For polygon-based domains, the canonical builder is
 <a href="../api/loaders/"><code>admesh.load_domain_from_json</code></a> — see that page for the
 expected JSON schema. The <code>admesh.Domain</code> constructor accepts a signed-
 distance callable directly when you want full control.</p>
 <h2 id="round-trip-an-adcirc-fort14">Round-trip an ADCIRC <code>fort.14</code><a class="headerlink" href="#round-trip-an-adcirc-fort14" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">src</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">&quot;examples/coast.14&quot;</span><span class="p">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">src</span><span class="o">.</span><span class="n">to_fort14</span><span class="p">(</span><span class="s2">&quot;examples/coast_out.14&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">src</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">"examples/coast.14"</span><span class="p">)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">src</span><span class="o">.</span><span class="n">to_fort14</span><span class="p">(</span><span class="s2">"examples/coast_out.14"</span><span class="p">)</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">roundtripped</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">&quot;examples/coast_out.14&quot;</span><span class="p">)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">roundtripped</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">"examples/coast_out.14"</span><span class="p">)</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">assert</span> <span class="n">src</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">roundtripped</span><span class="p">)</span>
 </code></pre></div>
 <p><code>Mesh.equals</code> tolerates <code>atol=1e-5</code> on node coordinates and exact match on
@@ -1173,7 +1173,7 @@ connectivity + boundary segments. The <code>Fort14ParseError</code> exception ca
 <h2 id="build-a-domain-from-an-existing-mesh">Build a <code>Domain</code> from an existing mesh<a class="headerlink" href="#build-a-domain-from-an-existing-mesh" title="Permanent link">&para;</a></h2>
 <p>When you have a mesh and want to re-triangulate it with new size-field
 defaults, use <code>Domain.from_mesh</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">src</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">&quot;coastal_fixture.14&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">src</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">read_fort14</span><span class="p">(</span><span class="s2">"coastal_fixture.14"</span><span class="p">)</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">Domain</span><span class="o">.</span><span class="n">from_mesh</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">fresh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_min</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">200.0</span><span class="p">)</span>
@@ -1185,11 +1185,11 @@ plus a bathymetry interpolant from the source mesh's depth values.</p>
 <p>Pass a callable that maps <code>(N, 2)</code> points to <code>(N,)</code> desired edge lengths.
 Multiple contributions can be combined via <code>compose_size_field</code>.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">refine_near_inlet</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tighten edges within 500 m of the inlet at x=1500.&quot;&quot;&quot;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="sd">"""Tighten edges within 500 m of the inlet at x=1500."""</span>
 <a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="k">return</span> <span class="mf">50.0</span> <span class="o">+</span> <span class="mf">0.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">points</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1500.0</span><span class="p">)</span>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">refine_near_island</span><span class="p">(</span><span class="n">points</span><span class="p">):</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Tighten edges within 100 m of a circular island at (3000, 2000).&quot;&quot;&quot;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="sd">"""Tighten edges within 100 m of a circular island at (3000, 2000)."""</span>
 <a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">points</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3000.0</span><span class="p">,</span> <span class="mf">2000.0</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="k">return</span> <span class="mf">20.0</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">d</span> <span class="o">-</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
@@ -1214,31 +1214,31 @@ loaders below until the fix lands.</p>
 <p>When the adapter is repaired, the registry workflow will be:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Discover available domains.</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">for</span> <span class="n">mesh_id</span><span class="p">,</span> <span class="n">desc</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">admesh</span><span class="o">.</span><span class="n">list_available_domains</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mesh_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mesh_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 <a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Load a registered domain by id.</span>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">&quot;BaranjaHill&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
 <a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
 <a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
 <a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="c1"># Or load with provenance metadata.</span>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">&quot;BaranjaHill&quot;</span><span class="p">)</span>
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;License: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;license&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">, contributor: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;contributed_by&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"License: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'license'</span><span class="p">)</span><span class="si">}</span><span class="s2">, contributor: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'contributed_by'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="load-from-a-local-fort14-or-polygon-file">Load from a local <code>fort.14</code> or polygon file<a class="headerlink" href="#load-from-a-local-fort14-or-polygon-file" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># fort.14 — full ADCIRC mesh, including boundary types.</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_fort14</span><span class="p">(</span><span class="s2">&quot;examples/coast.14&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_fort14</span><span class="p">(</span><span class="s2">"examples/coast.14"</span><span class="p">)</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># JSON — polygon rings + fixed points.</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_json</span><span class="p">(</span><span class="s2">&quot;examples/inlet.json&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_json</span><span class="p">(</span><span class="s2">"examples/inlet.json"</span><span class="p">)</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># TOML — same content, TOML-formatted.</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_toml</span><span class="p">(</span><span class="s2">&quot;examples/inlet.toml&quot;</span><span class="p">)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_toml</span><span class="p">(</span><span class="s2">"examples/inlet.toml"</span><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../api/loaders/">Domain loaders</a> for the JSON / TOML schemas.</p>
 <h2 id="pre-quad-smoother-spec-004">Pre-quad smoother (spec 004)<a class="headerlink" href="#pre-quad-smoother-spec-004" title="Permanent link">&para;</a></h2>
 <p>If you plan to convert the triangulation to quads downstream, run the
 right-isoceles smoother first:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_fort14</span><span class="p">(</span><span class="s2">&quot;coast.14&quot;</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_fort14</span><span class="p">(</span><span class="s2">"coast.14"</span><span class="p">)</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
 <a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1"># Nudge triangles toward right-isoceles shape so pair-fusion is clean.</span>
@@ -1248,15 +1248,15 @@ right-isoceles smoother first:</p>
 <a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
 <a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># Quality check.</span>
 <a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="n">q</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">right_iso_quality</span><span class="p">(</span><span class="n">p_new</span><span class="p">,</span> <span class="n">mesh</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;right-isoceles quality (mean):&quot;</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="nb">print</span><span class="p">(</span><span class="s2">"right-isoceles quality (mean):"</span><span class="p">,</span> <span class="n">q</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
 </code></pre></div>
 <h2 id="valence-balancing-issue-27">Valence balancing (issue #27)<a class="headerlink" href="#valence-balancing-issue-27" title="Permanent link">&para;</a></h2>
 <p>After triangulation, you may want to balance the number of triangles
 meeting at each node (the <em>valence</em>). The default heuristic targets 6
 interior-node valence and 4 boundary-node valence.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">result</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">balance_valence_triangles</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">max_passes</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Flipped </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">n_flips</span><span class="si">}</span><span class="s2"> edges across </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">n_passes</span><span class="si">}</span><span class="s2"> passes&quot;</span><span class="p">)</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Valence after: mean=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">mean_valence</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Flipped </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">n_flips</span><span class="si">}</span><span class="s2"> edges across </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">n_passes</span><span class="si">}</span><span class="s2"> passes"</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Valence after: mean=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">mean_valence</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <p>See <a href="../api/valence/"><code>BalanceConfig</code></a> for tuning the targets.</p>
 <h2 id="visualization">Visualization<a class="headerlink" href="#visualization" title="Permanent link">&para;</a></h2>
@@ -1364,7 +1364,7 @@ adapter:</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.tracking", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

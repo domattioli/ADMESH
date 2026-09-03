@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -923,7 +923,7 @@
 
 <a href="#admesh.triangulate" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="doc-signature highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">triangulate</span><span class="p">(</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">domain</span><span class="p">:</span> <span class="n">Domain</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="s2">&quot;os.PathLike[str]&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">domain</span><span class="p">:</span> <span class="n">Domain</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="s2">"os.PathLike[str]"</span><span class="p">,</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">h_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">h_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -934,10 +934,10 @@
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="n">combine</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        <span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">ndarray</span><span class="p">]],</span> <span class="n">ndarray</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    <span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">reduce</span><span class="p">,</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">background</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="n">background</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"uniform"</span><span class="p">,</span>
 <a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">initial_points</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    <span class="n">initial_points</span><span class="p">:</span> <span class="s2">"np.ndarray | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>    <span class="n">quality_gate</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>    <span class="n">ttol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>    <span class="n">dptol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1530,17 +1530,17 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <span class="normal"><a href="#__codelineno-0-892">892</a></span>
 <span class="normal"><a href="#__codelineno-0-893">893</a></span>
 <span class="normal"><a href="#__codelineno-0-894">894</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-629" name="__codelineno-0-629"></a><span class="k">def</span><span class="w"> </span><span class="nf">triangulate</span><span class="p">(</span>
-<a id="__codelineno-0-630" name="__codelineno-0-630"></a>    <span class="n">domain</span><span class="p">:</span> <span class="n">Domain</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="s2">&quot;os.PathLike[str]&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-630" name="__codelineno-0-630"></a>    <span class="n">domain</span><span class="p">:</span> <span class="n">Domain</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="s2">"os.PathLike[str]"</span><span class="p">,</span>
 <a id="__codelineno-0-631" name="__codelineno-0-631"></a>    <span class="o">*</span><span class="p">,</span>
 <a id="__codelineno-0-632" name="__codelineno-0-632"></a>    <span class="n">h_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-633" name="__codelineno-0-633"></a>    <span class="n">h_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-634" name="__codelineno-0-634"></a>    <span class="n">size_field</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-635" name="__codelineno-0-635"></a>    <span class="n">user_contribs</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(),</span>
 <a id="__codelineno-0-636" name="__codelineno-0-636"></a>    <span class="n">combine</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="o">.</span><span class="n">reduce</span><span class="p">,</span>
-<a id="__codelineno-0-637" name="__codelineno-0-637"></a>    <span class="n">background</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;uniform&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-637" name="__codelineno-0-637"></a>    <span class="n">background</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"uniform"</span><span class="p">,</span>
 <a id="__codelineno-0-638" name="__codelineno-0-638"></a>    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-639" name="__codelineno-0-639"></a>    <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<a id="__codelineno-0-640" name="__codelineno-0-640"></a>    <span class="n">initial_points</span><span class="p">:</span> <span class="s2">&quot;np.ndarray | None&quot;</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-0-640" name="__codelineno-0-640"></a>    <span class="n">initial_points</span><span class="p">:</span> <span class="s2">"np.ndarray | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-641" name="__codelineno-0-641"></a>    <span class="c1"># Advisory default, NOT a binding invariant (CONSTITUTION Article V.5, #140):</span>
 <a id="__codelineno-0-642" name="__codelineno-0-642"></a>    <span class="c1"># (0.30, 0.60) is an MVP port-sanity smoke floor, caller-overridable. Mesh</span>
 <a id="__codelineno-0-643" name="__codelineno-0-643"></a>    <span class="c1"># quality is hyperparameter-driven (h_min/h_max/g); aggressive ratios</span>
@@ -1549,7 +1549,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-646" name="__codelineno-0-646"></a>    <span class="n">ttol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-647" name="__codelineno-0-647"></a>    <span class="n">dptol</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-648" name="__codelineno-0-648"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
-<a id="__codelineno-0-649" name="__codelineno-0-649"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a triangular mesh on ``domain``.</span>
+<a id="__codelineno-0-649" name="__codelineno-0-649"></a><span class="w">    </span><span class="sd">"""Generate a triangular mesh on ``domain``.</span>
 <a id="__codelineno-0-650" name="__codelineno-0-650"></a>
 <a id="__codelineno-0-651" name="__codelineno-0-651"></a><span class="sd">    Parameters</span>
 <a id="__codelineno-0-652" name="__codelineno-0-652"></a><span class="sd">    ----------</span>
@@ -1567,7 +1567,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-664" name="__codelineno-0-664"></a><span class="sd">    combine : callable</span>
 <a id="__codelineno-0-665" name="__codelineno-0-665"></a><span class="sd">        Function to combine multiple size fields (default: np.minimum.reduce).</span>
 <a id="__codelineno-0-666" name="__codelineno-0-666"></a><span class="sd">    background : str</span>
-<a id="__codelineno-0-667" name="__codelineno-0-667"></a><span class="sd">        Background grid strategy: &#39;uniform&#39; (default) or &#39;octree&#39; (adaptive</span>
+<a id="__codelineno-0-667" name="__codelineno-0-667"></a><span class="sd">        Background grid strategy: 'uniform' (default) or 'octree' (adaptive</span>
 <a id="__codelineno-0-668" name="__codelineno-0-668"></a><span class="sd">        octree-backed size field from spec-029).</span>
 <a id="__codelineno-0-669" name="__codelineno-0-669"></a><span class="sd">    seed : int or None</span>
 <a id="__codelineno-0-670" name="__codelineno-0-670"></a><span class="sd">        Random seed for reproducibility.</span>
@@ -1599,14 +1599,14 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-696" name="__codelineno-0-696"></a><span class="sd">    :func:`admesh.routine.triangulate` without modifying it (Constitution</span>
 <a id="__codelineno-0-697" name="__codelineno-0-697"></a><span class="sd">    Principle I). Returns a :class:`Mesh` with per-element quality</span>
 <a id="__codelineno-0-698" name="__codelineno-0-698"></a><span class="sd">    populated and boundaries derived from the triangulation.</span>
-<a id="__codelineno-0-699" name="__codelineno-0-699"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-0-699" name="__codelineno-0-699"></a><span class="sd">    """</span>
 <a id="__codelineno-0-700" name="__codelineno-0-700"></a>    <span class="c1"># Lazy imports — keeps `import admesh` cheap and avoids a hard</span>
 <a id="__codelineno-0-701" name="__codelineno-0-701"></a>    <span class="c1"># dependency cycle with the faithful-port modules at import time.</span>
 <a id="__codelineno-0-702" name="__codelineno-0-702"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.domains</span><span class="w"> </span><span class="kn">import</span> <span class="n">Domain</span> <span class="k">as</span> <span class="n">_PortDomain</span>
 <a id="__codelineno-0-703" name="__codelineno-0-703"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.quality</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_quality</span>
 <a id="__codelineno-0-704" name="__codelineno-0-704"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">admesh._stages.routine</span><span class="w"> </span><span class="kn">import</span> <span class="n">triangulate</span> <span class="k">as</span> <span class="n">_routine_triangulate</span>
 <a id="__codelineno-0-705" name="__codelineno-0-705"></a>
-<a id="__codelineno-0-706" name="__codelineno-0-706"></a>    <span class="c1"># Load domain from file or registry if it&#39;s a string; adapt if it&#39;s a port Domain.</span>
+<a id="__codelineno-0-706" name="__codelineno-0-706"></a>    <span class="c1"># Load domain from file or registry if it's a string; adapt if it's a port Domain.</span>
 <a id="__codelineno-0-707" name="__codelineno-0-707"></a>    <span class="n">api_domain</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track whether we have an api.Domain (may have bc_segments)</span>
 <a id="__codelineno-0-708" name="__codelineno-0-708"></a>    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">_PortDomain</span><span class="p">):</span>
 <a id="__codelineno-0-709" name="__codelineno-0-709"></a>        <span class="c1"># Input is already a faithful-port Domain; use it directly.</span>
@@ -1633,7 +1633,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-730" name="__codelineno-0-730"></a>            <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 <a id="__codelineno-0-731" name="__codelineno-0-731"></a>        <span class="n">pfix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pfix</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 <a id="__codelineno-0-732" name="__codelineno-0-732"></a>        <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
-<a id="__codelineno-0-733" name="__codelineno-0-733"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-733" name="__codelineno-0-733"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">"api_v1"</span><span class="p">,</span>
 <a id="__codelineno-0-734" name="__codelineno-0-734"></a>            <span class="n">fd</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">sdf</span><span class="p">,</span>
 <a id="__codelineno-0-735" name="__codelineno-0-735"></a>            <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
 <a id="__codelineno-0-736" name="__codelineno-0-736"></a>            <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
@@ -1643,19 +1643,19 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-740" name="__codelineno-0-740"></a>    <span class="c1"># caller supplied them — let the routine apply its own defaults.</span>
 <a id="__codelineno-0-741" name="__codelineno-0-741"></a>    <span class="n">opts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 <a id="__codelineno-0-742" name="__codelineno-0-742"></a>    <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-743" name="__codelineno-0-743"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;seed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+<a id="__codelineno-0-743" name="__codelineno-0-743"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
 <a id="__codelineno-0-744" name="__codelineno-0-744"></a>    <span class="k">if</span> <span class="n">max_iter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-745" name="__codelineno-0-745"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;niter&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span>
+<a id="__codelineno-0-745" name="__codelineno-0-745"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">"niter"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">)</span>
 <a id="__codelineno-0-746" name="__codelineno-0-746"></a>    <span class="k">if</span> <span class="n">ttol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-747" name="__codelineno-0-747"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;ttol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ttol</span><span class="p">)</span>
+<a id="__codelineno-0-747" name="__codelineno-0-747"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">"ttol"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ttol</span><span class="p">)</span>
 <a id="__codelineno-0-748" name="__codelineno-0-748"></a>    <span class="k">if</span> <span class="n">dptol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-749" name="__codelineno-0-749"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;dptol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dptol</span><span class="p">)</span>
+<a id="__codelineno-0-749" name="__codelineno-0-749"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">"dptol"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">dptol</span><span class="p">)</span>
 <a id="__codelineno-0-750" name="__codelineno-0-750"></a>    <span class="k">if</span> <span class="n">initial_points</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-<a id="__codelineno-0-751" name="__codelineno-0-751"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">&quot;initial_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+<a id="__codelineno-0-751" name="__codelineno-0-751"></a>        <span class="n">opts</span><span class="p">[</span><span class="s2">"initial_points"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">initial_points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
 <a id="__codelineno-0-752" name="__codelineno-0-752"></a>
 <a id="__codelineno-0-753" name="__codelineno-0-753"></a>    <span class="c1"># Resolve the size field. Cases:</span>
 <a id="__codelineno-0-754" name="__codelineno-0-754"></a>    <span class="c1">#</span>
-<a id="__codelineno-0-755" name="__codelineno-0-755"></a>    <span class="c1">#   1. Caller passed a pre-composed `size_field=`. They&#39;ve already</span>
+<a id="__codelineno-0-755" name="__codelineno-0-755"></a>    <span class="c1">#   1. Caller passed a pre-composed `size_field=`. They've already</span>
 <a id="__codelineno-0-756" name="__codelineno-0-756"></a>    <span class="c1">#      done their own composition; we use it as-is. If they ALSO</span>
 <a id="__codelineno-0-757" name="__codelineno-0-757"></a>    <span class="c1">#      passed `user_contribs=` we warn — those would be ignored</span>
 <a id="__codelineno-0-758" name="__codelineno-0-758"></a>    <span class="c1">#      otherwise, which silently violates the contract.</span>
@@ -1667,9 +1667,9 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-764" name="__codelineno-0-764"></a>    <span class="c1">#   4. Neither — uniform sizing falls through (`fh=None`).</span>
 <a id="__codelineno-0-765" name="__codelineno-0-765"></a>    <span class="k">if</span> <span class="n">size_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">user_contribs</span><span class="p">:</span>
 <a id="__codelineno-0-766" name="__codelineno-0-766"></a>        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-<a id="__codelineno-0-767" name="__codelineno-0-767"></a>            <span class="s2">&quot;triangulate: both `size_field` and `user_contribs` were &quot;</span>
-<a id="__codelineno-0-768" name="__codelineno-0-768"></a>            <span class="s2">&quot;supplied; ignoring `user_contribs` (the pre-composed &quot;</span>
-<a id="__codelineno-0-769" name="__codelineno-0-769"></a>            <span class="s2">&quot;`size_field` already encodes its own composition).&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-767" name="__codelineno-0-767"></a>            <span class="s2">"triangulate: both `size_field` and `user_contribs` were "</span>
+<a id="__codelineno-0-768" name="__codelineno-0-768"></a>            <span class="s2">"supplied; ignoring `user_contribs` (the pre-composed "</span>
+<a id="__codelineno-0-769" name="__codelineno-0-769"></a>            <span class="s2">"`size_field` already encodes its own composition)."</span><span class="p">,</span>
 <a id="__codelineno-0-770" name="__codelineno-0-770"></a>            <span class="ne">UserWarning</span><span class="p">,</span>
 <a id="__codelineno-0-771" name="__codelineno-0-771"></a>            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
 <a id="__codelineno-0-772" name="__codelineno-0-772"></a>        <span class="p">)</span>
@@ -1727,7 +1727,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-824" name="__codelineno-0-824"></a>    <span class="k">else</span><span class="p">:</span>
 <a id="__codelineno-0-825" name="__codelineno-0-825"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">size_field</span>  <span class="c1"># may still be None — uniform sizing</span>
 <a id="__codelineno-0-826" name="__codelineno-0-826"></a>
-<a id="__codelineno-0-827" name="__codelineno-0-827"></a>    <span class="k">if</span> <span class="n">background</span> <span class="o">==</span> <span class="s2">&quot;octree&quot;</span><span class="p">:</span>
+<a id="__codelineno-0-827" name="__codelineno-0-827"></a>    <span class="k">if</span> <span class="n">background</span> <span class="o">==</span> <span class="s2">"octree"</span><span class="p">:</span>
 <a id="__codelineno-0-828" name="__codelineno-0-828"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">admesh.octree</span><span class="w"> </span><span class="kn">import</span> <span class="n">octree_size_field</span>
 <a id="__codelineno-0-829" name="__codelineno-0-829"></a>        <span class="n">_bbox</span> <span class="o">=</span> <span class="n">port_domain</span><span class="o">.</span><span class="n">bbox</span>
 <a id="__codelineno-0-830" name="__codelineno-0-830"></a>        <span class="n">_hmax_o</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">h_max</span><span class="p">)</span> <span class="k">if</span> <span class="n">h_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">h0</span>
@@ -1737,15 +1737,15 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-834" name="__codelineno-0-834"></a>        <span class="k">class</span><span class="w"> </span><span class="nc">_BBoxShim</span><span class="p">:</span>
 <a id="__codelineno-0-835" name="__codelineno-0-835"></a>            <span class="n">bbox</span> <span class="o">=</span> <span class="n">_bbox</span>
 <a id="__codelineno-0-836" name="__codelineno-0-836"></a>        <span class="n">fh</span> <span class="o">=</span> <span class="n">octree_size_field</span><span class="p">(</span><span class="n">_BBoxShim</span><span class="p">,</span> <span class="n">_base</span><span class="p">,</span> <span class="n">h_min</span><span class="o">=</span><span class="n">_hmin_o</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="n">_hmax_o</span><span class="p">)</span>
-<a id="__codelineno-0-837" name="__codelineno-0-837"></a>    <span class="k">elif</span> <span class="n">background</span> <span class="o">!=</span> <span class="s2">&quot;uniform&quot;</span><span class="p">:</span>
-<a id="__codelineno-0-838" name="__codelineno-0-838"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;triangulate: background must be &#39;uniform&#39; or &#39;octree&#39;, got </span><span class="si">{</span><span class="n">background</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-0-837" name="__codelineno-0-837"></a>    <span class="k">elif</span> <span class="n">background</span> <span class="o">!=</span> <span class="s2">"uniform"</span><span class="p">:</span>
+<a id="__codelineno-0-838" name="__codelineno-0-838"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"triangulate: background must be 'uniform' or 'octree', got </span><span class="si">{</span><span class="n">background</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-0-839" name="__codelineno-0-839"></a>
 <a id="__codelineno-0-840" name="__codelineno-0-840"></a>    <span class="c1"># Issue #2: if the domain carries explicit boundary vertices (pts), seed</span>
 <a id="__codelineno-0-841" name="__codelineno-0-841"></a>    <span class="c1"># intermediate points along each edge so short boundary segments get</span>
 <a id="__codelineno-0-842" name="__codelineno-0-842"></a>    <span class="c1"># adequate coverage even when the 2-D lattice is coarse.</span>
 <a id="__codelineno-0-843" name="__codelineno-0-843"></a>    <span class="c1"># Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.</span>
-<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="n">_pts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;pts&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="n">domain_pts</span> <span class="o">=</span> <span class="n">_pts</span> <span class="k">if</span> <span class="n">_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;boundary_polygon&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-844" name="__codelineno-0-844"></a>    <span class="n">_pts</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">"pts"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-845" name="__codelineno-0-845"></a>    <span class="n">domain_pts</span> <span class="o">=</span> <span class="n">_pts</span> <span class="k">if</span> <span class="n">_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">"boundary_polygon"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-0-846" name="__codelineno-0-846"></a>    <span class="k">if</span> <span class="n">domain_pts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 <a id="__codelineno-0-847" name="__codelineno-0-847"></a>        <span class="n">boundary_seeds</span> <span class="o">=</span> <span class="n">_seed_boundary_1d</span><span class="p">(</span>
 <a id="__codelineno-0-848" name="__codelineno-0-848"></a>            <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">domain_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">fh</span><span class="p">,</span> <span class="n">h0</span>
@@ -1755,9 +1755,9 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-852" name="__codelineno-0-852"></a>                <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">pfix</span><span class="p">,</span> <span class="n">boundary_seeds</span><span class="p">])</span> <span class="k">if</span> <span class="n">pfix</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="n">boundary_seeds</span>
 <a id="__codelineno-0-853" name="__codelineno-0-853"></a>            <span class="p">)</span>
 <a id="__codelineno-0-854" name="__codelineno-0-854"></a>            <span class="c1"># _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.</span>
-<a id="__codelineno-0-855" name="__codelineno-0-855"></a>            <span class="n">_sdf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;sdf&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">&quot;fd&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-0-855" name="__codelineno-0-855"></a>            <span class="n">_sdf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">"sdf"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="s2">"fd"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 <a id="__codelineno-0-856" name="__codelineno-0-856"></a>            <span class="n">port_domain</span> <span class="o">=</span> <span class="n">_PortDomain</span><span class="p">(</span>
-<a id="__codelineno-0-857" name="__codelineno-0-857"></a>                <span class="n">name</span><span class="o">=</span><span class="s2">&quot;api_v1&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-857" name="__codelineno-0-857"></a>                <span class="n">name</span><span class="o">=</span><span class="s2">"api_v1"</span><span class="p">,</span>
 <a id="__codelineno-0-858" name="__codelineno-0-858"></a>                <span class="n">fd</span><span class="o">=</span><span class="n">_sdf</span><span class="p">,</span>
 <a id="__codelineno-0-859" name="__codelineno-0-859"></a>                <span class="n">bbox</span><span class="o">=</span><span class="n">domain</span><span class="o">.</span><span class="n">bbox</span><span class="p">,</span>
 <a id="__codelineno-0-860" name="__codelineno-0-860"></a>                <span class="n">fixed_points</span><span class="o">=</span><span class="n">pfix</span><span class="p">,</span>
@@ -1771,15 +1771,15 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-868" name="__codelineno-0-868"></a>    <span class="n">gate_min</span><span class="p">,</span> <span class="n">gate_mean</span> <span class="o">=</span> <span class="n">quality_gate</span>
 <a id="__codelineno-0-869" name="__codelineno-0-869"></a>    <span class="k">if</span> <span class="n">min_q</span> <span class="o">&lt;</span> <span class="n">gate_min</span><span class="p">:</span>
 <a id="__codelineno-0-870" name="__codelineno-0-870"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-871" name="__codelineno-0-871"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: min_q </span><span class="si">{</span><span class="n">min_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[0] </span><span class="si">{</span><span class="n">gate_min</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-871" name="__codelineno-0-871"></a>            <span class="sa">f</span><span class="s2">"triangulate: min_q </span><span class="si">{</span><span class="n">min_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[0] </span><span class="si">{</span><span class="n">gate_min</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
 <a id="__codelineno-0-872" name="__codelineno-0-872"></a>        <span class="p">)</span>
 <a id="__codelineno-0-873" name="__codelineno-0-873"></a>    <span class="k">if</span> <span class="n">mean_q</span> <span class="o">&lt;</span> <span class="n">gate_mean</span><span class="p">:</span>
 <a id="__codelineno-0-874" name="__codelineno-0-874"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-<a id="__codelineno-0-875" name="__codelineno-0-875"></a>            <span class="sa">f</span><span class="s2">&quot;triangulate: mean_q </span><span class="si">{</span><span class="n">mean_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[1] </span><span class="si">{</span><span class="n">gate_mean</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-0-875" name="__codelineno-0-875"></a>            <span class="sa">f</span><span class="s2">"triangulate: mean_q </span><span class="si">{</span><span class="n">mean_q</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &lt; quality_gate[1] </span><span class="si">{</span><span class="n">gate_mean</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
 <a id="__codelineno-0-876" name="__codelineno-0-876"></a>        <span class="p">)</span>
 <a id="__codelineno-0-877" name="__codelineno-0-877"></a>
 <a id="__codelineno-0-878" name="__codelineno-0-878"></a>    <span class="c1"># Derive boundary segments. If the caller pre-declared bc_segments</span>
-<a id="__codelineno-0-879" name="__codelineno-0-879"></a>    <span class="c1"># on the Domain, pass them through verbatim — they&#39;re the user&#39;s</span>
+<a id="__codelineno-0-879" name="__codelineno-0-879"></a>    <span class="c1"># on the Domain, pass them through verbatim — they're the user's</span>
 <a id="__codelineno-0-880" name="__codelineno-0-880"></a>    <span class="c1"># contract about the output. Otherwise default-label every closed</span>
 <a id="__codelineno-0-881" name="__codelineno-0-881"></a>    <span class="c1"># boundary ring as MAINLAND.</span>
 <a id="__codelineno-0-882" name="__codelineno-0-882"></a>    <span class="k">if</span> <span class="n">api_domain</span> <span class="ow">and</span> <span class="n">api_domain</span><span class="o">.</span><span class="n">bc_segments</span><span class="p">:</span>
@@ -1793,7 +1793,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
 <a id="__codelineno-0-890" name="__codelineno-0-890"></a>        <span class="n">boundaries</span><span class="o">=</span><span class="n">boundaries</span><span class="p">,</span>
 <a id="__codelineno-0-891" name="__codelineno-0-891"></a>        <span class="n">bathymetry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-892" name="__codelineno-0-892"></a>        <span class="n">quality</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">q_per</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span>
-<a id="__codelineno-0-893" name="__codelineno-0-893"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-0-893" name="__codelineno-0-893"></a>        <span class="n">title</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
 <a id="__codelineno-0-894" name="__codelineno-0-894"></a>    <span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
@@ -1885,7 +1885,7 @@ pass (0.0, 0.0) to disable the gate when knobs lower min quality.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.tracking", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
