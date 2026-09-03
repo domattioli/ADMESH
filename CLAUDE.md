@@ -60,9 +60,10 @@ routine targeting this repo):
 
 1. Each numbered task ONE AT A TIME. Complete fully, confirm, next.
 2. Never write file >~150 lines in single tool call. Multi-pass append/edit if longer.
-3. Fresh session if conversation long (20+ tool calls). Error worsens with session size.
-4. Keep grep/search outputs short. Flags `--include`, `-l` (list files only) limit output size.
-5. On timeout, retry shorter form. Don't repeat entire task from scratch.
+3. The number of tokens used to exit files is best minimized, all else being equal. Therefore, when it will not affect the end result, opt first for surgical edits rather than rewriting entire existing files.
+4. Fresh session if conversation long (20+ tool calls). Error worsens with session size.
+5. Keep grep/search outputs short. Flags `--include`, `-l` (list files only) limit output size.
+6. On timeout, retry shorter form. Don't repeat entire task from scratch.
 
 ## Commands
 

@@ -65,9 +65,10 @@ Test asserts parity to `atol=1e-10`. Public `solve_iter()` dispatches to Numba b
 
 1. One task per turn; confirm before next.
 2. Max 150 lines per file write; split if longer.
-3. Grep short; use `-l`, `--include` flags.
-4. If timeout: retry same step, shorter form.
-5. >20 tool calls → start fresh session.
+3. The number of tokens used to exit files is best minimized, all else being equal. Therefore, when it will not affect the end result, opt first for surgical edits rather than rewriting entire existing files.
+4. Grep short; use `-l`, `--include` flags.
+5. If timeout: retry same step, shorter form.
+6. >20 tool calls → start fresh session.
 
 ## Spec-Kit Integration
 
