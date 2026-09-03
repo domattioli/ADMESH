@@ -874,10 +874,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#f3-no-action-claudeclaudemd-exists-alongside-top-level-claudemd" class="md-nav__link">
+  <a href="#f3-resolved-claudeclaudemd-consolidated-into-root-claudemd" class="md-nav__link">
     <span class="md-ellipsis">
       
-        F3 — NO-ACTION: .claude/CLAUDE.md exists alongside top-level CLAUDE.md
+        F3 — RESOLVED: .claude/CLAUDE.md consolidated into root CLAUDE.md
       
     </span>
   </a>
@@ -990,7 +990,7 @@
 <td>ADMESH does not declare any repo-scope hooks.</td>
 </tr>
 <tr>
-<td><code>.claude/CLAUDE.md</code> (repo-scope)</td>
+<td><code>CLAUDE.md</code> (root-level)</td>
 <td>yes</td>
 <td>Operational reference doc. Not a hook.</td>
 </tr>
@@ -1078,13 +1078,13 @@ elsewhere (DomI plugin, user shell rc) shells out manually.</p>
 call <code>bash scripts/instructions_on_start.sh</code>. Until then, the
 drift-check semantics in <code>CLAUDE.md</code> ("HARD STOP on drift")
 are aspirational, not enforced.</p>
-<h3 id="f3-no-action-claudeclaudemd-exists-alongside-top-level-claudemd">F3 — <strong>NO-ACTION: <code>.claude/CLAUDE.md</code> exists alongside top-level <code>CLAUDE.md</code></strong><a class="headerlink" href="#f3-no-action-claudeclaudemd-exists-alongside-top-level-claudemd" title="Permanent link">&para;</a></h3>
-<p>ADMESH has both <code>CLAUDE.md</code> (top-level) and <code>.claude/CLAUDE.md</code>. The
-<code>.claude/</code>-scoped one is a shorter operational reference; the
-top-level one is the canonical doc. Some readers will be confused.</p>
-<p><strong>Decision: no action</strong> — the two files have different intended
-audiences (<code>.claude/</code> = session-loaded context; top-level = repo
-documentation). Audit-only flag.</p>
+<h3 id="f3-resolved-claudeclaudemd-consolidated-into-root-claudemd">F3 — <strong>RESOLVED: <code>.claude/CLAUDE.md</code> consolidated into root <code>CLAUDE.md</code></strong><a class="headerlink" href="#f3-resolved-claudeclaudemd-consolidated-into-root-claudemd" title="Permanent link">&para;</a></h3>
+<p>ADMESH previously had both <code>CLAUDE.md</code> (top-level) and <code>.claude/CLAUDE.md</code> (condensed duplicate).
+Per the CLAUDE.md/AGENTS.md standardization spec (all 8 repos), the two files were consolidated:
+- <code>AGENTS.md</code> (new) — tool-agnostic project guidance (repository layout, commands, conventions, testing, branch policy, edit hygiene, related repos, reference docs).
+- <code>CLAUDE.md</code> (updated) — Claude-Code-specific guidance only (session start, branch handling, communication style, coding dispatch, skills, hooks, lessons learned, session end).
+- <code>.claude/CLAUDE.md</code> (removed) — deleted via <code>git rm</code>.</p>
+<p><strong>Decision: resolved</strong> — consolidation complete, no ambiguity.</p>
 <h2 id="4-backlog">4. Backlog<a class="headerlink" href="#4-backlog" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
