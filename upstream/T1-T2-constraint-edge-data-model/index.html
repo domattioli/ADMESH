@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://admesh.domattioli.com/upstream/medial-axis-T4-evaluation/">
+        <link rel="canonical" href="https://admesh.domattioli.com/upstream/T1-T2-constraint-edge-data-model/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>T4 — Revised medial-axis evaluation (Kang & Kubatko 2024) - ADMESH</title>
+        <title>T1/T2 — Internal-Constraint Edge Data Model (design note) - ADMESH</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#t4-revised-medial-axis-evaluation-kang-kubatko-2024" class="md-skip">
+        <a href="#t1t2-internal-constraint-edge-data-model-design-note" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              T4 — Revised medial-axis evaluation (Kang &amp; Kubatko 2024)
+              T1/T2 — Internal-Constraint Edge Data Model (design note)
             
           </span>
         </div>
@@ -818,10 +818,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#current-faithful-port-medial-axis-method-the-baseline-to-beat" class="md-nav__link">
+  <a href="#1-why-a-representation-is-the-blocker" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current faithful-port medial-axis method (the baseline to beat)
+        1. Why a representation is the blocker
       
     </span>
   </a>
@@ -829,10 +829,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-candidate-t4" class="md-nav__link">
+  <a href="#2-current-state-grounded" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The candidate (T4)
+        2. Current state (grounded)
       
     </span>
   </a>
@@ -840,10 +840,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#paper-access-blocker-this-session" class="md-nav__link">
+  <a href="#3-design-options-all-additive-the-locked-seam-is-pfix" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Paper access blocker (this session)
+        3. Design options (all additive; the locked seam is pfix)
       
     </span>
   </a>
@@ -851,30 +851,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interim-verdict" class="md-nav__link">
+  <a href="#4-recommendation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interim verdict
+        4. Recommendation
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Interim verdict">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#acceptance-status-200" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Acceptance status (#200)
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -898,117 +881,123 @@
   
 
 
-<h1 id="t4-revised-medial-axis-evaluation-kang-kubatko-2024">T4 — Revised medial-axis evaluation (Kang &amp; Kubatko 2024)<a class="headerlink" href="#t4-revised-medial-axis-evaluation-kang-kubatko-2024" title="Permanent link">&para;</a></h1>
-<p>Tracking issue: <a href="https://github.com/domattioli/ADMESH/issues/200">#200</a> — carved out of the
-closed ADMESH+ v3 technique evaluation (#186), where <strong>T4 (the revised medial-axis
-computation)</strong> was held at <em>benchmark-only</em> because a verdict requires the paper's
-full-text method section.</p>
-<p><strong>Status of this note:</strong> interim / partial. The full-text method read (acceptance box 1)
-is <strong>blocked this session</strong> by a source-access failure (see <em>Paper access blocker</em> below).
-This note records what can be established without the paper — the current locked
-implementation's method, the decision axes, and a documented handoff so a
-paper-equipped session can finish the verdict — without touching any locked
-<code>_stages/</code> module (Constitution Principle I preserved).</p>
+<h1 id="t1t2-internal-constraint-edge-data-model-design-note">T1/T2 — Internal-Constraint Edge Data Model (design note)<a class="headerlink" href="#t1t2-internal-constraint-edge-data-model-design-note" title="Permanent link">&para;</a></h1>
+<p><strong>Issue:</strong> #186 (Evaluate ADMESH+ v3 / GMesh). Advances the two techniques the
+evaluation held as <em>candidate-adopt, blocked on a representation we do not have
+yet</em> — T1 (1D constraint identification) and T2 (grid-point distribution along
+constraints). See <code>docs/upstream/ADMESH-PLUS-V3-GMESH-EVALUATION.md</code> §T1/§T2 and
+its <strong>Recommended next step #2</strong>: <em>"open a spec for the internal-constraint edge
+data model first — the representation <code>distmesh.py</code>/<code>api.py</code> would need to carry
+constraint edges — before any DEM-extraction or point-distribution work."</em></p>
+<p>This note is that pre-spec design pass. It does <strong>not</strong> implement anything, does
+<strong>not</strong> read the (network-blocked) Kang &amp; Kubatko full text — it reasons only
+about <em>our</em> additive representation. <strong>No locked <code>_stages/</code> module is touched or
+proposed to change</strong> (Constitution Principle I).</p>
 <hr />
-<h2 id="current-faithful-port-medial-axis-method-the-baseline-to-beat">Current faithful-port medial-axis method (the baseline to beat)<a class="headerlink" href="#current-faithful-port-medial-axis-method-the-baseline-to-beat" title="Permanent link">&para;</a></h2>
-<p>Source of truth: <code>src/admesh/_stages/medial_axis.py</code> (faithful port of
-<code>01_ADMESH_Library/05_Medial_Axis/MedialAxisFunction.m</code> @ <code>19b2eb9</code>). This module is
-<strong>locked</strong> (numerically identical to the 2012 MATLAB) — any adopted alternative lands as
-an additive, selectable backend under its own spec, never replacing it.</p>
-<p>The current medial axis is computed <strong>grid-based</strong>, in this pipeline:</p>
+<h2 id="1-why-a-representation-is-the-blocker">1. Why a representation is the blocker<a class="headerlink" href="#1-why-a-representation-is-the-blocker" title="Permanent link">&para;</a></h2>
+<p>T1 feeds channel networks / flood-control features into the mesher as <strong>internal
+constraints</strong> — polylines in the domain interior that the final triangulation
+must honor as <em>forced edges</em> (a mesh edge lies along each constraint segment).
+T2 then distributes 1D grid points along those polylines by local curvature and a
+minimum spacing. T2 is meaningless until T1's polylines exist to place points
+onto, so both gate on one artifact: <strong>how a constraint polyline is carried from
+<code>Domain</code> through <code>triangulate()</code> into the triangulation.</strong></p>
+<p>Today that artifact is absent, and the gap is specific.</p>
+<h2 id="2-current-state-grounded">2. Current state (grounded)<a class="headerlink" href="#2-current-state-grounded" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>What exists today</th>
+<th>File:line</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed <strong>points</strong> on the domain</td>
+<td><code>Domain.pfix: np.ndarray \| None</code></td>
+<td><code>src/admesh/api.py:284</code></td>
+</tr>
+<tr>
+<td>Fixed points into the triangulator</td>
+<td><code>distmesh2d(..., pfix=...)</code> prepends them to <code>p</code> and preserves them through relaxation</td>
+<td><code>src/admesh/_stages/distmesh.py:97, 185–195</code></td>
+</tr>
+<tr>
+<td>Fixed <strong>edges</strong> (interior constraint segments)</td>
+<td><strong>none</strong> — no field, no parameter, no enforcement pass</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Boundary polylines</td>
+<td><code>BoundarySegment</code> (node ids + ADCIRC BC code) — but this is an <strong>output</strong> structure on <code>Mesh</code>, describing a triangulated boundary, not an <strong>input</strong> constraint</td>
+<td><code>src/admesh/api.py:36</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Load-bearing finding: fixed points ≠ fixed edges.</strong> <code>pfix</code> guarantees the
+listed <em>vertices</em> survive relaxation; it does <strong>not</strong> guarantee that consecutive
+constraint vertices are <em>connected by an edge</em> in the output. distmesh builds a
+Delaunay triangulation over all points each iteration (<code>distmesh.py</code>), and
+Delaunay will choose whichever diagonal is locally empty-circumcircle — which
+need not be the constraint segment. So "densify the polyline into <code>pfix</code> points"
+places the vertices but can still triangulate <em>across</em> the channel rather than
+<em>along</em> it. Constraint <strong>edge</strong> enforcement is a strictly stronger requirement
+than the <code>pfix</code> seam already provides.</p>
+<h2 id="3-design-options-all-additive-the-locked-seam-is-pfix">3. Design options (all additive; the locked seam is <code>pfix</code>)<a class="headerlink" href="#3-design-options-all-additive-the-locked-seam-is-pfix" title="Permanent link">&para;</a></h2>
+<p>The one sanctioned seam into the locked triangulator is its existing <code>pfix</code>
+parameter. Everything below lives in the <strong>additive</strong> api layer
+(<code>api.py</code> / a new helper module); none edits <code>distmesh.py</code>.</p>
+<p><strong>Option A — densify-to-<code>pfix</code> (approximate).</strong> Sample each constraint polyline
+at ≈<code>h_min</code> spacing, concatenate the samples into <code>Domain.pfix</code>, triangulate as
+today. <em>Pro:</em> zero locked-module change, ~30 LOC, reuses the existing seam.
+<em>Con:</em> places the points but does <strong>not</strong> guarantee the edges (see §2) — the
+channel is <em>seeded</em> but not <em>enforced</em>. Adequate only where dense seeding makes a
+cross-channel diagonal geometrically unlikely; not a correctness guarantee.</p>
+<p><strong>Option B — post-hoc constrained edge recovery (exact).</strong> After distmesh
+returns, run an additive edge-flip / segment-insertion pass (or a constrained
+Delaunay via the <code>triangle</code> library behind an optional extra) that forces each
+constraint segment to appear as a mesh edge. <em>Pro:</em> actually honors the
+constraint. <em>Con:</em> new additive routine or new optional dependency; more test
+surface; must prove it preserves structural validity (positive-area tris,
+watertight boundary).</p>
+<p><strong>Option C — carry constraints on <code>Domain</code>, MVP via A, exact via B later.</strong> Add
+one additive field <code>Domain.constraints: list[np.ndarray] | None</code> (each entry an
+<code>(N, 2)</code> polyline), thread it through <code>triangulate()</code>; the MVP path densifies to
+<code>pfix</code> (Option A) and <em>documents the approximation</em>, with Option B's exact
+recovery deferred behind a flag until a measured case needs it.</p>
+<h2 id="4-recommendation">4. Recommendation<a class="headerlink" href="#4-recommendation" title="Permanent link">&para;</a></h2>
+<p>Adopt <strong>Option C as the first spec's scope.</strong> It is the smallest representation
+that unblocks both T1 and T2, keeps the locked <code>_stages/</code> untouched, and is
+honest about the A-vs-B correctness gap instead of hiding it:</p>
 <ol>
-<li><strong>Average Outward Flux (AOF)</strong> — <code>_average_outward_flux</code> (module lines ~41–100).
-   For each interior grid cell, sum <code>û · ∇D</code> over 8 neighbour directions (4 cardinal +
-   4 diagonal), divided by 8. Cells that "look outward" score <code>AOF &gt; 0</code>.</li>
-<li><strong>Threshold</strong> — <code>medial_axis_mask</code> (lines ~169): medial axis = cells with
-   <code>AOF &gt; 0.15</code> (<code>_AOF_THRESHOLD</code>, MATLAB <code>MedialAxisFunction.m</code> line 47), restricted to
-   the interior (<code>D ≤ 0</code>).</li>
-<li><strong>Morphological thinning</strong> — <code>_skeletonize_zhang_suen</code> (lines ~101): scipy
-   substitution for MATLAB <code>bwmorph(MA,'skel',inf)</code> (Lantuéjoul iteration), giving a
-   1-pixel skeleton up to boundary-order symmetry.</li>
-<li><strong>Clean</strong> — <code>_remove_isolated</code> (lines ~157): drop pixels with zero 8-connected
-   neighbours (MATLAB <code>bwmorph(MA,'clean',inf)</code>).</li>
-<li><strong>Distance-to-axis + LFS</strong> — <code>apply_medial_axis</code> (lines ~190):
-   <code>MAD = distance_transform_edt(~MA) * delta</code>; <code>LFS = |D| + |MAD|</code>; <code>h_lfs = LFS / R</code>
-   clamped to <code>[hmin, hmax]</code>; <code>h0 = min(h_lfs, h0)</code>.</li>
+<li><strong>Representation (T1 enabler):</strong> additive <code>Domain.constraints</code> field +
+   validation (<code>(N, 2)</code> float64 polylines, ≥2 points, inside <code>bbox</code>), mirroring
+   the existing <code>pfix</code> validation shape.</li>
+<li><strong>Threading:</strong> <code>triangulate()</code> densifies constraints to <code>pfix</code> at <code>h_min</code>
+   spacing (Option A MVP), with a <code>docs/PORTING_NOTES.md</code> entry stating the
+   seeded-not-enforced limitation explicitly.</li>
+<li><strong>Point distribution (T2):</strong> a 1D curvature+min-spacing point-placement helper
+   along a polyline — additive, consumes <code>Domain.constraints</code>, parameterized by
+   <code>h_min</code> and local curvature (mirrors <code>_stages/curvature.py</code> → <code>size_field.py</code>
+   in spirit, no locked change).</li>
+<li><strong>Exact enforcement (deferred):</strong> Option B (post-hoc edge recovery / CDT)
+   lands only when a fixture demonstrates the Option-A seeding produces a
+   cross-channel diagonal that matters — gated on measured need, not built blind.</li>
 </ol>
-<p>A Fast-Marching distance variant, <code>medial_distance_fmm</code> (lines ~226), also exists.</p>
-<p><strong>Cost/robustness characteristics of the baseline</strong> (grounded in the method, not in a
-run this session):
-- Cost scales with the <strong>background-grid resolution</strong> <code>O(N_grid)</code>, independent of domain
-  polygon complexity — the AOF and EDT passes are dense-grid stencils.
-- Accuracy of the axis (and therefore of LFS-driven sizing) is <strong>resolution-bounded</strong>:
-  thin channels narrower than a few grid cells can under-resolve or fragment the
-  skeleton, and morphological thinning near junctions is sensitive to grid-order
-  symmetry (documented in <code>PORTING_NOTES.md</code>).
-- Valid benchmark targets are analytic domains with a known medial axis (unit disk,
-  annulus, thin rectangle) plus the real WNAT coastal boundary — see
-  <code>T4-medial-axis-benchmark.md</code> (Parts A/B/C), which measures these. <strong>The octree
-  <code>tests/fixtures/octree/river-into-bay_ratio{10,20,40,100,1000}.npz</code> fixtures are NOT
-  medial-axis comparison targets:</strong> they are point-set inputs to the octree
-  background-grid stage, not medial-axis SDF grids, so there is no grid medial-axis path
-  to time on them (established in the benchmark note's Part C — do not re-scope them into a
-  medial-axis harness).</p>
-<h2 id="the-candidate-t4">The candidate (T4)<a class="headerlink" href="#the-candidate-t4" title="Permanent link">&para;</a></h2>
-<p>Kang, Y. &amp; Kubatko, E.J. (2024), <em>Geosci. Model Dev.</em> <strong>17</strong>, 1603–1625,
-<a href="https://doi.org/10.5194/gmd-17-1603-2024">doi:10.5194/gmd-17-1603-2024</a> (open access).
-Per the #186 evaluation, its revised medial-axis computation was the single strongest
-adopt candidate of the 7 techniques surveyed. The specific mechanism (grid-flux vs a
-Voronoi/Delaunay medial-axis transform vs a distance-field approach) and its stated
-runtime/robustness claims are <strong>exactly what the full-text method section is needed to
-confirm</strong> — this note does not guess them.</p>
-<p>Author-credit note: <code>Kang, Younghun</code> is <strong>already present</strong> in <code>CITATION.cff</code>
-<code>references</code> (lines ~43–44). The #186 directive additionally requires adding him to
-<code>authors</code> in the same commit <em>that ports a technique</em> — i.e. only on an <strong>adopt</strong> verdict,
-which this note does not reach.</p>
-<h2 id="paper-access-blocker-this-session">Paper access blocker (this session)<a class="headerlink" href="#paper-access-blocker-this-session" title="Permanent link">&para;</a></h2>
-<p>Full-text read could not be completed. Both fetch routes returned the same error:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>The server returned HTTP 403 Forbidden.
-</code></pre></div>
-<ul>
-<li><code>https://gmd.copernicus.org/articles/17/1603/2024/</code> → 403</li>
-<li><code>https://gmd.copernicus.org/articles/17/1603/2024/gmd-17-1603-2024.pdf</code> → 403</li>
-<li><code>https://gmd.copernicus.org/articles/17/1603/2024/gmd-17-1603-2024.html</code> → 403 (full-text HTML, retried 2026-07-12)</li>
-</ul>
-<p>Cause: the Copernicus host blocks the automated fetcher user-agent; the article is
-open-access to a normal browser but not to <code>WebFetch</code> from this environment. This is an
-environmental access limit, not a licensing one.</p>
-<p><strong>Additional routes confirmed dead (2026-07-12 rotation — do not re-attempt these):</strong>
-- ResearchGate mirror (<code>researchgate.net/publication/378444596</code>, same paper, title <em>An
-  automatic mesh generator for coupled 1D–2D hydrodynamic models</em>) → 403.
-- Hugging Face <code>paper_search</code> MCP → no match (indexes ML papers only; this GMD paper is
-  not in the corpus).
-- The EGUsphere preprint (<code>egusphere.copernicus.org/preprints/2023/egusphere-2023-1434/</code>)
-  is the same Copernicus host → same UA block, not a viable alternate.</p>
-<p>Net: every automated route reachable from this environment (Copernicus HTML/PDF,
-ResearchGate, HF) is blocked. A hosted-runner fetch or an operator paste of the method
-section is the only remaining path to acceptance box 1 — no further route-hunting is
-worthwhile from a rotation session.</p>
-<p><strong>Handoff:</strong> the baseline runtime + robustness benchmark (box 2) is <strong>already done</strong> — see
-<code>T4-medial-axis-benchmark.md</code> + <code>scripts/bench_medial_axis.py</code> + <code>output/T4_medial_baseline.json</code>
-(analytic disk/annulus/thin-channel giving exact error, plus the real WNAT coastal fixture).
-What remains is box 1 (full-text method summary — blocked, see above) and box 3 (verdict).
-A session with paper access (hosted runner able to reach Copernicus, or an operator paste of
-the method section) reads the method, then scores the revised construction against the
-baseline on the axis the benchmark identified as decisive — the <strong>O(δ) curved-axis accuracy
-floor</strong> and the <strong>quadratic-in-resolution runtime</strong>, not thin-channel survival (which held
-across the tested resolutions). No new octree-fixture benchmark is needed or possible.</p>
-<h2 id="interim-verdict">Interim verdict<a class="headerlink" href="#interim-verdict" title="Permanent link">&para;</a></h2>
-<p><strong>DEFER</strong> — cannot responsibly record adopt or decline without the method section. The
-grounded position: the baseline is a resolution-bounded grid-flux method whose known weak
-spot is exactly thin high-aspect-ratio channels, so a revised method that improves axis
-robustness there is a plausible additive backend — but the mechanism and its cost must be
-read first. No locked module changed under this note.</p>
-<h3 id="acceptance-status-200">Acceptance status (#200)<a class="headerlink" href="#acceptance-status-200" title="Permanent link">&para;</a></h3>
-<ul>
-<li>[ ] Full-text medial-axis method summarized — <strong>blocked</strong> (paper 403; handoff recorded).</li>
-<li>[x] Runtime + robustness benchmark of the baseline <code>_stages/medial_axis.py</code> — <strong>done</strong> in
-  <code>T4-medial-axis-benchmark.md</code> (analytic disk/annulus/thin-channel + real WNAT coastal
-  fixture). Octree fixtures are point-set octree-stage inputs, not medial-axis SDF grids, so
-  they are out of scope for a medial-axis benchmark (see that note's Part C).</li>
-<li>[ ] Adopt / decline verdict — <strong>DEFER</strong> recorded above; final verdict pending box 1.</li>
-<li>[x] No change to any locked <code>_stages/</code> module under this issue.</li>
-</ul>
+<p><strong>Not in scope of that spec:</strong> DEM/raster→channel extraction (a separate XL
+dependency surface — the eval doc's "do not start with the DEM extraction"), and
+any Kang &amp; Kubatko method port (still blocked on the full-text read tracked in</p>
+<h1 id="200-an-adopt-there-also-owes-the-citationcff-credit-per-the-186-operator">200; an adopt there also owes the <code>CITATION.cff</code> credit per the #186 operator<a class="headerlink" href="#200-an-adopt-there-also-owes-the-citationcff-credit-per-the-186-operator" title="Permanent link">&para;</a></h1>
+<p>directive).</p>
+<h2 id="5-net">5. Net<a class="headerlink" href="#5-net" title="Permanent link">&para;</a></h2>
+<p>The T1/T2 blocker is one missing additive field plus a documented densification
+seam, not a locked-module change — the constraint-edge representation is
+designable and buildable within the faithful-port boundary. This note gives the
+first spec its scope; it does not open that spec (that is the successor session's
+call under the pipeline gate). #186's T1/T2 verdicts move from <em>"needs a
+representation we don't have"</em> to <em>"representation scoped; Option C ready to
+spec."</em></p>
 
 
 

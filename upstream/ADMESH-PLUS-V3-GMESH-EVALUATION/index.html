@@ -1235,7 +1235,10 @@ Principle I is preserved.</p>
    the result.</li>
 <li>If T1/T2 are pursued, open a spec for the <strong>internal-constraint edge data model</strong>
    first — the representation <code>distmesh.py</code>/<code>api.py</code> would need to carry constraint
-   edges — before any DEM-extraction or point-distribution work.</li>
+   edges — before any DEM-extraction or point-distribution work. <strong>Pre-spec design
+   done:</strong> <code>docs/upstream/T1-T2-constraint-edge-data-model.md</code> scopes this
+   (Option C — additive <code>Domain.constraints</code> + densify-to-<code>pfix</code> MVP; the locked
+   <code>distmesh2d(pfix=)</code> seam is the only entry point; exact edge recovery deferred).</li>
 <li>Any PR that ports a Kang &amp; Kubatko (2024) technique adds <code>Kang, Younghun</code> to
    <code>CITATION.cff</code> in the same commit (operator directive, above).</li>
 </ol>

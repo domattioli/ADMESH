@@ -818,6 +818,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#where-we-are-today-2026-07-24-v060-shipped-rotation-queue-operator-gated-on-branch-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where we are today (2026-07-24, v0.6.0 shipped — rotation queue operator-gated on branch policy)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1100,6 +1111,15 @@
 <h1 id="admesh-project-plan">ADMESH Project Plan<a class="headerlink" href="#admesh-project-plan" title="Permanent link">&para;</a></h1>
 <p>Phased roadmap for porting <code>QuADMesh-MATLAB/01_ADMESH_Library</code> to Python. Governance rules in <code>CONSTITUTION.md</code>; code layout in <code>CLAUDE.md</code>.</p>
 <hr />
+<h2 id="where-we-are-today-2026-07-24-v060-shipped-rotation-queue-operator-gated-on-branch-policy">Where we are today (2026-07-24, v0.6.0 shipped — rotation queue operator-gated on branch policy)<a class="headerlink" href="#where-we-are-today-2026-07-24-v060-shipped-rotation-queue-operator-gated-on-branch-policy" title="Permanent link">&para;</a></h2>
+<p>Since the 2026-06-13 spec-029 entry below, the octree background grid <strong>merged and released</strong>, and two PyPI releases landed (details in <code>CHANGELOG.md</code>):</p>
+<ul>
+<li><strong>0.5.1</strong> (2026-06-15) — first PyPI release since 0.2.1; consolidated the unreleased 0.3–0.5 development line (octree size-field, <code>valence-domains</code> registry redirect [was <code>admesh-domains</code>], ENPAC standard-benchmark migration #154, <code>__version__</code> resync).</li>
+<li><strong>0.6.0</strong> (2026-07-05, #187) — octree size-field <strong>production</strong> (spec-029): vectorized SoA backend, leaf-graph gradient limiting, IDW smooth interpolation; ENPAC 2003 canonical Tier-2 benchmark (#154); additive-layer skip-debt consolidation (#184); <code>inpaint_nans</code> 1-D Laplacian column-alignment fix (#155).</li>
+</ul>
+<p>Spec-029's 2026-06-13 "merge-ready" status is now <strong>DONE</strong> (merged + released). The <code>background="uniform"</code> default still stands; the P5 flip to <code>"octree"</code> remains deferred pending operator sign-off.</p>
+<p><strong>Rotation-queue state (per the zoom-out audit #203).</strong> The open backlog is functionally blocked on <strong>one operator decision</strong>: Constitution Article VI.1 ("Trunk-based. Work on <code>main</code>") vs. the de-facto adopted <code>development → main</code> rolling-PR staging model (#182, rolling PR #202). Sessions push to <code>development</code>; the constitution root text still says <code>main</code> (<code>.claude/CLAUDE.md</code> already reads <code>development</code> — the drift is internal). #172 tracks the reconcile; its docs/sprawl side-work is <strong>resolved</strong> (all <code>epic-curie</code> branches pruned; README <code>ecoystem</code>/bold + <code>CITATION.cff</code> fixes verified landed; the closed-unmerged #170 pytest "class-fixture deprecation" premise verified <strong>invalid</strong> on pytest 9.1.1 — no warning emitted, correctly not re-opened), leaving only the core branch decision. #186 and #203 carry <code>status: needs-operator</code>.</p>
+<p><strong>Research backlog (parked, not drained).</strong> #200 (T4 — benchmark the Kang &amp; Kubatko 2024 revised medial-axis vs. the locked <code>_stages/medial_axis.py</code>) is gated on the paper's full text — Copernicus (<code>gmd.copernicus.org</code>) 403s the agent proxy at CONNECT; defer to a hosted runner. The perf cluster (#8 GPU/CPU-parallel size-field, #90 Julia <code>mesh_size</code> solver, #99 pipeline parallelization) sits at <code>priority: someday</code> pending #203's perf-priority ruling.</p>
 <h2 id="where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready">Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)<a class="headerlink" href="#where-we-are-today-2026-06-13-spec-029-octree-as-background-grid-p0p3-complete-merge-ready" title="Permanent link">&para;</a></h2>
 <p>Octree adaptive background grid wired into <code>triangulate(background="octree")</code> (additive; locked routine untouched, Principle I held). Built from the prototype that resolved the cheaper-octree + language questions (pure NumPy, vectorized struct-of-arrays, batched oracle).</p>
 <ul>
