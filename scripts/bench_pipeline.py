@@ -64,7 +64,7 @@ def _get_env_hash() -> str:
         f"admesh{admesh.__version__}",
     ]
     s = "-".join(parts)
-    return hashlib.md5(s.encode()).hexdigest()[:8]
+    return hashlib.md5(s.encode(), usedforsecurity=False).hexdigest()[:8]
 
 
 @contextlib.contextmanager

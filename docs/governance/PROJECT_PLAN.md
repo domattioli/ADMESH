@@ -4,6 +4,19 @@ Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Govern
 
 ---
 
+## Where we are today (2026-07-24, v0.6.0 shipped — rotation queue operator-gated on branch policy)
+
+Since the 2026-06-13 spec-029 entry below, the octree background grid **merged and released**, and two PyPI releases landed (details in `CHANGELOG.md`):
+
+- **0.5.1** (2026-06-15) — first PyPI release since 0.2.1; consolidated the unreleased 0.3–0.5 development line (octree size-field, `valence-domains` registry redirect [was `admesh-domains`], ENPAC standard-benchmark migration #154, `__version__` resync).
+- **0.6.0** (2026-07-05, #187) — octree size-field **production** (spec-029): vectorized SoA backend, leaf-graph gradient limiting, IDW smooth interpolation; ENPAC 2003 canonical Tier-2 benchmark (#154); additive-layer skip-debt consolidation (#184); `inpaint_nans` 1-D Laplacian column-alignment fix (#155).
+
+Spec-029's 2026-06-13 "merge-ready" status is now **DONE** (merged + released). The `background="uniform"` default still stands; the P5 flip to `"octree"` remains deferred pending operator sign-off.
+
+**Rotation-queue state (per the zoom-out audit #203).** The open backlog is functionally blocked on **one operator decision**: Constitution Article VI.1 ("Trunk-based. Work on `main`") vs. the de-facto adopted `development → main` rolling-PR staging model (#182, rolling PR #202). Sessions push to `development`; the constitution root text still says `main` (`.claude/CLAUDE.md` already reads `development` — the drift is internal). #172 tracks the reconcile; its docs/sprawl side-work is **resolved** (all `epic-curie` branches pruned; README `ecoystem`/bold + `CITATION.cff` fixes verified landed; the closed-unmerged #170 pytest "class-fixture deprecation" premise verified **invalid** on pytest 9.1.1 — no warning emitted, correctly not re-opened), leaving only the core branch decision. #186 and #203 carry `status: needs-operator`.
+
+**Research backlog (parked, not drained).** #200 (T4 — benchmark the Kang & Kubatko 2024 revised medial-axis vs. the locked `_stages/medial_axis.py`) is gated on the paper's full text — Copernicus (`gmd.copernicus.org`) 403s the agent proxy at CONNECT; defer to a hosted runner. The perf cluster (#8 GPU/CPU-parallel size-field, #90 Julia `mesh_size` solver, #99 pipeline parallelization) sits at `priority: someday` pending #203's perf-priority ruling.
+
 ## Where we are today (2026-06-13, spec 029 octree-as-background-grid — P0–P3 COMPLETE, merge-ready)
 
 Octree adaptive background grid wired into `triangulate(background="octree")` (additive; locked routine untouched, Principle I held). Built from the prototype that resolved the cheaper-octree + language questions (pure NumPy, vectorized struct-of-arrays, batched oracle).
