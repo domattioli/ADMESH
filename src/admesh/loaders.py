@@ -50,22 +50,63 @@ def _domain_from_polygon(
     rings: list[np.ndarray],
     *,
     pfix: np.ndarray | None = None,
+    bbox: tuple[float, float, float, float] | None = None,
 ) -> Domain:
-    """Internal helper: build a Domain from polygon rings via Shapely SDF."""
+    """Internal helper: build a Domain from polygon rings via Shapely SDF.
+
+    Parameters
+    ----------
+    rings : list[np.ndarray]
+        List of ring coordinate arrays. First is outer boundary, rest are holes.
+    pfix : np.ndarray | None
+        Optional fixed points.
+    bbox : tuple[float, float, float, float] | None
+        Optional declared bounding box as (xmin, ymin, xmax, ymax).
+        If provided, validates the 4-tuple and uses it as the Domain bbox.
+        If None, computes bbox from ring extent (default behavior).
+
+    Returns
+    -------
+    Domain
+        Domain with specified or computed bbox.
+
+    Raises
+    ------
+    ValueError
+        If bbox is provided but invalid (not 4 floats, or xmin>=xmax, etc).
+    """
     if not rings:
         raise ValueError("rings must be non-empty")
     outer = np.asarray(rings[0], dtype=np.float64)
     if outer.ndim != 2 or outer.shape[1] != 2:
         raise ValueError(f"outer ring must have shape (M, 2), got {outer.shape}")
-    bbox = (
-        float(outer[:, 0].min()),
-        float(outer[:, 1].min()),
-        float(outer[:, 0].max()),
-        float(outer[:, 1].max()),
-    )
+
+    # Validate and use declared bbox if provided; otherwise compute from rings
+    if bbox is not None:
+        if not isinstance(bbox, (tuple, list)) or len(bbox) != 4:
+            raise ValueError(f"bbox must be a 4-tuple (xmin, ymin, xmax, ymax), got {bbox}")
+        try:
+            bbox_floats = tuple(float(x) for x in bbox)
+        except (TypeError, ValueError):
+            raise ValueError(f"bbox values must be convertible to float, got {bbox}")
+        xmin, ymin, xmax, ymax = bbox_floats
+        if xmin >= xmax:
+            raise ValueError(f"bbox xmin ({xmin}) must be < xmax ({xmax})")
+        if ymin >= ymax:
+            raise ValueError(f"bbox ymin ({ymin}) must be < ymax ({ymax})")
+        final_bbox = bbox_floats
+    else:
+        # Default: compute from ring extent
+        final_bbox = (
+            float(outer[:, 0].min()),
+            float(outer[:, 1].min()),
+            float(outer[:, 0].max()),
+            float(outer[:, 1].max()),
+        )
+
     from admesh._fast_sdf import fast_sdf
 
-    return Domain(sdf=fast_sdf(rings), bbox=bbox, pfix=pfix)
+    return Domain(sdf=fast_sdf(rings), bbox=final_bbox, pfix=pfix)
 
 
 # Use tomllib (Python 3.11+) or fall back to toml package
@@ -105,6 +146,11 @@ def load_domain_from_toml(path: str | Path) -> Domain:
     -------
     Domain
         Ready for admesh.triangulate().
+
+    Notes
+    -----
+    The declared ``bbox`` in the file, if present, overrides the bounding box
+    computed from ring extent. Omit ``bbox`` to auto-compute.
     """
     path = Path(path)
     with open(path, "rb" if hasattr(tomllib, "load") else "r") as f:  # type: ignore[arg-type]
@@ -115,9 +161,11 @@ def load_domain_from_toml(path: str | Path) -> Domain:
 
     domain_spec = data.get("domain", {})
     bbox_raw = domain_spec.get("bbox")
-    if not bbox_raw or len(bbox_raw) != 4:
-        raise ValueError(f"TOML domain.bbox must be a 4-tuple; got {bbox_raw}")
-    bbox = tuple(float(x) for x in bbox_raw)  # type: ignore[arg-type]
+    bbox = None
+    if bbox_raw:
+        if len(bbox_raw) != 4:
+            raise ValueError(f"TOML domain.bbox must be a 4-tuple; got {bbox_raw}")
+        bbox = tuple(float(x) for x in bbox_raw)  # type: ignore[arg-type]
 
     rings_raw = domain_spec.get("rings", [])
     if not rings_raw:
@@ -132,7 +180,9 @@ def load_domain_from_toml(path: str | Path) -> Domain:
         if coords_list and coords_list[0]:
             fixed_points = np.array(coords_list[0], dtype=np.float64)
 
-    return _domain_from_polygon(rings, pfix=fixed_points)
+    # bbox intentionally recomputed from the land-boundary ring extent: the full
+    # mesh-node extent includes open-ocean nodes outside the ring polygon (#205).
+    return _domain_from_polygon(rings, pfix=fixed_points, bbox=bbox)
 
 
 def load_domain_from_fort14(path: str | Path) -> Domain:
@@ -169,10 +219,6 @@ def load_domain_from_fort14(path: str | Path) -> Domain:
     if not rings:
         raise ValueError(f"No land boundary found in {path}")
 
-    # Use mesh nodes to compute bbox
-    xmin, ymin = mesh.nodes.min(axis=0)
-    xmax, ymax = mesh.nodes.max(axis=0)
-    bbox = (float(xmin), float(ymin), float(xmax), float(ymax))
 
     # Mark boundary vertices as fixed points
     fixed_points = None
@@ -206,15 +252,22 @@ def load_domain_from_json(path: str | Path) -> Domain:
     -------
     Domain
         Ready for admesh.triangulate().
+
+    Notes
+    -----
+    The declared ``bbox`` in the file, if present, overrides the bounding box
+    computed from ring extent. Omit ``bbox`` to auto-compute.
     """
     path = Path(path)
     with open(path) as f:
         data = json.load(f)
 
     bbox_raw = data.get("bbox")
-    if not bbox_raw or len(bbox_raw) != 4:
-        raise ValueError(f"JSON bbox must be a 4-tuple; got {bbox_raw}")
-    bbox = tuple(float(x) for x in bbox_raw)  # type: ignore[arg-type]
+    bbox = None
+    if bbox_raw:
+        if len(bbox_raw) != 4:
+            raise ValueError(f"JSON bbox must be a 4-tuple; got {bbox_raw}")
+        bbox = tuple(float(x) for x in bbox_raw)  # type: ignore[arg-type]
 
     rings_raw = data.get("rings", [])
     if not rings_raw:
@@ -227,4 +280,4 @@ def load_domain_from_json(path: str | Path) -> Domain:
     if fixed_raw:
         fixed_points = np.array(fixed_raw, dtype=np.float64)
 
-    return _domain_from_polygon(rings, pfix=fixed_points)
+    return _domain_from_polygon(rings, pfix=fixed_points, bbox=bbox)
