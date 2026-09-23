@@ -27,10 +27,9 @@ import pathlib
 
 import numpy as np
 from manim import (
-    Scene, VGroup, VMobject, Polygon, Text, Line,
-    ManimColor, config,
-    FadeIn, FadeOut, ValueTracker, always_redraw,
-    UL, DOWN, UP, LEFT, RIGHT, ORIGIN, rate_functions,
+    Scene, VGroup, Polygon, Text, Line,
+    ManimColor, FadeIn, FadeOut, ValueTracker, always_redraw,
+    DOWN, LEFT, RIGHT, rate_functions,
 )
 
 HERE = pathlib.Path(__file__).resolve().parent

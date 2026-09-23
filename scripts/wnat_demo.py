@@ -75,7 +75,7 @@ def main(
     out_path: str = "wnat_admesh.14",
     h_max_deg: float = 1.5,
 ) -> None:
-    print(f"=== WNAT re-triangulation demo ===\n")
+    print("=== WNAT re-triangulation demo ===\n")
     print(f"reference: {ref_path}")
     print(f"output:    {out_path}")
     print(f"h_max:     {h_max_deg}° (lon/lat)\n")
@@ -116,7 +116,7 @@ def main(
 
     # 4) Build domain + triangulate.
     domain = admesh.domain_from_polygon([ring])
-    print(f"[4/5] triangulating … (this may take a minute on the full ring)")
+    print("[4/5] triangulating … (this may take a minute on the full ring)")
     t0 = time.perf_counter()
     new = admesh.triangulate(
         domain,
