@@ -80,7 +80,8 @@ def extract_version(arg_version: Optional[str]) -> Optional[str]:
         with open("pyproject.toml") as f:
             match = re.search(r'version\s*=\s*["\']([^"\']+ )["\']', f.read())
             return match.group(1) if match else None
-    except:
+    except (IOError, OSError) as e:
+        print(f"warning: failed to extract version from pyproject.toml: {e}", file=sys.stderr)
         return None
 
 
@@ -112,7 +113,8 @@ def extract_changelog_section(version: str) -> str:
             return lines[1].strip() if len(lines) > 1 else f"Release {version}"
 
         return f"Release {version}"
-    except:
+    except (IOError, OSError) as e:
+        print(f"warning: failed to extract changelog section: {e}", file=sys.stderr)
         return f"Release {version}"
 
 
