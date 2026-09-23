@@ -304,7 +304,6 @@ class Domain:
             Domain with SDF derived from mesh boundary and interior bathymetry
             (if available), and bc_segments recovered from the mesh boundary.
         """
-        from scipy.interpolate import LinearNDInterpolator
 
         # Extract boundary segments (rings) from the mesh
         bc_segments = _derive_boundary_segments(mesh.elements, mesh.nodes)

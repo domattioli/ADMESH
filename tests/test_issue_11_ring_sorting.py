@@ -1,7 +1,6 @@
 """Tests for issue #11: Domain.from_mesh ring sorting fix."""
 
 import numpy as np
-import pytest
 
 import admesh
 
