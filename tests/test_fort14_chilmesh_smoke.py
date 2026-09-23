@@ -23,12 +23,10 @@ Keep both: they cover different failure modes.
 
 from __future__ import annotations
 
-import io
 
 import numpy as np
 import pytest
 
-import admesh
 from admesh import BoundarySegment, BoundaryType, Mesh
 
 # Skip the whole module when chilmesh isn't importable.
