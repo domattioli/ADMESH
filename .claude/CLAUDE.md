@@ -29,7 +29,7 @@ python scripts/bench_mesh_size.py
 
 ```python
 from admesh import triangulate
-mesh = triangulate("domain.toml", h0=0.1)  # TOML, JSON, or fort.14
+mesh = triangulate("domain.toml", h_max=0.1)  # TOML, JSON, or fort.14
 ```
 
 Breaking change from v0.1: `domain_from_polygon()` removed. Use file-based loading.

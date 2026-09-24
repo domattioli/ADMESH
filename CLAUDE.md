@@ -95,20 +95,20 @@ from admesh import load_domain_from_toml, load_domain_from_json, load_domain_fro
 
 # Load domain then triangulate
 domain = load_domain_from_toml("domain.toml")
-mesh = admesh.triangulate(domain, h0=0.1)
+mesh = admesh.triangulate(domain, h_max=0.1)
 
 # Or pass path/mesh_id directly to triangulate()
-mesh = admesh.triangulate("domain.toml", h0=0.1)
-mesh = admesh.triangulate("domain.json", h0=0.1)
-mesh = admesh.triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
+mesh = admesh.triangulate("domain.toml", h_max=0.1)
+mesh = admesh.triangulate("domain.json", h_max=0.1)
+mesh = admesh.triangulate("existing_mesh.14", h_max=0.1)  # Extract boundary
 ```
 
-**Registry integration (requires `admesh-domains` package):**
+**Registry integration (`valence-domains`, installed with admesh2D):**
 ```python
 from admesh import load_domain_from_registry, list_available_domains
 
 domains = list_available_domains()
-mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)  # Auto-detects registry
+mesh = admesh.triangulate("BaranjaHill", h_max=0.1)  # Auto-detects registry
 ```
 
 **Supported domain file formats:**
@@ -127,12 +127,12 @@ import json
 domain_dict = {"bbox": [-1, -1, 1, 1], "rings": [outer_ring.tolist()]}
 with open("my_domain.json", "w") as f:
     json.dump(domain_dict, f)
-mesh = admesh.triangulate("my_domain.json", h0=0.1)
+mesh = admesh.triangulate("my_domain.json", h_max=0.1)
 
 # v0.2 — custom SDF: use Domain dataclass directly (still exported)
 from admesh import Domain
 domain = Domain(sdf=my_sdf_callable, bbox=(-1, -1, 1, 1))
-mesh = admesh.triangulate(domain, h0=0.1)
+mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
 See `docs/DOMAIN_IO.md` for complete examples + format specifications.
@@ -358,3 +358,40 @@ See **Constitution Article VI rules 5–8** for binding rules. Quick operational
 
 **Constitution Principle I** still binds: 13 faithful-port stage modules MUST stay numerically identical to MATLAB. New behaviour goes in additive-layer modules (`api.py`, `fort14.py`, `boundary_types.py`, `loaders.py`, `size_field.py`, `viz.py`, `quad_prep.py`, `registry.py`, `domains.py`) — strictly additive, never replacing locked modules.
 <!-- SPECKIT END -->
+
+<!-- >>> projectmem bridge >>> -->
+## projectmem (MANDATORY)
+
+This project uses projectmem for persistent memory + workflow rules.
+
+SESSION START — call these three MCP tools, in this order, BEFORE
+answering ANY question about this project:
+
+  1. `get_instructions()` — loads the project's mandatory workflow
+     rules. Without this you will not know how to log work
+     correctly, when to use `add_note` vs `add_decision`, or how
+     the event log is structured.
+  2. `get_summary()` — loads project content. Do NOT answer from
+     conversation history or by re-reading package.json / README /
+     source files.
+  3. `get_project_map()` — loads structural layout when relevant.
+
+BEFORE modifying ANY file:
+  - Call `precheck_file(path)` — check failure history first.
+
+DURING work — use MCP write tools, NEVER edit `.projectmem/`
+files directly via filesystem write:
+  - On a bug discovery → `log_issue(summary, location)`.
+  - After each fix attempt → `record_attempt(summary, outcome)`.
+  - After confirmation → `record_fix(summary)`.
+  - On a design choice → `add_decision(summary)`.
+  - On a gotcha / setup detail → `add_note(summary)`.
+
+Editing `.projectmem/summary.md` or `.projectmem/PROJECT_MAP.md`
+directly bypasses event logging and breaks audit replay. The
+summary file regenerates from `events.jsonl` automatically — write
+via the MCP tools and the summary will follow.
+
+Do not re-scan source files when MCP tools can give you the same
+answer in ~500 tokens instead of ~5000. This is not optional.
+<!-- <<< projectmem bridge <<< -->
