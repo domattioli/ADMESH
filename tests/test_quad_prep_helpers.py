@@ -8,7 +8,6 @@ API behaviour is covered separately in ``test_quad_prep.py``.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from admesh.quad_prep import (
     _boundary_node_mask,

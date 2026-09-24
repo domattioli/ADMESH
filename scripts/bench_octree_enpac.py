@@ -13,7 +13,10 @@ Two regimes:
 Counts SDF/oracle evaluations per impl (the real cost lever).
 """
 from __future__ import annotations
-import sys, time, numpy as np
+import sys
+import time
+import numpy as np
+sys.path.insert(0, "/tmp")
 import admesh
 from admesh._stages import octree_grid as om
 import octree_branch as ob

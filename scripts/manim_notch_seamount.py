@@ -19,7 +19,7 @@ import numpy as np
 from manim import (
     Scene, ImageMobject, Polygon, Dot, VGroup, Text, Line,
     FadeIn, FadeOut, Create, ValueTracker, always_redraw,
-    config, WHITE, YELLOW, BLACK, GRAY,
+    WHITE, YELLOW,
 )
 
 DATA = pathlib.Path(__file__).resolve().parent / "viz_data" / "notch_seamount_admesh.npz"

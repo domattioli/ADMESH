@@ -12,7 +12,7 @@ Read-only audit of the ADMESH Claude Code hook footprint. Companion to
 |---|---|---|
 | `~/.claude/settings.json` (user-scope) | yes (managed) | `Stop` hook → `~/.claude/stop-hook-git-check.sh`; `permissions.allow = ["Skill"]`. DomI-managed envelope. |
 | `.claude/settings.json` (repo-scope) | **no** | ADMESH does not declare any repo-scope hooks. |
-| `.claude/CLAUDE.md` (repo-scope) | yes | Operational reference doc. Not a hook. |
+| `CLAUDE.md` (root-level) | yes | Operational reference doc. Not a hook. |
 | `scripts/hooks/` | **no** | Empty / absent. |
 | `.githooks/` | **no** | Empty / absent. |
 | `scripts/instructions_on_start.sh` | yes | DomI drift check; manually invoked by SessionStart hooks elsewhere. |
@@ -62,15 +62,15 @@ call `bash scripts/instructions_on_start.sh`. Until then, the
 drift-check semantics in `CLAUDE.md` ("HARD STOP on drift")
 are aspirational, not enforced.
 
-### F3 — **NO-ACTION: `.claude/CLAUDE.md` exists alongside top-level `CLAUDE.md`**
+### F3 — **RESOLVED: `.claude/CLAUDE.md` consolidated into root `CLAUDE.md`**
 
-ADMESH has both `CLAUDE.md` (top-level) and `.claude/CLAUDE.md`. The
-`.claude/`-scoped one is a shorter operational reference; the
-top-level one is the canonical doc. Some readers will be confused.
+ADMESH previously had both `CLAUDE.md` (top-level) and `.claude/CLAUDE.md` (condensed duplicate).
+Per the CLAUDE.md/AGENTS.md standardization spec (all 8 repos), the two files were consolidated:
+- `AGENTS.md` (new) — tool-agnostic project guidance (repository layout, commands, conventions, testing, branch policy, edit hygiene, related repos, reference docs).
+- `CLAUDE.md` (updated) — Claude-Code-specific guidance only (session start, branch handling, communication style, coding dispatch, skills, hooks, lessons learned, session end).
+- `.claude/CLAUDE.md` (removed) — deleted via `git rm`.
 
-**Decision: no action** — the two files have different intended
-audiences (`.claude/` = session-loaded context; top-level = repo
-documentation). Audit-only flag.
+**Decision: resolved** — consolidation complete, no ambiguity.
 
 ## 4. Backlog
 

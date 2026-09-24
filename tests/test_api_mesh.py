@@ -11,7 +11,6 @@ from dataclasses import FrozenInstanceError
 import numpy as np
 import pytest
 
-import admesh
 from admesh import BoundarySegment, BoundaryType, Domain, Mesh
 
 

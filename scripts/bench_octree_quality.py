@@ -8,7 +8,8 @@ multiscale case and an octree size-field fidelity (SC-005) check.
 Run: .venv/bin/python scripts/bench_octree_quality.py
 """
 from __future__ import annotations
-import time, sys
+import time
+import sys
 import numpy as np
 import admesh
 from admesh import domains as D

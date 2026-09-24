@@ -9,7 +9,7 @@ import pytest
 
 from admesh import Domain as ApiDomain, triangulate
 from admesh._stages.domains import UNIT_SQUARE, L_SHAPE
-from admesh.octree import Octree, build_octree, leaf_graph, locate, interpolate, octree_size_field
+from admesh.octree import build_octree, leaf_graph, locate, interpolate, octree_size_field
 
 
 class MockDomain:

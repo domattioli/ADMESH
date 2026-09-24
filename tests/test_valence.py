@@ -6,7 +6,6 @@ Issue #27: balance node valence via edge flipping.
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from admesh.api import BoundarySegment, Mesh
 from admesh.boundary_types import BoundaryType

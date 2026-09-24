@@ -551,7 +551,6 @@ def test_enforce_bc_matlab_fixture():
     if not path.exists():
         pytest.skip("MATLAB fixture not available: boundary/enforce_bc_simple.npz")
     fx = dict(np.load(path, allow_pickle=True))
-    pts_obj = fx.get("pts")
     # Fixture format: arrays for h0, X, Y, D, hmax, hmin; PTS reconstructed
     # from stored ring + BC points.
     h0 = fx["h0"]; X = fx["X"]; Y = fx["Y"]; D = fx["D"]
