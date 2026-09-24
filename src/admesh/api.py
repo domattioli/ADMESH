@@ -880,7 +880,32 @@ def triangulate(
     # contract about the output. Otherwise default-label every closed
     # boundary ring as MAINLAND.
     if api_domain and api_domain.bc_segments:
-        boundaries = tuple(api_domain.bc_segments)
+        # Validate that all node_ids in bc_segments are valid for the new mesh.
+        # When a Domain comes from Domain.from_mesh(old_mesh), bc_segments may
+        # reference node ids from the old mesh, which are invalid for the new
+        # triangulation (e.g., old mesh had 9933 boundary nodes, new has 103).
+        max_node_id = -1
+        valid = True
+        for seg in api_domain.bc_segments:
+            if seg.node_ids.size > 0:
+                seg_max = int(np.max(seg.node_ids))
+                max_node_id = max(max_node_id, seg_max)
+                if seg_max >= len(nodes):
+                    valid = False
+                    break
+
+        if valid and max_node_id >= 0:
+            boundaries = tuple(api_domain.bc_segments)
+        else:
+            # Fall back to deriving boundaries from the triangulation
+            if max_node_id >= len(nodes):
+                warnings.warn(
+                    f"triangulate: Domain.bc_segments reference node ids outside the generated mesh "
+                    f"(max id {max_node_id}, n_nodes {len(nodes)}); deriving boundaries from the triangulation instead.",
+                    UserWarning,
+                    stacklevel=2
+                )
+            boundaries = _derive_boundary_segments(elements, nodes)
     else:
         boundaries = _derive_boundary_segments(elements, nodes)
 
