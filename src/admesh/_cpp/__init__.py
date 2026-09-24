@@ -50,7 +50,6 @@ def distmesh2d_step(p, bars, h_bars, Fscale=1.2, deltat=0.2, nfix=0):
 
 def _distmesh2d_step_numpy(p, bars, h_bars, Fscale=1.2, deltat=0.2, nfix=0):
     """Pure NumPy distmesh2d step (fallback when C++ unavailable)."""
-    N = len(p)
     M = len(bars)
 
     if M == 0:
