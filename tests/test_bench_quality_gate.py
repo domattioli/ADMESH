@@ -1,7 +1,5 @@
 """Regression: benchmark worker honours production quality floor (issue #101)."""
-import importlib.util
 import pathlib
-import sys
 
 import pytest
 
@@ -12,8 +10,6 @@ BENCH = pathlib.Path(__file__).parents[1] / "benchmarks" / "_bench_worker.py"
 @pytest.mark.slow
 def test_bench_worker_imports_production_params():
     """Verify benchmark worker uses spec-002 production defaults."""
-    spec = importlib.util.spec_from_file_location("_bench_worker", BENCH)
-    mod = importlib.util.module_from_spec(spec)
     src = BENCH.read_text()
     # curvature_scale must use production default 20.0, not hmin
     assert "curvature_scale=20.0" in src, "curvature_scale must be 20.0 (production default)"

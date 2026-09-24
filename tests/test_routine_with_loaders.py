@@ -1,9 +1,7 @@
 """End-to-end tests for triangulate() with domain loaders."""
 
 import json
-from pathlib import Path
 
-import numpy as np
 import pytest
 
 from admesh import Mesh, load_domain_from_json, triangulate

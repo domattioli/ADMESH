@@ -206,9 +206,9 @@ def main() -> int:
     # Step 3: Extract release notes
     release_notes = extract_release_notes(version)
     if release_notes:
-        print(f"📄 Found release notes in CHANGELOG.md")
+        print("📄 Found release notes in CHANGELOG.md")
     else:
-        print(f"⚠️  No release notes found in CHANGELOG.md")
+        print("⚠️  No release notes found in CHANGELOG.md")
         release_notes = ""
 
     # Step 4: Create GitHub release
