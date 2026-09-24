@@ -1,6 +1,6 @@
 # Domain I/O and Registry Integration
 
-Guide for loading mesh domains from files and the ADMESH-Domains registry.
+Guide for loading mesh domains from files and the Valence registry.
 
 ## Quick Start
 
@@ -9,14 +9,14 @@ Guide for loading mesh domains from files and the ADMESH-Domains registry.
 ```python
 import admesh
 
-# Load from TOML (ADMESH-Domains native format)
-mesh = admesh.triangulate("my_domain.toml", h0=0.1)
+# Load from TOML (Valence native format)
+mesh = admesh.triangulate("my_domain.toml", h_max=0.1)
 
 # Load from JSON
-mesh = admesh.triangulate("my_domain.json", h0=0.1)
+mesh = admesh.triangulate("my_domain.json", h_max=0.1)
 
 # Extract boundary from existing mesh
-mesh = admesh.triangulate("existing_mesh.14", h0=0.05)
+mesh = admesh.triangulate("existing_mesh.14", h_max=0.05)
 ```
 
 ### Load from Registry
@@ -30,24 +30,24 @@ for mesh_id, desc in domains.items():
     print(f"{mesh_id}: {desc}")
 
 # Load by mesh_id (auto-detects registry)
-mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)
+mesh = admesh.triangulate("BaranjaHill", h_max=0.1)
 
 # Or use explicit registry loader
-domain = admesh.load_domain_from_registry("noaa-hsofs-v20")
-mesh = admesh.triangulate(domain, h0=0.1)
+domain = admesh.load_domain_from_registry("BaranjaHill")
+mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
 ## File Format Specifications
 
 ### TOML Format (Recommended)
 
-Native format for ADMESH-Domains. Human-readable, widely supported.
+Native format for Valence (valence-domains). Human-readable, widely supported.
 
 **File: `domain.toml`**
 
 ```toml
 [domain]
-name = "noaa-hsofs-v20"
+name = "BaranjaHill"
 description = "NOAA HSOFS Atlantic Hurricane Surge Model domain"
 bbox = [-85.0, 20.0, -60.0, 40.0]
 
@@ -78,13 +78,13 @@ coords = [[-85.0, 20.0], [-60.0, 40.0]]
 version = "1"
 contributed_by = "NOAA"
 license = "CC-BY-4.0"
-source_url = "https://github.com/domattioli/ADMESH-Domains"
+source_url = "https://github.com/domattioli/Valence"
 ```
 
 **Loading:**
 ```python
 domain = admesh.load_domain_from_toml("domain.toml")
-mesh = admesh.triangulate(domain, h0=0.1)
+mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
 ### JSON Format
@@ -108,7 +108,7 @@ Universal, portable format. Identical structure to TOML without metadata section
 **Loading:**
 ```python
 domain = admesh.load_domain_from_json("domain.json")
-mesh = admesh.triangulate(domain, h0=0.1)
+mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
 ### Fort.14 Format
@@ -121,10 +121,10 @@ Extract domain boundary from ADCIRC v55 fort.14 mesh files. Useful for re-triang
 domain = admesh.load_domain_from_fort14("existing_mesh.14")
 
 # Re-triangulate at coarser resolution
-coarse_mesh = admesh.triangulate(domain, h0=0.5)
+coarse_mesh = admesh.triangulate(domain, h_max=0.5)
 
 # Or at finer resolution
-fine_mesh = admesh.triangulate(domain, h0=0.02)
+fine_mesh = admesh.triangulate(domain, h_max=0.02)
 ```
 
 **What gets extracted:**
@@ -135,10 +135,10 @@ fine_mesh = admesh.triangulate(domain, h0=0.02)
 
 ## Registry Integration
 
-Requires `admesh-domains` package:
+Requires `valence-domains` package (installed with admesh2D):
 
 ```bash
-pip install admesh-domains
+pip install valence-domains
 ```
 
 ### Discovering Domains
@@ -151,7 +151,7 @@ domains = admesh.list_available_domains()
 print(f"Available meshes: {len(domains)}")
 
 # Fetch domain metadata
-domain, meta = admesh.load_domain_with_metadata("noaa-hsofs-v20")
+domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
 print(f"Version: {meta.get('version')}")
 print(f"Contributor: {meta.get('contributed_by')}")
 print(f"License: {meta.get('license')}")
@@ -163,15 +163,15 @@ print(f"License: {meta.get('license')}")
 import admesh
 
 # Method 1: Direct registry load
-domain = admesh.load_domain_from_registry("noaa-hsofs-v20")
-mesh = admesh.triangulate(domain, h0=0.1)
+domain = admesh.load_domain_from_registry("BaranjaHill")
+mesh = admesh.triangulate(domain, h_max=0.1)
 
 # Method 2: Auto-detect (string without path separators)
-mesh = admesh.triangulate("noaa-hsofs-v20", h0=0.1)
+mesh = admesh.triangulate("BaranjaHill", h_max=0.1)
 
 # Method 3: With metadata
-domain, meta = admesh.load_domain_with_metadata("noaa-hsofs-v20")
-mesh = admesh.triangulate(domain, h0=0.1)
+domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
+mesh = admesh.triangulate(domain, h_max=0.1)
 print(f"Mesh ID: {meta.get('mesh_id')}")
 ```
 
@@ -182,12 +182,12 @@ import admesh
 import numpy as np
 
 # Load domain from registry
-domain = admesh.load_domain_from_registry("noaa-hsofs-v20")
+domain = admesh.load_domain_from_registry("BaranjaHill")
 
 # Triangulate with custom parameters
 mesh = admesh.triangulate(
     domain,
-    h0=0.15,  # Target edge length
+    h_max=0.15,  # Target edge length
     seed=42,  # Reproducible randomness
 )
 
@@ -200,7 +200,7 @@ print(f"Elements: {mesh.n_elements}")
 print(f"Quality: {mesh.quality}")
 
 # Re-triangulate boundary at finer resolution
-finer_mesh = admesh.triangulate(domain, h0=0.05)
+finer_mesh = admesh.triangulate(domain, h_max=0.05)
 print(f"Finer mesh: {finer_mesh.n_nodes} nodes")
 ```
 
@@ -243,7 +243,7 @@ except ValueError as e:
 try:
     domain = admesh.load_domain_from_registry("some-mesh")
 except ImportError:
-    print("admesh-domains not installed")
+    print("valence-domains not installed")
 except ValueError:
     print("Mesh not found in registry")
 ```
@@ -266,6 +266,6 @@ For new code, prefer file-based or registry-based loaders.
 
 ## See Also
 
-- `ADMESH-Domains` repository: https://github.com/domattioli/ADMESH-Domains
+- Valence registry repository (formerly ADMESH-Domains): https://github.com/domattioli/Valence
 - `admesh.api.Domain` — Domain dataclass documentation
 - `admesh.triangulate()` — Main triangulation function
