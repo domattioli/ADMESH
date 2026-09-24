@@ -106,13 +106,13 @@ matlab -batch "run('scripts/export_matlab_fixtures.m')"
 from admesh import triangulate
 
 # File-based domain loading (TOML, JSON, or fort.14)
-mesh = triangulate("domain.toml", h0=0.1)
-mesh = triangulate("domain.json", h0=0.1)
-mesh = triangulate("existing_mesh.14", h0=0.1)  # Extract boundary
+mesh = triangulate("domain.toml", h_max=0.1)
+mesh = triangulate("domain.json", h_max=0.1)
+mesh = triangulate("existing_mesh.14", h_max=0.1)  # Extract boundary
 
 # Registry integration
 from admesh import load_domain_from_registry
-mesh = triangulate("noaa-hsofs-v20", h0=0.1)  # Auto-detects registry
+mesh = triangulate("BaranjaHill", h_max=0.1)  # Auto-detects registry
 ```
 
 **Migration from v0.1:** `domain_from_polygon()` and `domain_from_sdf()` were removed. Save domains to TOML/JSON and load via file path, or construct a `Domain` dataclass directly. See `docs/DOMAIN_IO.md` for full API and format specs.
