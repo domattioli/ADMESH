@@ -1060,19 +1060,19 @@
 
 
 <h1 id="domain-io-and-registry-integration">Domain I/O and Registry Integration<a class="headerlink" href="#domain-io-and-registry-integration" title="Permanent link">&para;</a></h1>
-<p>Guide for loading mesh domains from files and the ADMESH-Domains registry.</p>
+<p>Guide for loading mesh domains from files and the Valence registry.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <h3 id="load-from-file">Load from File<a class="headerlink" href="#load-from-file" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">admesh</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load from TOML (ADMESH-Domains native format)</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"my_domain.toml"</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Load from TOML (Valence native format)</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"my_domain.toml"</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Load from JSON</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"my_domain.json"</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"my_domain.json"</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Extract boundary from existing mesh</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"existing_mesh.14"</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"existing_mesh.14"</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="load-from-registry">Load from Registry<a class="headerlink" href="#load-from-registry" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">admesh</span>
@@ -1083,18 +1083,18 @@
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mesh_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
 <a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1"># Load by mesh_id (auto-detects registry)</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
 <a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># Or use explicit registry loader</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">)</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="file-format-specifications">File Format Specifications<a class="headerlink" href="#file-format-specifications" title="Permanent link">&para;</a></h2>
 <h3 id="toml-format-recommended">TOML Format (Recommended)<a class="headerlink" href="#toml-format-recommended" title="Permanent link">&para;</a></h3>
-<p>Native format for ADMESH-Domains. Human-readable, widely supported.</p>
+<p>Native format for Valence (valence-domains). Human-readable, widely supported.</p>
 <p><strong>File: <code>domain.toml</code></strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[domain]</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"noaa-hsofs-v20"</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"BaranjaHill"</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"NOAA HSOFS Atlantic Hurricane Surge Model domain"</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">bbox</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mf">-85.0</span><span class="p">,</span><span class="w"> </span><span class="mf">20.0</span><span class="p">,</span><span class="w"> </span><span class="mf">-60.0</span><span class="p">,</span><span class="w"> </span><span class="mf">40.0</span><span class="p">]</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
@@ -1125,11 +1125,11 @@
 <a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1"</span>
 <a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="n">contributed_by</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"NOAA"</span>
 <a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="n">license</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"CC-BY-4.0"</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="n">source_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/domattioli/ADMESH-Domains"</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="n">source_url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/domattioli/Valence"</span>
 </code></pre></div>
 <p><strong>Loading:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_toml</span><span class="p">(</span><span class="s2">"domain.toml"</span><span class="p">)</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div></p>
 <h3 id="json-format">JSON Format<a class="headerlink" href="#json-format" title="Permanent link">&para;</a></h3>
 <p>Universal, portable format. Identical structure to TOML without metadata section.</p>
@@ -1146,7 +1146,7 @@
 </code></pre></div>
 <p><strong>Loading:</strong>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_json</span><span class="p">(</span><span class="s2">"domain.json"</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </code></pre></div></p>
 <h3 id="fort14-format">Fort.14 Format<a class="headerlink" href="#fort14-format" title="Permanent link">&para;</a></h3>
 <p>Extract domain boundary from ADCIRC v55 fort.14 mesh files. Useful for re-triangulating at different resolutions, refining/coarsening, domain validation.</p>
@@ -1155,10 +1155,10 @@
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_fort14</span><span class="p">(</span><span class="s2">"existing_mesh.14"</span><span class="p">)</span>
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Re-triangulate at coarser resolution</span>
-<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">coarse_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">coarse_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
 <a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Or at finer resolution</span>
-<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">fine_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">fine_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
 </code></pre></div></p>
 <p><strong>What gets extracted:</strong>
 - Outer boundary polygon from first land boundary segment
@@ -1166,8 +1166,8 @@
 - Bounding box computed from node coordinates
 - Corner vertices marked as fixed points</p>
 <h2 id="registry-integration">Registry Integration<a class="headerlink" href="#registry-integration" title="Permanent link">&para;</a></h2>
-<p>Requires <code>admesh-domains</code> package:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pip<span class="w"> </span>install<span class="w"> </span>admesh-domains
+<p>Requires <code>valence-domains</code> package (installed with admesh2D):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>pip<span class="w"> </span>install<span class="w"> </span>valence-domains
 </code></pre></div>
 <h3 id="discovering-domains">Discovering Domains<a class="headerlink" href="#discovering-domains" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">admesh</span>
@@ -1177,7 +1177,7 @@
 <a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Available meshes: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">domains</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
 <a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Fetch domain metadata</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
 <a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Version: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'version'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Contributor: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'contributed_by'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"License: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'license'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -1186,15 +1186,15 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">admesh</span>
 <a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
 <a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># Method 1: Direct registry load</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">)</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
 <a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Method 2: Auto-detect (string without path separators)</span>
-<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
 <a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Method 3: With metadata</span>
-<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">)</span>
-<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="n">domain</span><span class="p">,</span> <span class="n">meta</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_with_metadata</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Mesh ID: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'mesh_id'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="complete-example">Complete Example<a class="headerlink" href="#complete-example" title="Permanent link">&para;</a></h2>
@@ -1202,12 +1202,12 @@
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
 <a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Load domain from registry</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"noaa-hsofs-v20"</span><span class="p">)</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"BaranjaHill"</span><span class="p">)</span>
 <a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Triangulate with custom parameters</span>
 <a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="n">mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span>
 <a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>    <span class="n">domain</span><span class="p">,</span>
-<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="n">h0</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>  <span class="c1"># Target edge length</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>    <span class="n">h_max</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>  <span class="c1"># Target edge length</span>
 <a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>  <span class="c1"># Reproducible randomness</span>
 <a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="p">)</span>
 <a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
@@ -1220,7 +1220,7 @@
 <a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Quality: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">quality</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 <a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>
 <a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="c1"># Re-triangulate boundary at finer resolution</span>
-<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="n">finer_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h0</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="n">finer_mesh</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">triangulate</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">h_max</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
 <a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Finer mesh: </span><span class="si">{</span><span class="n">finer_mesh</span><span class="o">.</span><span class="n">n_nodes</span><span class="si">}</span><span class="s2"> nodes"</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="conventions">Conventions<a class="headerlink" href="#conventions" title="Permanent link">&para;</a></h2>
@@ -1262,7 +1262,7 @@
 <a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="k">try</span><span class="p">:</span>
 <a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>    <span class="n">domain</span> <span class="o">=</span> <span class="n">admesh</span><span class="o">.</span><span class="n">load_domain_from_registry</span><span class="p">(</span><span class="s2">"some-mesh"</span><span class="p">)</span>
 <a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"admesh-domains not installed"</span><span class="p">)</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"valence-domains not installed"</span><span class="p">)</span>
 <a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
 <a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>    <span class="nb">print</span><span class="p">(</span><span class="s2">"Mesh not found in registry"</span><span class="p">)</span>
 </code></pre></div>
@@ -1279,7 +1279,7 @@
 <p>For new code, prefer file-based or registry-based loaders.</p>
 <h2 id="see-also">See Also<a class="headerlink" href="#see-also" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>ADMESH-Domains</code> repository: https://github.com/domattioli/ADMESH-Domains</li>
+<li>Valence registry repository (formerly ADMESH-Domains): https://github.com/domattioli/Valence</li>
 <li><code>admesh.api.Domain</code> — Domain dataclass documentation</li>
 <li><code>admesh.triangulate()</code> — Main triangulation function</li>
 </ul>
