@@ -36,7 +36,7 @@ HARD STOP — test fixtures: Never delete mesh test fixtures or reference data f
 ## Decision tree
 
 On session start:
-1. Read CLAUDE.md and .specify/memory/constitution.md (if present).
+1. Read CLAUDE.md and DomI/specs/consumers/ADMESH/memory/constitution.md (if present).
 2. Check git status — if dirty with unstaged changes from a prior run, commit or stash
    before proceeding. Never silently lose work.
 3. Run the primary task (framework enhancement, bug fix, or feature development).
@@ -61,7 +61,7 @@ On unexpected error:
 ## On session start
 
 1. Read CLAUDE.md (if present in the cloned repo).
-2. If CONSTITUTION.md or .specify/memory/constitution.md exists, it takes
+2. If CONSTITUTION.md or DomI/specs/consumers/ADMESH/memory/constitution.md exists, it takes
    precedence over all other instructions.
 3. Run the primary workflow action.
 4. Emit a brief session summary: what ran, what was skipped, tests passed.

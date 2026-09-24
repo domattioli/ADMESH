@@ -74,7 +74,7 @@ Read first at every session. If rule here conflicts with `CLAUDE.md`, this wins.
 3. **No auto-PR, no auto-merge.** Claude drafts PRs on request only.
 4. **GitHub posting on user's behalf requires explicit instruction.** Creating issues for tracking is pre-approved; commenting / closing / merging is not.
 5. **Feature branches are speckit-driven only.** New feature branch created exclusively as part of `/speckit-specify` workflow. Claude does NOT create branches manually, does NOT create from session-system prompts (e.g. `claude/<...>-<random>`), does NOT create per-task branches for one-off edits. Direct work on `main` is default.
-6. **Speckit naming is the only branch convention.** All feature branches follow `NNN-<short-name>` (sequential) or `YYYYMMDD-HHMMSS-<short-name>` (timestamp), per `.specify/init-options.json`. `claude/<feature>-<hash>` pattern NOT adopted.
+6. **Speckit naming is the only branch convention.** All feature branches follow `NNN-<short-name>` (sequential) or `YYYYMMDD-HHMMSS-<short-name>` (timestamp), per `DomI/specs/consumers/ADMESH/init-options.json`. `claude/<feature>-<hash>` pattern NOT adopted.
 7. **Scan before creating.** Before invoking `/speckit-specify` or any branch-creation, run `git branch -a` and check local + remote for existing branch matching feature's intent. If matching branch exists, REUSE it.
 8. **Consolidate redundant branches when discovered.** If multiple branches address same feature, confirm with user once, then delete redundant ones (local + remote) and keep only speckit-named branch.
 

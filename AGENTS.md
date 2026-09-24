@@ -73,7 +73,7 @@ ADMESH/
 │   ├── DOMAIN_IO.md                 # domain file formats
 │   ├── sessions/                    # per-session handoff notes
 │   └── adr/                         # architecture decision records
-├── .specify/specs/                  # feature specs (spec-001 through 005+)
+├── DomI/specs/consumers/ADMESH/specs/                  # feature specs (spec-001 through 005+)
 ├── pyproject.toml                   # package metadata
 └── .domi-pin                        # DomI sync pinning (committed)
 ```
@@ -195,7 +195,7 @@ Tests assert they agree to `atol=1e-10` on fixed input. Public `solve_iter(...)`
 See **Constitution Article VI** for binding rules; this is the operational summary.
 
 - **Default to `main`.** Don't create branches for one-off edits.
-- **Speckit-driven branching:** New feature branches come from `/speckit-specify` (fires `before_specify` git hook). **Do not run `git checkout -b` directly.** Branch names: `NNN-<short-name>` (sequential) per `.specify/init-options.json`.
+- **Speckit-driven branching:** New feature branches come from `/speckit-specify` (fires `before_specify` git hook). **Do not run `git checkout -b` directly.** Branch names: `NNN-<short-name>` (sequential) per `DomI/specs/consumers/ADMESH/init-options.json`.
 - **Scan before creating:** Before invoking `/speckit-specify`, run `git branch -a` to check for existing branches covering the same feature. Reuse rather than create parallel branches.
 - **Single-purpose PRs:** Each PR addresses one logical change. Merge to `main` via PR (never direct push). Squash or rebase merge (not plain merge) and delete the branch after.
 - **Commit format:** `<type>: <imperative summary>`, where `<type>` ∈ {fix, feat, docs, chore, refactor, test}. No `wip`, `fixup!`, `squash!`, `tmp`, `test commit` prefixes on main-bound PRs.
@@ -246,7 +246,7 @@ The number of tokens used to edit files is best minimized, all else being equal.
 - **`004-quad-prep-smoother` (IN-FLIGHT):** `smooth_for_quadrangulation()` nudges triangles toward right-isoceles for downstream tri→quad fusion.
 - **`005-adcirc-mesh-registry` (IN-FLIGHT):** Federated mesh registry (TOML manifests, HF mirror, slug + SHA-256 IDs). ADMESH-Domains upstream catalog; this spec wires registry lookup into `triangulate()`.
 
-All specs live under `.specify/specs/NNN-feature-name/` with: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `tasks.md`.
+All specs live under `DomI/specs/consumers/ADMESH/specs/NNN-feature-name/` with: `spec.md`, `plan.md`, `research.md`, `data-model.md`, `quickstart.md`, `tasks.md`.
 
 ### Repo-local labels (issue #87 triage)
 These labels have no DomI canonical equivalent and are intentionally repo-local:
