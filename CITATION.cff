@@ -27,7 +27,7 @@ url: "https://github.com/domattioli/ADMESH"
 license: Apache-2.0
 version: 0.6.0
 date-released: "2026-07-05"
-doi: 10.5281/zenodo.20264101
+doi: 10.5281/zenodo.20264085
 keywords:
   - unstructured-mesh
   - shallow-water

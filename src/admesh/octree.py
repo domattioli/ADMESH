@@ -182,7 +182,6 @@ def build_octree(
             iy_split = iy_active[split_mask]
 
             # 4 children per split cell: broadcast via tile and repeat
-            n_split = len(ix_split)
             child_offsets = np.array([0, 1, 0, 1], dtype=np.int64)
             child_offsets_y = np.array([0, 0, 1, 1], dtype=np.int64)
 
@@ -247,8 +246,6 @@ def _enforce_balance(
         d, ix, iy = worklist.pop()
         if (d, ix, iy) not in leaf_dict:
             continue
-
-        idx = leaf_dict[(d, ix, iy)]
 
         # Check 4 edge-adjacent neighbors at same depth
         for dix, diy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
@@ -316,8 +313,6 @@ def leaf_graph(tree: Octree) -> tuple[np.ndarray, np.ndarray]:
     Each edge listed exactly once.
     """
     ix, iy, depth = tree.ix, tree.iy, tree.depth
-    s0 = tree.root_size
-    x0, y0 = tree.x0, tree.y0
 
     # Build dict (d, ix, iy) -> leaf index
     leaf_dict = {}
