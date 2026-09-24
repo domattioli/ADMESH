@@ -2,14 +2,14 @@
 
 Governs **how we work** on the ADMESH Python port. Companion docs:
 - `PROJECT_PLAN.md` — **what** we build (phased roadmap)
-- `CLAUDE.md` — **how the code is organized** (operational reference)
+- `AGENTS.md` - **how the code is organized** (operational reference)
 
-Read first at every session. If rule here conflicts with `CLAUDE.md`, this wins.
+Read first at every session. If a project rule here conflicts with `AGENTS.md`, this wins.
 
 **Document hierarchy (binding vs advisory).** Precedence and nature of each governing doc, so an operational *note* is never mistaken for a binding rule (see #140):
 - **`CONSTITUTION.md` (this file) — BINDING.** Articles are law. Conflicts resolve here.
 - **`PROJECT_PLAN.md` — milestones, not law.** Phase targets and validation goals; a milestone metric is an aim, not an invariant.
-- **`CLAUDE.md` — operational notes & defaults.** Code organization, conventions, and *default* values. A CLAUDE.md note carries no constitutional weight.
+- **`AGENTS.md` - operational notes and defaults.** Code organization, conventions, and *default* values. An AGENTS.md note carries no constitutional weight.
 - **Default kwargs in code (e.g. `triangulate(quality_gate=...)`) — overridable defaults, not invariants.**
 
 ---
@@ -69,11 +69,11 @@ Read first at every session. If rule here conflicts with `CLAUDE.md`, this wins.
 
 ## Article VI — Commit & workflow
 
-1. **Trunk-based.** Work on `main`. Feature branches only if change crosses > 3 commits or needs review.
+1. **Two-branch flow.** Work on `development`. Releases merge through a pull request from `development` to `main`. Never push directly to `main` or force-push a shared branch.
 2. **Commit messages reference MATLAB source paths** when porting: `port: CreateBackgroundGrid.m → admesh/background_grid.py`.
 3. **No auto-PR, no auto-merge.** Claude drafts PRs on request only.
 4. **GitHub posting on user's behalf requires explicit instruction.** Creating issues for tracking is pre-approved; commenting / closing / merging is not.
-5. **Feature branches are speckit-driven only.** New feature branch created exclusively as part of `/speckit-specify` workflow. Claude does NOT create branches manually, does NOT create from session-system prompts (e.g. `claude/<...>-<random>`), does NOT create per-task branches for one-off edits. Direct work on `main` is default.
+5. **Feature branches are spec-kit-driven only.** Create a feature branch only through the spec-kit workflow. Do not create branches manually, from session prompts, or for one-off edits. Direct work on `development` is the default.
 6. **Speckit naming is the only branch convention.** All feature branches follow `NNN-<short-name>` (sequential) or `YYYYMMDD-HHMMSS-<short-name>` (timestamp), per `DomI/specs/consumers/ADMESH/init-options.json`. `claude/<feature>-<hash>` pattern NOT adopted.
 7. **Scan before creating.** Before invoking `/speckit-specify` or any branch-creation, run `git branch -a` and check local + remote for existing branch matching feature's intent. If matching branch exists, REUSE it.
 8. **Consolidate redundant branches when discovered.** If multiple branches address same feature, confirm with user once, then delete redundant ones (local + remote) and keep only speckit-named branch.
@@ -86,7 +86,7 @@ Operational rules for Claude sessions to prevent pause-for-ack pattern observed 
 
 1. **Report-and-advance after every milestone.** When milestone ships, report result and immediately start next item. Do not end turn with "ready to continue" or any soft-ask phrasing.
 2. **Zero `AskUserQuestion` outside destructive or ambiguous actions.** Permitted: destructive git operations, architecturally significant PR review replies, genuine ambiguity no reading of plan resolves. Banned: default-pick questions, option lists in prose, visibility/config picks, continue-prompts.
-3. **Session-start read order is fixed.** `CONSTITUTION.md` → `PROJECT_PLAN.md` → `CLAUDE.md` → latest `docs/sessions/session_<N-1>_state.md` → active `docs/sessions/session_<N>_plan.md`. This is load-bearing; skipping previous-session state file is how context gets lost at session boundaries.
+3. **Session-start read order is fixed.** `CONSTITUTION.md` → `PROJECT_PLAN.md` → `AGENTS.md` → latest `docs/sessions/session_<N-1>_state.md` → active `docs/sessions/session_<N>_plan.md`. This is load-bearing; skipping previous-session state file is how context gets lost at session boundaries.
 
 ---
 
