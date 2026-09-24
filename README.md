@@ -44,7 +44,7 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 0.6.0 (July 2026), stable and actively maintained.** 0.6.0 moved the octree adaptive background grid (`background="octree"`) into production: a vectorized quadtree refines the size field where medial-axis and channel widths demand it, and the ENPAC 2003 tidal database (272,913 nodes) replaced WNAT as the large-domain benchmark standard.
+**Current release: 0.6.1 (July 2026), stable and actively maintained.** 0.6.1 is a packaging patch on 0.6.0 (wheel build, CI); PyPI carries 0.6.0. 0.6.0 moved the octree adaptive background grid (`background="octree"`) into production: a vectorized quadtree refines the size field where medial-axis and channel widths demand it, and the ENPAC 2003 tidal database (272,913 nodes) replaced WNAT as the large-domain benchmark standard.
 
 - **Now:** address open issues; evaluate techniques from ADMESH+ v3 (revised medial axis, 1D–2D constraint extraction) for adoption.
 - **Next:** pre- and post-processing for quality improvement; native (C++ or Rust) kernels for the remaining hot stages; pipeline parallelization.
@@ -197,7 +197,7 @@ python benchmarks/compare_versions.py --hist \
 
 **This software** (cite the archived release):
 
-> Mattioli, D.O., Conroy, C.J., West, D.W., Kubatko, E.J. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264101>
+> Mattioli, D.O., Conroy, C.J., West, D.W., Kubatko, E.J. (2026). ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port). Zenodo. <https://doi.org/10.5281/zenodo.20264085>
 
 **Upstream MATLAB line** (ADMESH+, if you use or compare against it):
 
@@ -205,7 +205,7 @@ python benchmarks/compare_versions.py --hist \
 >
 > Kang, Y., Kubatko, E.J., Conroy, C.J. & West, D.W. (2023). Younghun-Kang/ADMESH: v3.0.1. Zenodo. <https://doi.org/10.5281/zenodo.10242565>
 
-A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264101).
+A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; version-specific DOIs are on the [Zenodo record](https://doi.org/10.5281/zenodo.20264085).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
