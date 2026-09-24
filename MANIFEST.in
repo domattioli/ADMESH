@@ -8,7 +8,6 @@ recursive-include src/admesh *.py
 # Claude-derived development docs — never ship in distributions (operator directive 2026-06-12)
 prune .claude
 prune .github
-prune .specify
 prune specs
 prune .planning
 prune docs
@@ -27,7 +26,6 @@ prune .claude
 prune .claude-plugin
 prune .introspect
 prune .githooks
-prune .specify
 prune .planning
 global-exclude .domi-pin
 global-exclude .zenodoignore
