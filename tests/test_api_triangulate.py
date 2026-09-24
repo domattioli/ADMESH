@@ -133,3 +133,55 @@ def test_triangulate_boundary_pts_seeds_notch_walls() -> None:
         & (mesh_with.nodes[:, 1] < 0.5)
     ]
     assert len(notch_wall_nodes) >= 1, "Notch right wall should have at least 1 node"
+
+
+def test_triangulate_remesh_from_fort14_fixture(tmp_path) -> None:
+    """Fix: Domain.from_mesh() bc_segments should be validated during remesh.
+
+    Regression test for bug where Domain.from_mesh(old_mesh) preserves bc_segments
+    with node ids from the old mesh. When remeshing with different h_min/h_max,
+    the new mesh may have fewer nodes, causing boundary ids to be out of bounds.
+
+    The fix validates bc_segments and falls back to deriving boundaries from the
+    new triangulation if any node id is outside [0, len(nodes)).
+    """
+    import pathlib
+
+    # Load reference fort.14 mesh fixture
+    fixture_path = pathlib.Path(__file__).parent / "fixtures/fort14/adcirc_examples/wnat_test.14"
+    old_mesh = admesh.read_fort14(fixture_path)
+
+    # Extract domain from the mesh (this captures bc_segments with old mesh node ids)
+    domain = admesh.Domain.from_mesh(old_mesh)
+
+    # Remesh with coarser parameters — new mesh will have far fewer nodes
+    # than the reference fixture (wnat_test.14 has ~9933 nodes, new mesh ~103)
+    new_mesh = admesh.triangulate(
+        domain,
+        h_min=0.5,
+        h_max=3.0,
+        seed=0,
+        quality_gate=(0.0, 0.0)  # Allow lower quality since we're testing coarse remesh
+    )
+
+    # Verify new mesh is valid
+    assert new_mesh.n_nodes > 0
+    assert new_mesh.n_elements > 0
+
+    # Verify that all boundary node ids are within the new mesh bounds
+    if new_mesh.boundaries:
+        for seg in new_mesh.boundaries:
+            if seg.node_ids.size > 0:
+                assert np.max(seg.node_ids) < new_mesh.n_nodes, (
+                    f"Boundary node id {np.max(seg.node_ids)} out of bounds "
+                    f"for mesh with {new_mesh.n_nodes} nodes"
+                )
+
+    # Write the remeshed output to fort.14 and verify read succeeds
+    out_path = tmp_path / "remesh.14"
+    new_mesh.to_fort14(out_path)
+
+    # read_fort14 should succeed without error
+    rt_mesh = admesh.read_fort14(out_path)
+    assert rt_mesh.n_nodes > 0
+    assert rt_mesh.n_elements > 0
