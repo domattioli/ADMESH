@@ -1,6 +1,6 @@
 # ADMESH Project Plan
 
-Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Governance rules in `CONSTITUTION.md`; code layout in `CLAUDE.md`.
+Phased roadmap for porting `QuADMesh-MATLAB/01_ADMESH_Library` to Python. Governance rules are in `CONSTITUTION.md`; code layout is in `AGENTS.md`.
 
 ---
 
@@ -13,7 +13,7 @@ Since the 2026-06-13 spec-029 entry below, the octree background grid **merged a
 
 Spec-029's 2026-06-13 "merge-ready" status is now **DONE** (merged + released). The `background="uniform"` default still stands; the P5 flip to `"octree"` remains deferred pending operator sign-off.
 
-**Rotation-queue state (per the zoom-out audit #203).** The open backlog is functionally blocked on **one operator decision**: Constitution Article VI.1 ("Trunk-based. Work on `main`") vs. the de-facto adopted `development → main` rolling-PR staging model (#182, rolling PR #202). Sessions push to `development`; the constitution root text still says `main` (`.claude/CLAUDE.md` already reads `development` — the drift is internal). #172 tracks the reconcile; its docs/sprawl side-work is **resolved** (all `epic-curie` branches pruned; README `ecoystem`/bold + `CITATION.cff` fixes verified landed; the closed-unmerged #170 pytest "class-fixture deprecation" premise verified **invalid** on pytest 9.1.1 — no warning emitted, correctly not re-opened), leaving only the core branch decision. #186 and #203 carry `status: needs-operator`.
+**Branch policy.** Work lands on `development`. Releases use a pull request from `development` to `main`. Direct pushes to `main` and force pushes to shared branches are forbidden.
 
 **Research backlog (parked, not drained).** #200 (T4 — benchmark the Kang & Kubatko 2024 revised medial-axis vs. the locked `_stages/medial_axis.py`) is gated on the paper's full text — Copernicus (`gmd.copernicus.org`) 403s the agent proxy at CONNECT; defer to a hosted runner. The perf cluster (#8 GPU/CPU-parallel size-field, #90 Julia `mesh_size` solver, #99 pipeline parallelization) sits at `priority: someday` pending #203's perf-priority ruling.
 
@@ -188,7 +188,7 @@ Open work in spec 001: T027 (≥ 3 community fixtures, needs external acquisitio
 
 **Shipped (session 0 + session 1 — MVP complete):**
 - Repo live at `domattioli/ADMESH` (private, Apache-2.0).
-- Governance: `CONSTITUTION.md` (7 articles), `PROJECT_PLAN.md`, `CLAUDE.md`, `README.md`, full session artifact set under `docs/`.
+- Governance: `CONSTITUTION.md`, `PROJECT_PLAN.md`, `AGENTS.md`, `README.md`, and the session artifacts under `docs/`.
 - **M.0** scaffold: 14-module `admesh/` package, `pyproject.toml`, `requirements.txt` + `requirements-dev.txt`, smoke test.
 - **M.1** leaf utilities: `in_polygon.py`, `quality.py`, `domains.py` (5 MVP SDFs).
 - **M.2** distance + mesh_size: `distance.py`, `mesh_size.py` (pure-Python + Numba solver, parity to `atol=1e-10`).
