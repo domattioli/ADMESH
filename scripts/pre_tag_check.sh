@@ -43,7 +43,7 @@ ver_re=$(printf '%s' "$TARGET_VERSION" | sed 's/\./\\./g')
 # 1. Constitution version >= 1.0.0 -----------------------------------------
 # speckit constitution migration re-versioned the banner to 1.0.0 (2026); the 1.0.2 floor was the pre-migration numbering (spec-009 FR-017 era)
 constitution_version=$(
-    grep -E '^\*\*Version\*\*:' .specify/memory/constitution.md \
+    grep -E '^\*\*Version\*\*:' DomI/specs/consumers/ADMESH/memory/constitution.md \
         | head -1 \
         | sed -E 's/^\*\*Version\*\*: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
 )
