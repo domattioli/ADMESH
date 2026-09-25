@@ -211,7 +211,7 @@ A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; v
 
 ## 10. Documentation, Contributing, License
 
-**Documentation.** API reference in the docstrings (`triangulate`, `Domain`, `Mesh`, `BoundarySegment`, the I/O functions, the 13 stage modules) and under [`docs/api/`](docs/api/). Workflow guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/DOMAIN_IO.md`](docs/DOMAIN_IO.md) (TOML, JSON, fort.14 domain formats, registry). Design notes and the porting log: [`docs/PORTING_NOTES.md`](docs/PORTING_NOTES.md), [`docs/adr/`](docs/adr/), [`.specify/specs/`](.specify/specs/). Project invariants: [`CONSTITUTION.md`](docs/governance/CONSTITUTION.md). Rendered examples: [`docs/gallery/`](docs/gallery/).
+**Documentation.** API reference in the docstrings (`triangulate`, `Domain`, `Mesh`, `BoundarySegment`, the I/O functions, the 13 stage modules) and under [`docs/api/`](docs/api/). Workflow guides: [`docs/quickstart.md`](docs/quickstart.md), [`docs/DOMAIN_IO.md`](docs/DOMAIN_IO.md) (TOML, JSON, fort.14 domain formats, registry). Design notes and the porting log: [`docs/PORTING_NOTES.md`](docs/PORTING_NOTES.md), [`docs/adr/`](docs/adr/), [`DomI/specs/consumers/ADMESH/specs/`](https://github.com/domattioli/DomI/tree/development/specs/consumers/ADMESH/specs/). Project invariants: [`CONSTITUTION.md`](docs/governance/CONSTITUTION.md). Rendered examples: [`docs/gallery/`](docs/gallery/).
 
 **Contributing.** Issues and pull requests are accepted on [GitHub](https://github.com/domattioli/ADMESH); see [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
