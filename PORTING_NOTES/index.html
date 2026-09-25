@@ -1282,7 +1282,7 @@
 <p><strong>Migration:</strong>
 - Polygon domains → serialize to JSON/TOML once; reload via <code>load_domain_from_json()</code> or <code>load_domain_from_toml()</code>
 - Custom SDF domains → construct <code>Domain(sdf=callable, bbox=(...))</code> directly (dataclass still exported)
-- See <code>CLAUDE.md</code> § "Domain Loading &amp; API (v0.2+)" for code examples</p>
+- See <code>AGENTS.md</code> and <code>docs/DOMAIN_IO.md</code> for code examples</p>
 <p><strong>Internal:</strong> <code>_shapely_sdf</code> and <code>_domain_from_polygon</code> moved to <code>admesh/loaders.py</code> as private helpers for file-loader internals. Tests that require in-memory polygon→Domain conversion import <code>_domain_from_polygon</code> from <code>admesh.loaders</code>.</p>
 <hr />
 <h2 id="v1-pythonic-layer-2026-04-25">v1 Pythonic layer (2026-04-25)<a class="headerlink" href="#v1-pythonic-layer-2026-04-25" title="Permanent link">&para;</a></h2>
