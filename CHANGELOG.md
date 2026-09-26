@@ -53,6 +53,8 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 - Holistic test suite audit (`TEST-AUDIT.md`) — issue #59
 - DomI cross-repo sync contract + SessionStart hook plugin auto-install
 
+  > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records live in DomI. The SessionStart hook and `scripts/instructions_on_start.sh` were untracked on 2026-09-24 and are local tooling, not part of the package.
+
 ### Fixed
 - 1D boundary seeding for `Domain` path on notched-rectangle geometry — issue #2
 - `h_min` / `h_max` parameters now propagate into the size field even when no user contributions are supplied — issue #37
