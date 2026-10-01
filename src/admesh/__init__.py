@@ -10,6 +10,7 @@ from admesh.api import (
     Mesh,
     triangulate,
 )
+from admesh.batch import triangulate_batch
 from admesh.boundary_types import BoundaryType
 from admesh.fort14 import Fort14ParseError, read_fort14, write_fort14
 from admesh.gmsh import GmshParseError, read_msh, write_msh
@@ -53,6 +54,7 @@ __all__ = [
     "Mesh",
     # --- Top-level triangulation entry point ---
     "triangulate",
+    "triangulate_batch",
     # --- I/O ---
     "Fort14ParseError",
     "read_fort14",
