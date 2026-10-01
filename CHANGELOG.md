@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- `triangulate_batch(domains, n_jobs=None, **kwargs)` meshes several domains on a process pool (#99 P2). Results come back in input order and are bit-identical to a serial `triangulate` loop. On 8 WNAT meshes (94,777 nodes each) 8 workers run 5.09x faster than the serial loop; small meshes gain less because each worker takes about 0.5 s to start.
+- `scripts/bench_batch.py --wnat` runs the P2 gate: at least 4.0x at 8 workers on 8 WNAT meshes. Results and figure in `benchmarks/results/batch_wnat.{json,png}`.
+
+### Fixed
+- `scripts/bench_batch.py` warms the Numba cache before timing the serial baseline. A cold baseline had inflated the speedup reported in fcca0df (2.91x).
+
 ## [0.6.0] — 2026-07-05
 
 ### Added

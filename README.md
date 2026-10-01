@@ -47,7 +47,7 @@
 **Current release: 0.6.1 (July 2026), stable and actively maintained.** 0.6.1 is a packaging patch on 0.6.0 (wheel build, CI); PyPI carries 0.6.0. 0.6.0 moved the octree adaptive background grid (`background="octree"`) into production: a vectorized quadtree refines the size field where medial-axis and channel widths demand it, and the ENPAC 2003 tidal database (272,913 nodes) replaced WNAT as the large-domain benchmark standard.
 
 - **Now:** address open issues; evaluate techniques from ADMESH+ v3 (revised medial axis, 1D–2D constraint extraction) for adoption.
-- **Next:** pre- and post-processing for quality improvement; native (C++ or Rust) kernels for the remaining hot stages; pipeline parallelization.
+- **Next:** pre- and post-processing for quality improvement; native (C++ or Rust) kernels for the remaining hot stages; single-mesh parallelization (#216).
 - **Future:** formal integration within a unified ecosystem with <a href="https://github.com/domattioli/QuADMESH"><img src="https://img.shields.io/pypi/v/quadmesh?label=QuADMESH&color=f5d0fe&labelColor=c026d3&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI%2BPHBhdGggZD0iTTMgNCBIMjEgTTMgMTIgSDIxIE0zIDIwIEgyMSBNNCAzIFYyMSBNMTIgMyBWMjEgTTIwIDMgVjIxIi8%2BPC9zdmc%2B" alt="QuADMESH PyPI version"></a> (quads), <a href="https://github.com/domattioli/CHILmesh"><img src="https://img.shields.io/pypi/v/chilmesh?label=CHILmesh&color=caf0f8&labelColor=0077b6&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48cGF0aCBkPSJNMSA4IHEzIC00IDYgMCB0NiAwIHQ2IDAgdDYgMCBNMSAxMyBxMyAtNCA2IDAgdDYgMCB0NiAwIHQ2IDAgTTEgMTggcTMgLTQgNiAwIHQ2IDAgdDYgMCB0NiAwIi8%2BPC9zdmc%2B" alt="CHILmesh PyPI version"></a> (mesh data structure and smoothing).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
@@ -103,6 +103,12 @@ mesh = admesh.triangulate(
     h_max=0.1, h_min=0.01, background="octree",
 )
 print(mesh.n_nodes, mesh.n_elements, mesh.quality.mean())
+
+# 4. Mesh many domains at once on a process pool. Output order and results
+#    match a serial loop exactly.
+meshes = admesh.triangulate_batch(
+    ["coast_a.json", "coast_b.json", "coast_c.json"], n_jobs=3, h_max=0.1, h_min=0.01,
+)
 ```
 
 `mesh` is a frozen `Mesh` dataclass: `nodes`, `elements`, `boundaries` (each a `BoundarySegment` with a `BoundaryType` code), optional `bathymetry`, and per-element `quality`. `BoundaryType` is an `IntEnum` over ADCIRC `IBTYPE` codes (`OPEN=0`, `MAINLAND=1`, `ISLAND=11`, `MAINLAND_FLUX=20`); paired-edge and weir codes (3/4/13/24) pass through as plain `int`, but only the first node id of each record is kept; the paired-node and weir-height columns are dropped. Built-in domains: `UNIT_SQUARE`, `UNIT_DISK`, `L_SHAPE`, `ANNULUS`, `NOTCHED_RECTANGLE`.
@@ -118,6 +124,7 @@ print(mesh.n_nodes, mesh.n_elements, mesh.quality.mean())
 | Size control | `h_min`, `h_max`, `size_field=`, `user_contribs=`, `combine=` | Default is uniform at `h_max`. Stage-module contributions (curvature, medial axis, bathymetry, tide) and custom callables mapping `(N, 2)` points to edge length compose through `compose_size_field`. |
 | Multiscale domains | `background="octree"` | Quadtree size-field evaluation with leaf-graph gradient limiting. Default stays `"uniform"`. |
 | Reproducibility | `seed=`, `initial_points=`, `max_iter=`, `ttol=`, `dptol=` | Warm-start from a previous point set; iteration stops at `max_iter`, `dptol`, or an empty edge set. |
+| Many meshes | `triangulate_batch(domains, n_jobs=None, **kwargs)` | Runs `triangulate` on a process pool and returns meshes in input order, identical to a serial loop. Parallel runs need picklable domains: paths, registry slugs, or a `Domain` with a module-level SDF. `n_jobs=1` runs in-process. |
 | Quality gate | `quality_gate=(min_q, mean_q)` | Default `(0.30, 0.60)`; raises `ValueError` when the mesh falls below it. Pass `(0.0, 0.0)` to disable. |
 | ADCIRC I/O | `read_fort14`, `write_fort14`, `Mesh.to_fort14` | Round-trip of nodes, elements, and boundary segments; `Fort14ParseError` reports line, expected, actual. |
 | Gmsh I/O | `read_msh`, `write_msh`, `Mesh.to_msh` | Gmsh 2.2 ASCII; boundary labels map to `BoundaryType`. |
@@ -169,6 +176,25 @@ python benchmarks/compare_versions.py --hist \
     --mesh tests/fixtures/fort14/adcirc_examples/wnat_test.14 \
     --domain benchmarks/data/wnat_onur_boundary.json \
     --hmin 0.05 --g 0.10 --niter 120
+```
+
+### Batch meshing runs 5.1× faster on 8 workers
+
+`triangulate_batch` meshes several domains in parallel. On 8 Western North Atlantic meshes (94,777 nodes each, `h_min=0.05`, `h_max=0.10`, `max_iter=120`), 8 workers cut wall time from 218 s to 43 s, a **5.09× speedup** (median of 3 runs, 10-core Apple Silicon with 4 performance and 6 efficiency cores). Every batch mesh is bit-identical to the serial result: same nodes, elements, and quality.
+
+| workers | wall time, 8 meshes | speedup | seconds per mesh |
+|---|---|---|---|
+| 1 (serial loop) | 218 s | 1.00× | 27.3 |
+| 2 | 133 s | 1.65× | 16.6 |
+| 4 | 80 s | 2.74× | 10.0 |
+| 8 | 43 s | **5.09×** | 5.4 |
+
+Each worker process pays about 0.5 s to start, so small meshes gain less: 8 meshes of about 6,900 nodes reach 2.0×, and 32 reach 3.8×. For a few small meshes a plain loop is faster.
+
+![Batch speedup on WNAT compared with small meshes, with parity and quality checks](https://raw.githubusercontent.com/domattioli/ADMESH/main/benchmarks/results/batch_wnat.png)
+
+```bash
+PYTHONPATH=src python scripts/bench_batch.py --wnat    # P2 gate: >= 4.0x at 8 workers, about 25 min
 ```
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
