@@ -1,3 +1,4 @@
+# Source distribution contents: explicit includes only.
 include README.md
 include LICENSE
 include CHANGELOG.md
@@ -5,33 +6,9 @@ include pyproject.toml
 
 recursive-include src/admesh *.py
 
-# Development docs: never ship in distributions
-prune .github
-prune specs
-prune .planning
-prune docs
+# setuptools adds tests/test*.py by default; keep tests out of the sdist.
 prune tests
-prune scripts
 
 global-exclude __pycache__
 global-exclude *.pyc
 global-exclude .DS_Store
-
-prune .introspect
-prune .githooks
-prune .planning
-global-exclude .zenodoignore
-global-exclude .release-ignore.toml
-global-exclude instructions_on_start.sh
-prune scripts/hooks
-prune docs/sessions
-prune docs/introspections
-prune specs
-global-exclude *introspect*.yml
-prune .github
-prune tests
-global-exclude .gitattributes
-global-exclude .gitignore
-exclude docs/HOOKS-AUDIT.md
-exclude docs/persistence_journal.md
-prune docs/governance

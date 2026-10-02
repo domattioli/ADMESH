@@ -63,6 +63,38 @@ See `TESTING.md` for the full marker reference and fixture-data layout.
   numerically equivalent to the pinned MATLAB source. Any divergence needs a
   `docs/PORTING_NOTES.md` entry.
 
+## Porting rules
+
+ADMESH is a Python port of `01_ADMESH_Library` from
+[`domattioli/QuADMesh-MATLAB`](https://github.com/domattioli/QuADMesh-MATLAB)
+at commit `19b2eb9f078a648daec3fd40d5d4c6e072f467ac`. These rules apply to
+every change:
+
+- The 13 original stage modules under `src/admesh/_stages/` are locked
+  faithful ports. A change to one needs a written numerical justification and
+  passing MATLAB reference tests. New behavior goes in the additive API layer.
+  `domains.py`, `octree_grid.py` and `octree_medial.py` in that directory are
+  Python-only and are not locked.
+- Map one MATLAB function to one snake-case Python function. Each ported
+  function's docstring cites its MATLAB path and the pinned commit.
+- Python uses 0-based indices. Convert MATLAB indexing explicitly and record
+  non-obvious substitutions in `docs/PORTING_NOTES.md`.
+- MATLAB column-major order matters only at input and output boundaries.
+  Internal arrays use normal NumPy layout.
+- Treat numerical divergence from the MATLAB reference as a defect. Do not
+  widen tolerances to hide it. The default reference tolerance is
+  `atol=1e-8, rtol=1e-6`.
+- MATLAB reference fixtures under `tests/fixtures/` are read-only. Regenerate
+  them only from the pinned MATLAB source with
+  `scripts/export_matlab_fixtures.m`. Never delete mesh fixtures or reference
+  data.
+- The supported install path must work without a C++ toolchain. The C++
+  accelerator in `src/admesh/_cpp/` is optional and falls back to Python and
+  Numba.
+- `fort.14` is the only boundary where ADCIRC 1-based node IDs and
+  positive-down depth are converted. Internal mesh indices are 0-based and
+  elevations are positive-up.
+
 ## Commit messages
 
 - Conventional-commits style preferred: `feat: ...`, `fix: ...`, `chore: ...`,

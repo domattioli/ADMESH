@@ -41,9 +41,7 @@ __version__ = "0.6.0"
 # Public, semver-guarded API surface for ADMESH 0.1.0.
 #
 # Faithful-port stage modules (curvature, medial_axis, distance, distmesh,
-# routine, etc.) are NOT listed here -- they are internal-by-convention per
-# Constitution Article II.1 (and the proposed Article VIII in
-# specs/009-release-readiness-for-0.1.0/CONSTITUTION-AMENDMENT.md). Direct
+# routine, etc.) are NOT listed here -- they are internal by convention. Direct
 # imports such as `from admesh._stages.curvature import apply_curvature` continue to
 # work but carry no semver guarantee on the inner signature.
 __all__ = [

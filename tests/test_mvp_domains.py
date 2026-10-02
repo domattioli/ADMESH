@@ -4,9 +4,8 @@ For each registered domain in :mod:`admesh.domains`, assert:
 
 - ``admesh.triangulate`` returns a valid mesh (structural +
   geometric checks in :func:`conftest.assert_valid_mesh`).
-- ``min_q >= 0.30`` and ``mean_q >= 0.60`` (per
-  ``PROJECT_PLAN.md`` MVP acceptance criteria and
-  ``docs/session_1_plan.md`` binding gate).
+- ``min_q >= 0.30`` and ``mean_q >= 0.60`` (the MVP acceptance
+  criteria).
 
 Per-domain ``h0`` and ``niter`` defaults match
 ``scripts/render_mvp_meshes.py`` so the test suite and the PNG

@@ -5,8 +5,7 @@ Each domain is a signed distance function (SDF) ``fd(p) -> d``:
 Callers pass ``p`` as an ``(N, 2)`` array of (x, y) points.
 
 These are NOT a port — they're new infrastructure for the Python MVP.
-The 5 domains mirror the MVP acceptance set declared in
-``PROJECT_PLAN.md``:
+The 5 domains mirror the MVP acceptance set:
 
 - ``unit_square``       — axis-aligned square, trivial sanity
 - ``l_shape``           — non-convex re-entrant corner

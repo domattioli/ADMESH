@@ -2,8 +2,7 @@
 
 Step 3 (wire build_h() as triangulate() default) stays DEFERRED — the production
 size-field stack degrades MVP convex-domain min_q 0.30 -> 0.22, below the
-advisory quality_gate smoke default (CONSTITUTION Article V.5, #140 — advisory,
-NOT constitutional) + spec 025 AC-005/AC-006. Operator closed #65 leaving Step 3
+advisory quality_gate smoke default (#140, advisory) + spec 025 AC-005/AC-006. Operator closed #65 leaving Step 3
 unwired by design choice (not a constitutional bar). The xfail test below pins
 the intended Step-3 contract for if/when the operator opts in.
 """

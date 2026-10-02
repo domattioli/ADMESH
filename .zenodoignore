@@ -1,15 +1,2 @@
-.introspect/
-.githooks/
-.planning/
 .zenodoignore
-.release-ignore.toml
-instructions_on_start.sh
-scripts/hooks/
-docs/sessions/
-docs/introspections/
-specs/
-*introspect*.yml
 .github/
-docs/HOOKS-AUDIT.md
-docs/persistence_journal.md
-docs/governance/
