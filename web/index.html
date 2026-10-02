@@ -117,7 +117,7 @@ p { margin: 0 0 var(--space-4); max-width: 70ch; }
 .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-4); margin-bottom: var(--space-5); }
 .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--space-4); margin-bottom: var(--space-4); }
 label { display: block; font-weight: 500; margin-bottom: 0.25rem; }
-input[type="number"], input[type="file"] {
+input[type="number"], input[type="file"], select {
   width: 100%; min-height: var(--touch); padding: var(--space-2) var(--space-3);
   font: inherit; color: var(--fg); background: var(--bg-elevated);
   border: 1px solid var(--border-strong); border-radius: var(--radius);
@@ -175,6 +175,13 @@ footer { border-top: 1px solid var(--border); margin-top: var(--space-6); paddin
         <label for="domain-file">Domain file</label>
         <input type="file" id="domain-file" accept=".json,.toml,.14" aria-describedby="file-help">
         <p class="muted" id="file-help">A .json or .toml polygon file, or a fort.14 mesh.</p>
+      </div>
+      <div>
+        <label for="example-select">Or try an example</label>
+        <select id="example-select" aria-describedby="example-note" disabled>
+          <option value="">No example</option>
+        </select>
+        <p class="muted" id="example-note" aria-live="polite"></p>
       </div>
       <div>
         <label for="h-min">Smallest edge length, h_min</label>

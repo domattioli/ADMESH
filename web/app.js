@@ -8,6 +8,8 @@
   const form = $("mesh-form");
   const fileInput = $("domain-file");
   const button = $("mesh-button");
+  const exampleSelect = $("example-select");
+  const exampleNote = $("example-note");
   const canvas = $("mesh-canvas");
   const STATES = ["loading", "empty", "error", "ready"];
   const DOMAIN_EXTENSIONS = [".json", ".toml", ".14"];
@@ -15,6 +17,9 @@
   let runtimeReady = false;
   let busy = false;
   let last = null;
+  let examples = [];
+  let example = null; /* {entry, text} while an example is chosen */
+  let exampleRequest = 0;
 
   function setState(name) {
     STATES.forEach((s) => {
@@ -30,7 +35,7 @@
   }
 
   function refreshButton() {
-    button.disabled = !runtimeReady || busy || fileInput.files.length === 0;
+    button.disabled = !runtimeReady || busy || (fileInput.files.length === 0 && !example);
   }
 
   function hasDomainExtension(name) {
@@ -83,7 +88,15 @@
   };
 
   /* ---- form ---- */
+  function clearExample() {
+    exampleRequest += 1;
+    example = null;
+    exampleSelect.value = "";
+    exampleNote.textContent = "";
+  }
+
   fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) clearExample();
     refreshButton();
     const file = fileInput.files[0];
     if (file && !hasDomainExtension(file.name)) {
@@ -99,12 +112,64 @@
     return value;
   }
 
+  /* ---- examples ---- */
+  async function loadExamples() {
+    try {
+      const response = await fetch("examples/manifest.json");
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      examples = (await response.json()).examples || [];
+    } catch (e) {
+      return; /* the control stays disabled; uploading still works */
+    }
+    examples.forEach((entry) => {
+      const option = document.createElement("option");
+      option.value = entry.id;
+      option.textContent = entry.label;
+      exampleSelect.append(option);
+    });
+    exampleSelect.disabled = examples.length === 0;
+  }
+
+  exampleSelect.addEventListener("change", async () => {
+    const entry = examples.find((x) => x.id === exampleSelect.value);
+    if (!entry) {
+      clearExample();
+      refreshButton();
+      return;
+    }
+    const request = ++exampleRequest;
+    example = null;
+    exampleNote.textContent = "";
+    refreshButton();
+    let text;
+    try {
+      const response = await fetch("examples/" + entry.file);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      text = await response.text();
+    } catch (e) {
+      if (request !== exampleRequest) return;
+      exampleSelect.value = "";
+      showError("Could not load the example '" + entry.label + "'. Check your connection and try again.");
+      refreshButton();
+      return;
+    }
+    if (request !== exampleRequest) return;
+    example = { entry, text };
+    fileInput.value = "";
+    $("h-min").value = entry.h_min;
+    $("h-max").value = entry.h_max;
+    exampleNote.textContent = entry.attribution;
+    if (runtimeReady && !busy && !last) setState("empty");
+    refreshButton();
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const file = fileInput.files[0];
-    if (!file || busy || !runtimeReady) return;
-    if (!hasDomainExtension(file.name)) {
-      showError("'" + file.name + "' is not a domain file. Upload a .json, .toml or fort.14 file. Registry names are not looked up in the browser.");
+    const file = example ? null : fileInput.files[0];
+    const name = example ? example.entry.file : file && file.name;
+    if ((!file && !example) || busy || !runtimeReady) return;
+    if (!hasDomainExtension(name)) {
+      showError("'" + name + "' is not a domain file. Upload a .json, .toml or fort.14 file. Registry names are not looked up in the browser.");
       return;
     }
     let hMin, hMax;
@@ -120,8 +185,8 @@
     refreshButton();
     $("status-text").textContent = "Reading file";
     setState("loading");
-    const text = await file.text();
-    worker.postMessage({ type: "mesh", name: file.name, text, hMin, hMax });
+    const text = example ? example.text : await file.text();
+    worker.postMessage({ type: "mesh", name, text, hMin, hMax });
   });
 
   /* ---- result ---- */
@@ -219,6 +284,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   function baseName() {
+    if (example) return example.entry.id;
     const file = fileInput.files[0];
     return file ? file.name.replace(/\.[^.]+$/, "") || "mesh" : "mesh";
   }
@@ -226,4 +292,5 @@
   $("download-msh").addEventListener("click", () => last && download(baseName() + ".msh", last.msh));
 
   setState("loading");
+  loadExamples();
 })();
