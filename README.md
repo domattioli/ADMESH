@@ -44,7 +44,7 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 1.0.0b1 (October 2026), beta.** The public API (`admesh.__all__`, listed in [Public API](#5-public-api)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0; the canonical path is `admesh._stages.<stage>`. [`CHANGELOG.md`](CHANGELOG.md) lists earlier releases.
+**Current release: 1.0.0 (October 2026).** The public API (`admesh.__all__`, listed in [Public API](#5-public-api)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0; the canonical path is `admesh._stages.<stage>`. [`CHANGELOG.md`](CHANGELOG.md) lists earlier releases.
 
 **New in 1.0:**
 
@@ -53,7 +53,7 @@
 3. `triangulate` takes an opt-in `medial_method`: `"grid"`, `"octree"` or `"vdt"`. `"vdt"` is the vector distance transform of [Kang & Kubatko (2024)](https://doi.org/10.5194/gmd-17-1603-2024). [`benchmarks/medial_vdt.md`](benchmarks/medial_vdt.md) records why `"vdt"` stays opt-in.
 4. A browser app at [admesh.domattioli.com](https://admesh.domattioli.com/) runs the ADMESH package in the page through Pyodide. Files stay on the user's computer. The documentation is at [admesh.domattioli.com/docs](https://admesh.domattioli.com/docs/).
 
-- **Now:** the 1.0.0b1 beta, then 1.0.0; address open issues; 1D–2D internal-constraint extraction from Kang & Kubatko (2024) (#186).
+- **Now:** address open issues; 1D–2D internal-constraint extraction from Kang & Kubatko (2024) (#186).
 - **Next:** single-mesh parallelization (#216); pre- and post-processing for quality improvement; native kernels for the remaining hot stages.
 - **Future:** 3D ADMESH (#220); then formal integration within a unified ecosystem with <a href="https://github.com/domattioli/QuADMESH"><img src="https://img.shields.io/pypi/v/quadmesh?label=QuADMESH&color=f5d0fe&labelColor=c026d3&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI%2BPHBhdGggZD0iTTMgNCBIMjEgTTMgMTIgSDIxIE0zIDIwIEgyMSBNNCAzIFYyMSBNMTIgMyBWMjEgTTIwIDMgVjIxIi8%2BPC9zdmc%2B" alt="QuADMESH PyPI version"></a> (quads), <a href="https://github.com/domattioli/CHILmesh"><img src="https://img.shields.io/pypi/v/chilmesh?label=CHILmesh&color=caf0f8&labelColor=0077b6&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48cGF0aCBkPSJNMSA4IHEzIC00IDYgMCB0NiAwIHQ2IDAgdDYgMCBNMSAxMyBxMyAtNCA2IDAgdDYgMCB0NiAwIHQ2IDAgTTEgMTggcTMgLTQgNiAwIHQ2IDAgdDYgMCB0NiAwIi8%2BPC9zdmc%2B" alt="CHILmesh PyPI version"></a> (mesh data structure and smoothing).
 

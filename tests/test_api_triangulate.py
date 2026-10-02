@@ -185,3 +185,65 @@ def test_triangulate_remesh_from_fort14_fixture(tmp_path) -> None:
     rt_mesh = admesh.read_fort14(out_path)
     assert rt_mesh.n_nodes > 0
     assert rt_mesh.n_elements > 0
+
+
+def test_on_iter_reports_progress() -> None:
+    """The on_iter callback receives iteration index, nodes, and triangles.
+
+    Verify that on_iter is called at least once per iteration, with strictly
+    increasing iteration indices, and that the callback receives the node
+    positions (N, 2) and triangles (M, 3) at each step. The final mesh
+    should equal a run without on_iter.
+    """
+    port_dom = DOMAIN_REGISTRY["unit_square"]
+    domain = Domain(sdf=port_dom.fd, bbox=port_dom.bbox, pfix=None)
+
+    # Collect callback invocations
+    calls: list[tuple[int, np.ndarray, np.ndarray]] = []
+
+    def collect_iteration(k: int, p: np.ndarray, t: np.ndarray) -> None:
+        calls.append((k, np.copy(p), np.copy(t)))
+
+    # Run triangulation with callback
+    mesh_with = admesh.triangulate(
+        domain, h_max=0.12, max_iter=200, seed=0, on_iter=collect_iteration
+    )
+
+    # Run again without callback to compare
+    mesh_without = admesh.triangulate(
+        domain, h_max=0.12, max_iter=200, seed=0
+    )
+
+    # Assert at least one callback invocation
+    assert len(calls) >= 1, "on_iter callback was never called"
+
+    # Extract iteration indices and check they strictly increase
+    indices = [k for k, _, _ in calls]
+    for i in range(1, len(indices)):
+        assert indices[i] > indices[i - 1], (
+            f"Iteration indices did not strictly increase: "
+            f"{indices[i-1]} -> {indices[i]}"
+        )
+
+    # Verify each callback received correct shapes
+    for k, p, t in calls:
+        assert p.ndim == 2 and p.shape[1] == 2, (
+            f"Node array at k={k} has wrong shape: {p.shape}"
+        )
+        assert t.ndim == 2 and t.shape[1] == 3, (
+            f"Triangle array at k={k} has wrong shape: {t.shape}"
+        )
+        # Triangles must index valid nodes
+        assert t.max() < len(p), (
+            f"Triangle index at k={k} exceeds node count: "
+            f"t.max()={t.max()}, len(p)={len(p)}"
+        )
+
+    # The final mesh from the callback run should equal the standalone run
+    # (same seed, so deterministic)
+    assert np.array_equal(mesh_with.nodes, mesh_without.nodes), (
+        "Mesh nodes differ between run with on_iter and without"
+    )
+    assert np.array_equal(mesh_with.elements, mesh_without.elements), (
+        "Mesh elements differ between run with on_iter and without"
+    )

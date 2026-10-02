@@ -744,6 +744,7 @@ def triangulate(
     ttol: float | None = None,
     dptol: float | None = None,
     medial_method: str | None = None,
+    on_iter: Callable[[int, np.ndarray, np.ndarray], None] | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -795,6 +796,11 @@ def triangulate(
         lowered to the smallest size the contribution takes inside the domain
         (not below ``h_min``), because the generator thins a lattice of that
         spacing.
+    on_iter : callable or None
+        Optional callback called once per DistMesh iteration with the
+        iteration index (int), the current node positions (N, 2), and the
+        current triangles (M, 3). Default None. For progress display only
+        and does not change the mesh.
 
     Returns
     -------
@@ -872,6 +878,8 @@ def triangulate(
         opts["dptol"] = float(dptol)
     if initial_points is not None:
         opts["initial_points"] = np.asarray(initial_points, dtype=np.float64)
+    if on_iter is not None:
+        opts["on_iter"] = on_iter
 
     # Resolve the size field. Cases:
     #

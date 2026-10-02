@@ -199,6 +199,7 @@ footer { border-top: 1px solid var(--border); margin-top: var(--space-6); paddin
 
   <section class="state" data-state="loading" aria-busy="true" aria-live="polite">
     <p><span class="spinner" aria-hidden="true"></span><span id="status-text">Starting</span></p>
+    <canvas id="progress-canvas" width="900" height="600" role="img" aria-label="Live view of the mesh while the points move" hidden></canvas>
   </section>
   <section class="state" data-state="empty" hidden>
     <p class="muted">Choose a domain file and press Mesh. The mesh and its checks appear here.</p>

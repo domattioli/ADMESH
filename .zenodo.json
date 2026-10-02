@@ -2,7 +2,7 @@
   "title": "ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python)",
   "upload_type": "software",
   "license": "Apache-2.0",
-  "version": "1.0.0b1",
+  "version": "1.0.0",
   "creators": [
     {
       "name": "Mattioli, Dominik",
@@ -20,7 +20,7 @@
       "name": "West, Dustin W."
     }
   ],
-  "description": "<p>ADMESH 1.0.0b1 is a Python implementation of the ADMESH library, which generates unstructured triangular meshes for two-dimensional shallow-water models. It ports the 13 stage modules of the 2012 algorithm (Conroy, Kubatko and West, Ocean Dynamics 62, 1503-1517), which build a mesh-size field from boundary curvature, channel width (medial axis), bathymetric gradient and dominant tidal wavelength, then place nodes by distmesh relaxation. A Numba solver replaces the original C MEX file, so installation needs no compiler.</p>\n<p><code>triangulate()</code> accepts a domain object, a TOML or JSON polygon file, an ADCIRC <code>fort.14</code> file or a registry domain name, and returns a mesh with element quality and boundary segments. The package reads and writes ADCIRC <code>fort.14</code> and Gmsh 2.2 ASCII files, meshes several domains in parallel with <code>triangulate_batch</code>, and supports an adaptive octree background grid. The optional <code>medial_method</code> argument adds a channel-width size contribution from the 2012 grid method, an octree leaf graph, or the vector distance transform of Kang and Kubatko (2024); it is off by default. Install with <code>pip install admesh2D==1.0.0b1</code>; the import name is <code>admesh</code>.</p>",
+  "description": "<p>ADMESH 1.0.0 is a Python implementation of the ADMESH library, which generates unstructured triangular meshes for two-dimensional shallow-water models. It ports the 13 stage modules of the 2012 algorithm (Conroy, Kubatko and West, Ocean Dynamics 62, 1503-1517), which build a mesh-size field from boundary curvature, channel width (medial axis), bathymetric gradient and dominant tidal wavelength, then place nodes by distmesh relaxation. A Numba solver replaces the original C MEX file, so installation needs no compiler.</p>\n<p><code>triangulate()</code> accepts a domain object, a TOML or JSON polygon file, an ADCIRC <code>fort.14</code> file or a registry domain name, and returns a mesh with element quality and boundary segments. The package reads and writes ADCIRC <code>fort.14</code> and Gmsh 2.2 ASCII files, meshes several domains in parallel with <code>triangulate_batch</code>, and supports an adaptive octree background grid. The optional <code>medial_method</code> argument adds a channel-width size contribution from the 2012 grid method, an octree leaf graph, or the vector distance transform of Kang and Kubatko (2024); it is off by default. Install with <code>pip install admesh2D==1.0.0</code>; the import name is <code>admesh</code>.</p>",
   "related_identifiers": [
     {
       "identifier": "10.1007/s10236-012-0574-0",

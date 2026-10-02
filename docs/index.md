@@ -75,7 +75,7 @@ of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
-- **Maturity**: 1.0.0b1, beta. The public API is fixed for 1.x.
+- **Maturity**: 1.0.0, stable. The public API is fixed for 1.x.
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
 - **Sibling registry**: [github.com/domattioli/ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) — federated mesh metadata + HuggingFace-mirrored data files.
