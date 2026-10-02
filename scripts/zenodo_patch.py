@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Patch the metadata of one Zenodo record from ``zenodo/patches/<id>.json``.
 
-The patch file holds only the top-level metadata keys to change. The script
-reads the current deposit, replaces those keys, prints a unified diff of the
-metadata and, in ``apply`` mode only, edits and republishes the record.
+The patch file holds only the top-level metadata keys to change. A key with
+the value ``null`` is removed from the metadata; any other value replaces the
+key. The script reads the current deposit, applies the patch, prints a unified
+diff of the metadata and, in ``apply`` mode only, edits and republishes the
+record.
 ``discard`` mode drops an open edit of the record and changes nothing else.
 
 Environment:
@@ -27,6 +29,17 @@ from pathlib import Path
 API = "https://zenodo.org/api/deposit/depositions"
 CONCEPT_DOI = "10.5281/zenodo.20264085"
 PROTECTED_KEYS = ("doi", "prereserve_doi", "conceptdoi", "conceptrecid")
+# Keys a patch may replace but never remove (Zenodo requires them, or they
+# identify the release).
+REQUIRED_KEYS = (
+    "access_right",
+    "creators",
+    "description",
+    "publication_date",
+    "title",
+    "upload_type",
+    "version",
+)
 PATCH_DIR = Path(__file__).resolve().parent.parent / "zenodo" / "patches"
 
 
@@ -65,13 +78,27 @@ def load_patch(path):
     refused = [key for key in PROTECTED_KEYS if key in patch]
     if refused:
         raise PatchError(f"patch carries protected keys: {', '.join(refused)}")
+    kept = [key for key in REQUIRED_KEYS if key in patch and patch[key] is None]
+    if kept:
+        raise PatchError(f"patch removes required keys: {', '.join(kept)}")
     return patch
 
 
+def removed_keys(patch):
+    """Return the sorted keys the patch removes (value ``null``)."""
+    return sorted(key for key, value in patch.items() if value is None)
+
+
 def merge(current_metadata, patch):
-    """Replace only the patch's top-level keys in the current metadata."""
+    """Apply the patch's top-level keys; a ``None`` value removes the key."""
     merged = dict(current_metadata)
-    merged.update(patch)
+    for key, value in patch.items():
+        if value is None:
+            if key in PROTECTED_KEYS or key in REQUIRED_KEYS:
+                raise PatchError(f"patch removes a guarded key: {key}")
+            merged.pop(key, None)
+        else:
+            merged[key] = value
     return merged
 
 
@@ -144,6 +171,12 @@ def run(record_id, mode, token, patch_dir=PATCH_DIR):
     print("dates: " + json.dumps(metadata.get("dates"), ensure_ascii=False))
     print("grants: " + json.dumps(metadata.get("grants"), ensure_ascii=False))
     print(f"record {record_id}: patch keys {', '.join(sorted(patch))}")
+    removals = removed_keys(patch)
+    for key in removals:
+        state = "present, removed" if key in metadata else "absent, nothing to remove"
+        print(f"record {record_id}: remove key {key}: {state}")
+    if not removals:
+        print(f"record {record_id}: remove keys: none")
     print(metadata_diff(current.get("metadata", {}), merged) or "(no change)")
     if mode == "dry-run":
         print("dry-run: no write call was made")
