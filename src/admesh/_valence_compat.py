@@ -25,6 +25,12 @@ Route c: Domain-only API
 Field names differ between schema generations: ``continent`` replaced
 ``region`` and ``format`` replaced ``type``. :func:`entry_metadata` reports
 both names of each pair with the same value.
+
+Hosting: newer ``valence_domains`` releases raise ``MeshNotHostedError``
+from ``Mesh.load()`` for a registered mesh whose license does not allow a
+hosted copy. That is an expected registry state, not a network failure.
+:func:`raise_if_not_hosted` raises it before any download is attempted, and
+does nothing on releases without the class.
 """
 
 from __future__ import annotations
@@ -35,6 +41,7 @@ __all__ = [
     "get_domain_or_group",
     "list_entries",
     "entry_metadata",
+    "raise_if_not_hosted",
     "DOMAIN_FIELDS",
     "MESH_FIELDS",
 ]
@@ -74,6 +81,22 @@ def _import_valence_domains() -> Any:
     import valence_domains
 
     return valence_domains
+
+
+def raise_if_not_hosted(mesh: Any) -> None:
+    """Raise ``valence_domains.MeshNotHostedError`` for a mesh with no hosted copy.
+
+    Feature-detected: when the installed ``valence_domains`` has no
+    ``MeshNotHostedError`` class, or the mesh has no ``license_eligible``
+    attribute, this does nothing and ``Mesh.load()`` behaves as before.
+    Otherwise a mesh with ``license_eligible`` false raises the registry's
+    own error, whose message names the mesh and says it is not hosted.
+    """
+    not_hosted = getattr(_import_valence_domains(), "MeshNotHostedError", None)
+    if not_hosted is None:
+        return
+    if getattr(mesh, "license_eligible", True) is False:
+        raise not_hosted(getattr(mesh, "full_id", None) or getattr(mesh, "id", repr(mesh)))
 
 
 def _has_group_api(vd: Any) -> bool:

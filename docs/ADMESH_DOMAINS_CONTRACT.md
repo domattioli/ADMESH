@@ -59,6 +59,12 @@ pull in `huggingface_hub`. Without the extra, `load_domain_from_registry`
 raises a clear `ImportError` before any network call. Only the local
 `list_available_domains()` path stays usable.
 
+Some registered meshes have no hosted copy, because their license does not
+allow one. On `valence-domains` releases that define `MeshNotHostedError`,
+ADMESH raises that error before checking for `huggingface_hub` and before any
+network call. The check is feature-detected through `license_eligible`, and
+releases without the class keep their old behaviour.
+
 The slow test lane (`pytest -m slow`) exercises the full chain on the smallest
 fixture (`BaranjaHill`, about 0.08 MB).
 
