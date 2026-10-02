@@ -1,0 +1,153 @@
+{
+  "description": "medial_method benchmark (grid, octree, vdt) with the default-change gate",
+  "settings": {
+    "WNAT": {
+      "h_max": 0.5,
+      "h_min": 0.1,
+      "max_iter": 60,
+      "seed": 0
+    },
+    "ENPAC": {
+      "h_max": 0.3,
+      "h_min": 0.06,
+      "max_iter": 60,
+      "seed": 0
+    }
+  },
+  "corner_definition": {
+    "max_interior_angle_deg": 135.0,
+    "radius": "2.0 * h_max"
+  },
+  "sources": {
+    "WNAT": {
+      "path": "tests/fixtures/fort14/adcirc_examples/wnat_test.14"
+    },
+    "ENPAC": {
+      "file": "EasternPacific_ENPAC2003.14",
+      "env": "ADMESH_ENPAC_14",
+      "sha256": "21124a32a7c090776402251dcacd419c6783d545d1730421c5384ce8cd4a9340"
+    }
+  },
+  "environment": {
+    "python": "3.12.13",
+    "numpy": "2.4.4",
+    "platform": "macOS-26.6.2-arm64-arm-64bit"
+  },
+  "rows": [
+    {
+      "domain": "WNAT",
+      "method": "grid",
+      "status": "ok",
+      "time_s": 51.37939675000234,
+      "elements": 12017,
+      "min_q": 0.03915139218404015,
+      "mean_q": 0.9102421368565689,
+      "corner_over": 5.5608324810397525,
+      "n_corners": 42,
+      "n_elements_near_corners": 2683
+    },
+    {
+      "domain": "WNAT",
+      "method": "octree",
+      "status": "ok",
+      "time_s": 279.1580105840003,
+      "elements": 9424,
+      "min_q": 0.0024820589274472805,
+      "mean_q": 0.8574056441025192,
+      "corner_over": 2.8869024899026656,
+      "n_corners": 42,
+      "n_elements_near_corners": 1171
+    },
+    {
+      "domain": "WNAT",
+      "method": "vdt",
+      "status": "ok",
+      "time_s": 37.393947042000946,
+      "elements": 8282,
+      "min_q": 0.15354408041261766,
+      "mean_q": 0.935045896260458,
+      "corner_over": 3.018460646870848,
+      "n_corners": 42,
+      "n_elements_near_corners": 1101
+    },
+    {
+      "domain": "ENPAC",
+      "method": "grid",
+      "status": "ok",
+      "time_s": 17.36677575000067,
+      "elements": 22755,
+      "min_q": 0.1701554548729875,
+      "mean_q": 0.9401152095513796,
+      "corner_over": 7.117581280816749,
+      "n_corners": 91,
+      "n_elements_near_corners": 4645
+    },
+    {
+      "domain": "ENPAC",
+      "method": "octree",
+      "status": "ok",
+      "time_s": 43.665677834000235,
+      "elements": 18263,
+      "min_q": 0.007388340308789668,
+      "mean_q": 0.9198546129165504,
+      "corner_over": 2.4312910575361855,
+      "n_corners": 91,
+      "n_elements_near_corners": 1581
+    },
+    {
+      "domain": "ENPAC",
+      "method": "vdt",
+      "status": "ok",
+      "time_s": 15.92171479100216,
+      "elements": 18619,
+      "min_q": 0.19503018349479984,
+      "mean_q": 0.9460338290070587,
+      "corner_over": 3.4409991233918635,
+      "n_corners": 91,
+      "n_elements_near_corners": 2225
+    }
+  ],
+  "gate": {
+    "WNAT": {
+      "grid": {
+        "corner_over_lower": true,
+        "min_q_within_2pct": true,
+        "mean_q_within_2pct": true,
+        "elements_within_10pct": false,
+        "time_within_1p5x_octree": true,
+        "usable": true,
+        "all": false
+      },
+      "octree": {
+        "corner_over_lower": false,
+        "min_q_within_2pct": true,
+        "mean_q_within_2pct": true,
+        "elements_within_10pct": false,
+        "time_within_1p5x_octree": true,
+        "usable": true,
+        "all": false
+      }
+    },
+    "ENPAC": {
+      "grid": {
+        "corner_over_lower": true,
+        "min_q_within_2pct": true,
+        "mean_q_within_2pct": true,
+        "elements_within_10pct": false,
+        "time_within_1p5x_octree": true,
+        "usable": true,
+        "all": false
+      },
+      "octree": {
+        "corner_over_lower": false,
+        "min_q_within_2pct": true,
+        "mean_q_within_2pct": true,
+        "elements_within_10pct": true,
+        "time_within_1p5x_octree": true,
+        "usable": true,
+        "all": false
+      }
+    }
+  },
+  "verdict": "opt-in"
+}
