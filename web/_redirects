@@ -1,0 +1,31 @@
+# Old documentation addresses move under /docs/ (permanent redirects).
+# Each page is listed with and without the trailing slash. No wildcard rule:
+# a splat would also match /, /app.js, /worker.js, /wheels/* and /docs/*.
+
+/quickstart /docs/quickstart/ 301
+/quickstart/ /docs/quickstart/ 301
+/demo /docs/demo/ 301
+/demo/ /docs/demo/ 301
+/api/triangulate /docs/api/triangulate/ 301
+/api/triangulate/ /docs/api/triangulate/ 301
+/api/types /docs/api/types/ 301
+/api/types/ /docs/api/types/ 301
+/api/io /docs/api/io/ 301
+/api/io/ /docs/api/io/ 301
+/api/size_field /docs/api/size_field/ 301
+/api/size_field/ /docs/api/size_field/ 301
+/api/quality /docs/api/quality/ 301
+/api/quality/ /docs/api/quality/ 301
+/api/loaders /docs/api/loaders/ 301
+/api/loaders/ /docs/api/loaders/ 301
+/api/valence /docs/api/valence/ 301
+/api/valence/ /docs/api/valence/ 301
+/ADMESH_DOMAINS_CONTRACT /docs/ADMESH_DOMAINS_CONTRACT/ 301
+/ADMESH_DOMAINS_CONTRACT/ /docs/ADMESH_DOMAINS_CONTRACT/ 301
+/PORTING_NOTES /docs/PORTING_NOTES/ 301
+/PORTING_NOTES/ /docs/PORTING_NOTES/ 301
+/contributing /docs/contributing/ 301
+/contributing/ /docs/contributing/ 301
+/testing /docs/testing/ 301
+/testing/ /docs/testing/ 301
+/demo/index.html /docs/demo/ 301
