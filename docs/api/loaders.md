@@ -1,6 +1,6 @@
 # Domain loaders
 
-Build a `Domain` from a file path or from the `admesh-domains` registry.
+Build a `Domain` from a file path or from the `valence-domains` registry.
 
 ## From files
 
@@ -18,8 +18,9 @@ Build a `Domain` from a file path or from the `admesh-domains` registry.
 
 ## From the registry
 
-> ⚠️ Status: `admesh-domains` 0.3.x adapter is broken — see
-> [issue #64](https://github.com/domattioli/ADMESH/issues/64).
+Registry lookups need the `valence-domains` package. Manifest schemas 0.3 and
+0.4 are both supported; see the
+[`valence-domains` contract](../ADMESH_DOMAINS_CONTRACT.md).
 
 ### load_domain_from_registry
 

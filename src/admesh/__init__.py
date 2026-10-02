@@ -36,9 +36,9 @@ from admesh.valence import (
     get_valence_report,
 )
 
-__version__ = "0.6.0"
+__version__ = "1.0.0b1"
 
-# Public, semver-guarded API surface for ADMESH 0.1.0.
+# Public, semver-guarded API surface for ADMESH 1.x.
 #
 # Faithful-port stage modules (curvature, medial_axis, distance, distmesh,
 # routine, etc.) are NOT listed here -- they are internal by convention. Direct

@@ -44,7 +44,7 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 0.6.1 (July 2026), stable and actively maintained.** 0.6.1 is a packaging patch on 0.6.0 (wheel build, CI); PyPI carries 0.6.0. 0.6.0 moved the octree adaptive background grid (`background="octree"`) into production: a vectorized quadtree refines the size field where medial-axis and channel widths demand it, and the ENPAC 2003 tidal database (272,913 nodes) replaced WNAT as the large-domain benchmark standard.
+**Current release: 1.0.0b1 (October 2026), beta.** The public API (`admesh.__all__`, listed in [Public API](#5-public-api)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0; the canonical path is `admesh._stages.<stage>`. Before 1.0.0b1, 0.6.1 was a packaging patch on 0.6.0 (wheel build, CI), and 0.6.0 moved the octree adaptive background grid (`background="octree"`) into production: a vectorized quadtree refines the size field where medial-axis and channel widths demand it, and the ENPAC 2003 tidal database (272,913 nodes) replaced WNAT as the large-domain benchmark standard.
 
 - **Now:** address open issues; evaluate techniques from ADMESH+ v3 (revised medial axis, 1D–2D constraint extraction) for adoption.
 - **Next:** pre- and post-processing for quality improvement; native (C++ or Rust) kernels for the remaining hot stages; single-mesh parallelization (#216).
@@ -127,7 +127,7 @@ meshes = admesh.triangulate_batch(
 | Many meshes | `triangulate_batch(domains, n_jobs=None, **kwargs)` | Runs `triangulate` on a process pool and returns meshes in input order, identical to a serial loop. Parallel runs need picklable domains: paths, registry slugs, or a `Domain` with a module-level SDF. `n_jobs=1` runs in-process. |
 | Quality gate | `quality_gate=(min_q, mean_q)` | Default `(0.30, 0.60)`; raises `ValueError` when the mesh falls below it. Pass `(0.0, 0.0)` to disable. |
 | ADCIRC I/O | `read_fort14`, `write_fort14`, `Mesh.to_fort14` | Round-trip of nodes, elements, and boundary segments; `Fort14ParseError` reports line, expected, actual. |
-| Gmsh I/O | `read_msh`, `write_msh`, `Mesh.to_msh` | Gmsh 2.2 ASCII; boundary labels map to `BoundaryType`. |
+| Gmsh I/O | `read_msh`, `write_msh`, `Mesh.to_msh` | Gmsh 2.2 ASCII; boundary labels map to `BoundaryType`; `GmshParseError` reports malformed input. |
 | Domain sources | `load_domain_from_{toml,json,fort14,registry}`, `list_available_domains` | A path or slug may also be passed to `triangulate()` directly. Formats in [`docs/DOMAIN_IO.md`](docs/DOMAIN_IO.md). |
 | Quality metrics | `mesh_quality`, `right_iso_quality` | Equilateral and right-isosceles targets. |
 | Valence balancing | `balance_valence_triangles`, `compute_valence`, `get_valence_report` | Edge flipping toward degree-6 interior nodes, quality-guarded. |
