@@ -15,7 +15,7 @@ ADMESH is a Python mesh **generator**, ported from `01_ADMESH_Library` of `domat
 
 The two are conceptually adjacent — both touch unstructured 2D meshes, share concepts (nodes, elements, boundary segments, smoothing, quality), and the ADMESH ↔ CHILmesh round-trip is exercised by two tests in this repo (`tests/test_fort14_chilmesh_compat.py`, `tests/test_fort14_chilmesh_smoke.py`).
 
-Until this ADR, the boundary between the two was informal: `CLAUDE.md` named CHILmesh as "downstream of ADMESH" but did not enumerate which ADMESH modules might rightfully belong on the CHILmesh side. Three open issues prompted the formalization:
+Until this ADR, the boundary between the two was informal: the project instructions file named CHILmesh as "downstream of ADMESH" but did not enumerate which ADMESH modules might rightfully belong on the CHILmesh side. Three open issues prompted the formalization:
 
 - **#84** (max-valence for vertices) — touches `admesh/valence.py`, which is consumer-side by nature.
 - **#41** (dimensional mapping for smoothing) — touches `admesh/quad_prep.py`, also consumer-side.

@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [1.0.0b1] — 2026-10-01
+
+First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
+
+### Changed
+- Version 1.0.0b1, with the `Development Status :: 4 - Beta` classifier.
+- The 14 `admesh.<stage>` compatibility modules are kept for all of 1.x; removal is no earlier than 2.0. The canonical import path is `admesh._stages.<stage>`.
+- `docs/api` now documents every name in `admesh.__all__`, including `triangulate_batch` and the Gmsh I/O functions. `tests/test_public_api_docs.py` keeps `__all__`, the README and `docs/api` in agreement.
+
+### Added
+- `triangulate(..., medial_method=None)` adds an optional channel-width size contribution. `"grid"` uses the medial-axis grid method of the 2012 port, `"octree"` the octree leaf graph, and `"vdt"` the vector distance transform with corner pruning of Kang and Kubatko (2024, https://doi.org/10.5194/gmd-17-1603-2024), in the new module `admesh.medial_vdt`. The default `None` leaves output unchanged, and the locked stage modules are not modified. `scripts/bench_medial.py` compares the three methods on WNAT and ENPAC; `"vdt"` stays opt-in because it does not beat both baselines on every criterion (results in `benchmarks/medial_vdt.{json,md}`).
+- A registry mesh that is registered but not hosted (for example, a license that does not allow a hosted copy) now fails with `valence_domains.MeshNotHostedError` before any download is attempted, on `valence-domains` releases that define it. Its message names the mesh and says it is not hosted. Older releases keep their behaviour.
+- Valence manifest 0.4-ready; 0.3 still supported. Registry lookups run through `admesh._valence_compat`, which picks the group API, the manifest object or the Domain-only API by feature detection. `list_available_domains()` now also lists Collections, and aliases and Collections load by name. Domain metadata reports both `continent` and `region`, and mesh metadata both `format` and `type`.
+- `triangulate_batch(domains, n_jobs=None, **kwargs)` meshes several domains on a process pool (#99 P2). Results come back in input order and are bit-identical to a serial `triangulate` loop. On 8 WNAT meshes (94,777 nodes each) 8 workers run 5.09x faster than the serial loop; small meshes gain less because each worker takes about 0.5 s to start.
+- `scripts/bench_batch.py --wnat` runs the P2 gate: at least 4.0x at 8 workers on 8 WNAT meshes. Results and figure in `benchmarks/results/batch_wnat.{json,png}`.
+
+### Fixed
+- `scripts/bench_batch.py` warms the Numba cache before timing the serial baseline. A cold baseline had inflated the speedup reported in 8f1e67b (2.91x).
+
+## [0.6.1] — 2026-07-14
+
+Packaging and CI patch on 0.6.0. No change under `src/`.
+
+### Fixed
+- Distributed wheel builds no longer pass `-march=native` (#195).
+- The cibuildwheel test environment installs binary numba and llvmlite (#196) and no longer builds scipy from source (#190).
+- `publish.yml` has a single top-level permissions block (#193) and accepts a manual `workflow_dispatch` (#191).
+
+### Added
+- `SECURITY.md` (#194).
+- A viz-interop CI lane, so the CHILmesh and Matplotlib tests run (#197).
+
+### Documentation
+- README benchmark figure corrected from 26.7x to 26.6x (#189).
+
 ## [0.6.0] — 2026-07-05
 
 ### Added
@@ -51,7 +88,9 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 - Restored ADMESH-variant distmesh code (`MeshOutput`, `SizeFn`, `distmesh2d_admesh`)
 - Tier-1 / Tier-2 acceptance tests for size-field stack structural validity — issue #10
 - Holistic test suite audit (`TEST-AUDIT.md`) — issue #59
-- DomI cross-repo sync contract + SessionStart hook plugin auto-install
+- Cross-repo sync contract + session-start hook plugin auto-install
+
+  > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records are kept outside this repository. The session-start hook and its script were untracked on 2026-09-24 and are local tooling, not part of the package.
 
 ### Fixed
 - 1D boundary seeding for `Domain` path on notched-rectangle geometry — issue #2
@@ -60,14 +99,14 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 
 ### Documentation
 - `pfix` bit-exact preservation contract — issue #46
-- Spec-kit planning artifacts for Gmsh I/O integration (spec 008) — issue #5
-- Spec-kit planning for PyPI namespace claim — issue #13
+- Planning artifacts for Gmsh I/O integration (spec 008) — issue #5
+- Planning for PyPI namespace claim — issue #13
 - `CONSTITUTION.md` covering specs 001-008 — issue #57
 - Scripts audit + cleanup recommendations — issue #42
 
 ### Infrastructure
 - Single-branch policy: all routine fixes land on `daily-issue-fixing`
-- Synced `.domi-pin` to DomI v2.1 manifest
+- Synced governance pin to the v2.1 manifest
 
 ## [0.1.0] - 2026-04-27
 

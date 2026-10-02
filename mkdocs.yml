@@ -45,7 +45,7 @@ nav:
       - Domain loaders: api/loaders.md
       - Valence balancing: api/valence.md
   - Project:
-      - admesh-domains contract: ADMESH_DOMAINS_CONTRACT.md
+      - valence-domains contract: ADMESH_DOMAINS_CONTRACT.md
       - Porting notes: PORTING_NOTES.md
       - Contributing: contributing.md
       - Testing: testing.md

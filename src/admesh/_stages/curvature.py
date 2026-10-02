@@ -144,7 +144,8 @@ def apply_curvature(
     kappa = np.abs(dnx_dx + dny_dy)
 
     # Narrow band: |D| <= 2*hmin (MATLAB line 53).
-    I = np.abs(D) <= 2.0 * hmin
+    # ``I`` keeps the MATLAB variable name from CurvatureFunction.m line 53.
+    I = np.abs(D) <= 2.0 * hmin  # noqa: E741
 
     # Default h_curve = hmax everywhere (MATLAB line 56).
     h_curve = np.full_like(D, hmax)

@@ -1,0 +1,44 @@
+name: Zenodo metadata
+
+# Manual only. Edits the metadata of one Zenodo record from zenodo/patches/<id>.json.
+# dry-run prints the diff and writes nothing; apply edits and republishes the record.
+
+on:
+  workflow_dispatch:
+    inputs:
+      record_id:
+        description: Zenodo record id (must have a file in zenodo/patches/)
+        required: true
+        type: string
+      mode:
+        description: dry-run prints the diff only; apply edits and publishes
+        required: true
+        type: choice
+        options:
+          - dry-run
+          - apply
+        default: dry-run
+
+permissions:
+  contents: read
+
+jobs:
+  patch:
+    name: Patch record metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Patch Zenodo metadata
+        env:
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+          RECORD_ID: ${{ inputs.record_id }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          printf '::add-mask::%s\n' "$ZENODO_TOKEN"
+          python scripts/zenodo_patch.py

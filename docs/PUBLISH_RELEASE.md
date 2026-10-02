@@ -129,15 +129,6 @@ Add version to `pyproject.toml` or use `--version` flag.
 ### "No release notes found in CHANGELOG.md"
 Add section matching `## [v]VERSION [...]` pattern.
 
-## Integration with Claude Code
-
-```bash
-/publish-release                    # Auto-detect version
-/publish-release --version 0.2.0   # Explicit version
-/publish-release --draft           # Draft mode
-/publish-release --no-pypi         # Skip PyPI
-```
-
 ## Release Workflow
 
 ```bash

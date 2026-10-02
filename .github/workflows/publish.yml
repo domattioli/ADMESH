@@ -81,6 +81,7 @@ jobs:
 
   publish:
     name: Publish to PyPI
+    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build_wheels, build_sdist]

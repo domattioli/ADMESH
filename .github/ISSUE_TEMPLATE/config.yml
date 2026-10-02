@@ -1,11 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: DomI upstream sync issues
-    url: https://github.com/domattioli/ADMESH/blob/main/AGENTS.md
-    about: |
-      `chore: sync DomI@<sha>` issues are auto-filed by the upstream
-      `notify-downstream` workflow. Do not file by hand — let the bot, then
-      resolve with the `sync-from-domi` skill in a Claude Code session.
   - name: Discussion / Question
     url: https://github.com/domattioli/ADMESH/discussions
     about: |

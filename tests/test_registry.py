@@ -107,6 +107,15 @@ def test_list_available_domains_nonempty():
     assert all(isinstance(v, str) for v in domains.values())
 
 
+def test_list_available_domains_matches_compat_entries():
+    """Listed names equal the compat layer's primary Domains plus Collections."""
+    pytest.importorskip("valence_domains")
+    from admesh import _valence_compat
+
+    expected = sorted(e.name for e in _valence_compat.list_entries())
+    assert list(list_available_domains()) == expected
+
+
 @pytest.mark.slow
 def test_load_domain_from_registry_baranja_hill():
     """End-to-end: registry lookup → download → fort.14 → Domain."""
