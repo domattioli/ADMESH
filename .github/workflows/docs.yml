@@ -1,5 +1,7 @@
 name: docs
 
+# Build check only. The site is published by web.yml (Cloudflare Pages).
+
 on:
   push:
     branches:
@@ -7,13 +9,13 @@ on:
       - main
   workflow_dispatch:
 
-# Allow only one concurrent deployment, cancel runs already in progress.
+# One run per ref at a time; a newer push cancels the older run.
 concurrency:
   group: docs-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: write  # for mkdocs gh-deploy to push to gh-pages
+  contents: read
 
 jobs:
   build:
@@ -48,35 +50,3 @@ jobs:
 
       - name: Build docs
         run: mkdocs build
-
-  deploy:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-          cache: pip
-
-      - name: Install C++ build deps
-        run: sudo apt-get install -y libeigen3-dev
-
-      - name: Install package + dev extras
-        run: |
-          python -m pip install --upgrade pip
-          pip install pybind11
-          pip install -e ".[dev]"
-
-      - name: Generate interactive-demo frames
-        run: python scripts/gen_demo_frames.py
-
-      - name: Deploy to gh-pages
-        run: mkdocs gh-deploy --force

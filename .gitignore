@@ -194,3 +194,6 @@ tests/fixtures/matlab/*.mat
 .introspect/
 docs/introspections/
 .planning/introspections/
+
+# Cloudflare Pages build output (scripts/build_web.py)
+web_dist/
