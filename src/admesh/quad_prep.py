@@ -1,7 +1,7 @@
 """Pre-quadrangulation triangle smoother (spec-004).
 
 Nudges an ADMESH triangulation toward a right-isoceles target shape so
-that downstream tri-to-quad fusion (CHILmesh ``tri2quad``, OceanMesh2D,
+that downstream tri-to-quad fusion (QuADMESH, OceanMesh2D,
 ADCIRC v55+ consumers) produces clean quads instead of rhombi.
 
 This module is **additive** to the 13 faithful-port stage modules

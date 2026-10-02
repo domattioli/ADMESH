@@ -55,8 +55,8 @@
 
 ### 12. `chilmesh_roundtrip_demo.py`
 - **Purpose**: Demo CHILmesh integration (cross-repo validation)
-- **Status**: Likely INACTIVE (CHILmesh is separate project)
-- **Recommendation**: REMOVE (out of scope for ADMESH)
+- **Status**: REMOVED (no longer in `scripts/`)
+- **Recommendation**: Done
 
 ### 13. `diagnose_issue_10.py`
 - **Purpose**: Issue #10 (size-field overshoot) diagnostic
@@ -72,7 +72,7 @@
 
 ### Immediate (Safe to Delete)
 - [ ] `diagnose_issue_10.py` — issue #10 resolved; script is obsolete
-- [ ] `chilmesh_roundtrip_demo.py` — out of scope (separate project)
+- [x] `chilmesh_roundtrip_demo.py` — removed
 
 ### Long-term (Consolidation Opportunity)
 - Consolidate 7 render scripts into a single `scripts/demo.py` with subcommands:
@@ -100,7 +100,7 @@
 | `size_field_extension_demo.py` | ✓ | — | — | — | ACTIVE |
 | `wnat_demo.py` | — | — | ✓ | — | LOW-PRIORITY |
 | `render_notched_boundary_curvature.py` | — | — | — | — | CANDIDATE FOR REMOVAL |
-| `chilmesh_roundtrip_demo.py` | — | — | — | — | CANDIDATE FOR REMOVAL |
+| `chilmesh_roundtrip_demo.py` | — | — | — | — | REMOVED |
 | `diagnose_issue_10.py` | — | — | — | — | CANDIDATE FOR REMOVAL |
 
 ## Conclusion

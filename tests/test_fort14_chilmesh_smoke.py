@@ -1,7 +1,7 @@
 """Optional chilmesh-installed smoke test (T033).
 
 Skips cleanly when chilmesh is not on the dev machine. When it is
-installed, exercise ``chilmesh.ChilMesh.from_fort14`` against an
+installed, exercise ``chilmesh.CHILmesh.read_from_fort14`` against an
 admesh2D-produced file and confirm boundary structure matches.
 
 Layered as a separate file (not glued into ``test_fort14_chilmesh_compat.py``)
@@ -9,7 +9,7 @@ so collection in vanilla CI is unaffected.
 
 Relationship to ``test_fort14_chilmesh_compat.py`` (per audit #75):
 - This file is the **real third-party interop** lane — requires
-  ``chilmesh`` installed, hits its ``from_fort14`` reader, exits
+  ``chilmesh`` installed, hits its ``read_from_fort14`` reader, exits
   cleanly when the dep is missing.
 - ``test_fort14_chilmesh_compat.py`` is the **self-consistency proxy**
   lane — uses only admesh's own reader/writer; runs in vanilla CI
