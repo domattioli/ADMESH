@@ -291,3 +291,87 @@ def test_valence_source_checkout_fixture():
     )
     assert result.returncode == 0, result.stdout + result.stderr
     assert "OK" in result.stdout
+
+
+class _NotHostedError(ValueError):
+    """Stand-in for ``valence_domains.MeshNotHostedError`` (newer releases)."""
+
+    def __init__(self, full_id):
+        self.full_id = full_id
+        super().__init__(f"Mesh {full_id!r} is not hosted on the mirror")
+
+
+class _RemoteMesh(_Mesh):
+    """A registered mesh that is not on disk yet."""
+
+    def __init__(self, path, *, license_eligible, load_error=None):
+        super().__init__(path)
+        self.full_id = "Dom/default@v1"
+        self.license_eligible = license_eligible
+        self._load_error = load_error
+        self.load_calls = 0
+
+    def exists(self) -> bool:
+        return False
+
+    def load(self) -> None:
+        self.load_calls += 1
+        if self._load_error is not None:
+            raise self._load_error
+
+
+def _not_hosted_module(mesh, *, with_error_class: bool):
+    domain = _Group("Dom", "Dom Full", [mesh])
+    mod = types.ModuleType("valence_domains")
+
+    def get_domain(name):
+        if name.lower() == "dom":
+            return domain
+        raise KeyError(name)
+
+    mod.get_domain = get_domain
+    mod.list_domains = lambda: [domain]
+    if with_error_class:
+        mod.MeshNotHostedError = _NotHostedError
+    return mod
+
+
+def test_not_hosted_mesh_raises_before_download(tmp_path, monkeypatch):
+    mesh = _RemoteMesh(tmp_path / "m.14", license_eligible=False)
+    monkeypatch.setitem(
+        sys.modules, "valence_domains", _not_hosted_module(mesh, with_error_class=True)
+    )
+    # The optional download dependency is absent: the not-hosted error must
+    # still win over the install hint, and load() must never run.
+    monkeypatch.setitem(sys.modules, "huggingface_hub", None)
+    with pytest.raises(_NotHostedError, match="not hosted") as exc:
+        load_domain_from_registry("Dom")
+    assert exc.value.full_id == "Dom/default@v1"
+    assert mesh.load_calls == 0
+
+
+def test_not_hosted_error_from_load_propagates(tmp_path, monkeypatch):
+    mesh = _RemoteMesh(
+        tmp_path / "m.14",
+        license_eligible=True,
+        load_error=_NotHostedError("Dom/default@v1"),
+    )
+    monkeypatch.setitem(
+        sys.modules, "valence_domains", _not_hosted_module(mesh, with_error_class=True)
+    )
+    monkeypatch.setitem(sys.modules, "huggingface_hub", types.ModuleType("huggingface_hub"))
+    with pytest.raises(_NotHostedError, match="not hosted"):
+        load_domain_from_registry("Dom")
+    assert mesh.load_calls == 1
+
+
+def test_no_not_hosted_class_keeps_old_behaviour(tmp_path, monkeypatch):
+    mesh = _RemoteMesh(tmp_path / "m.14", license_eligible=False)
+    monkeypatch.setitem(
+        sys.modules, "valence_domains", _not_hosted_module(mesh, with_error_class=False)
+    )
+    _valence_compat.raise_if_not_hosted(mesh)  # no class: no error
+    monkeypatch.setitem(sys.modules, "huggingface_hub", None)
+    with pytest.raises(ImportError):
+        load_domain_from_registry("Dom")
+    assert mesh.load_calls == 0

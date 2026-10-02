@@ -95,6 +95,9 @@ def _resolve_mesh(name: str, mesh_id: str) -> Any:
         mesh_ref = meshes[0]
 
     if not mesh_ref.exists():
+        # A mesh the registry does not host fails here, before the optional
+        # download dependency is checked or any network call is made.
+        _valence_compat.raise_if_not_hosted(mesh_ref)
         try:
             import huggingface_hub  # noqa: F401
         except ImportError as e:
@@ -130,7 +133,10 @@ def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
         If ``valence-domains`` is not installed, or if ``huggingface_hub``
         is needed for a network fetch and is not installed.
     ValueError
-        If the domain name is not in the registry.
+        If the domain name is not in the registry. On ``valence-domains``
+        releases that define ``MeshNotHostedError`` (a ``ValueError``
+        subclass), that error is raised when the mesh is registered but not
+        hosted; its message names the mesh and says it is not hosted.
 
     Examples
     --------
