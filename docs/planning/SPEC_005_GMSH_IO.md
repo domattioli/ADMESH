@@ -18,7 +18,7 @@ The v1 spec (`specs/001-pythonize-and-fort14-integration`) locks public I/O on A
 
 ### Evidence
 
-- User request: "maybe allow input from gmsh" (session 001 transcript, post Phase 3 commit `2e4aaf8`)
+- User request: "maybe allow input from gmsh" (session 001 transcript, post Phase 3 commit `467c9cd`)
 - Sibling I/O module: `admesh/fort14.py` has `read_fort14`, `write_fort14`, `Fort14ParseError` — mirror this shape for Gmsh
 - Format adoption: Gmsh is maintained, widely supported in scientific/FEM communities (better long-term portability than legacy ADCIRC formats)
 
