@@ -625,6 +625,105 @@ def _load_domain_from_source(source: str | "os.PathLike[str]") -> Domain:
         )
 
 
+_MEDIAL_METHODS = ("grid", "octree", "vdt")
+_MEDIAL_MAX_CELLS = 4_000_000
+
+
+def _medial_leaf_lookup(tree, leaf_values: np.ndarray) -> Callable[[np.ndarray], np.ndarray]:
+    """Return ``pts (N, 2) -> value (N,)`` by leaf lookup on a quadtree.
+
+    The tree leaves are rasterised once onto a uniform lookup image at the
+    finest leaf size, so each query is a vectorised array index.
+    """
+    leaves = tree.leaves
+    xmin, ymin = (float(v) for v in tree.root.min_corner)
+    xmax, ymax = (float(v) for v in tree.root.max_corner)
+    kmax = max(int(leaf.depth) for leaf in leaves)
+    n = 2 ** kmax
+    cw, ch = (xmax - xmin) / n, (ymax - ymin) / n
+    img = np.zeros((n, n), dtype=np.int32)
+    for i, leaf in enumerate(leaves):
+        x0 = int(round((float(leaf.min_corner[0]) - xmin) / cw))
+        x1 = int(round((float(leaf.max_corner[0]) - xmin) / cw))
+        y0 = int(round((float(leaf.min_corner[1]) - ymin) / ch))
+        y1 = int(round((float(leaf.max_corner[1]) - ymin) / ch))
+        img[y0:y1, x0:x1] = i
+    vals = np.asarray(leaf_values, dtype=np.float64)
+
+    def field(pts: np.ndarray) -> np.ndarray:
+        p = np.asarray(pts, dtype=np.float64).reshape(-1, 2)
+        ix = np.clip(np.floor((p[:, 0] - xmin) / cw).astype(np.intp), 0, n - 1)
+        iy = np.clip(np.floor((p[:, 1] - ymin) / ch).astype(np.intp), 0, n - 1)
+        return vals[img[iy, ix]]
+
+    return field
+
+
+def _medial_contribution(
+    method: str,
+    sdf: Callable[[np.ndarray], np.ndarray],
+    bbox: tuple[float, float, float, float],
+    *,
+    h_max: float,
+    h_min: float,
+) -> tuple[Callable[[np.ndarray], np.ndarray], float]:
+    """Build the channel-width size contribution for ``medial_method``.
+
+    Returns ``(field, h_floor)`` where ``h_floor`` is the smallest size the
+    field takes inside the domain.
+
+    All three methods share one grid spacing ``h_max / 4`` (enlarged when the
+    grid would exceed four million cells), one element-per-feature count
+    ``R = 2`` and one size range ``[h_min, h_max]``, so they differ only in
+    how the medial axis is found.
+    """
+    R = 2.0
+    width, height = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    delta = h_max / 4.0
+    cells = (width / delta + 1.0) * (height / delta + 1.0)
+    if cells > _MEDIAL_MAX_CELLS:
+        delta *= float(np.sqrt(cells / _MEDIAL_MAX_CELLS))
+
+    if method == "vdt":
+        from admesh.medial_vdt import vdt_size_field
+
+        class _Dom:
+            pass
+
+        dom = _Dom()
+        dom.sdf, dom.bbox = sdf, bbox
+        field = vdt_size_field(dom, delta, hmin=h_min, hmax=h_max, R=R)
+        return field, field.h_floor
+
+    if method == "grid":
+        from admesh._stages.distance import eval_sdf_grid
+        from admesh._stages.medial_axis import apply_medial_axis
+        from admesh.medial_vdt import grid_interpolator
+
+        X, Y, D = eval_sdf_grid(sdf, bbox, delta)
+        h = apply_medial_axis(
+            np.full_like(D, h_max), D, delta, R=R, hmax=h_max, hmin=h_min
+        )
+        inside = D < 0.0
+        floor = float(h[inside].min()) if inside.any() else h_max
+        return grid_interpolator(X[0, :], Y[:, 0], h), floor
+
+    # method == "octree"
+    from admesh._stages.octree_grid import build_octree
+    from admesh._stages.octree_medial import size_field_octree as _octree_medial
+
+    class _Dom:
+        pass
+
+    dom = _Dom()
+    dom.sdf, dom.bbox = sdf, bbox
+    tree = build_octree(dom, h_min=delta, h_max=h_max)
+    h_leaf, _ = _octree_medial(tree, R=R, hmin=h_min, hmax=h_max)
+    leaf_inside = np.array([leaf.D < 0.0 for leaf in tree.leaves])
+    floor = float(h_leaf[leaf_inside].min()) if leaf_inside.any() else h_max
+    return _medial_leaf_lookup(tree, h_leaf), floor
+
+
 def triangulate(
     domain: Domain | str | "os.PathLike[str]",
     *,
@@ -644,6 +743,7 @@ def triangulate(
     quality_gate: tuple[float, float] = (0.30, 0.60),
     ttol: float | None = None,
     dptol: float | None = None,
+    medial_method: str | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -678,6 +778,23 @@ def triangulate(
         Relative displacement threshold for Delaunay rebuild. Default: 0.27.
     dptol : float or None
         Interior node movement tolerance for convergence. Default: 2e-3.
+    medial_method : {None, 'grid', 'octree', 'vdt'}
+        Optional channel-width size contribution, added to the other
+        contributions and combined through ``combine``. ``None`` (default)
+        adds nothing and leaves the output unchanged. The size is
+        ``clip(LFS / 2, h_min, h_max)`` where ``LFS`` is the local feature
+        size, the distance to the boundary plus the distance to the medial
+        axis. The methods differ in how the medial axis is found:
+        ``'grid'`` uses the grid method of the 2012 port, ``'octree'`` uses the
+        octree leaf graph, and ``'vdt'`` uses the vector distance transform
+        of Kang and Kubatko (2024, https://doi.org/10.5194/gmd-17-1603-2024)
+        with corner pruning. All three share one grid spacing, ``h_max / 4``
+        (enlarged to keep the grid under four million cells), and use
+        ``h_min`` (default ``h_max / 100``) as the lower size bound. When a
+        method is chosen, the initial lattice spacing of the generator is
+        lowered to the smallest size the contribution takes inside the domain
+        (not below ``h_min``), because the generator thins a lattice of that
+        spacing.
 
     Returns
     -------
@@ -687,7 +804,8 @@ def triangulate(
     Raises
     ------
     ValueError
-        If domain source cannot be resolved or quality gates fail.
+        If domain source cannot be resolved, quality gates fail, or
+        ``medial_method`` is not one of the values listed above.
     ImportError
         If registry lookup is attempted without valence-domains installed.
 
@@ -696,6 +814,12 @@ def triangulate(
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
+    if medial_method is not None and medial_method not in _MEDIAL_METHODS:
+        raise ValueError(
+            f"triangulate: medial_method must be None or one of "
+            f"{_MEDIAL_METHODS}, got {medial_method!r}"
+        )
+
     # Lazy imports — keeps `import admesh` cheap and avoids a hard
     # dependency cycle with the faithful-port modules at import time.
     from admesh._stages.domains import Domain as _PortDomain
@@ -761,6 +885,22 @@ def triangulate(
     #   3. Caller passed h_min or h_max but no user_contribs — auto-create
     #      a uniform clamping size field so the bounds are not silently ignored.
     #   4. Neither — uniform sizing falls through (`fh=None`).
+    medial_fn = None
+    if medial_method is not None:
+        _m_hmax = float(h0)
+        _m_hmin = float(h_min) if h_min is not None else _m_hmax / 100.0
+        medial_fn, _m_floor = _medial_contribution(
+            medial_method,
+            getattr(port_domain, "fd"),
+            tuple(float(b) for b in port_domain.bbox),
+            h_max=_m_hmax,
+            h_min=_m_hmin,
+        )
+        # The driver treats ``h0`` as the smallest target edge length (it seeds
+        # a lattice of that spacing and thins it by the size field), so a
+        # contribution that refines below ``h_max`` needs a finer ``h0``.
+        h0 = min(h0, max(_m_floor, _m_hmin))
+
     if size_field is not None and user_contribs:
         warnings.warn(
             "triangulate: both `size_field` and `user_contribs` were "
@@ -769,8 +909,19 @@ def triangulate(
             UserWarning,
             stacklevel=2,
         )
-        fh = size_field
-    elif user_contribs or h_min is not None or h_max is not None:
+        if medial_fn is None:
+            fh = size_field
+        else:
+            from admesh.size_field import compose_size_field
+
+            fh = compose_size_field(
+                builtins=(size_field,),
+                user_contribs=(medial_fn,),
+                combine=combine,
+                hmin=h_min,
+                hmax=h_max,
+            )
+    elif user_contribs or h_min is not None or h_max is not None or medial_fn is not None:
         from admesh.size_field import compose_size_field
 
         # Build Phase-1 builtins: include size_field if provided
@@ -778,6 +929,7 @@ def triangulate(
 
         # Build Phase-2 user contributions
         user_phase2 = tuple(user_contribs)
+        _has_other = bool(builtins_phase1) or bool(user_phase2)
 
         # If h_min/h_max specified without other size fields, create a bounded field.
         # NOTE (#65 / spec 025 Step 3 DEFERRED): wiring build_h() here as the
@@ -787,7 +939,7 @@ def triangulate(
         # AC-005/AC-006. Deferred pending operator decision (make conditional on
         # domain features / tune scales / revise gate). Steps 1+2 (Domain.bathymetry
         # + from_mesh extraction) shipped — additive, no behavior change.
-        if not builtins_phase1 and not user_phase2:
+        if not _has_other:
             # Create a clamping size field directly to avoid warning noise.
             def _clamped_uniform(pts):
                 pts_arr = np.asarray(pts, dtype=np.float64)
@@ -798,6 +950,9 @@ def triangulate(
                     result[:] = h_max  # Use h_max as the target (conservative for refinement)
                 return result
             user_phase2 = (_clamped_uniform,)
+
+        if medial_fn is not None:
+            user_phase2 = (*user_phase2, medial_fn)
 
         fh = compose_size_field(
             builtins=builtins_phase1,

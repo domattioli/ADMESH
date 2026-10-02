@@ -22,6 +22,8 @@ authors:
   - family-names: West
     given-names: Dustin W.
     affiliation: "?"
+  - family-names: Kang
+    given-names: Younghun
 repository-code: "https://github.com/domattioli/ADMESH"
 url: "https://github.com/domattioli/ADMESH"
 license: Apache-2.0
