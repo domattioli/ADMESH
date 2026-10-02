@@ -46,21 +46,6 @@ See `TESTING.md` for the full marker reference and fixture-data layout.
   configured git hooks unless explicitly approved by a maintainer in a
   comment on the PR.
 
-## DomI sync (governance / skill marketplace)
-
-ADMESH consumes shared skills, hooks, and policies from the upstream
-[DomI](https://github.com/domattioli/DomI) repository. The pinned upstream
-commit is recorded in `.domi-pin` at the repo root. Before starting a
-write session, verify the pin matches DomI HEAD by either:
-
-- Running `bash skills/sync-from-domi/scripts/check_pin.sh` (exit 0 = synced),
-  or
-- Saying "sync from DomI" in a Claude Code session — the `sync-from-domi`
-  skill will refresh the pin and update installed skills if drift is detected.
-
-A `chore: sync DomI@<sha>` issue auto-opens on this repo whenever DomI
-ships a new commit. Close the issue by running the sync.
-
 ## Filing an issue
 
 - ADMESH bug, feature, or doc gap → file at
@@ -68,19 +53,14 @@ ships a new commit. Close the issue by running the sync.
   Include: minimal repro, expected vs. actual, ADMESH version
   (`python -c "import admesh; print(admesh.__version__)"`),
   and OS / Python version.
-- Cross-repo / governance concern → file at
-  [github.com/domattioli/DomI/issues](https://github.com/domattioli/DomI/issues)
-  with a `From: ADMESH` line in the body.
 
 ## Code style
 
 - Run `ruff check admesh tests` and `ruff format admesh tests` before committing.
 - Run `mypy admesh` for type-check signal (not gating yet, but soon).
-- Numeric code follows the Constitution (`docs/governance/CONSTITUTION.md`):
-  faithful ports of MATLAB `01_ADMESH_Library` modules live under
-  `admesh/_stages/` (once spec 009 R3 lands) or directly under `admesh/`
-  today, and must produce results bit-equivalent to the MATLAB reference
-  within documented tolerances. Any divergence requires a
+- Numeric code stays faithful to the MATLAB `01_ADMESH_Library` reference:
+  the 13 locked stage modules under `src/admesh/_stages/` must remain
+  numerically equivalent to the pinned MATLAB source. Any divergence needs a
   `docs/PORTING_NOTES.md` entry.
 
 ## Commit messages
@@ -88,7 +68,7 @@ ships a new commit. Close the issue by running the sync.
 - Conventional-commits style preferred: `feat: ...`, `fix: ...`, `chore: ...`,
   `docs: ...`, `test: ...`, `refactor: ...`.
 - Reference the issue: `Resolve #NN: ...` or `Refs #NN: ...`.
-- Spec-kit commits: `spec NNN ${PHASE}: ...` (e.g. `spec 009 R1: ...`).
+- Feature-spec commits: `spec NNN ${PHASE}: ...` (e.g. `spec 009 R1: ...`).
 
 ## Pull requests
 

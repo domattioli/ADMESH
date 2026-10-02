@@ -1,4 +1,4 @@
-# Specification: Issue #57 — Redo Speckit Constitutions for the Whole Project
+# Specification: Issue #57 — Redo spec constitutions for the Whole Project
 
 **Status**: COMPLETE  
 **Related Documents**:

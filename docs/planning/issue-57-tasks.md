@@ -1,4 +1,4 @@
-# Tasks: Issue #57 — Redo Speckit Constitutions
+# Tasks: Issue #57 — Redo spec constitutions
 
 **Status**: COMPLETE
 

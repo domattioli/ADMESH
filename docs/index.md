@@ -56,8 +56,7 @@ Public surface, listed by area:
 The 13 faithful-port stage modules (`admesh.curvature`, `admesh.distmesh`,
 `admesh.medial_axis`, etc.) are accessible by direct import but carry no
 semver guarantee on internal signatures — they are numerical translations
-of the MATLAB reference and may evolve as the port is refined. See
-[Constitution](governance/CONSTITUTION.md) Article II.1.
+of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
