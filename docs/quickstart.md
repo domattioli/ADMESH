@@ -185,9 +185,7 @@ plt.show()
 ## Where to go next
 
 - **[API Reference](api/triangulate.md)** — every public symbol documented.
-- **[Constitution](governance/CONSTITUTION.md)** — the rules ADMESH follows
-  for faithful-port discipline, no C extensions, and reference-test cadence.
-- **[Project plan](governance/PROJECT_PLAN.md)** — historical and current
-  status; "Path to 0.1.0" lives at the top.
+- **[Porting notes](PORTING_NOTES.md)** — how the MATLAB stages map to
+  Python, with recorded behavior differences.
 - **[Contributing](https://github.com/domattioli/ADMESH/blob/development/CONTRIBUTING.md)** — dev setup, branch contract,
   filing issues.

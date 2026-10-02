@@ -40,4 +40,4 @@ body:
     id: env
     attributes:
       label: Environment
-      placeholder: "OS, Claude Code version, repo branch"
+      placeholder: "OS, Python version, repo branch"

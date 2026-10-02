@@ -56,7 +56,7 @@ No hard feelings either way — just wanted to reach out first! Feel free to rep
 open an issue on our repo if you'd like to discuss.
 
 Cheers,
-[Domi — domattioli@github]
+[domattioli@github]
 ```
 
 ---
@@ -137,7 +137,7 @@ Proposed resolution:
 
 | Date | Event | Details | Owner |
 |------|-------|---------|-------|
-| 2026-05-14 | Plan drafted | Email draft + decision tree prepared | Claude |
+| 2026-05-14 | Plan drafted | Email draft + decision tree prepared | Maintainer |
 | [TBD] | Email sent | Contact to hroncok | [To be assigned] |
 | [TBD] | Response received | Document here | [To be assigned] |
 | [TBD] | Final decision | Update issue #13 | [To be assigned] |

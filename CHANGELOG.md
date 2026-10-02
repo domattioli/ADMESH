@@ -60,9 +60,9 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 - Restored ADMESH-variant distmesh code (`MeshOutput`, `SizeFn`, `distmesh2d_admesh`)
 - Tier-1 / Tier-2 acceptance tests for size-field stack structural validity — issue #10
 - Holistic test suite audit (`TEST-AUDIT.md`) — issue #59
-- DomI cross-repo sync contract + SessionStart hook plugin auto-install
+- Cross-repo sync contract + session-start hook plugin auto-install
 
-  > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records live in DomI. The SessionStart hook and `scripts/instructions_on_start.sh` were untracked on 2026-09-24 and are local tooling, not part of the package.
+  > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records are kept outside this repository. The session-start hook and its script were untracked on 2026-09-24 and are local tooling, not part of the package.
 
 ### Fixed
 - 1D boundary seeding for `Domain` path on notched-rectangle geometry — issue #2
@@ -71,14 +71,14 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 
 ### Documentation
 - `pfix` bit-exact preservation contract — issue #46
-- Spec-kit planning artifacts for Gmsh I/O integration (spec 008) — issue #5
-- Spec-kit planning for PyPI namespace claim — issue #13
+- Planning artifacts for Gmsh I/O integration (spec 008) — issue #5
+- Planning for PyPI namespace claim — issue #13
 - `CONSTITUTION.md` covering specs 001-008 — issue #57
 - Scripts audit + cleanup recommendations — issue #42
 
 ### Infrastructure
 - Single-branch policy: all routine fixes land on `daily-issue-fixing`
-- Synced `.domi-pin` to DomI v2.1 manifest
+- Synced governance pin to the v2.1 manifest
 
 ## [0.1.0] - 2026-04-27
 
