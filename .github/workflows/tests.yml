@@ -52,3 +52,27 @@ jobs:
           name: coverage-json
           path: coverage.json
           if-no-files-found: ignore
+
+  valence-schema-0.3:
+    name: valence-domains 0.4.2 (manifest schema 0.3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install package with valence-domains 0.4.2
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" "valence-domains==0.4.2"
+
+      - name: Run registry compatibility tests
+        run: pytest tests/test_valence_compat.py tests/test_valence_domains_contract.py tests/test_registry.py -q --tb=short

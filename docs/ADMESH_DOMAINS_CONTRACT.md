@@ -1,88 +1,77 @@
-# `admesh-domains` Contract
+# `valence-domains` Contract
 
-This document specifies the public surface ADMESH consumes from its sibling
-package, [`admesh-domains`](https://github.com/domattioli/ADMESH-Domains).
-Changes to this contract require a coordinated update of both packages.
+This document specifies the public surface ADMESH consumes from the
+[`valence-domains`](https://github.com/domattioli/Valence) registry package.
+The package was formerly published as `admesh-domains`.
 
-## Supported version range
+## Supported versions
 
 ```toml
-admesh-domains>=0.3.0,<0.4
+valence-domains>=0.4.2
 ```
 
-The pin is declared in `pyproject.toml` under `[project].dependencies`.
-ADMESH 0.1.0 is validated against `admesh-domains` 0.3.2. Future minor
-bumps within `0.3.x` (`>=0.3.0,<0.4`) are accepted; `0.4.x` requires a
-coordinated update and a new contract revision.
+The pin is declared in `pyproject.toml` under `[project].dependencies`. It has
+no upper cap. ADMESH supports both registry manifest schemas:
 
-## Consumed API surface
+| Manifest schema | Example package release | Lookup route used by ADMESH |
+|-----------------|-------------------------|-----------------------------|
+| 0.3             | `valence-domains` 0.4.2 | Domain-only API (route c)   |
+| 0.4             | `valence-domains` 0.9.0 and later | group API (route a), or the manifest object (route b) |
 
-ADMESH imports from `admesh_domains` lazily inside `admesh/registry.py`
-so a missing install raises a friendly `ImportError` at first registry
-use rather than at `import admesh` time.
+In CI, the `valence-schema-0.3` job pins `valence-domains==0.4.2`, and the
+main job installs the newest published release. Until a schema-0.4 release is
+published, schema 0.4 is checked against a Valence source checkout through
+`ADMESH_VALENCE_SRC` (see "Contract validation").
 
-### Top-level functions
+## The compatibility layer
 
-| Symbol                                  | Used by                  | Notes                                       |
-|-----------------------------------------|--------------------------|---------------------------------------------|
-| `admesh_domains.get_domain(name, *)`    | `load_domain_from_registry` | Returns a `Domain` (see below)             |
-| `admesh_domains.list_domains(*)`        | `list_available_domains` | Returns `list[Domain]`                      |
+`admesh/registry.py` never calls `valence_domains` lookup functions directly.
+It goes through `admesh/_valence_compat.py`, which picks one of three routes by
+feature detection (`getattr` / `hasattr`). It never compares version numbers.
 
-### Data classes
+| Route | Detected by | Lookup | Listing |
+|-------|-------------|--------|---------|
+| a. group API | callable `get_group` and `list_collections` | `get_group(name, manifest=None)` | `list_domains()` plus `list_collections()` |
+| b. manifest object | `load_manifest()` returns an object with `get_group`, `collections` and `primary_domains` | `Manifest.get_group(name)`, then `resolve_alias` | `primary_domains` plus `collections` |
+| c. Domain-only API | fallback | `get_domain(name)` | `list_domains()` |
 
-| Class                              | Attributes ADMESH reads                                         |
-|------------------------------------|-----------------------------------------------------------------|
-| `admesh_domains.Domain`            | `name`, `full_name`, `description`, `category`, `region`, `bounding_box`, `meshes` |
-| `admesh_domains.Mesh`              | `id`, `filename`, `bounding_box`, `path`, `exists()`, `load()`  |
-| `admesh_domains.BoundingBox`       | `min_lon`, `min_lat`, `max_lon`, `max_lat`                      |
+Routes a and b resolve a Domain, a Domain alias (to its primary Domain) or a
+Collection. Route c has no aliases and no Collections. An unknown name raises
+`KeyError`, which the registry functions turn into `ValueError`.
 
-`Mesh.path` is a `pathlib.Path` pointing to the expected local file location
-inside the `admesh-domains` install directory. `Mesh.exists()` returns
-whether the file is currently on disk; `Mesh.load()` downloads the file
-from the upstream HuggingFace mirror if missing (requires the optional
-`huggingface_hub` extra).
+## Consumed data
 
-## Upgrade policy
+| Object | Attributes ADMESH reads |
+|--------|-------------------------|
+| Domain | `name`, `full_name`, `description`, `category`, `continent` (schema 0.4) or `region` (schema 0.3), `bounding_box`, `meshes`, `get_mesh()` |
+| Collection | `name`, `full_name`, `description`, `meshes`, `get_mesh()` |
+| Mesh | `id`, `filename`, `bounding_box`, `license`, `contributor`, `contributed_by`, `version`, `format` (schema 0.4) or `type` (schema 0.3), `path`, `exists()`, `load()` |
 
-When `admesh-domains` ships a new version:
-
-1. **Patch** (`0.3.x` → `0.3.y`): no action required; pin already accepts.
-   Run `pytest tests/test_admesh_domains_contract.py -v` to confirm.
-2. **Minor** (`0.3.x` → `0.4.0`): coordinated update.
-   - Run the contract test against `0.4.0` to identify which symbols
-     changed.
-   - Update `admesh/registry.py` adapter to match the new surface.
-   - Update this document and the pin in `pyproject.toml`.
-   - Open a PR with both changes; do not bump the pin alone.
-3. **Major** (`0.x` → `1.0`): treat as a minor bump; the contract may
-   stabilize entirely.
+Schema 0.4 renamed `region` to `continent` and `type` to `format`.
+`load_domain_with_metadata()` reports both names of each pair with the same
+value, so callers written against either schema keep working.
 
 ## Network fetch
 
-`admesh_domains.Mesh.load()` downloads the underlying fort.14 from the
-upstream HuggingFace mirror. ADMESH treats this as opt-in: install with
-`pip install admesh2D[registry]` to pull in `huggingface_hub>=0.20`.
-Without the extra, `admesh.load_domain_from_registry` raises a clear
-`ImportError` before any network call is made — only the local
+`Mesh.load()` downloads the underlying fort.14 from the upstream mirror.
+ADMESH treats this as opt-in: install with `pip install admesh2D[registry]` to
+pull in `huggingface_hub`. Without the extra, `load_domain_from_registry`
+raises a clear `ImportError` before any network call. Only the local
 `list_available_domains()` path stays usable.
 
-The slow CI lane (`pytest -m slow`) exercises the full chain on the
-smallest fixture (`BaranjaHill`, ~0.08 MB), covering
-`load_domain_from_registry`, `load_domain_with_metadata`, and the
-end-to-end contract test below.
+The slow test lane (`pytest -m slow`) exercises the full chain on the smallest
+fixture (`BaranjaHill`, about 0.08 MB).
 
 ## Contract validation
 
-`tests/test_admesh_domains_contract.py` asserts:
+- `tests/test_valence_domains_contract.py` runs against the installed package.
+  It checks the version floor, that at least one lookup route exists, that
+  listing returns entries, and that entries and meshes expose the attributes
+  above.
+- `tests/test_valence_compat.py` injects one stand-in module per route and
+  checks that the registry reports the same names and metadata for the same
+  content. When `ADMESH_VALENCE_SRC` points at a Valence source checkout, one
+  more test resolves a Domain, an alias and a Collection from that checkout's
+  `tests/fixtures/manifest_v04_minimal.toml`.
 
-1. `admesh_domains` is importable.
-2. `admesh_domains.__version__` satisfies the pin.
-3. Every symbol in the "Consumed API surface" table above resolves.
-4. `admesh_domains.list_domains()` runs without raising.
-5. Each `Domain` returned exposes the attributes ADMESH reads.
-6. `test_end_to_end_load_domain_from_registry` (slow lane) exercises
-   the full ``get_domain → Mesh.load → read_fort14 → Domain.from_mesh``
-   chain.
-
-This test is part of the standard CI lane. A contract drift caught by
-this test is a release-blocking signal.
+A contract drift caught by these tests blocks a release.
