@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite both the algorithm paper and the archived software release."
 type: software
-title: "ADMESH: An advanced, automatic unstructured mesh generator for 2D shallow-water models (Python port)"
+title: "ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python)"
 abstract: >-
   Python port of the ADMESH library originally developed in MATLAB at The Ohio
   State University Computational Hydrodynamics and Informatics Lab. Implements
@@ -21,7 +21,6 @@ authors:
     affiliation: Computational Hydrodynamics and Informatics Lab, The Ohio State University
   - family-names: West
     given-names: Dustin W.
-    affiliation: "?"
   - family-names: Kang
     given-names: Younghun
 repository-code: "https://github.com/domattioli/ADMESH"
