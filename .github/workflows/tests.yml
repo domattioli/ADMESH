@@ -53,8 +53,8 @@ jobs:
           path: coverage.json
           if-no-files-found: ignore
 
-  valence-schema-0.3:
-    name: valence-domains 0.4.2 (manifest schema 0.3)
+  valence-schema-03:
+    name: valence-schema-0.3 (valence-domains 0.4.2)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 

@@ -18,7 +18,7 @@ no upper cap. ADMESH supports both registry manifest schemas:
 | 0.3             | `valence-domains` 0.4.2 | Domain-only API (route c)   |
 | 0.4             | `valence-domains` 0.9.0 and later | group API (route a), or the manifest object (route b) |
 
-In CI, the `valence-schema-0.3` job pins `valence-domains==0.4.2`, and the
+In CI, the `valence-schema-03` job (shown as "valence-schema-0.3") pins `valence-domains==0.4.2`, and the
 main job installs the newest published release. Until a schema-0.4 release is
 published, schema 0.4 is checked against a Valence source checkout through
 `ADMESH_VALENCE_SRC` (see "Contract validation").
