@@ -93,6 +93,11 @@ if HAS_PYBIND11 and eigen_path is not None:
     ]
 
 
+# ADMESH_NO_CPP=1 skips the extension entirely, so the build yields a pure
+# py3-none-any wheel (used for the browser app, which runs under Pyodide).
+if os.environ.get("ADMESH_NO_CPP", "0").strip() in ("1", "true"):
+    ext_modules = []
+
 setup(
     ext_modules=ext_modules,
     cmdclass={"build_ext": build_ext} if HAS_PYBIND11 else {},

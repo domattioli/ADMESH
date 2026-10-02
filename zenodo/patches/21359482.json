@@ -1,0 +1,34 @@
+{
+  "title": "ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python)",
+  "creators": [
+    {
+      "name": "Mattioli, Dominik",
+      "affiliation": "Unaffiliated"
+    },
+    {
+      "name": "Conroy, Colton J.",
+      "affiliation": "Columbia University"
+    },
+    {
+      "name": "Kubatko, Ethan J.",
+      "affiliation": "Computational Hydrodynamics and Informatics Lab, The Ohio State University"
+    },
+    {
+      "name": "West, Dustin W."
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/domattioli/ADMESH/tree/v0.6.1",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.1007/s10236-012-0574-0",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    }
+  ]
+}

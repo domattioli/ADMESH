@@ -1,0 +1,35 @@
+{
+  "title": "ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python)",
+  "creators": [
+    {
+      "name": "Mattioli, Dominik",
+      "affiliation": "Unaffiliated"
+    },
+    {
+      "name": "Conroy, Colton J.",
+      "affiliation": "Columbia University"
+    },
+    {
+      "name": "Kubatko, Ethan J.",
+      "affiliation": "Computational Hydrodynamics and Informatics Lab, The Ohio State University"
+    },
+    {
+      "name": "West, Dustin W."
+    }
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/domattioli/ADMESH/tree/v0.2.0",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "10.1007/s10236-012-0574-0",
+      "relation": "isSupplementTo",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    }
+  ],
+  "description": "<h2>ADMESH 0.2.1</h2>\n<p>First MINOR release after v0.1.0 &mdash; adds valence balancing as a new mesh-quality stage and lands eleven issue fixes across the mesh pipeline.</p>\n<p>Distribution: <strong><code>admesh2D</code></strong> on PyPI. Import name: <code>admesh</code>.</p>\n<h2>Install</h2>\n<pre><code class=\"language-bash\">pip install admesh2D==0.2.1\n</code></pre>\n<pre><code class=\"language-python\">from admesh.routine import triangulate\nfrom admesh import domains\np, t = triangulate(domains.UNIT_DISK, h0=0.1)\n</code></pre>\n<h2>Added</h2>\n<ul>\n<li>Valence balancing via edge flipping (<code>admesh/valence.py</code>) &mdash; issue #27</li>\n<li><code>initial_points</code> warm-start parameter for <code>triangulate()</code> &mdash; issue #45</li>\n<li>Convergence diagnostics in <code>distmesh2d</code> (oscillation + stagnation detection) &mdash; issue #47</li>\n<li>Restored ADMESH-variant distmesh code (<code>MeshOutput</code>, <code>SizeFn</code>, <code>distmesh2d_admesh</code>)</li>\n<li>Tier-1 / Tier-2 acceptance tests for size-field stack structural validity &mdash; issue #10</li>\n<li>Holistic test suite audit (<code>TEST-AUDIT.md</code>) &mdash; issue #59</li>\n</ul>\n<h2>Fixed</h2>\n<ul>\n<li>1D boundary seeding for <code>Domain</code> path on notched-rectangle geometry &mdash; issue #2</li>\n<li><code>h_min</code> / <code>h_max</code> parameters now propagate into the size field even when no user contributions are supplied &mdash; issue #37</li>\n<li><code>Domain.from_mesh()</code> produces a proper SDF for real-world ADCIRC meshes &mdash; issues #38, #39</li>\n</ul>\n<h2>Documentation</h2>\n<ul>\n<li><code>pfix</code> bit-exact preservation contract &mdash; issue #46</li>\n<li><code>CONSTITUTION.md</code> covering specs 001&ndash;008 &mdash; issue #57</li>\n<li>Scripts audit + cleanup recommendations &mdash; issue #42</li>\n</ul>\n<h2>Full changelog</h2>\n<p>https://github.com/domattioli/ADMESH/compare/v0.1.0...v0.2.0</p>"
+}

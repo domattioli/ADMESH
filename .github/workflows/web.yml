@@ -1,0 +1,77 @@
+name: web
+
+# Builds the browser app and the documentation, then publishes them to
+# Cloudflare Pages. Pushes to development deploy a preview. Production is
+# deployed only by a manual run with the "production" input set to true.
+
+on:
+  push:
+    branches:
+      - development
+  workflow_dispatch:
+    inputs:
+      production:
+        description: Deploy to production (the main branch of the Pages project)
+        type: boolean
+        default: false
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install build and documentation tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build mkdocs-material "mkdocstrings[python]"
+          ADMESH_NO_CPP=1 pip install -e .
+
+      - name: Generate interactive-demo frames
+        # The documentation embeds docs/demo, which replays frames from docs/demo/data.
+        run: python scripts/gen_demo_frames.py
+
+      - name: Build web_dist
+        run: python scripts/build_web.py
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Create the Pages project if it does not exist
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages project create admesh --production-branch main || true
+
+      - name: Deploy preview
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.production == true) }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages deploy web_dist --project-name admesh --branch development
+
+      - name: Deploy production
+        if: github.event_name == 'workflow_dispatch' && inputs.production == true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler pages deploy web_dist --project-name admesh --branch main

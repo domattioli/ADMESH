@@ -198,7 +198,6 @@ def distmesh2d(
     else:
         nfix = 0
 
-    N = len(p)
     pold = np.full_like(p, np.inf)
 
     t = np.empty((0, 3), dtype=np.int64)
@@ -352,8 +351,6 @@ def fixmesh(
 # ``01_ADMESH_Library/10_Distmesh_2d/distmesh2d.m`` @ 19b2eb9.
 # ---------------------------------------------------------------------------
 
-
-from dataclasses import dataclass
 
 
 @dataclass(frozen=True)

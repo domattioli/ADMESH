@@ -12,7 +12,7 @@
 
 ### 1. `bench_mesh_size.py`
 - **Purpose**: Benchmark Numba vs. pure-Python mesh size solver
-- **Status**: ACTIVE (referenced in PROJECT_PLAN.md)
+- **Status**: ACTIVE (referenced in the project plan)
 - **Output**: Performance metrics for release notes
 - **Keep**: YES (essential for perf validation)
 
@@ -65,7 +65,7 @@
 
 ### 14. `wnat_demo.py`
 - **Purpose**: WNAT end-to-end demo
-- **Status**: LOW-PRIORITY (referenced in PROJECT_PLAN.md, possibly used in docs)
+- **Status**: LOW-PRIORITY (referenced in the project plan, possibly used in docs)
 - **Recommendation**: KEEP (used in educational materials)
 
 ## Recommendations

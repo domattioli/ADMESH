@@ -2,15 +2,13 @@
 # Pre-tag verification — gates release tags (version-agnostic since 0.6.0).
 #
 # Gates:
-#   1. constitution version >= 1.0.2
-#   2. README has the "0.1.0 in progress" callout
-#   3. no docs/papers/wnat_admesh.png in the working tree
-#   4. no dist/ or build/ directories
-#   5. tier-2 release-gate test passes OR is documented as xfail (issue #10)
-#   6. pyproject.toml version == admesh/__init__.py __version__  (spec 009 FR-001)
-#   7. PROJECT_PLAN.md has an entry dated within 30 days of HEAD  (spec 009 FR-002)
-#   8. output/coverage.json exists and is < 30 days old            (spec 009 FR-004/005)
-#   9. output/durations.txt exists and is < 30 days old            (spec 009 FR-004/005)
+#   1. README has the "0.1.0 in progress" callout
+#   2. no docs/papers/wnat_admesh.png in the working tree
+#   3. no dist/ or build/ directories
+#   4. tier-2 release-gate test passes OR is documented as xfail (issue #10)
+#   5. pyproject.toml version == admesh/__init__.py __version__  (spec 009 FR-001)
+#   6. output/coverage.json exists and is < 30 days old            (spec 009 FR-004/005)
+#   7. output/durations.txt exists and is < 30 days old            (spec 009 FR-004/005)
 #
 # Usage: bash scripts/pre_tag_check.sh
 #
@@ -40,22 +38,7 @@ fi
 # grep-safe form (dots escaped)
 ver_re=$(printf '%s' "$TARGET_VERSION" | sed 's/\./\\./g')
 
-# 1. Constitution version >= 1.0.0 -----------------------------------------
-# speckit constitution migration re-versioned the banner to 1.0.0 (2026); the 1.0.2 floor was the pre-migration numbering (spec-009 FR-017 era)
-constitution_version=$(
-    grep -E '^\*\*Version\*\*:' DomI/specs/consumers/ADMESH/memory/constitution.md \
-        | head -1 \
-        | sed -E 's/^\*\*Version\*\*: ([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
-)
-if [[ -z "$constitution_version" ]]; then
-    fail "could not read constitution version banner"
-elif [[ "$(printf '%s\n%s' '1.0.0' "$constitution_version" | sort -V | head -1)" != '1.0.0' ]]; then
-    fail "constitution version $constitution_version < 1.0.0 (spec FR-017)"
-else
-    pass "constitution version $constitution_version >= 1.0.0"
-fi
-
-# 2. README status reflects shipping reality ----------------------------
+# 1. README status reflects shipping reality ----------------------------
 # Pre-ship: README carries "<version> in progress" callout.
 # Ship-ready: README mentions the tag version explicitly.
 # Either state is acceptable; the gate fails only when both are absent.
@@ -67,14 +50,14 @@ else
     fail "README must reference ${TARGET_VERSION} either as 'in progress' or as a shipped version"
 fi
 
-# 3. No docs/papers/wnat_admesh.png in the working tree ------------------------
+# 2. No docs/papers/wnat_admesh.png in the working tree ------------------------
 if [[ -f docs/papers/wnat_admesh.png ]]; then
     fail "docs/papers/wnat_admesh.png is present (spec FR-019; should be removed)"
 else
     pass "docs/papers/wnat_admesh.png absent"
 fi
 
-# 4. No dist/ or build/ directories ---------------------------------------
+# 3. No dist/ or build/ directories ---------------------------------------
 if [[ -d dist ]]; then
     fail "dist/ directory present (spec FR-019; should be removed)"
 else
@@ -86,7 +69,7 @@ else
     pass "build/ absent"
 fi
 
-# 5. Tier-2 (WNAT) release-gate status ------------------------------------
+# 4. Tier-2 (WNAT) release-gate status ------------------------------------
 # Either the test passes outright, or it is marked xfail with an issue
 # reference in the body. xfail is acceptable until issue #10 lands.
 if grep -q '@pytest\.mark\.xfail' tests/test_default_size_field.py \
@@ -96,7 +79,7 @@ else
     pass "Tier-2 release gate: not xfailed — verify it passes via pytest"
 fi
 
-# 6. Version string consistency -----------------------------------------------
+# 5. Version string consistency -----------------------------------------------
 # PEP 517 src-layout is canonical; legacy flat layout kept as fallback.
 init_file=""
 if [[ -f src/admesh/__init__.py ]]; then
@@ -120,30 +103,7 @@ else
     pass "version strings agree: $TARGET_VERSION"
 fi
 
-# 7. PROJECT_PLAN.md staleness (most recent entry within 30 days of HEAD) -----
-plan_date=$(
-    grep -oE 'Where we are today \([0-9]{4}-[0-9]{2}-[0-9]{2}' \
-        docs/governance/PROJECT_PLAN.md \
-        | sort -r \
-        | head -1 \
-        | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-)
-if [[ -z "$plan_date" ]]; then
-    fail "PLAN_STALE: no 'Where we are today (YYYY-MM-DD' entry found in PROJECT_PLAN.md"
-else
-    delta_days=$(python3 -c "
-from datetime import date
-delta = (date.today() - date.fromisoformat('$plan_date')).days
-print(delta)
-" 2>/dev/null || echo 999)
-    if [[ "$delta_days" -gt 30 ]]; then
-        fail "PLAN_STALE: last_entry=$plan_date delta=${delta_days}_days (threshold: 30)"
-    else
-        pass "PROJECT_PLAN.md entry $plan_date is ${delta_days} day(s) old"
-    fi
-fi
-
-# 8. output/coverage.json exists and is < 30 days old ------------------------
+# 6. output/coverage.json exists and is < 30 days old ------------------------
 if [[ ! -f output/coverage.json ]]; then
     fail "COVERAGE_MISSING: output/coverage.json not found — run: pytest --cov=admesh --cov-report=json"
 else
@@ -159,7 +119,7 @@ print(int(age))
     fi
 fi
 
-# 9. output/durations.txt exists and is < 30 days old ------------------------
+# 7. output/durations.txt exists and is < 30 days old ------------------------
 if [[ ! -f output/durations.txt ]]; then
     fail "DURATIONS_MISSING: output/durations.txt not found — run: pytest --durations=10 -q"
 else

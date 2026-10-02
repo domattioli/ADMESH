@@ -15,5 +15,3 @@ at the repository root for the full contributor guide.
 ## Issue templates
 
 - ADMESH bug or feature → [github.com/domattioli/ADMESH/issues](https://github.com/domattioli/ADMESH/issues)
-- Cross-repo / governance → [github.com/domattioli/DomI/issues](https://github.com/domattioli/DomI/issues)
-  with a `From: ADMESH` line in the body.

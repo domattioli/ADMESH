@@ -1,4 +1,4 @@
-# Plan: Issue #57 — Redo Speckit Constitutions
+# Plan: Issue #57 — Redo spec constitutions
 
 **Status**: COMPLETE (both phases executed)
 
