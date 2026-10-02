@@ -1,0 +1,12 @@
+{
+  "examples": [
+    {
+      "id": "wnat",
+      "label": "Western North Atlantic (WNAT)",
+      "file": "wnat.json",
+      "h_min": 0.3,
+      "h_max": 0.5,
+      "attribution": "Western North Atlantic, after Hagen et al., public domain."
+    }
+  ]
+}
