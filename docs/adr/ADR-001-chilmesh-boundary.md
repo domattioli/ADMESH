@@ -5,7 +5,7 @@
 | Status | Proposed |
 | Date proposed | 2026-05-21 |
 | Snapshot date (CHILmesh inferred surface) | 2026-05-21 |
-| Spec | [spec 015 — chilmesh overlap analysis](../../specs/015-chilmesh-overlap-analysis/) |
+| Spec | spec 015, chilmesh overlap analysis (internal planning notes, not in this repository) |
 | Issue | [#81 overlap with chilmesh](https://github.com/domattioli/ADMESH/issues/81) |
 | Branch | `daily-maintenance` |
 
@@ -33,14 +33,14 @@ The ADMESH public surface is classified into three roles:
 
 ### Disposition table
 
-The audit in `specs/015-chilmesh-overlap-analysis/inventory.md` classified every public ADMESH module. For every `cons` module, the decision is:
+The spec 015 audit inventory (internal planning notes) classified every public ADMESH module. For every `cons` module, the decision is:
 
 | Module | Role | Disposition | Rationale |
 |---|---|---|---|
 | `admesh.api` (`Mesh`, `Domain`, `BoundarySegment`, `triangulate`) | bdry | **stay in ADMESH** | Generator produces the structure; CHILmesh consumes it via `import admesh` or fort.14 round-trip. No shared base class. |
 | `admesh.boundary_types.BoundaryType` | bdry | **stay in ADMESH** | Wire format authority. Locked by spec 001 FR-022. |
 | `admesh.fort14` | bdry | **stay in ADMESH, contract locked** | Spec 009 R4 + chilmesh-compat tests pin the contract. CHILmesh conforms to it. |
-| `admesh.quad_prep.smooth_for_quadrangulation` | cons | **keep in ADMESH** | Runs *between* fresh-generation and CHILmesh-side tri2quad fusion. Ships as ADMESH's gift to downstream consumers, including users who never touch CHILmesh. |
+| `admesh.quad_prep.smooth_for_quadrangulation` | cons | **keep in ADMESH** | Runs *between* fresh-generation and downstream tri-to-quad fusion (QuADMESH). Ships as ADMESH's gift to downstream consumers, including users who never touch CHILmesh. |
 | `admesh.quality.{mesh_quality, right_iso_quality}` | cons | **keep in ADMESH** | Coupled to release-readiness gate (spec 009 R4) and distmesh stopping criterion. Moving creates a circular dependency. |
 | `admesh.valence.*` | cons | **keep in ADMESH; coordinate with #84** | Valence balancing is consumer-side, but #84 wants max-valence as a *generator-side* constraint. ADR records that `admesh.valence` stays for now; #84's design must thread the seam explicitly. |
 | `admesh.viz.plot_mesh` | cons | **keep in ADMESH** | `[viz]` extra already gates matplotlib. Moving forces CHILmesh install for plotting — net negative. |

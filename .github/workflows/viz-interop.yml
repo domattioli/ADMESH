@@ -1,4 +1,4 @@
-# Repo-local workflow (spec-010 v3) — registered in .github/workflows/LOCAL.md.
+# Repo-local workflow.
 # Runs the chilmesh/matplotlib interop tests that the standard tests.yml lane
 # always skips (it installs only .[dev], which lacks the viz extra). See #197.
 # Paths-filtered to the viz surface so it only spends CI minutes when the
