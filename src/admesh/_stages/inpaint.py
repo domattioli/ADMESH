@@ -173,7 +173,6 @@ def _identify_neighbors(
     """
     if len(nan_list) == 0:
         return np.empty((0, 3), dtype=np.int64)
-    nan_count = len(nan_list)
     # All candidates: NaN (row, col) + each talks_to offset.
     rc = nan_list[:, 1:3]  # (nan_count, 2)
     # Broadcast: (talks_count, nan_count, 2) -> (talks_count * nan_count, 2)
