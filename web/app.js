@@ -11,6 +11,7 @@
   const exampleSelect = $("example-select");
   const exampleNote = $("example-note");
   const canvas = $("mesh-canvas");
+  const progressCanvas = $("progress-canvas");
   const STATES = ["loading", "empty", "error", "ready"];
   const DOMAIN_EXTENSIONS = [".json", ".toml", ".14"];
 
@@ -20,6 +21,8 @@
   let examples = [];
   let example = null; /* {entry, text} while an example is chosen */
   let exampleRequest = 0;
+  let latestFrame = null;
+  let frameAnimId = null;
 
   function setState(name) {
     STATES.forEach((s) => {
@@ -70,13 +73,29 @@
       runtimeReady = true;
       if (!last && !busy) setState("empty");
       refreshButton();
+    } else if (msg.type === "frame") {
+      latestFrame = msg;
+      if (frameAnimId === null) {
+        frameAnimId = requestAnimationFrame(() => {
+          frameAnimId = null;
+          if (!latestFrame || !busy) return; /* the result or an error arrived first */
+          progressCanvas.hidden = false;
+          drawFrame();
+          const nodeCount = latestFrame.frame.nodes.length / 2;
+          $("status-text").textContent = "Meshing: iteration " + (latestFrame.iter + 1) + ", " + nodeCount + " points";
+        });
+      }
     } else if (msg.type === "result") {
       busy = false;
       last = msg.result;
+      latestFrame = null;
+      progressCanvas.hidden = true;
       showResult(last);
       refreshButton();
     } else if (msg.type === "error") {
       busy = false;
+      latestFrame = null;
+      progressCanvas.hidden = true;
       showError(msg.message);
       refreshButton();
     }
@@ -183,6 +202,8 @@
     }
     busy = true;
     refreshButton();
+    latestFrame = null;
+    progressCanvas.hidden = true;
     $("status-text").textContent = "Reading file";
     setState("loading");
     const text = example ? example.text : await file.text();
@@ -230,46 +251,71 @@
     return [d[0], d[1], d[2]];
   }
 
-  function draw() {
-    if (!last || document.querySelector('[data-state="ready"]').hidden) return;
-    const { nodes, elements, quality } = last;
+  function drawMesh(targetCanvas, nodes, elements, quality) {
     let xmin = Infinity, xmax = -Infinity, ymin = Infinity, ymax = -Infinity;
     for (let i = 0; i < nodes.length; i += 2) {
       xmin = Math.min(xmin, nodes[i]); xmax = Math.max(xmax, nodes[i]);
       ymin = Math.min(ymin, nodes[i + 1]); ymax = Math.max(ymax, nodes[i + 1]);
     }
     const dpr = window.devicePixelRatio || 1;
-    const cssWidth = canvas.clientWidth || 600;
+    const cssWidth = targetCanvas.clientWidth || 600;
     const pad = 12;
     const spanX = (xmax - xmin) || 1, spanY = (ymax - ymin) || 1;
     const cssHeight = Math.max(160, Math.min(cssWidth * (spanY / spanX), cssWidth * 1.2));
-    canvas.width = Math.round(cssWidth * dpr);
-    canvas.height = Math.round(cssHeight * dpr);
-    canvas.style.height = cssHeight + "px";
-    const ctx = canvas.getContext("2d");
+    targetCanvas.width = Math.round(cssWidth * dpr);
+    targetCanvas.height = Math.round(cssHeight * dpr);
+    targetCanvas.style.height = cssHeight + "px";
+    const ctx = targetCanvas.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, cssWidth, cssHeight);
     const scale = Math.min((cssWidth - 2 * pad) / spanX, (cssHeight - 2 * pad) / spanY);
     const ox = (cssWidth - scale * spanX) / 2, oy = (cssHeight - scale * spanY) / 2;
     const px = (i) => ox + (nodes[2 * i] - xmin) * scale;
     const py = (i) => cssHeight - (oy + (nodes[2 * i + 1] - ymin) * scale);
-    const low = parseColor(cssVar("--q-low")), mid = parseColor(cssVar("--q-mid")), high = parseColor(cssVar("--q-high"));
+    const mid = parseColor(cssVar("--q-mid"));
     ctx.lineWidth = 0.6;
     ctx.strokeStyle = cssVar("--mesh-line");
     ctx.lineJoin = "round";
-    for (let e = 0; e < elements.length; e += 3) {
-      const q = Math.max(0, Math.min(1, quality[e / 3]));
-      const rgb = q < 0.5 ? mix(low, mid, q / 0.5) : mix(mid, high, (q - 0.5) / 0.5);
-      ctx.fillStyle = "rgba(" + rgb.join(",") + ",0.55)";
-      ctx.beginPath();
-      ctx.moveTo(px(elements[e]), py(elements[e]));
-      ctx.lineTo(px(elements[e + 1]), py(elements[e + 1]));
-      ctx.lineTo(px(elements[e + 2]), py(elements[e + 2]));
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+    if (quality === null) {
+      ctx.fillStyle = "rgba(" + mid.join(",") + ",0.55)";
+      for (let e = 0; e < elements.length; e += 3) {
+        ctx.beginPath();
+        ctx.moveTo(px(elements[e]), py(elements[e]));
+        ctx.lineTo(px(elements[e + 1]), py(elements[e + 1]));
+        ctx.lineTo(px(elements[e + 2]), py(elements[e + 2]));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+    } else {
+      const low = parseColor(cssVar("--q-low")), high = parseColor(cssVar("--q-high"));
+      for (let e = 0; e < elements.length; e += 3) {
+        const q = Math.max(0, Math.min(1, quality[e / 3]));
+        const rgb = q < 0.5 ? mix(low, mid, q / 0.5) : mix(mid, high, (q - 0.5) / 0.5);
+        ctx.fillStyle = "rgba(" + rgb.join(",") + ",0.55)";
+        ctx.beginPath();
+        ctx.moveTo(px(elements[e]), py(elements[e]));
+        ctx.lineTo(px(elements[e + 1]), py(elements[e + 1]));
+        ctx.lineTo(px(elements[e + 2]), py(elements[e + 2]));
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
     }
   }
+
+  function draw() {
+    if (!last || document.querySelector('[data-state="ready"]').hidden) return;
+    const { nodes, elements, quality } = last;
+    drawMesh(canvas, nodes, elements, quality);
+  }
+
+  function drawFrame() {
+    if (!latestFrame) return;
+    const { frame } = latestFrame;
+    drawMesh(progressCanvas, frame.nodes, frame.elements, null);
+  }
+
   window.addEventListener("resize", draw);
 
   /* ---- downloads ---- */

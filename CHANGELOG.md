@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `triangulate(..., on_iter=None)` forwards a progress callback to DistMesh. It is called once per iteration with the iteration index, the node positions and the triangles, and it does not change the mesh.
+- The browser app draws the mesh live while the points move and reports the iteration and point count.
+
+### Fixed
+- The polygon signed-distance function is much faster without Numba, as in the browser. A per-cell table of candidate segments replaces the brute-force search, and cells and sign rows are grouped by candidate count so little work is spent on padding. The output is bit-identical. On WNAT (h_min 0.3, h_max 0.5, uniform) meshing takes 1.2 s natively instead of 24.3 s, and 3.9 s in Pyodide instead of 46.3 s.
+- The browser app now grades element size instead of meshing uniformly at h_max. The target edge length is h_min at the boundary and grows by 0.2 per unit distance up to h_max, and `medial_method="grid"` also refines narrow channels. A blank h_min means h_max / 10. The WNAT example now uses h_min 0.2 and h_max 2.0: 8358 elements with edges from 0.23 to 0.72 (10th to 90th percentile), where h_max 2.0 alone gave 378 elements of nearly equal size. The boundary distance for this grading is sampled once on a grid and interpolated, and the example meshes in 7.6 s in Pyodide.
+
 ## [1.0.0b1] — 2026-10-01
 
 First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
