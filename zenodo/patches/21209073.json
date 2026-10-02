@@ -16,19 +16,5 @@
     {
       "name": "West, Dustin W."
     }
-  ],
-  "related_identifiers": [
-    {
-      "identifier": "https://github.com/domattioli/ADMESH/tree/v0.6.0",
-      "relation": "isSupplementTo",
-      "resource_type": "software",
-      "scheme": "url"
-    },
-    {
-      "identifier": "10.1007/s10236-012-0574-0",
-      "relation": "isSupplementTo",
-      "resource_type": "publication-article",
-      "scheme": "doi"
-    }
   ]
 }

@@ -51,6 +51,7 @@
 1. `triangulate_batch` runs 5.1× faster on 8 workers (see [Batch meshing](#batch-meshing-runs-51-faster-on-8-workers)).
 2. The domain registry reads Valence manifest schemas 0.3 and 0.4.
 3. `triangulate` takes an opt-in `medial_method`: `"grid"`, `"octree"` or `"vdt"`. `"vdt"` is the vector distance transform of [Kang & Kubatko (2024)](https://doi.org/10.5194/gmd-17-1603-2024). [`benchmarks/medial_vdt.md`](benchmarks/medial_vdt.md) records why `"vdt"` stays opt-in.
+4. A browser app at [admesh.domattioli.com](https://admesh.domattioli.com/) runs the ADMESH package in the page through Pyodide. Files stay on the user's computer. The documentation is at [admesh.domattioli.com/docs](https://admesh.domattioli.com/docs/).
 
 - **Now:** the 1.0.0b1 beta, then 1.0.0; address open issues; 1D–2D internal-constraint extraction from Kang & Kubatko (2024) (#186).
 - **Next:** single-mesh parallelization (#216); pre- and post-processing for quality improvement; native kernels for the remaining hot stages.
@@ -217,7 +218,7 @@ PYTHONPATH=src python scripts/bench_batch.py --wnat    # P2 gate: >= 4.0x at 8 w
 - **No oscillation or stagnation detection.** The `triangulate` relaxation loop exits on `max_iter`, `dptol`, or an empty edge set.
 - **The octree grid is opt-in and adds build cost on small uniform domains.** On a flat size field, it reproduces the uniform result at higher cost. The benefit appears on multiscale fields.
 - **One process per mesh, CPU only.** Numba accelerates the SDF kernel and the size-field solver. The distmesh relaxation dominates wall-clock time on large domains. It is not parallelized.
-- **No graphical interface and no hosted documentation site.** The API reference lives in docstrings and under [`docs/`](docs/).
+- **The graphical interface is a browser app.** It runs at [admesh.domattioli.com](https://admesh.domattioli.com/), without Numba or the C++ accelerator. The documentation is at [admesh.domattioli.com/docs](https://admesh.domattioli.com/docs/).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 

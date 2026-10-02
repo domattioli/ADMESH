@@ -1,29 +1,44 @@
 # ADMESH
 
 **A**dvanced, automatic, unstructured **MESH** generator for 2D shallow-water
-domains — a Python port of the original MATLAB `01_ADMESH_Library` (Conroy,
-Kubatko, & West, *Ocean Dynamics* 62, 2012;
-[DOI 10.1007/s10236-012-0574-0](https://doi.org/10.1007/s10236-012-0574-0)).
+models. This package is a modernized Python version of the MATLAB ADMESH of
+Conroy, Kubatko and West (*Ocean Dynamics* 62, 1503–1517, 2012;
+[doi:10.1007/s10236-012-0574-0](https://doi.org/10.1007/s10236-012-0574-0)).
 
-ADMESH consumes a 2D domain — a polygon ring (or rings with holes), an
-ADCIRC `fort.14` file, or a `admesh-domains` registry id — and produces a
-triangular mesh ready for shallow-water simulation (ADCIRC, SCHISM, etc.).
+ADMESH takes a 2D domain and returns a triangular mesh for shallow-water
+models such as ADCIRC. The domain can be a polygon ring (or rings with
+holes), an ADCIRC `fort.14` file, or a registry id.
+
+What the package contains:
+
+- **The 2012 method, stage by stage.** The 13 stage modules port the MATLAB
+  library function by function. Tests check each stage against reference
+  fixtures exported from the MATLAB source.
+- **A small public API.** `Domain`, `Mesh` and `triangulate` cover the usual
+  path from a domain to a mesh.
+- **File input and output.** The package reads and writes ADCIRC `fort.14`
+  and Gmsh 2.2 ASCII `.msh`. Loaders build a `Domain` from TOML, JSON or
+  `fort.14` files.
+- **Size-field composition.** `compose_size_field` combines several
+  mesh-size contributions into one field.
+- **Batch meshing.** `triangulate_batch` meshes several domains in parallel
+  worker processes.
+- **Speed.** Numba compiles the hot kernels. An optional C++ accelerator
+  runs the distmesh relaxation; without it, the package uses the Python and
+  Numba code.
+- **A browser app.** [admesh.domattioli.com](https://admesh.domattioli.com/)
+  runs the package in the page. Files stay on your computer.
 
 ## Install
 
-> 🚧 **0.1.0 is in progress** — the headline default-size-field stack
-> still fails its Tier-1 / Tier-2 release-gate tests against real coastal
-> fixtures ([issue #10](https://github.com/domattioli/ADMESH/issues/10)).
-> Until 0.1.0 ships, install from source.
-
 ```bash
-pip install -e ".[dev]"            # from a clone (development)
-pip install admesh2D               # core (when 0.1.0 ships)
-pip install admesh2D[viz]          # add matplotlib for mesh.plot()
+pip install admesh2D                 # core: NumPy, SciPy, Numba, Shapely
+pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
+pip install "admesh2D[registry]"     # + huggingface_hub for registry downloads
 ```
 
-Requires Python ≥ 3.10. Core deps: NumPy, SciPy, Numba, Shapely,
-`admesh-domains`.
+The PyPI distribution is `admesh2D`. The import name is `admesh`.
+Requires Python 3.10 or newer. From a clone: `pip install -e ".[dev]"`.
 
 ## Three-line quickstart
 
@@ -60,7 +75,7 @@ of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
-- **Maturity**: pre-0.1.0; first PyPI tag tracked by [spec 009](https://github.com/domattioli/ADMESH/blob/development/specs/009-release-readiness-for-0.1.0/spec.md).
+- **Maturity**: 1.0.0b1, beta. The public API is fixed for 1.x.
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
 - **Sibling registry**: [github.com/domattioli/ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) — federated mesh metadata + HuggingFace-mirrored data files.
