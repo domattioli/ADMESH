@@ -31,5 +31,6 @@
       "scheme": "doi"
     }
   ],
-  "license": "apache-2.0"
+  "license": "apache-2.0",
+  "dates": null
 }
