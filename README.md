@@ -245,6 +245,10 @@ A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; v
 - **Upstream MATLAB line** (ADMESH+ v3: 1D–2D constraints, medial axis, GUI): [Younghun Kang](https://github.com/Younghun-Kang) | [Ethan Kubatko](https://ceg.osu.edu/people/kubatko.3)
 - **This repository** (Python and MATLAB, active maintenance): [Dominik Mattioli](https://github.com/domattioli)
 
+<!-- ack -->
+**Acknowledgement.** Code written after the original MATLAB port was developed with help from Anthropic and OpenAI frontier models. The 13 ported stages are checked against the MATLAB reference tests.
+<!-- /ack -->
+
 **License.** Apache 2.0, see [`LICENSE`](LICENSE).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
