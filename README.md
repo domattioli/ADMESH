@@ -246,7 +246,7 @@ A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button; v
 - **This repository** (Python and MATLAB, active maintenance): [Dominik Mattioli](https://github.com/domattioli)
 
 <!-- ack -->
-**Acknowledgement.** Code written after the original MATLAB port was developed with help from Anthropic and OpenAI frontier models. The 13 ported stages are checked against the MATLAB reference tests.
+**Acknowledgement.** Code added after the original MATLAB port was written using AI coding tools built on Anthropic and OpenAI models. The 13 ported stages are checked against the MATLAB reference tests.
 <!-- /ack -->
 
 **License.** Apache 2.0, see [`LICENSE`](LICENSE).
