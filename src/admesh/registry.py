@@ -1,11 +1,11 @@
-"""Integration with Valence-Domains 0.4.x registry.
+"""Integration with the Valence-Domains registry (manifest schema 0.3 and 0.4).
 
 Provides functions to discover and load mesh domains from the Valence-Domains
 package, enabling the seamless pipeline:
 ``load_domain_from_registry(name) -> triangulate(domain)``.
 
-This adapter targets the ``valence-domains>=0.4`` API surface
-documented in ``docs/VALENCE_DOMAINS_CONTRACT.md``. Network fetches use
+This adapter targets the ``valence-domains>=0.4.2`` API surface
+documented in ``docs/ADMESH_DOMAINS_CONTRACT.md``. Network fetches use
 ``huggingface_hub`` and require the optional ``[registry]`` extra
 (``pip install admesh2D[registry]``).
 """
@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from admesh import _valence_compat
 from admesh.api import Domain
 from admesh.loaders import _domain_from_polygon
 
@@ -51,7 +52,7 @@ def _import_valence_domains() -> Any:
 def _resolve_mesh(name: str, mesh_id: str) -> Any:
     """Resolve ``(name, mesh_id)`` to a downloaded ``Mesh`` reference.
 
-    Looks up the domain, picks the requested mesh (or the first mesh
+    Looks up the domain, alias or collection, picks the requested mesh (or the first mesh
     when ``mesh_id`` is not present), and triggers a download via
     ``Mesh.load()`` if the file is not on disk. Surfaces a friendly
     ``ImportError`` if the ``huggingface_hub`` extra is missing.
@@ -68,10 +69,10 @@ def _resolve_mesh(name: str, mesh_id: str) -> Any:
     Any
         ``valence_domains.Mesh`` reference with a populated local ``.path``.
     """
-    valence_domains = _import_valence_domains()
+    _import_valence_domains()
 
     try:
-        ad_domain = valence_domains.get_domain(name)
+        ad_domain = _valence_compat.get_domain_or_group(name)
     except (KeyError, AttributeError) as e:
         raise ValueError(
             f"Domain '{name}' not found in Valence-Domains registry"
@@ -145,14 +146,14 @@ def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
 
 
 def list_available_domains() -> dict[str, str]:
-    """List domains available in the Valence-Domains registry.
+    """List domains and collections available in the Valence-Domains registry.
 
     Requires the ``valence-domains`` package.
 
     Returns
     -------
     dict[str, str]
-        Mapping of domain name to a short description (``full_name`` if
+        Mapping of primary domain or collection name to a short description (``full_name`` if
         populated, otherwise ``description``, otherwise an empty string),
         sorted by domain name.
 
@@ -161,8 +162,8 @@ def list_available_domains() -> dict[str, str]:
     ImportError
         If ``valence-domains`` is not installed.
     """
-    valence_domains = _import_valence_domains()
-    items = valence_domains.list_domains()
+    _import_valence_domains()
+    items = _valence_compat.list_entries()
     return {
         d.name: (getattr(d, "full_name", None) or getattr(d, "description", None) or "")
         for d in sorted(items, key=lambda d: d.name)
@@ -203,10 +204,10 @@ def load_domain_with_metadata(
     """
     from admesh.fort14 import read_fort14
 
-    valence_domains = _import_valence_domains()
+    _import_valence_domains()
 
     try:
-        ad_domain = valence_domains.get_domain(name)
+        ad_domain = _valence_compat.get_domain_or_group(name)
     except (KeyError, AttributeError) as e:
         raise ValueError(
             f"Domain '{name}' not found in Valence-Domains registry"
@@ -217,35 +218,12 @@ def load_domain_with_metadata(
     domain = Domain.from_mesh(src)
 
     metadata: dict[str, Any] = {}
-    for src_obj, fields in (
-        (
-            ad_domain,
-            (
-                "name",
-                "full_name",
-                "description",
-                "category",
-                "region",
-                "bounding_box",
-            ),
-        ),
-        (
-            mesh_ref,
-            (
-                "id",
-                "filename",
-                "bounding_box",
-                "license",
-                "contributor",
-                "contributed_by",
-                "version",
-            ),
-        ),
+    for found in (
+        _valence_compat.entry_metadata(ad_domain, _valence_compat.DOMAIN_FIELDS),
+        _valence_compat.entry_metadata(mesh_ref, _valence_compat.MESH_FIELDS),
     ):
-        for field in fields:
-            value = getattr(src_obj, field, None)
-            if value is not None and field not in metadata:
-                metadata[field] = value
+        for field, value in found.items():
+            metadata.setdefault(field, value)
 
     if "bounding_box" not in metadata:
         metadata["bounding_box"] = getattr(ad_domain, "bounding_box", None)
