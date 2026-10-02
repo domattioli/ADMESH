@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-10-02
+
 ### Added
 - `triangulate(..., on_iter=None)` forwards a progress callback to DistMesh. It is called once per iteration with the iteration index, the node positions and the triangles, and it does not change the mesh.
 - The browser app draws the mesh live while the points move and reports the iteration and point count.
