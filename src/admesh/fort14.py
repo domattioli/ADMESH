@@ -24,6 +24,7 @@ import numpy as np
 
 from admesh.api import BoundarySegment, Mesh
 from admesh.boundary_types import BoundaryType
+from admesh.share_hint import maybe_log_share_hint
 
 if TYPE_CHECKING:
     from typing import TextIO
@@ -411,3 +412,4 @@ def write_fort14(
     finally:
         if close:
             out.close()
+    maybe_log_share_hint()

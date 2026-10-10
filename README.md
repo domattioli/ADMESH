@@ -258,3 +258,9 @@ A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button. V
 **License.** Apache 2.0, see [`LICENSE`](LICENSE).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
+
+## Share your mesh
+
+<!-- TODO: the valence-intake repo does not exist yet. Update the link below once it does. -->
+
+If you have a fort.14 mesh you can share, please send it through the [share-mesh form](https://github.com/domattioli/valence-intake/issues/new?template=share-mesh.yml). We are collecting meshes for testing. Details are in [docs/share-your-mesh.md](docs/share-your-mesh.md).

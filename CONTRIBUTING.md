@@ -109,3 +109,9 @@ every change:
 - Include a "Test plan" section in the body. If the PR is documentation-only,
   say so explicitly.
 - Link the issue with `Closes #NN` in the description.
+
+## Share your mesh
+
+<!-- TODO: the valence-intake repo does not exist yet. Update the link below once it does. -->
+
+Meshes are a useful contribution. If you have a fort.14 mesh you can share, please submit it through the [share-mesh form](https://github.com/domattioli/valence-intake/issues/new?template=share-mesh.yml). Choose a license, name the generator, and describe the region and resolution. See [docs/share-your-mesh.md](docs/share-your-mesh.md) for details.
