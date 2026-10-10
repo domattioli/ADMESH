@@ -594,12 +594,12 @@ def _load_domain_from_source(source: str | "os.PathLike[str]") -> Domain:
     )
 
     if not is_path:
-        # Try registry first
+        # A bare name is a registry slug. Registry errors surface with the slug.
+        from admesh.registry import RegistryError, load_domain_from_registry
         try:
-            from admesh.registry import load_domain_from_registry
             return load_domain_from_registry(source_str)
-        except ImportError:
-            pass
+        except RegistryError as e:
+            raise type(e)(f"Registry slug '{source_str}': {e}") from None
 
     # Load as file
     from admesh.loaders import (
@@ -812,8 +812,9 @@ def triangulate(
     ValueError
         If domain source cannot be resolved, quality gates fail, or
         ``medial_method`` is not one of the values listed above.
-    ImportError
-        If registry lookup is attempted without valence-domains installed.
+    RegistryError
+        If a registry slug is given and registry access fails (no token,
+        invalid token, unknown name, API unavailable).
 
     Adapts the v1 :class:`Domain` onto the faithful-port driver
     :func:`admesh.routine.triangulate` without modifying it (Constitution

@@ -49,7 +49,7 @@
 **New in 1.0:**
 
 1. `triangulate_batch` runs 5.1× faster on 8 workers (see [Batch meshing](#batch-meshing-runs-51-faster-on-8-workers)).
-2. The domain registry reads Valence manifest schemas 0.3 and 0.4.
+2. The domain registry is reached through a token-gated HTTP API (`VALENCE_TOKEN`).
 3. `triangulate` takes an opt-in `medial_method`: `"grid"`, `"octree"` or `"vdt"`. `"vdt"` is the vector distance transform of [Kang & Kubatko (2024)](https://doi.org/10.5194/gmd-17-1603-2024). [`benchmarks/medial_vdt.md`](benchmarks/medial_vdt.md) records why `"vdt"` stays opt-in.
 4. A browser app at [admesh.domattioli.com](https://admesh.domattioli.com/) runs the ADMESH package in the page through Pyodide. Files stay on the user's computer. The documentation is at [admesh.domattioli.com/docs](https://admesh.domattioli.com/docs/).
 
@@ -76,7 +76,6 @@
 ```bash
 pip install admesh2D                 # core: NumPy, SciPy, Numba, Shapely
 pip install "admesh2D[viz]"          # + chilmesh for mesh.plot() / plot_quality() / plot_layers()
-pip install "admesh2D[registry]"     # + huggingface_hub for on-demand registry downloads
 ```
 
 > **The PyPI distribution is `admesh2D`. The import name is `admesh`.** `pip install admesh` installs an unrelated C library for STL repair. That build fails without `admesh/stl.h`.

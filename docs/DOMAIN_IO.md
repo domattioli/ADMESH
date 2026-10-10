@@ -41,7 +41,7 @@ mesh = admesh.triangulate(domain, h_max=0.1)
 
 ### TOML Format (Recommended)
 
-Native format for Valence (valence-domains). Human-readable, widely supported.
+Native format for ADMESH domains. Human-readable, widely supported.
 
 **File: `domain.toml`**
 
@@ -135,26 +135,22 @@ fine_mesh = admesh.triangulate(domain, h_max=0.02)
 
 ## Registry Integration
 
-Requires `valence-domains` package (installed with admesh2D):
-
-```bash
-pip install valence-domains
-```
+Registry access calls the Valence HTTP API. Set `VALENCE_TOKEN` to your access token. Set `VALENCE_API_URL` when the built-in default does not apply. Without a token, registry calls raise `RegistryAuthError` and make no network request. No extra package is needed.
 
 ### Discovering Domains
 
 ```python
 import admesh
 
-# List all available mesh IDs
+# List all available mesh names (values are empty strings)
 domains = admesh.list_available_domains()
 print(f"Available meshes: {len(domains)}")
 
 # Fetch domain metadata
 domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
-print(f"Version: {meta.get('version')}")
-print(f"Contributor: {meta.get('contributed_by')}")
-print(f"License: {meta.get('license')}")
+# Metadata holds the name and the content hash.
+print(f"Name: {meta['name']}")
+print(f"sha256: {meta['sha256']}")
 ```
 
 ### Loading from Registry
@@ -172,7 +168,7 @@ mesh = admesh.triangulate("BaranjaHill", h_max=0.1)
 # Method 3: With metadata
 domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
 mesh = admesh.triangulate(domain, h_max=0.1)
-print(f"Mesh ID: {meta.get('mesh_id')}")
+print(f"sha256: {meta['sha256']}")
 ```
 
 ## Complete Example
@@ -242,10 +238,12 @@ except ValueError as e:
 # Registry not available
 try:
     domain = admesh.load_domain_from_registry("some-mesh")
-except ImportError:
-    print("valence-domains not installed")
-except ValueError:
+except admesh.registry.RegistryAuthError:
+    print("Set VALENCE_TOKEN")
+except admesh.registry.RegistryNotFoundError:
     print("Mesh not found in registry")
+except admesh.registry.RegistryUnavailableError:
+    print("Registry API unavailable")
 ```
 
 ## Migration from admesh.domains

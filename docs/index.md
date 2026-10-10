@@ -34,7 +34,6 @@ What the package contains:
 ```bash
 pip install admesh2D                 # core: NumPy, SciPy, Numba, Shapely
 pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
-pip install "admesh2D[registry]"     # + huggingface_hub for registry downloads
 ```
 
 The PyPI distribution is `admesh2D`. The import name is `admesh`.

@@ -1,0 +1,133 @@
+"""Registry client tests over a mocked urllib (no network, no token)."""
+
+import hashlib
+import io
+import json
+import urllib.error
+
+import pytest
+
+from admesh import _registry_client as rc
+
+TOKEN = "s3cret-token-value"
+
+
+class _Resp(io.BytesIO):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+def _http_error(code):
+    return urllib.error.HTTPError("http://x", code, "err", {}, io.BytesIO(b""))
+
+
+@pytest.fixture
+def env(monkeypatch):
+    monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
+    monkeypatch.setenv("VALENCE_API_URL", "http://api.test")
+
+
+def _fake(monkeypatch, handler):
+    calls = []
+
+    def urlopen(req, timeout=None):
+        calls.append((req, timeout))
+        return handler(req)
+
+    monkeypatch.setattr(rc.urllib.request, "urlopen", urlopen)
+    return calls
+
+
+def test_missing_token_no_network(monkeypatch):
+    monkeypatch.delenv("VALENCE_TOKEN", raising=False)
+    monkeypatch.setenv("VALENCE_API_URL", "http://api.test")
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    with pytest.raises(rc.RegistryAuthError, match="Valence registry needs a token"):
+        rc.list_names()
+    assert calls == []
+
+
+def test_missing_url_unavailable(monkeypatch):
+    monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
+    monkeypatch.delenv("VALENCE_API_URL", raising=False)
+    with pytest.raises(rc.RegistryUnavailableError, match="API unavailable"):
+        rc.list_names()
+
+
+def test_401(env, monkeypatch):
+    def h(r):
+        raise _http_error(401)
+
+    _fake(monkeypatch, h)
+    with pytest.raises(rc.RegistryAuthError, match="invalid or expired") as ei:
+        rc.list_names()
+    assert TOKEN not in str(ei.value)
+
+
+def test_404_is_value_error(env, monkeypatch):
+    def h(r):
+        raise _http_error(404)
+
+    _fake(monkeypatch, h)
+    with pytest.raises(ValueError, match="not found"):
+        rc.fetch_hash("nope")
+
+
+@pytest.mark.parametrize("code", [429, 500, 503])
+def test_unavailable_codes(env, monkeypatch, code):
+    def h(r):
+        raise _http_error(code)
+
+    _fake(monkeypatch, h)
+    with pytest.raises(rc.RegistryUnavailableError, match="Valence registry API unavailable"):
+        rc.list_names()
+
+
+@pytest.mark.parametrize("exc", [urllib.error.URLError("down"), TimeoutError()])
+def test_network_failure(env, monkeypatch, exc):
+    def h(r):
+        raise exc
+
+    _fake(monkeypatch, h)
+    with pytest.raises(rc.RegistryUnavailableError, match="Valence registry API unavailable"):
+        rc.list_names()
+
+
+def _mesh_handler(payload, hashes):
+    def h(req):
+        if req.full_url.endswith("/hash"):
+            return _Resp(json.dumps(hashes).encode())
+        return _Resp(payload)
+
+    return h
+
+
+def _hashes(p):
+    return {"sha256": hashlib.sha256(p).hexdigest()}
+
+
+def test_fetch_mesh_ok_and_headers(env, monkeypatch):
+    p = b"mesh bytes"
+    calls = _fake(monkeypatch, _mesh_handler(p, _hashes(p)))
+    data, h = rc.fetch_mesh("A")
+    assert data == p and h == _hashes(p)
+    assert all(t == rc._TIMEOUT_S for _, t in calls)
+    assert calls[0][0].get_header("Authorization") == f"Bearer {TOKEN}"
+
+
+def test_hash_mismatch(env, monkeypatch):
+    p = b"mesh bytes"
+    h = _hashes(p)
+    h["sha256"] = "0" * 64
+    _fake(monkeypatch, _mesh_handler(p, h))
+    with pytest.raises(rc.RegistryIntegrityError, match="hash check") as ei:
+        rc.fetch_mesh("A")
+    assert TOKEN not in str(ei.value)
+
+
+def test_list_names(env, monkeypatch):
+    _fake(monkeypatch, lambda r: _Resp(b'["B", "A"]'))
+    assert rc.list_names() == ["B", "A"]

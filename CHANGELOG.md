@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-10-10
+
+### Changed
+- The registry functions call the token-gated Valence HTTP API. Set `VALENCE_TOKEN` (and `VALENCE_API_URL` when no default URL applies). Without a token they raise `RegistryAuthError` and make no network request. An unreachable or failing API raises `RegistryUnavailableError`.
+- `load_domain_with_metadata` returns only `name` and `sha256`.
+- `list_available_domains` returns names only; every value is an empty string.
+- `mesh_id` is ignored and warns when it is not the default.
+- `triangulate()` with a bare registry slug now raises the registry error with the slug in the message, instead of falling through to the file loader.
+
+### Removed
+- The `valence-domains` dependency and the `registry` extra. Installing admesh2D no longer installs Valence code.
+- The "Mesh Registry" project URL.
+
 ## [1.0.0] — 2026-10-02
 
 ### Added

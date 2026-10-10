@@ -1,27 +1,24 @@
-"""Integration with the Valence-Domains registry (manifest schema 0.3 and 0.4).
+"""Access to the token-gated Valence mesh registry.
 
-Provides functions to discover and load mesh domains from the Valence-Domains
-package, enabling the seamless pipeline:
-``load_domain_from_registry(name) -> triangulate(domain)``.
-
-This adapter targets the ``valence-domains>=0.4.2`` API surface
-documented in ``docs/ADMESH_DOMAINS_CONTRACT.md``. Network fetches use
-``huggingface_hub`` and require the optional ``[registry]`` extra
-(``pip install admesh2D[registry]``).
+Provides ``load_domain_from_registry(name) -> triangulate(domain)``. Calls go
+to the Valence HTTP API through :mod:`admesh._registry_client`. Set
+``VALENCE_TOKEN`` (and ``VALENCE_API_URL`` when the default is not usable).
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+import io
+import warnings
 
-import numpy as np
-
-from admesh import _valence_compat
+from admesh import _registry_client as _client
 from admesh.api import Domain
-from admesh.loaders import _domain_from_polygon
-
-if TYPE_CHECKING:
-    pass
+from admesh._registry_client import (  # noqa: F401
+    RegistryAuthError,
+    RegistryError,
+    RegistryIntegrityError,
+    RegistryNotFoundError,
+    RegistryUnavailableError,
+)
 
 __all__ = [
     "load_domain_from_registry",
@@ -29,251 +26,74 @@ __all__ = [
     "load_domain_with_metadata",
 ]
 
-
-_REGISTRY_IMPORT_HINT = (
-    "valence-domains package required for registry access. Install with:\n"
-    "  pip install valence-domains"
-)
-_HF_HUB_IMPORT_HINT = (
-    "huggingface_hub required to download registry meshes. Install with:\n"
-    "  pip install admesh2D[registry]"
-)
+_DEFAULT_MESH_ID = "default@v1"
 
 
-def _import_valence_domains() -> Any:
-    """Lazy import ``valence_domains`` with a friendly install hint."""
-    try:
-        import valence_domains
-    except ImportError as e:
-        raise ImportError(_REGISTRY_IMPORT_HINT) from e
-    return valence_domains
+def _load(name: str, mesh_id: str) -> tuple[Domain, dict]:
+    from admesh.fort14 import read_fort14
+
+    if mesh_id != _DEFAULT_MESH_ID:
+        warnings.warn(
+            "mesh_id is ignored; the registry API has no mesh-id concept.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
+    payload, hashes = _client.fetch_mesh(name)
+    src = read_fort14(io.StringIO(payload.decode("utf-8")))
+    meta = {"name": name, "sha256": hashes["sha256"]}
+    return Domain.from_mesh(src), meta
 
 
-def _resolve_mesh(name: str, mesh_id: str) -> Any:
-    """Resolve ``(name, mesh_id)`` to a downloaded ``Mesh`` reference.
+def load_domain_from_registry(name: str, mesh_id: str = _DEFAULT_MESH_ID) -> Domain:
+    """Fetch a domain from the Valence registry by ``name``.
 
-    Looks up the domain, alias or collection, picks the requested mesh (or the first mesh
-    when ``mesh_id`` is not present), and triggers a download via
-    ``Mesh.load()`` if the file is not on disk. Surfaces a friendly
-    ``ImportError`` if the ``huggingface_hub`` extra is missing.
-
-    Parameters
-    ----------
-    name : str
-        Domain name (e.g. ``"BaranjaHill"``).
-    mesh_id : str
-        Mesh id (e.g. ``"default@v1"``).
-
-    Returns
-    -------
-    Any
-        ``valence_domains.Mesh`` reference with a populated local ``.path``.
-    """
-    _import_valence_domains()
-
-    try:
-        ad_domain = _valence_compat.get_domain_or_group(name)
-    except (KeyError, AttributeError) as e:
-        raise ValueError(
-            f"Domain '{name}' not found in Valence-Domains registry"
-        ) from e
-
-    mesh_ref = None
-    get_mesh = getattr(ad_domain, "get_mesh", None)
-    if callable(get_mesh):
-        try:
-            mesh_ref = get_mesh(mesh_id)
-        except (KeyError, AttributeError, ValueError):
-            mesh_ref = None
-
-    if mesh_ref is None:
-        meshes = getattr(ad_domain, "meshes", None) or []
-        if not meshes:
-            raise ValueError(
-                f"Domain '{name}' exposes no meshes in the registry"
-            )
-        mesh_ref = meshes[0]
-
-    if not mesh_ref.exists():
-        # A mesh the registry does not host fails here, before the optional
-        # download dependency is checked or any network call is made.
-        _valence_compat.raise_if_not_hosted(mesh_ref)
-        try:
-            import huggingface_hub  # noqa: F401
-        except ImportError as e:
-            raise ImportError(_HF_HUB_IMPORT_HINT) from e
-        mesh_ref.load()
-
-    return mesh_ref
-
-
-def load_domain_from_registry(name: str, mesh_id: str = "default@v1") -> Domain:
-    """Fetch a domain from the ADMESH-Domains registry by ``name``.
-
-    Requires the ``valence-domains`` package. Network downloads through
-    ``Mesh.load()`` additionally require the optional ``[registry]`` extra
-    (``pip install admesh2D[registry]``).
-
-    Parameters
-    ----------
-    name : str
-        Domain name in the registry (e.g. ``'BaranjaHill'``).
-    mesh_id : str, optional
-        Mesh id within the domain. Defaults to ``"default@v1"``; falls
-        back to the first available mesh if the id is unknown.
-
-    Returns
-    -------
-    Domain
-        Domain ready for :func:`admesh.triangulate`.
+    Requires ``VALENCE_TOKEN``. ``mesh_id`` is accepted for compatibility and
+    ignored (a ``DeprecationWarning`` is issued when it is not the default).
 
     Raises
     ------
-    ImportError
-        If ``valence-domains`` is not installed, or if ``huggingface_hub``
-        is needed for a network fetch and is not installed.
-    ValueError
-        If the domain name is not in the registry. On ``valence-domains``
-        releases that define ``MeshNotHostedError`` (a ``ValueError``
-        subclass), that error is raised when the mesh is registered but not
-        hosted; its message names the mesh and says it is not hosted.
-
-    Examples
-    --------
-    >>> from admesh import load_domain_from_registry, triangulate
-    >>> domain = load_domain_from_registry('BaranjaHill')
-    >>> mesh = triangulate(domain, h0=0.1)
+    RegistryAuthError
+        Token missing, invalid or expired.
+    RegistryNotFoundError
+        Unknown name (also a ``ValueError``).
+    RegistryUnavailableError
+        API unreachable, rate limited or failing.
+    RegistryIntegrityError
+        Payload failed its hash check.
     """
-    from admesh.fort14 import read_fort14
-
-    mesh_ref = _resolve_mesh(name, mesh_id)
-    src = read_fort14(mesh_ref.path)
-    return Domain.from_mesh(src)
+    return _load(name, mesh_id)[0]
 
 
 def list_available_domains() -> dict[str, str]:
-    """List domains and collections available in the Valence-Domains registry.
+    """List mesh names in the registry.
 
-    Requires the ``valence-domains`` package.
-
-    Returns
-    -------
-    dict[str, str]
-        Mapping of primary domain or collection name to a short description (``full_name`` if
-        populated, otherwise ``description``, otherwise an empty string),
-        sorted by domain name.
-
-    Raises
-    ------
-    ImportError
-        If ``valence-domains`` is not installed.
+    The API returns names only, so every value is an empty string.
     """
-    _import_valence_domains()
-    items = _valence_compat.list_entries()
-    return {
-        d.name: (getattr(d, "full_name", None) or getattr(d, "description", None) or "")
-        for d in sorted(items, key=lambda d: d.name)
-    }
+    return {n: "" for n in sorted(_client.list_names())}
 
 
 def load_domain_with_metadata(
-    name: str, mesh_id: str = "default@v1"
+    name: str, mesh_id: str = _DEFAULT_MESH_ID
 ) -> tuple[Domain, dict]:
-    """Load a domain plus provenance metadata from the registry.
-
-    Returns the same :class:`Domain` as :func:`load_domain_from_registry`
-    plus a metadata dict drawn from the upstream ``Domain``/``Mesh``
-    objects (license, contributor, bounding box, etc.; missing fields
-    are skipped).
+    """Load a domain plus ``{"name", "sha256"}`` metadata.
 
     Parameters
     ----------
     name : str
-        Domain name in the registry.
+        Mesh name in the registry.
     mesh_id : str, optional
-        Mesh id within the domain.
+        Ignored; kept for compatibility.
 
     Returns
     -------
     domain : Domain
         Domain ready for :func:`admesh.triangulate`.
     metadata : dict
-        Provenance fields extracted from the registry objects.
+        ``name`` and ``sha256``.
 
     Raises
     ------
-    ImportError
-        If ``valence-domains`` (or ``huggingface_hub`` for the download)
-        is not installed.
-    ValueError
-        If the domain name is not in the registry.
+    RegistryError
+        On any registry failure (see :func:`load_domain_from_registry`).
     """
-    from admesh.fort14 import read_fort14
-
-    _import_valence_domains()
-
-    try:
-        ad_domain = _valence_compat.get_domain_or_group(name)
-    except (KeyError, AttributeError) as e:
-        raise ValueError(
-            f"Domain '{name}' not found in Valence-Domains registry"
-        ) from e
-
-    mesh_ref = _resolve_mesh(name, mesh_id)
-    src = read_fort14(mesh_ref.path)
-    domain = Domain.from_mesh(src)
-
-    metadata: dict[str, Any] = {}
-    for found in (
-        _valence_compat.entry_metadata(ad_domain, _valence_compat.DOMAIN_FIELDS),
-        _valence_compat.entry_metadata(mesh_ref, _valence_compat.MESH_FIELDS),
-    ):
-        for field, value in found.items():
-            metadata.setdefault(field, value)
-
-    if "bounding_box" not in metadata:
-        metadata["bounding_box"] = getattr(ad_domain, "bounding_box", None)
-
-    return domain, metadata
-
-
-def _convert_to_valence_domain(valence_domains_obj: object) -> Domain:
-    """Convert a legacy Valence-Domains domain object to ``admesh.Domain``.
-
-    Retained for tests that exercise the 0.3.x legacy shape
-    (``.rings``/``.bbox``/``.fixed_points``). New callers should use
-    :func:`load_domain_from_registry`, which routes through the 0.4.x
-    ``Mesh.load()`` / ``read_fort14`` chain.
-    """
-    rings_attr = getattr(valence_domains_obj, "rings", None)
-    if rings_attr is None:
-        rings_attr = getattr(valence_domains_obj, "boundaries", None)
-
-    if not rings_attr:
-        raise ValueError(
-            "Valence-Domains domain object must have 'rings' or 'boundaries' attribute"
-        )
-
-    rings = [
-        np.array(r, dtype=np.float64) if not isinstance(r, np.ndarray) else r
-        for r in (rings_attr if isinstance(rings_attr, (list, tuple)) else [rings_attr])
-    ]
-
-    bbox_attr = getattr(valence_domains_obj, "bbox", None)
-    if bbox_attr is None:
-        all_coords = np.vstack(rings)
-        bbox = (
-            float(all_coords[:, 0].min()),
-            float(all_coords[:, 1].min()),
-            float(all_coords[:, 0].max()),
-            float(all_coords[:, 1].max()),
-        )
-    else:
-        bbox = tuple(float(x) for x in bbox_attr)  # type: ignore[arg-type]
-
-    pfix = getattr(valence_domains_obj, "fixed_points", None)
-    if pfix is not None and not isinstance(pfix, np.ndarray):
-        pfix = np.array(pfix, dtype=np.float64) if pfix else None
-
-    _ = bbox  # bbox is computed for parity with the legacy adapter
-    return _domain_from_polygon(rings, pfix=pfix)
+    return _load(name, mesh_id)

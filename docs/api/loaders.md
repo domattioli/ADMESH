@@ -1,6 +1,6 @@
 # Domain loaders
 
-Build a `Domain` from a file path or from the `valence-domains` registry.
+Build a `Domain` from a file path or from the Valence registry.
 
 ## From files
 
@@ -18,9 +18,8 @@ Build a `Domain` from a file path or from the `valence-domains` registry.
 
 ## From the registry
 
-Registry lookups need the `valence-domains` package. Manifest schemas 0.3 and
-0.4 are both supported; see the
-[`valence-domains` contract](../ADMESH_DOMAINS_CONTRACT.md).
+Registry lookups call the Valence HTTP API and need the `VALENCE_TOKEN`
+environment variable. See the [registry API contract](../ADMESH_DOMAINS_CONTRACT.md).
 
 ### load_domain_from_registry
 
