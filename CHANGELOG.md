@@ -111,7 +111,7 @@ No code changes vs 0.2.0, drop-in safe for existing callers.
 - Restored ADMESH-variant distmesh code (`MeshOutput`, `SizeFn`, `distmesh2d_admesh`)
 - Tier-1 / Tier-2 acceptance tests for size-field stack structural validity: issue #10
 - Holistic test suite audit (`TEST-AUDIT.md`): issue #59
-- Cross-repo sync contract + session-start hook plugin auto-install
+- Cross-repo sync contract and dev tooling auto-install
 
   > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records are kept outside this repository. The session-start hook and its script were untracked on 2026-09-24 and are local tooling, not part of the package.
 
