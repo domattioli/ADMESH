@@ -2,19 +2,19 @@
 
 ADMESH is a Python library for automatic unstructured mesh generation for
 2D shallow-water models. It is **currently distributed on PyPI** as
-`admesh2D` (v0.5.1+). This policy describes our vulnerability reporting
+`admesh2D`. This policy describes our vulnerability reporting
 process and security scope.
 
 ## Supported versions
 
 | Version | Supported |
 |---|---|
-| `0.5.x` (current PyPI release) | ✅, receives fixes |
-| `0.4.x` and earlier | ❌, best-effort only |
+| `1.0.x` (current PyPI release) | ✅, receives fixes |
+| `0.5.x` and earlier | ❌, best-effort only |
 
-Versions before 0.5.0 receive fixes only for critical supply-chain
+Versions before 1.0.0 receive fixes only for critical supply-chain
 security issues (e.g., malicious dependency uploads); normal bug fixes are
-not backported. For non-critical updates, upgrade to `0.5.x`.
+not backported. For non-critical updates, upgrade to `1.0.x`.
 
 ## Reporting a vulnerability
 
