@@ -29,7 +29,7 @@ __all__ = [
 
 # Default public Valence API. VALENCE_API_URL is an optional override.
 _DEFAULT_BASE_URL = "https://valence-api.iqh766c2.workers.dev"
-_TIMEOUT_S = 10.0
+_TIMEOUT_S = 30.0
 _TOKEN_VAR = "VALENCE_TOKEN"
 _URL_VAR = "VALENCE_API_URL"
 _NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
@@ -136,7 +136,7 @@ def fetch_hash(name: str) -> dict[str, str]:
     q = _check_name(name)
     data = _json(_get(f"/meshes/{q}/hash"), "hash")
     sha = data.get("sha256") if isinstance(data, dict) else None
-    if not isinstance(sha, str) or not _SHA_RE.match(sha):
+    if not isinstance(data, dict) or set(data) != {"sha256"} or not isinstance(sha, str) or not _SHA_RE.match(sha):
         raise RegistryIntegrityError("Registry hash response is malformed.")
     return {"sha256": sha.lower()}
 
