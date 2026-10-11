@@ -186,7 +186,7 @@ def test_hash_rejects_malformed(env, monkeypatch, body):
         rc.fetch_hash("A")
 
 
-@pytest.mark.parametrize("name", ["", ".", "..", "a/b", "a b", "a%2Fb", "a?x=1"])
+@pytest.mark.parametrize("name", ["", ".", "..", "a/b", "a b", "a%2Fb", "a?x=1", "a.14\n"])
 def test_bad_name_rejected_before_request(env, monkeypatch, name):
     calls = _fake(monkeypatch, lambda r: _Resp(b"{}"))
     with pytest.raises(rc.RegistryNotFoundError):

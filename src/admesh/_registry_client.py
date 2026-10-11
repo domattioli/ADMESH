@@ -110,7 +110,7 @@ def _get(path: str) -> bytes:
 
 
 def _check_name(name: str) -> str:
-    if not isinstance(name, str) or name in (".", "..") or not _NAME_RE.match(name):
+    if not isinstance(name, str) or name in (".", "..") or not _NAME_RE.fullmatch(name):
         raise RegistryNotFoundError("Mesh not found in the Valence registry.")
     return urllib.parse.quote(name, safe="")
 
