@@ -8,8 +8,8 @@ full-text method section.
 **Status of this note:** interim / partial. The full-text method read (acceptance box 1)
 is **blocked this session** by a source-access failure (see *Paper access blocker* below).
 This note records what can be established without the paper — the current locked
-implementation's method, the decision axes, and a documented handoff so a
-paper-equipped session can finish the verdict — without touching any locked
+implementation's method, the decision axes, and documented notes so later
+work with the paper can finish the verdict — without touching any locked
 `_stages/` module (Constitution Principle I preserved).
 
 ---
@@ -101,7 +101,7 @@ ResearchGate, HF) is blocked. A hosted-runner fetch or an operator paste of the 
 section is the only remaining path to acceptance box 1 — no further route-hunting is
 worthwhile from a rotation session.
 
-**Handoff:** the baseline runtime + robustness benchmark (box 2) is **already done** — see
+**Note:** the baseline runtime + robustness benchmark (box 2) is **already done** — see
 `T4-medial-axis-benchmark.md` + `scripts/bench_medial_axis.py` + `output/T4_medial_baseline.json`
 (analytic disk/annulus/thin-channel giving exact error, plus the real WNAT coastal fixture).
 What remains is box 1 (full-text method summary — blocked, see above) and box 3 (verdict).
@@ -121,7 +121,7 @@ read first. No locked module changed under this note.
 
 ### Acceptance status (#200)
 
-- [ ] Full-text medial-axis method summarized — **blocked** (paper 403; handoff recorded).
+- [ ] Full-text medial-axis method summarized — **blocked** (paper 403; notes recorded).
 - [x] Runtime + robustness benchmark of the baseline `_stages/medial_axis.py` — **done** in
   `T4-medial-axis-benchmark.md` (analytic disk/annulus/thin-channel + real WNAT coastal
   fixture). Octree fixtures are point-set octree-stage inputs, not medial-axis SDF grids, so
