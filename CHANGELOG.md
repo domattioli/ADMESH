@@ -2,15 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.0.5] — 2026-10-11
 
 ### Changed
 - The registry client now defaults to the public Valence API (https://valence-api.iqh766c2.workers.dev). `VALENCE_API_URL` is an optional override; only `VALENCE_TOKEN` is required.
 - The registry client sends an explicit `User-Agent: admesh-registry/1` header. Cloudflare blocks the default `Python-urllib` agent with error 1010.
-
-## [1.0.1] — 2026-10-10
-
-### Changed
 - The registry functions call the token-gated Valence HTTP API. Set `VALENCE_TOKEN` (and `VALENCE_API_URL` when no default URL applies). Without a token they raise `RegistryAuthError` and make no network request. An unreachable or failing API raises `RegistryUnavailableError`.
 - `load_domain_with_metadata` returns only `name` and `sha256`.
 - `list_available_domains` returns names only; every value is an empty string.

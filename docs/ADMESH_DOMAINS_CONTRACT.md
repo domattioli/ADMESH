@@ -2,7 +2,7 @@
 
 This document records what ADMESH relies on from the Valence mesh API. The
 source of truth is the Valence repository, spec `001-token-gated-mesh-api`.
-ADMESH 1.0.1 and later do not install or import any Valence package. The
+ADMESH 1.0.5 and later do not install or import any Valence package. The
 client is `admesh/_registry_client.py` and uses only the standard library.
 
 ## Configuration
