@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 import socket
 import urllib.error
 import urllib.parse
@@ -31,6 +32,8 @@ _DEFAULT_BASE_URL = ""
 _TIMEOUT_S = 10.0
 _TOKEN_VAR = "VALENCE_TOKEN"
 _URL_VAR = "VALENCE_API_URL"
+_NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+_SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
 class RegistryError(RuntimeError):
@@ -88,9 +91,18 @@ def _get(path: str) -> bytes:
                 "Mesh not found in the Valence registry."
             ) from None
         if code == 429:
+            retry = None
+            try:
+                retry = e.headers.get("Retry-After")
+            except Exception:
+                pass
+            after = f" Retry after {retry} s." if retry else " Retry later."
             raise RegistryUnavailableError(
-                "Valence registry API unavailable: rate limit reached. "
-                "Retry later."
+                "Valence registry API unavailable: rate limit reached." + after
+            ) from None
+        if code == 405:
+            raise RegistryUnavailableError(
+                "Valence registry API unavailable: method not allowed (HTTP 405)."
             ) from None
         raise RegistryUnavailableError(
             f"Valence registry API unavailable (HTTP {code})."
@@ -101,30 +113,46 @@ def _get(path: str) -> bytes:
         ) from None
 
 
-def _quote(name: str) -> str:
+def _check_name(name: str) -> str:
+    if not isinstance(name, str) or name in (".", "..") or not _NAME_RE.match(name):
+        raise RegistryNotFoundError("Mesh not found in the Valence registry.")
     return urllib.parse.quote(name, safe="")
 
 
+def _json(raw: bytes, what: str):
+    try:
+        return json.loads(raw.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
+        raise RegistryIntegrityError(
+            f"Registry {what} response is malformed."
+        ) from None
+
+
 def list_names() -> list[str]:
-    """Return mesh names from ``GET /meshes``."""
-    data = json.loads(_get("/meshes").decode("utf-8"))
-    if isinstance(data, dict):
-        data = data.get("meshes", data.get("names", []))
-    return [str(n["name"] if isinstance(n, dict) else n) for n in data]
+    """Return mesh names from ``GET /meshes`` (a JSON array of strings)."""
+    data = _json(_get("/meshes"), "list")
+    if not isinstance(data, list) or not all(isinstance(n, str) for n in data):
+        raise RegistryIntegrityError("Registry list response is malformed.")
+    return data
 
 
 def fetch_hash(name: str) -> dict[str, str]:
     """Return ``{"sha256"}`` from ``GET /meshes/{name}/hash``."""
-    data = json.loads(_get(f"/meshes/{_quote(name)}/hash").decode("utf-8"))
-    return {"sha256": str(data["sha256"])}
+    q = _check_name(name)
+    data = _json(_get(f"/meshes/{q}/hash"), "hash")
+    sha = data.get("sha256") if isinstance(data, dict) else None
+    if not isinstance(sha, str) or not _SHA_RE.match(sha):
+        raise RegistryIntegrityError("Registry hash response is malformed.")
+    return {"sha256": sha.lower()}
 
 
 def fetch_mesh(name: str) -> tuple[bytes, dict[str, str]]:
     """Return verified fort.14 bytes and their hashes."""
+    q = _check_name(name)
     hashes = fetch_hash(name)
-    payload = _get(f"/meshes/{_quote(name)}")
+    payload = _get(f"/meshes/{q}")
     sha256 = hashlib.sha256(payload).hexdigest()
-    if sha256 != hashes["sha256"].lower():
+    if sha256 != hashes["sha256"]:
         raise RegistryIntegrityError(
             "Registry payload failed hash check; mesh rejected."
         )

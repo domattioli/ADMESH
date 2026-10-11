@@ -259,6 +259,27 @@ A [`CITATION.cff`](CITATION.cff) feeds GitHub's "Cite this repository" button. V
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
+## Meshes from the Valence registry
+
+The Valence registry serves test meshes over HTTPS. Access needs a token.
+
+1. Open `<API URL>/auth/github` and sign in with GitHub.
+2. The operator approves each request by hand.
+3. After approval, sign in again. The page shows the token once. Copy it then.
+
+A token expires after one year. The limit is 120 requests per minute for each token.
+
+Set two environment variables:
+
+```bash
+export VALENCE_TOKEN=<token>
+export VALENCE_API_URL=<API URL>
+```
+
+The ADMESH registry functions in `admesh.registry` read both variables. Each download is checked against its SHA-256 hash. A bad hash raises `RegistryIntegrityError`. A missing or invalid token raises `RegistryAuthError`.
+
+---
+
 ## Share your mesh
 
 <!-- TODO: the valence-intake repo does not exist yet. Update the link below once it does. -->

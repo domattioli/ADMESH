@@ -20,8 +20,8 @@ class _Resp(io.BytesIO):
         return False
 
 
-def _http_error(code):
-    return urllib.error.HTTPError("http://x", code, "err", {}, io.BytesIO(b""))
+def _http_error(code, headers=None):
+    return urllib.error.HTTPError("http://x", code, "err", headers or {}, io.BytesIO(b""))
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def test_404_is_value_error(env, monkeypatch):
         rc.fetch_hash("nope")
 
 
-@pytest.mark.parametrize("code", [429, 500, 503])
+@pytest.mark.parametrize("code", [405, 429, 500, 503])
 def test_unavailable_codes(env, monkeypatch, code):
     def h(r):
         raise _http_error(code)
@@ -131,3 +131,38 @@ def test_hash_mismatch(env, monkeypatch):
 def test_list_names(env, monkeypatch):
     _fake(monkeypatch, lambda r: _Resp(b'["B", "A"]'))
     assert rc.list_names() == ["B", "A"]
+
+
+def test_429_includes_retry_after(env, monkeypatch):
+    def h(r):
+        raise _http_error(429, {"Retry-After": "17"})
+
+    _fake(monkeypatch, h)
+    with pytest.raises(rc.RegistryUnavailableError, match="Retry after 17 s"):
+        rc.list_names()
+
+
+@pytest.mark.parametrize("body", [b'{"meshes": ["A"]}', b'{"names": ["A"]}',
+                                  b'[{"name": "A"}]', b'[1]', b'not json'])
+def test_list_rejects_non_array_of_strings(env, monkeypatch, body):
+    _fake(monkeypatch, lambda r: _Resp(body))
+    with pytest.raises(rc.RegistryIntegrityError):
+        rc.list_names()
+
+
+@pytest.mark.parametrize("body", [b'["x"]', b'{}', b'{"sha256": "abc"}',
+                                  b'{"sha256": 5}', b'nope'])
+def test_hash_rejects_malformed(env, monkeypatch, body):
+    _fake(monkeypatch, lambda r: _Resp(body))
+    with pytest.raises(rc.RegistryIntegrityError):
+        rc.fetch_hash("A")
+
+
+@pytest.mark.parametrize("name", ["", ".", "..", "a/b", "a b", "a%2Fb", "a?x=1"])
+def test_bad_name_rejected_before_request(env, monkeypatch, name):
+    calls = _fake(monkeypatch, lambda r: _Resp(b"{}"))
+    with pytest.raises(rc.RegistryNotFoundError):
+        rc.fetch_hash(name)
+    with pytest.raises(ValueError):
+        rc.fetch_mesh(name)
+    assert calls == []
