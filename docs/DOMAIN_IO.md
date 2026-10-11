@@ -32,10 +32,10 @@ for mesh_id, desc in domains.items():
     print(f"{mesh_id}: {desc}")
 
 # Load by mesh_id (auto-detects registry)
-mesh = admesh.triangulate("Block_O.14", h_max=0.1)
+mesh = admesh.triangulate("rectangular_mesh_triangle1.14", h_max=0.1)
 
 # Or use explicit registry loader
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
@@ -158,7 +158,7 @@ domains = admesh.list_available_domains()
 print(f"Available meshes: {len(domains)}")
 
 # Fetch domain metadata
-domain, meta = admesh.load_domain_with_metadata("Block_O.14")
+domain, meta = admesh.load_domain_with_metadata("rectangular_mesh_triangle1.14")
 # Metadata holds the name and the content hash.
 print(f"Name: {meta['name']}")
 print(f"sha256: {meta['sha256']}")
@@ -172,14 +172,14 @@ Three methods load a registry domain.
 import admesh
 
 # Method 1: Direct registry load
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 
 # Method 2: Auto-detect (string without path separators)
-mesh = admesh.triangulate("Block_O.14", h_max=0.1)
+mesh = admesh.triangulate("rectangular_mesh_triangle1.14", h_max=0.1)
 
 # Method 3: With metadata
-domain, meta = admesh.load_domain_with_metadata("Block_O.14")
+domain, meta = admesh.load_domain_with_metadata("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 print(f"sha256: {meta['sha256']}")
 ```
@@ -191,7 +191,7 @@ import admesh
 import numpy as np
 
 # Load domain from registry
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 
 # Triangulate with custom parameters
 mesh = admesh.triangulate(
