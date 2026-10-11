@@ -50,11 +50,26 @@ def test_missing_token_no_network(monkeypatch):
     assert calls == []
 
 
-def test_missing_url_unavailable(monkeypatch):
+def test_default_url_used_when_unset(monkeypatch):
     monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
     monkeypatch.delenv("VALENCE_API_URL", raising=False)
-    with pytest.raises(rc.RegistryUnavailableError, match="API unavailable"):
-        rc.list_names()
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    rc.list_names()
+    assert calls[0][0].full_url.startswith("https://valence-api.iqh766c2.workers.dev/")
+
+
+def test_url_override_wins(env, monkeypatch):
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    rc.list_names()
+    assert calls[0][0].full_url.startswith("http://api.test/")
+
+
+def test_user_agent_not_urllib_default(env, monkeypatch):
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    rc.list_names()
+    ua = calls[0][0].get_header("User-agent")
+    assert ua == "admesh-registry/1"
+    assert not ua.startswith("Python-urllib")
 
 
 def test_401(env, monkeypatch):

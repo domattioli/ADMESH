@@ -1,7 +1,8 @@
 """Thin client for the token-gated Valence mesh API (spec 031).
 
 Uses only the standard library. The token comes from ``VALENCE_TOKEN`` and
-the base URL from ``VALENCE_API_URL``. The token never appears in messages.
+the base URL defaults to the public Valence API and can be overridden with
+``VALENCE_API_URL``. The token never appears in messages.
 """
 
 from __future__ import annotations
@@ -26,9 +27,8 @@ __all__ = [
     "fetch_mesh",
 ]
 
-# TODO: placeholder until the production URL is fixed. While empty,
-# VALENCE_API_URL is required.
-_DEFAULT_BASE_URL = ""
+# Default public Valence API. VALENCE_API_URL is an optional override.
+_DEFAULT_BASE_URL = "https://valence-api.iqh766c2.workers.dev"
 _TIMEOUT_S = 10.0
 _TOKEN_VAR = "VALENCE_TOKEN"
 _URL_VAR = "VALENCE_API_URL"
@@ -64,18 +64,13 @@ def _config() -> tuple[str, str]:
             "environment variable."
         )
     base = os.environ.get(_URL_VAR, "").strip() or _DEFAULT_BASE_URL
-    if not base:
-        raise RegistryUnavailableError(
-            f"Valence registry API unavailable: no API URL configured. "
-            f"Set the {_URL_VAR} environment variable."
-        )
     return base.rstrip("/"), token
 
 
 def _get(path: str) -> bytes:
     base, token = _config()
     req = urllib.request.Request(
-        base + path, headers={"Authorization": f"Bearer {token}"}
+        base + path, headers={"Authorization": f"Bearer {token}", "User-Agent": "admesh-registry/1"}
     )
     try:
         with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- The registry client now defaults to the public Valence API (https://valence-api.iqh766c2.workers.dev). `VALENCE_API_URL` is an optional override; only `VALENCE_TOKEN` is required.
+- The registry client sends an explicit `User-Agent: admesh-registry/1` header. Cloudflare blocks the default `Python-urllib` agent with error 1010.
+
 ## [1.0.1] — 2026-10-10
 
 ### Changed
