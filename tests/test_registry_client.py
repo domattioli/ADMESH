@@ -27,7 +27,7 @@ def _http_error(code, headers=None):
 @pytest.fixture
 def env(monkeypatch):
     monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
-    monkeypatch.setenv("VALENCE_API_URL", "http://api.test")
+    monkeypatch.setenv("VALENCE_API_URL", "https://api.test")
 
 
 def _fake(monkeypatch, handler):
@@ -43,7 +43,7 @@ def _fake(monkeypatch, handler):
 
 def test_missing_token_no_network(monkeypatch):
     monkeypatch.delenv("VALENCE_TOKEN", raising=False)
-    monkeypatch.setenv("VALENCE_API_URL", "http://api.test")
+    monkeypatch.setenv("VALENCE_API_URL", "https://api.test")
     calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
     with pytest.raises(rc.RegistryAuthError, match="Valence registry needs a token"):
         rc.list_names()
@@ -61,7 +61,7 @@ def test_default_url_used_when_unset(monkeypatch):
 def test_url_override_wins(env, monkeypatch):
     calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
     rc.list_names()
-    assert calls[0][0].full_url.startswith("http://api.test/")
+    assert calls[0][0].full_url.startswith("https://api.test/")
 
 
 def test_user_agent_not_urllib_default(env, monkeypatch):
@@ -213,3 +213,28 @@ def test_registry_filename_requested_verbatim(env, monkeypatch):
     calls = _fake(monkeypatch, lambda r: _Resp(b'{"sha256": "' + b"0" * 64 + b'"}'))
     rc.fetch_hash("annulus_200pts.fort.14")
     assert calls[0][0].full_url.endswith("/meshes/annulus_200pts.fort.14/hash")
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["file:///etc/passwd", "ftp://example.com/", "http://example.com/", "example.com"],
+)
+def test_base_url_scheme_rejected(monkeypatch, url):
+    monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
+    monkeypatch.setenv("VALENCE_API_URL", url)
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    with pytest.raises(rc.RegistryError, match="https"):
+        rc.list_names()
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["http://localhost:8787/", "http://127.0.0.1:8787", "https://api.test"],
+)
+def test_base_url_scheme_allowed(monkeypatch, url):
+    monkeypatch.setenv("VALENCE_TOKEN", TOKEN)
+    monkeypatch.setenv("VALENCE_API_URL", url)
+    calls = _fake(monkeypatch, lambda r: _Resp(b"[]"))
+    rc.list_names()
+    assert len(calls) == 1
