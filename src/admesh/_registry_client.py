@@ -33,7 +33,7 @@ _TIMEOUT_S = 30.0
 _TOKEN_VAR = "VALENCE_TOKEN"
 _URL_VAR = "VALENCE_API_URL"
 _NAME_RE = re.compile(r"^[A-Za-z0-9._-]+$")
-_SHA_RE = re.compile(r"^[0-9a-fA-F]{64}$")
+_SHA_RE = re.compile(r"[0-9a-f]{64}")  # contract: 64 lowercase hex; use fullmatch
 
 
 class RegistryError(RuntimeError):
@@ -96,8 +96,9 @@ def _get(path: str) -> bytes:
                 "Valence registry API unavailable: rate limit reached." + after
             ) from None
         if code == 405:
-            raise RegistryUnavailableError(
-                "Valence registry API unavailable: method not allowed (HTTP 405)."
+            # Contract: 405 is a hard error, not a transient outage.
+            raise RegistryError(
+                "Valence registry rejected the request method (HTTP 405)."
             ) from None
         raise RegistryUnavailableError(
             f"Valence registry API unavailable (HTTP {code})."
@@ -136,7 +137,7 @@ def fetch_hash(name: str) -> dict[str, str]:
     q = _check_name(name)
     data = _json(_get(f"/meshes/{q}/hash"), "hash")
     sha = data.get("sha256") if isinstance(data, dict) else None
-    if not isinstance(data, dict) or set(data) != {"sha256"} or not isinstance(sha, str) or not _SHA_RE.match(sha):
+    if not isinstance(data, dict) or set(data) != {"sha256"} or not isinstance(sha, str) or not _SHA_RE.fullmatch(sha):
         raise RegistryIntegrityError("Registry hash response is malformed.")
     return {"sha256": sha.lower()}
 

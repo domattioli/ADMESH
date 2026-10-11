@@ -91,7 +91,7 @@ def test_404_is_value_error(env, monkeypatch):
         rc.fetch_hash("nope")
 
 
-@pytest.mark.parametrize("code", [405, 429, 500, 503])
+@pytest.mark.parametrize("code", [429, 500, 503])
 def test_unavailable_codes(env, monkeypatch, code):
     def h(r):
         raise _http_error(code)
@@ -109,6 +109,17 @@ def test_network_failure(env, monkeypatch, exc):
     _fake(monkeypatch, h)
     with pytest.raises(rc.RegistryUnavailableError, match="Valence registry API unavailable"):
         rc.list_names()
+
+
+def test_405_is_hard_error(env, monkeypatch):
+    # Contract: 401/404/405 are hard errors; 405 must not look transient.
+    def h(r):
+        raise _http_error(405)
+
+    _fake(monkeypatch, h)
+    with pytest.raises(rc.RegistryError) as ei:
+        rc.list_names()
+    assert type(ei.value) is rc.RegistryError
 
 
 def _mesh_handler(payload, hashes):
@@ -166,7 +177,9 @@ def test_list_rejects_non_array_of_strings(env, monkeypatch, body):
 
 
 @pytest.mark.parametrize("body", [b'["x"]', b'{}', b'{"sha256": "abc"}',
-                                  b'{"sha256": 5}', b'nope'])
+                                  b'{"sha256": 5}', b'nope',
+                                  json.dumps({"sha256": "a" * 64 + "\n"}).encode(),
+                                  json.dumps({"sha256": "A" * 64}).encode()])
 def test_hash_rejects_malformed(env, monkeypatch, body):
     _fake(monkeypatch, lambda r: _Resp(body))
     with pytest.raises(rc.RegistryIntegrityError):
