@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.5] — 2026-10-11
+## [1.0.5] - 2026-10-11
 
 ### Changed
 - The registry client now defaults to the public Valence API (https://valence-api.iqh766c2.workers.dev). `VALENCE_API_URL` is an optional override; only `VALENCE_TOKEN` is required.
@@ -14,10 +14,10 @@ All notable changes to this project will be documented in this file.
 - `triangulate()` with a bare registry slug now raises the registry error with the slug in the message, instead of falling through to the file loader.
 
 ### Removed
-- The `valence-domains` dependency and the `registry` extra. Installing admesh2D no longer installs Valence code.
+- The former registry package dependency and the `registry` extra. Installing admesh2D no longer installs Valence code.
 - The "Mesh Registry" project URL.
 
-## [1.0.0] — 2026-10-02
+## [1.0.0] - 2026-10-02
 
 ### Added
 - `triangulate(..., on_iter=None)` forwards a progress callback to DistMesh. It is called once per iteration with the iteration index, the node positions and the triangles, and it does not change the mesh.
@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file.
 - The polygon signed-distance function is much faster without Numba, as in the browser. A per-cell table of candidate segments replaces the brute-force search, and cells and sign rows are grouped by candidate count so little work is spent on padding. The output is bit-identical. On WNAT (h_min 0.3, h_max 0.5, uniform) meshing takes 1.2 s natively instead of 24.3 s, and 3.9 s in Pyodide instead of 46.3 s.
 - The browser app now grades element size instead of meshing uniformly at h_max. The target edge length is h_min at the boundary and grows by 0.2 per unit distance up to h_max, and `medial_method="grid"` also refines narrow channels. A blank h_min means h_max / 10. The WNAT example now uses h_min 0.2 and h_max 2.0: 8358 elements with edges from 0.23 to 0.72 (10th to 90th percentile), where h_max 2.0 alone gave 378 elements of nearly equal size. The boundary distance for this grading is sampled once on a grid and interpolated, and the example meshes in 7.6 s in Pyodide.
 
-## [1.0.0b1] — 2026-10-01
+## [1.0.0b1] - 2026-10-01
 
 First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
 
@@ -38,7 +38,7 @@ First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
 
 ### Added
 - `triangulate(..., medial_method=None)` adds an optional channel-width size contribution. `"grid"` uses the medial-axis grid method of the 2012 port, `"octree"` the octree leaf graph, and `"vdt"` the vector distance transform with corner pruning of Kang and Kubatko (2024, https://doi.org/10.5194/gmd-17-1603-2024), in the new module `admesh.medial_vdt`. The default `None` leaves output unchanged, and the locked stage modules are not modified. `scripts/bench_medial.py` compares the three methods on WNAT and ENPAC; `"vdt"` stays opt-in because it does not beat both baselines on every criterion (results in `benchmarks/medial_vdt.{json,md}`).
-- A registry mesh that is registered but not hosted (for example, a license that does not allow a hosted copy) now fails with `valence_domains.MeshNotHostedError` before any download is attempted, on `valence-domains` releases that define it. Its message names the mesh and says it is not hosted. Older releases keep their behaviour.
+- A registry mesh that is registered but not hosted (for example, a license that does not allow a hosted copy) now fails with a not-hosted error before any download is attempted, on releases of the former registry package that define it. Its message names the mesh and says it is not hosted. Older releases keep their behaviour.
 - Valence manifest 0.4-ready; 0.3 still supported. Registry lookups run through `admesh._valence_compat`, which picks the group API, the manifest object or the Domain-only API by feature detection. `list_available_domains()` now also lists Collections, and aliases and Collections load by name. Domain metadata reports both `continent` and `region`, and mesh metadata both `format` and `type`.
 - `triangulate_batch(domains, n_jobs=None, **kwargs)` meshes several domains on a process pool (#99 P2). Results come back in input order and are bit-identical to a serial `triangulate` loop. On 8 WNAT meshes (94,777 nodes each) 8 workers run 5.09x faster than the serial loop; small meshes gain less because each worker takes about 0.5 s to start.
 - `scripts/bench_batch.py --wnat` runs the P2 gate: at least 4.0x at 8 workers on 8 WNAT meshes. Results and figure in `benchmarks/results/batch_wnat.{json,png}`.
@@ -46,7 +46,7 @@ First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
 ### Fixed
 - `scripts/bench_batch.py` warms the Numba cache before timing the serial baseline. A cold baseline had inflated the speedup reported in 8f1e67b (2.91x).
 
-## [0.6.1] — 2026-07-14
+## [0.6.1] - 2026-07-14
 
 Packaging and CI patch on 0.6.0. No change under `src/`.
 
@@ -62,37 +62,37 @@ Packaging and CI patch on 0.6.0. No change under `src/`.
 ### Documentation
 - README benchmark figure corrected from 26.7x to 26.6x (#189).
 
-## [0.6.0] — 2026-07-05
+## [0.6.0] - 2026-07-05
 
 ### Added
 - Octree size-field production (spec-029): vectorized SoA octree backend, leaf-graph gradient limiting, IDW smooth interpolation for curvature/medial-axis fallback, WNAT/ENPAC benchmark integration.
 
 ### Changed
 - Benchmark standard migration: WNAT → ENPAC 2003 (#154) for Tier-2 evaluation; ENPAC timing baseline, quality targets, and fixture set now canonical.
-- Documentation: parallel-branches lineage corrected (#185); rolling PR `development → main` formalized (#182).
+- Documentation: parallel-branches history corrected (#185); rolling PR `development → main` formalized (#182).
 
 ### Fixed
 - Test suite: consolidate additive-layer tests, resolve skip debt (#184); correct `inpaint_nans` 1-D Laplacian column alignment (#155).
 
-## [0.5.1] — 2026-06-15
+## [0.5.1] - 2026-06-15
 
-First PyPI release since 0.2.1 — consolidates the unreleased 0.3–0.5 development line.
+First PyPI release since 0.2.1, consolidates the unreleased 0.3–0.5 development line.
 
 ### Changed
-- Dependency pins: `valence-domains>=0.4 → >=0.4.2`; `[viz]` `chilmesh>=1.1,<2 → >=1.2.1,<2`.
+- Dependency pins: the former registry package pin raised to `>=0.4.2`; `[viz]` `chilmesh>=1.1,<2 → >=1.2.1,<2`.
 - Source archives (git archive / sdist / GitHub-release tarball / Zenodo) exclude agent + dev-process files via `.gitattributes` `export-ignore`.
 
 ### Fixed
 - `__version__` corrected `0.2.1 → 0.5.1` (had drifted from `pyproject.toml`).
 
 ### Notes
-- Consolidated since 0.2.1: octree size-field, valence-domains registry redirect (was admesh-domains), README canonicalization, ENPAC standard-benchmark migration (#154), `bench_wnat.py` canonical-loader fix (#158).
+- Consolidated since 0.2.1: octree size-field, registry redirect to its current name, README canonicalization, ENPAC standard-benchmark migration (#154), `bench_wnat.py` canonical-loader fix (#158).
 
 ## [0.2.1] - 2026-05-18
 
 ### Documentation
 - README overhaul (issue #66): Why-ADMESH section, 13-stage pipeline table, `BoundaryType` IBTYPE table, 3-line Status snapshot, single deduplicated badge row, table of contents, absolute image URL for PyPI rendering.
-- Quickstart API correction: `admesh.domain_from_polygon(...)` (did not exist) replaced with the real surface — `admesh.domains.UNIT_DISK`, `admesh.api.Domain(sdf=..., bbox=...)`, `Domain.from_mesh(...)`, and the `triangulate("path.14", ...)` string overload.
+- Quickstart API correction: `admesh.domain_from_polygon(...)` (did not exist) replaced with the real surface, `admesh.domains.UNIT_DISK`, `admesh.api.Domain(sdf=..., bbox=...)`, `Domain.from_mesh(...)`, and the `triangulate("path.14", ...)` string overload.
 - `CITATION.cff` added at repo root. Software-release citation via Zenodo DOI `10.5281/zenodo.20264101`; algorithm citation via preferred-citation block pointing at the 2012 Ocean Dynamics paper.
 - README Citation section now distinguishes algorithm-paper vs software-release citations.
 
@@ -100,32 +100,32 @@ First PyPI release since 0.2.1 — consolidates the unreleased 0.3–0.5 develop
 - Resync `admesh/__init__.py` `__version__` to match `pyproject.toml` (drifted to `0.1.0` during the spec-009 R1 tag-gate hygiene pass).
 - `.github/workflows/publish.yml` referenced `secrets.PYPI_TOKEN` but the repo secret is named `PYPI_API_TOKEN`; the empty-password substitution caused twine 403 on the v0.2.0 release. Now references the correct name. (Landed in 0.2.0 hotfix during the release; recorded here for the changelog trail.)
 
-No code changes vs 0.2.0 — drop-in safe for existing callers.
+No code changes vs 0.2.0, drop-in safe for existing callers.
 
 ## [0.2.0] - 2026-05-18
 
 ### Added
-- Valence balancing via edge flipping (`admesh/valence.py`) — issue #27
-- `initial_points` warm-start parameter for `triangulate()` — issue #45
-- Convergence diagnostics in `distmesh2d` (oscillation + stagnation detection) — issue #47
+- Valence balancing via edge flipping (`admesh/valence.py`): issue #27
+- `initial_points` warm-start parameter for `triangulate()`: issue #45
+- Convergence diagnostics in `distmesh2d` (oscillation + stagnation detection): issue #47
 - Restored ADMESH-variant distmesh code (`MeshOutput`, `SizeFn`, `distmesh2d_admesh`)
-- Tier-1 / Tier-2 acceptance tests for size-field stack structural validity — issue #10
-- Holistic test suite audit (`TEST-AUDIT.md`) — issue #59
+- Tier-1 / Tier-2 acceptance tests for size-field stack structural validity: issue #10
+- Holistic test suite audit (`TEST-AUDIT.md`): issue #59
 - Cross-repo sync contract and dev tooling auto-install
 
   > Correction (2026-09-26): `TEST-AUDIT.md` is no longer in this repository; audit records are kept outside this repository. The session-start hook and its script were untracked on 2026-09-24 and are local tooling, not part of the package.
 
 ### Fixed
-- 1D boundary seeding for `Domain` path on notched-rectangle geometry — issue #2
-- `h_min` / `h_max` parameters now propagate into the size field even when no user contributions are supplied — issue #37
-- `Domain.from_mesh()` produces a proper SDF for real-world ADCIRC meshes — issues #38, #39
+- 1D boundary seeding for `Domain` path on notched-rectangle geometry: issue #2
+- `h_min` / `h_max` parameters now propagate into the size field even when no user contributions are supplied, issue #37
+- `Domain.from_mesh()` produces a proper SDF for real-world ADCIRC meshes: issues #38, #39
 
 ### Documentation
-- `pfix` bit-exact preservation contract — issue #46
-- Planning artifacts for Gmsh I/O integration (spec 008) — issue #5
-- Planning for PyPI namespace claim — issue #13
-- `CONSTITUTION.md` covering specs 001-008 — issue #57
-- Scripts audit + cleanup recommendations — issue #42
+- `pfix` bit-exact preservation contract: issue #46
+- Planning artifacts for Gmsh I/O integration (spec 008): issue #5
+- Planning for PyPI namespace claim: issue #13
+- `CONSTITUTION.md` covering specs 001-008: issue #57
+- Scripts audit + cleanup recommendations: issue #42
 
 ### Infrastructure
 - Single-branch policy: all routine fixes land on `daily-issue-fixing`
@@ -134,11 +134,11 @@ No code changes vs 0.2.0 — drop-in safe for existing callers.
 ## [0.1.0] - 2026-04-27
 
 ### Added
-- Issue #10 fix: Robust polygon SDF with winding-number testing for multiply-connected domains
+- Issue #10 fix: Polygon SDF with winding-number testing for multiply-connected domains
 - Convergence detection in distmesh to prevent hanging on pathological size fields
 - GitHub release skill with automatic credential and metadata detection
 - PyPI publish skill with retry logic and verification
-- Comprehensive diagnostic infrastructure for mesh generation issues
+- Diagnostic infrastructure for mesh generation issues
 - Support for real-world ADCIRC coastal mesh fixtures (Tier-1, Tier-2)
 
 ### Fixed

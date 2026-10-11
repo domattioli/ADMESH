@@ -1,12 +1,12 @@
 # Script Audit Report
 
-**Issue**: #42 — Audit bloat RE python scripts  
+**Issue**: #42, Audit bloat RE python scripts  
 **Date**: 2026-05-03  
 **Status**: Audit complete; recommendations provided
 
 ## Summary
 
-16 Python scripts in `scripts/`. All are justified and in active use. Recommendation: **Keep all for now**. Long-term: consider consolidating demo/render scripts into a single `scripts/demo.py`.
+16 Python scripts in `scripts/`. All are justified and in active use. Recommendation: **Keep all**. Long-term: consider consolidating demo/render scripts into a single `scripts/demo.py`.
 
 ## Active Scripts (Essential)
 
@@ -47,7 +47,7 @@
 ```
 
 **Status**: LOW-PRIORITY (demo/diagnostic use only)  
-**Recommendation**: Keep for now; consolidate into single `demo.py` module in v0.3  
+**Recommendation**: Keep; consolidate into single `demo.py` module in v0.3  
 **Usage**: One-off renders for dev/docs/validation, not part of CI/CD  
 **Candidates for cleanup**:
   - `render_notched_boundary_curvature.py` (standalone diagnostic, not in docs)
@@ -55,7 +55,7 @@
 
 ### 12. `chilmesh_roundtrip_demo.py`
 - **Purpose**: Demo CHILmesh integration (cross-repo validation)
-- **Status**: REMOVED (no longer in `scripts/`)
+- **Status**: REMOVED (not in `scripts/`)
 - **Recommendation**: Done
 
 ### 13. `diagnose_issue_10.py`
@@ -71,8 +71,8 @@
 ## Recommendations
 
 ### Immediate (Safe to Delete)
-- [ ] `diagnose_issue_10.py` — issue #10 resolved; script is obsolete
-- [x] `chilmesh_roundtrip_demo.py` — removed
+- [ ] `diagnose_issue_10.py`: issue #10 resolved; script is obsolete
+- [x] `chilmesh_roundtrip_demo.py`: removed
 
 ### Long-term (Consolidation Opportunity)
 - Consolidate 7 render scripts into a single `scripts/demo.py` with subcommands:
@@ -87,21 +87,21 @@
 
 | Script | In Tests | In CI | In Docs | In Workflows | Status |
 |--------|----------|-------|---------|--------------|--------|
-| `bench_mesh_size.py` | — | — | ✓ | — | ACTIVE |
-| `mat_to_npz.py` | ✓ | — | — | ✓ fixture pipeline | ACTIVE |
-| `publish_release.py` | — | ✓ | — | ✓ release | ACTIVE |
-| `github_release.py` | — | ✓ | — | ✓ release | ACTIVE |
-| `pypi_publish.py` | — | ✓ | — | ✓ release | ACTIVE |
-| `render_mvp_meshes.py` | — | — | ✓ | — | LOW-PRIORITY |
-| `render_p1p3_demos.py` | — | — | ✓ | — | LOW-PRIORITY |
-| `render_wnat_from_mesh_fix.py` | — | — | — | — | LOW-PRIORITY |
-| `render_wnat_bermuda_inspect.py` | — | — | ✓ | — | LOW-PRIORITY |
-| `run_block_o_demo.py` | — | — | ✓ | — | LOW-PRIORITY |
-| `size_field_extension_demo.py` | ✓ | — | — | — | ACTIVE |
-| `wnat_demo.py` | — | — | ✓ | — | LOW-PRIORITY |
-| `render_notched_boundary_curvature.py` | — | — | — | — | CANDIDATE FOR REMOVAL |
-| `chilmesh_roundtrip_demo.py` | — | — | — | — | REMOVED |
-| `diagnose_issue_10.py` | — | — | — | — | CANDIDATE FOR REMOVAL |
+| `bench_mesh_size.py` | - | - | ✓ | - | ACTIVE |
+| `mat_to_npz.py` | ✓ | - | - | ✓ fixture pipeline | ACTIVE |
+| `publish_release.py` | - | ✓ | - | ✓ release | ACTIVE |
+| `github_release.py` | - | ✓ | - | ✓ release | ACTIVE |
+| `pypi_publish.py` | - | ✓ | - | ✓ release | ACTIVE |
+| `render_mvp_meshes.py` | - | - | ✓ | - | LOW-PRIORITY |
+| `render_p1p3_demos.py` | - | - | ✓ | - | LOW-PRIORITY |
+| `render_wnat_from_mesh_fix.py` | - | - | - | - | LOW-PRIORITY |
+| `render_wnat_bermuda_inspect.py` | - | - | ✓ | - | LOW-PRIORITY |
+| `run_block_o_demo.py` | - | - | ✓ | - | LOW-PRIORITY |
+| `size_field_extension_demo.py` | ✓ | - | - | - | ACTIVE |
+| `wnat_demo.py` | - | - | ✓ | - | LOW-PRIORITY |
+| `render_notched_boundary_curvature.py` | - | - | - | - | CANDIDATE FOR REMOVAL |
+| `chilmesh_roundtrip_demo.py` | - | - | - | - | REMOVED |
+| `diagnose_issue_10.py` | - | - | - | - | CANDIDATE FOR REMOVAL |
 
 ## Conclusion
 

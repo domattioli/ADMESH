@@ -19,7 +19,7 @@ Build a `Domain` from a file path or from the Valence registry.
 ## From the registry
 
 Registry lookups call the Valence HTTP API and need the `VALENCE_TOKEN`
-environment variable. See the [registry API contract](../ADMESH_DOMAINS_CONTRACT.md).
+environment variable. See the [registry API contract](../registry-api-contract.md).
 
 ### load_domain_from_registry
 

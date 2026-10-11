@@ -9,10 +9,10 @@ process and security scope.
 
 | Version | Supported |
 |---|---|
-| `1.0.x` (current PyPI release) | ✅ — receives fixes |
-| `0.5.x` and earlier | ❌ — best-effort only |
+| `1.0.x` (current PyPI release) | ✅, receives fixes |
+| `0.5.x` and earlier | ❌, best-effort only |
 
-Versions prior to 1.0.0 receive fixes only for critical supply-chain
+Versions before 1.0.0 receive fixes only for critical supply-chain
 security issues (e.g., malicious dependency uploads); normal bug fixes are
 not backported. For non-critical updates, upgrade to `1.0.x`.
 

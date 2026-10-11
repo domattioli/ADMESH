@@ -69,15 +69,15 @@ Public surface, listed by area:
 
 The 13 faithful-port stage modules (`admesh.curvature`, `admesh.distmesh`,
 `admesh.medial_axis`, etc.) are accessible by direct import but carry no
-semver guarantee on internal signatures — they are numerical translations
+semver guarantee on internal signatures; they are numerical translations
 of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
-- **Maturity**: 1.0.0, stable. The public API is fixed for 1.x.
+- **Maturity**: Current release 1.0.0 (2026-10-02); next 1.0.5 (unreleased); see the [changelog](https://github.com/domattioli/ADMESH/blob/main/CHANGELOG.md). The public API is fixed for 1.x.
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
-- **Sibling registry**: [github.com/domattioli/ADMESH-Domains](https://github.com/domattioli/ADMESH-Domains) — federated mesh metadata + HuggingFace-mirrored data files.
+- **Registry**: meshes are available through Valence.
 
 ## Citing
 

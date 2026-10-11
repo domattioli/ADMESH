@@ -74,8 +74,7 @@ p, t = admesh_rs.distmesh2d_native_rs(
 
 ## Benchmarks
 
-Real-world corpus: 39 ADCIRC `.14` meshes from `domattioli/ADMESH-Domains`
-`registry_data/meshes/*.14`. For each mesh:
+Real-world corpus: 39 ADCIRC `.14` meshes from the registry mesh set. For each mesh:
 
 1. Extract outer boundary via convex hull of nodes (lenient for tri/quad/mixed).
 2. Build SDF from polygon boundary.

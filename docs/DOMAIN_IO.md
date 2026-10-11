@@ -1,10 +1,10 @@
 # Domain I/O and Registry Integration
 
-Guide for loading mesh domains from files and the Valence registry.
+ADMESH loads a mesh domain from a TOML file, a JSON file, a fort.14 mesh, or the registry. Each source returns a domain that `admesh.triangulate()` accepts. Meshes come through Valence.
 
 ## Quick Start
 
-### Load from File
+### Load from a file
 
 ```python
 import admesh
@@ -19,7 +19,9 @@ mesh = admesh.triangulate("my_domain.json", h_max=0.1)
 mesh = admesh.triangulate("existing_mesh.14", h_max=0.05)
 ```
 
-### Load from Registry
+### Load from the registry
+
+See [Registry Integration](#registry-integration) for setup.
 
 ```python
 import admesh
@@ -30,10 +32,10 @@ for mesh_id, desc in domains.items():
     print(f"{mesh_id}: {desc}")
 
 # Load by mesh_id (auto-detects registry)
-mesh = admesh.triangulate("Block_O.14", h_max=0.1)
+mesh = admesh.triangulate("rectangular_mesh_triangle1.14", h_max=0.1)
 
 # Or use explicit registry loader
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 ```
 
@@ -41,9 +43,9 @@ mesh = admesh.triangulate(domain, h_max=0.1)
 
 ### TOML Format (Recommended)
 
-Native format for ADMESH domains. Human-readable, widely supported.
+TOML is the native ADMESH format. It is human-readable and widely supported.
 
-**File: `domain.toml`**
+File `domain.toml`:
 
 ```toml
 [domain]
@@ -78,10 +80,11 @@ coords = [[-85.0, 20.0], [-60.0, 40.0]]
 version = "1"
 contributed_by = "NOAA"
 license = "CC-BY-4.0"
-source_url = "https://github.com/domattioli/Valence"
+source_url = "https://example.org/your-domain-source"
 ```
 
-**Loading:**
+Load it with:
+
 ```python
 domain = admesh.load_domain_from_toml("domain.toml")
 mesh = admesh.triangulate(domain, h_max=0.1)
@@ -89,9 +92,9 @@ mesh = admesh.triangulate(domain, h_max=0.1)
 
 ### JSON Format
 
-Universal, portable format. Identical structure to TOML without metadata section.
+JSON is a universal, portable format. Its structure matches TOML, without the metadata section.
 
-**File: `domain.json`**
+File `domain.json`:
 
 ```json
 {
@@ -105,7 +108,8 @@ Universal, portable format. Identical structure to TOML without metadata section
 }
 ```
 
-**Loading:**
+Load it with:
+
 ```python
 domain = admesh.load_domain_from_json("domain.json")
 mesh = admesh.triangulate(domain, h_max=0.1)
@@ -113,9 +117,10 @@ mesh = admesh.triangulate(domain, h_max=0.1)
 
 ### Fort.14 Format
 
-Extract domain boundary from ADCIRC v55 fort.14 mesh files. Useful for re-triangulating at different resolutions, refining/coarsening, domain validation.
+The loader extracts the domain boundary from ADCIRC v55 fort.14 mesh files. Use it to re-triangulate at a different resolution, to refine or coarsen a mesh, and to validate a domain.
 
-**Loading:**
+Load it with:
+
 ```python
 # Extract boundary from existing mesh
 domain = admesh.load_domain_from_fort14("existing_mesh.14")
@@ -127,15 +132,21 @@ coarse_mesh = admesh.triangulate(domain, h_max=0.5)
 fine_mesh = admesh.triangulate(domain, h_max=0.02)
 ```
 
-**What gets extracted:**
-- Outer boundary polygon from first land boundary segment
-- Interior islands (holes) from additional segments
-- Bounding box computed from node coordinates
-- Corner vertices marked as fixed points
+The loader extracts:
+
+- The outer boundary polygon, from the first land boundary segment.
+- Interior islands (holes), from additional segments.
+- The bounding box, computed from node coordinates.
+- Corner vertices, marked as fixed points.
 
 ## Registry Integration
 
-Registry access calls the Valence HTTP API. Set `VALENCE_TOKEN` to your access token. Set `VALENCE_API_URL` when the built-in default does not apply. Without a token, registry calls raise `RegistryAuthError` and make no network request. No extra package is needed.
+Registry access calls the Valence HTTP API. No extra package is needed.
+
+1. Set `VALENCE_TOKEN` to your access token.
+2. Set `VALENCE_API_URL` when the built-in default does not apply.
+
+Without a token, registry calls raise `RegistryAuthError` and make no network request.
 
 ### Discovering Domains
 
@@ -147,26 +158,28 @@ domains = admesh.list_available_domains()
 print(f"Available meshes: {len(domains)}")
 
 # Fetch domain metadata
-domain, meta = admesh.load_domain_with_metadata("Block_O.14")
+domain, meta = admesh.load_domain_with_metadata("rectangular_mesh_triangle1.14")
 # Metadata holds the name and the content hash.
 print(f"Name: {meta['name']}")
 print(f"sha256: {meta['sha256']}")
 ```
 
-### Loading from Registry
+### Loading from the registry
+
+Three methods load a registry domain.
 
 ```python
 import admesh
 
 # Method 1: Direct registry load
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 
 # Method 2: Auto-detect (string without path separators)
-mesh = admesh.triangulate("Block_O.14", h_max=0.1)
+mesh = admesh.triangulate("rectangular_mesh_triangle1.14", h_max=0.1)
 
 # Method 3: With metadata
-domain, meta = admesh.load_domain_with_metadata("Block_O.14")
+domain, meta = admesh.load_domain_with_metadata("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain, h_max=0.1)
 print(f"sha256: {meta['sha256']}")
 ```
@@ -178,7 +191,7 @@ import admesh
 import numpy as np
 
 # Load domain from registry
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 
 # Triangulate with custom parameters
 mesh = admesh.triangulate(
@@ -202,21 +215,24 @@ print(f"Finer mesh: {finer_mesh.n_nodes} nodes")
 
 ## Conventions
 
-### Coordinate System
-- **Coordinates**: (x, y) pairs, typically longitude/latitude for geographic domains
-- **Indexing**: 0-based (Python convention, not MATLAB 1-based)
-- **Bbox format**: (xmin, ymin, xmax, ymax)
+### Coordinate system
 
-### Signed Distance Function (SDF)
-- **Negative**: Inside domain
-- **Positive**: Outside domain
-- **Zero**: On boundary
-- Constructed from polygon rings using Shapely
+- Coordinates are (x, y) pairs, typically longitude/latitude for geographic domains.
+- Indexing is 0-based (Python convention, not MATLAB 1-based).
+- Bbox format is (xmin, ymin, xmax, ymax).
 
-### Fixed Points
-- Pinned vertices the triangulator must preserve
-- Useful for re-entrant corners, domain features
-- Optional; omit if not needed
+### Signed distance function (SDF)
+
+- Negative: inside the domain.
+- Positive: outside the domain.
+- Zero: on the boundary.
+- Shapely constructs it from the polygon rings.
+
+### Fixed points
+
+- Fixed points are pinned vertices the triangulator must preserve.
+- They suit re-entrant corners and domain features.
+- They are optional. Omit them if you do not need them.
 
 ## Error Handling
 
@@ -248,7 +264,7 @@ except admesh.registry.RegistryUnavailableError:
 
 ## Migration from admesh.domains
 
-Old hardcoded test domains still available:
+The hardcoded test domains stay available:
 
 ```python
 import admesh.domains
@@ -260,10 +276,10 @@ from admesh.api import domain_from_sdf
 domain = domain_from_sdf(domain_obj.fd, bbox=domain_obj.bbox)
 ```
 
-For new code, prefer file-based or registry-based loaders.
+New code should use the file-based or registry-based loaders.
 
 ## See Also
 
-- Valence registry repository (formerly ADMESH-Domains): https://github.com/domattioli/Valence
-- `admesh.api.Domain` — Domain dataclass documentation
-- `admesh.triangulate()` — Main triangulation function
+- Meshes and domains come through Valence.
+- `admesh.api.Domain`: the Domain dataclass documentation.
+- `admesh.triangulate()`: the main triangulation function.

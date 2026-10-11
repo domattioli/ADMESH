@@ -2,7 +2,7 @@
 
 **Setup:**
 - Corpus: 39 real-world ADCIRC meshes from
-  `domattioli/ADMESH-Domains/registry_data/meshes/*.14`.
+  the registry mesh set.
 - Per mesh: extract boundary (convex hull of nodes), build SDF, regenerate at
   h₀ chosen for ~2000 nodes, niter=25, seed=42.
 - Hardware: Linux container, x86_64, single thread (no rayon parallelism yet

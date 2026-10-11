@@ -12,9 +12,8 @@ through ADMESH's pipeline:
 Triangles are colored by quality (red = poor → green = equilateral), and
 node motion is interpolated continuously between precomputed keyframes.
 
-The domain outline is the real Delaware Bay mesh registered in the sibling
-[`ADMESH-Domains`](https://github.com/domattioli/ADMESH-Domains) repo
-(`registry_data/meshes/Deleware_Bay_hmin_100_hmax_20000.14`). The graded
+The domain outline is the real Delaware Bay mesh available through Valence
+(`Deleware_Bay_hmin_100_hmax_20000.14`). The graded
 size function is parameterized by the three classic DistMesh / ADMESH
 hyperparameters:
 
