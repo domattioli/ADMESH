@@ -20,8 +20,8 @@
 /api/loaders/ /docs/api/loaders/ 301
 /api/valence /docs/api/valence/ 301
 /api/valence/ /docs/api/valence/ 301
-/ADMESH_DOMAINS_CONTRACT /docs/ADMESH_DOMAINS_CONTRACT/ 301
-/ADMESH_DOMAINS_CONTRACT/ /docs/ADMESH_DOMAINS_CONTRACT/ 301
+/ADMESH_DOMAINS_CONTRACT /docs/registry-api-contract/ 301
+/ADMESH_DOMAINS_CONTRACT/ /docs/registry-api-contract/ 301
 /PORTING_NOTES /docs/PORTING_NOTES/ 301
 /PORTING_NOTES/ /docs/PORTING_NOTES/ 301
 /contributing /docs/contributing/ 301

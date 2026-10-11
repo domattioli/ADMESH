@@ -147,6 +147,6 @@ assert np.any(
 
 ## See Also
 
-- [Domain class](../admesh/api.py#Domain)
-- [distmesh2d](../admesh/distmesh.py#distmesh2d) — core distmesh driver
-- [triangulate()](../admesh/api.py#triangulate) — public API
+- [Domain class](../src/admesh/api.py)
+- [distmesh2d](../src/admesh/distmesh.py) — core distmesh driver
+- [triangulate()](../src/admesh/api.py) — public API

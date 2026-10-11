@@ -12,7 +12,7 @@ MATLAB reference. Nothing here proposes touching them. Every "adopt" verdict bel
 lands in the additive Pythonic layer (`api.py`, `size_field.py`, `loaders.py`, a
 new module, …) under its own spec, never inside `_stages/`.
 
-## Provenance and lineage
+## Source information and history
 
 Two branches of ADMESH descend from Conroy, Kubatko & West (2012), "ADMESH: An
 advanced, automatic unstructured mesh generator for shallow water models" (*Ocean
@@ -28,7 +28,7 @@ methods are published in:
   Open-access; a preprint is at
   [egusphere-2023-1434](https://egusphere.copernicus.org/preprints/2023/egusphere-2023-1434/).
 
-The second source is a different lineage entirely — a watershed-hydrology mesher,
+The second source is a different codebase entirely — a watershed-hydrology mesher,
 included here as an element-paradigm and refinement-controls comparison, not a
 port candidate:
 

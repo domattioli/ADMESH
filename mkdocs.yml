@@ -37,6 +37,7 @@ nav:
   - Quickstart: quickstart.md
   - Interactive Demo: demo/index.html
   - API Reference:
+      - Overview: api/index.md
       - Triangulation: api/triangulate.md
       - Mesh + Domain: api/types.md
       - I/O: api/io.md
@@ -45,11 +46,10 @@ nav:
       - Domain loaders: api/loaders.md
       - Valence balancing: api/valence.md
   - Project:
-      - valence-domains contract: ADMESH_DOMAINS_CONTRACT.md
+      - Registry API contract: registry-api-contract.md
       - Porting notes: PORTING_NOTES.md
       - Contributing: contributing.md
       - Testing: testing.md
-  - Ecosystem wiki: https://www.domattioli.com/
 
 plugins:
   - search

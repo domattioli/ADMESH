@@ -53,7 +53,7 @@ tests/
 │   │   │   ├── wetting_and_drying_test.14  # ~60×65 km, paired-edge weirs (Tier-1)
 │   │   │   └── wnat_test.14                # ~10K nodes, US East Coast (Tier-2)
 │   │   ├── synthetic/                   # generated polygons
-│   │   └── README.md                    # fixture provenance
+│   │   └── README.md                    # fixture source information
 │   ├── matlab/                          # MATLAB golden fixtures (gitignored;
 │   │                                    # generate via scripts/export_matlab_fixtures.m)
 │   └── quad_prep/                       # synthetic right-iso targets

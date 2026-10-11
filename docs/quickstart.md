@@ -2,7 +2,7 @@
 
 This page walks through the most common ADMESH workflows: triangulating a
 polygon, round-tripping an ADCIRC `fort.14`, composing a custom size
-field, and loading a domain from the `admesh-domains` registry.
+field, and loading a domain from the registry.
 
 ## Setup
 
@@ -97,10 +97,10 @@ The default `combine` is `np.minimum.reduce` — at every point, the tightest
 of the contributions wins. Pass `np.add` or `np.maximum.reduce` to change
 the policy.
 
-## Load from the `admesh-domains` registry
+## Load from the registry
 
 > ⚠️ **Status as of 2026-05-15**: registry loaders are documented but the
-> adapter is broken against `admesh-domains` 0.3.x (see
+> adapter is broken against the former registry package 0.3.x (see
 > [issue #64](https://github.com/domattioli/ADMESH/issues/64)). Use file
 > loaders below until the fix lands.
 
@@ -115,7 +115,7 @@ for mesh_id, desc in sorted(admesh.list_available_domains().items()):
 domain = admesh.load_domain_from_registry("BaranjaHill")
 mesh = admesh.triangulate(domain)
 
-# Or load with provenance metadata.
+# Or load with source metadata.
 domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
 print(f"License: {meta.get('license')}, contributor: {meta.get('contributed_by')}")
 ```

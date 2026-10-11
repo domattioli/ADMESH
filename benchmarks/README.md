@@ -48,7 +48,7 @@ Eastern Pacific, 59.3°×41.9°), replacing WNAT as the large-domain stress case
   per-point SDF cost, and mesh quality.
 - **Portable fixture:** `benchmarks/data/enpac_boundary.json` (240 KB, 10,365-node
   outer ring extracted from the `.14`). The 29 MB `.14` itself stays in the Valence
-  registry / HuggingFace — **not vendored** here.
+  registry — **not vendored** here.
 - **Version comparison:** `compare_versions.py --domain benchmarks/data/enpac_boundary.json`
   (already domain-parametrized; ENPAC is now the documented default target).
 - **WNAT-Onur retained** as a lighter ~7k-node smoke (`benchmarks/bench_wnat.py`,

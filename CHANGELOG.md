@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file.
 - `triangulate()` with a bare registry slug now raises the registry error with the slug in the message, instead of falling through to the file loader.
 
 ### Removed
-- The `valence-domains` dependency and the `registry` extra. Installing admesh2D no longer installs Valence code.
+- The former registry package dependency and the `registry` extra. Installing admesh2D no longer installs Valence code.
 - The "Mesh Registry" project URL.
 
 ## [1.0.0] — 2026-10-02
@@ -38,7 +38,7 @@ First 1.0 pre-release. The public API in `admesh.__all__` is fixed for 1.x.
 
 ### Added
 - `triangulate(..., medial_method=None)` adds an optional channel-width size contribution. `"grid"` uses the medial-axis grid method of the 2012 port, `"octree"` the octree leaf graph, and `"vdt"` the vector distance transform with corner pruning of Kang and Kubatko (2024, https://doi.org/10.5194/gmd-17-1603-2024), in the new module `admesh.medial_vdt`. The default `None` leaves output unchanged, and the locked stage modules are not modified. `scripts/bench_medial.py` compares the three methods on WNAT and ENPAC; `"vdt"` stays opt-in because it does not beat both baselines on every criterion (results in `benchmarks/medial_vdt.{json,md}`).
-- A registry mesh that is registered but not hosted (for example, a license that does not allow a hosted copy) now fails with `valence_domains.MeshNotHostedError` before any download is attempted, on `valence-domains` releases that define it. Its message names the mesh and says it is not hosted. Older releases keep their behaviour.
+- A registry mesh that is registered but not hosted (for example, a license that does not allow a hosted copy) now fails with a not-hosted error before any download is attempted, on releases of the former registry package that define it. Its message names the mesh and says it is not hosted. Older releases keep their behaviour.
 - Valence manifest 0.4-ready; 0.3 still supported. Registry lookups run through `admesh._valence_compat`, which picks the group API, the manifest object or the Domain-only API by feature detection. `list_available_domains()` now also lists Collections, and aliases and Collections load by name. Domain metadata reports both `continent` and `region`, and mesh metadata both `format` and `type`.
 - `triangulate_batch(domains, n_jobs=None, **kwargs)` meshes several domains on a process pool (#99 P2). Results come back in input order and are bit-identical to a serial `triangulate` loop. On 8 WNAT meshes (94,777 nodes each) 8 workers run 5.09x faster than the serial loop; small meshes gain less because each worker takes about 0.5 s to start.
 - `scripts/bench_batch.py --wnat` runs the P2 gate: at least 4.0x at 8 workers on 8 WNAT meshes. Results and figure in `benchmarks/results/batch_wnat.{json,png}`.
@@ -69,7 +69,7 @@ Packaging and CI patch on 0.6.0. No change under `src/`.
 
 ### Changed
 - Benchmark standard migration: WNAT → ENPAC 2003 (#154) for Tier-2 evaluation; ENPAC timing baseline, quality targets, and fixture set now canonical.
-- Documentation: parallel-branches lineage corrected (#185); rolling PR `development → main` formalized (#182).
+- Documentation: parallel-branches history corrected (#185); rolling PR `development → main` formalized (#182).
 
 ### Fixed
 - Test suite: consolidate additive-layer tests, resolve skip debt (#184); correct `inpaint_nans` 1-D Laplacian column alignment (#155).
@@ -79,14 +79,14 @@ Packaging and CI patch on 0.6.0. No change under `src/`.
 First PyPI release since 0.2.1 — consolidates the unreleased 0.3–0.5 development line.
 
 ### Changed
-- Dependency pins: `valence-domains>=0.4 → >=0.4.2`; `[viz]` `chilmesh>=1.1,<2 → >=1.2.1,<2`.
+- Dependency pins: the former registry package pin raised to `>=0.4.2`; `[viz]` `chilmesh>=1.1,<2 → >=1.2.1,<2`.
 - Source archives (git archive / sdist / GitHub-release tarball / Zenodo) exclude agent + dev-process files via `.gitattributes` `export-ignore`.
 
 ### Fixed
 - `__version__` corrected `0.2.1 → 0.5.1` (had drifted from `pyproject.toml`).
 
 ### Notes
-- Consolidated since 0.2.1: octree size-field, valence-domains registry redirect (was admesh-domains), README canonicalization, ENPAC standard-benchmark migration (#154), `bench_wnat.py` canonical-loader fix (#158).
+- Consolidated since 0.2.1: octree size-field, registry redirect to its current name, README canonicalization, ENPAC standard-benchmark migration (#154), `bench_wnat.py` canonical-loader fix (#158).
 
 ## [0.2.1] - 2026-05-18
 

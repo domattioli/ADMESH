@@ -72,7 +72,7 @@ Template:
 - `admesh.domain_from_polygon(rings, *, pfix, bc_segments)` — Shapely-based polygon→SDF builder
 - `admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)` — SDF callable + bbox wrapper
 
-**Rationale:** File-based domain loading (TOML/JSON/fort.14) and ADMESH-Domains registry are now canonical entry points. Storing domain definitions as files enables version control, reproducibility, and registry integration.
+**Rationale:** File-based domain loading (TOML/JSON/fort.14) and the registry are now canonical entry points. Storing domain definitions as files enables version control, reproducibility, and registry integration.
 
 **Migration:**
 - Polygon domains → serialize to JSON/TOML once; reload via `load_domain_from_json()` or `load_domain_from_toml()`

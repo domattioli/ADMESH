@@ -3,7 +3,7 @@
 The original **ADMESH MATLAB library** — the source this Python package is a
 faithful port of. Homed here so the reference survives even if upstream repos
 move or disappear. **Not maintained, not part of the Python build/test/run
-path.** Nothing imports it; it is here for provenance and side-by-side reading.
+path.** Nothing imports it; it is here for reference and side-by-side reading.
 
 ## Contents
 
@@ -29,7 +29,7 @@ directories that the Python pipeline ports 1:1:
 `.mexmaci64` / `.mexw64` are compiled MATLAB MEX binaries (macOS / Windows); the
 matching C source for the size-field solver is `09_Mesh_Size/MeshSizeIterativeSolver.c`.
 
-## Provenance
+## Source information
 
 Original authors: Conroy, C.J., Kubatko, E.J., West, D.W. — see the 2012 paper
 (`papers/Conroy-2012-ADMESH.pdf`) and the upstream

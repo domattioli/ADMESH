@@ -70,7 +70,7 @@ Falls back to Numba if C++ unavailable.
 
 ## 3. Bayesian Hyperparameter Optimization Infrastructure
 
-**Location:** `/home/user/ADMESH-Domains/experiments/`
+**Location:** `/home/user/<registry-checkout>/experiments/`
 
 **Files:**
 - `bayesian_wnat_harness.py` — Main orchestrator (6 modes)
@@ -135,7 +135,7 @@ Expected mesh properties:
 
 **Quick start (end-to-end, ~1.5-2.5h):**
 ```bash
-cd /home/user/ADMESH-Domains/experiments
+cd /home/user/<registry-checkout>/experiments
 bash run_wnat_bayesian_experiment.sh
 ```
 
@@ -162,8 +162,8 @@ python bayesian_wnat_harness.py --mode report       # 2 min
 |-------|------|--------|---------|
 | #101 | ADMESH | closed (diagnostic) | Benchmark bypass → quality gate routing |
 | v0.5.0 release | ADMESH | shipped | Numba baseline (47.2s) |
-| #83 | ADMESH-Domains | research | K=1100 quality regression (6 domains) |
-| #84 | ADMESH-Domains | research | tri_to_quad quality CI experiment |
+| #83 | registry | research | K=1100 quality regression (6 domains) |
+| #84 | registry | research | tri_to_quad quality CI experiment |
 
 ---
 
@@ -182,7 +182,7 @@ ADMESH v0.5.0 (main branch)
 ADMESH cpp-distmesh (development branch)
   └─ [above + commits for C++ implementation]
 
-ADMESH-Domains experiments branch
+registry experiments branch
   └─ experiments/
      ├─ bayesian_wnat_harness.py (orchestrator)
      ├─ run_wnat_bayesian_experiment.sh (bash wrapper)
@@ -233,7 +233,7 @@ ADMESH-Domains experiments branch
 
 2. **Run experiment (1.5-2.5h compute)**
    - Requires: PyMC, arviz, optuna, numpy, scipy, matplotlib
-   - `bash /home/user/ADMESH-Domains/experiments/run_wnat_bayesian_experiment.sh`
+   - `bash /home/user/<registry-checkout>/experiments/run_wnat_bayesian_experiment.sh`
    - Outputs written to `wnat_bayesian_v0.5.0_vs_v1.0.0/`
 
 3. **Production mesh generation**
@@ -245,7 +245,7 @@ ADMESH-Domains experiments branch
 
 4. **Cluster scaling (optional)**
    - Parallelize K=100 → K=1000+ mesh runs using Dask/Ray
-   - Target: per-domain CI estimates for all ADMESH-Domains registry entries
+   - Target: per-domain CI estimates for all registry entries
 
 ---
 
@@ -268,7 +268,7 @@ admesh/_cpp/
 [above files + commits for C++ implementation]
 ```
 
-### ADMESH-Domains (experiments branch)
+### Registry (experiments branch)
 ```
 experiments/
   bayesian_wnat_harness.py        ← NEW: orchestrator
@@ -293,3 +293,47 @@ This work completes the goal from the user's `/goal` directive:
 ---
 
 _Timestamp: 2026-05-25._
+
+
+---
+
+## Numba kernel and batch meshing benchmarks
+
+The Numba-JIT signed-distance kernel and the `solve_iter` smoother cut end-to-end generation from **1257.5 s (v0.2.1) to 47.2 s (v0.5.0)** at `hmin=0.05`, `g=0.10`, `niter=120`. Mean element quality moved from 0.963 to 0.962.
+
+| | v0.2.1 | v0.5.0 (Numba) |
+|---|---|---|
+| total | 1257.5 s | **47.2 s** |
+| nodes / elements | 49 377 / 93 655 | 49 377 / 93 642 |
+| mean element quality | 0.963 | 0.962 |
+
+An experimental C++ distmesh kernel (unreleased, `src/admesh/_cpp/`) runs the same case in 29.1 s in the in-repo harness. That figure is a development measurement of unreleased code. The per-stage breakdown and the version-comparison harness are in [`benchmarks/`](../benchmarks/results/). The benchmark standard going forward is the ENPAC 2003 tidal database (272,913 nodes).
+
+Reproduce or extend the benchmark with one `--ref <git-ref>=<label>` per column. The 0.2.1 and 0.5.0 tags are not published on this remote. Compare `v0.5.1` against the working tree, or pass commit hashes:
+
+```bash
+python benchmarks/compare_versions.py --hist \
+    --ref v0.5.1=v0.5.1 --ref current=dev \
+    --mesh tests/fixtures/fort14/adcirc_examples/wnat_test.14 \
+    --domain benchmarks/data/wnat_onur_boundary.json \
+    --hmin 0.05 --g 0.10 --niter 120
+```
+
+### Batch meshing runs 5.1× faster on 8 workers
+
+`triangulate_batch` meshes several domains in parallel. The test used 8 Western North Atlantic meshes (94,777 nodes each, `h_min=0.05`, `h_max=0.10`, `max_iter=120`). 8 workers cut wall time from 218 s to 43 s, a **5.09× speedup**. The figure is the median of 3 runs on a 10-core Apple Silicon machine (4 performance and 6 efficiency cores). Every batch mesh is bit-identical to the serial result: same nodes, elements, and quality.
+
+| workers | wall time, 8 meshes | speedup | seconds per mesh |
+|---|---|---|---|
+| 1 (serial loop) | 218 s | 1.00× | 27.3 |
+| 2 | 133 s | 1.65× | 16.6 |
+| 4 | 80 s | 2.74× | 10.0 |
+| 8 | 43 s | **5.09×** | 5.4 |
+
+Each worker process needs about 0.5 s to start, so small meshes gain less. 8 meshes of about 6,900 nodes reach 2.0×. 32 meshes reach 3.8×. For a few small meshes, a plain loop is faster.
+
+![Batch speedup on WNAT compared with small meshes, with parity and quality checks](https://raw.githubusercontent.com/domattioli/ADMESH/main/benchmarks/results/batch_wnat.png)
+
+```bash
+PYTHONPATH=src python scripts/bench_batch.py --wnat    # P2 gate: >= 4.0x at 8 workers, about 25 min
+```

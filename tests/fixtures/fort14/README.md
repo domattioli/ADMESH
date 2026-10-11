@@ -15,11 +15,11 @@ Total directory budget: **< 2 MB** combined. Reject contributions that push past
 ## Rules for adding fixtures
 
 1. **Plain text only.** No binary, no compressed archives. fort.14 is ASCII; suite parses files as text.
-2. **No PII or proprietary geometry.** Only public-domain or permissively-licensed meshes. Document provenance below for every non-trivial file.
+2. **No PII or proprietary geometry.** Only public-domain or permissively-licensed meshes. Document source information below for every non-trivial file.
 3. **Excerpts must round-trip structurally.** Trimmed community mesh must still parse and round-trip via `read_fort14` → `write_fort14`.
 4. **`malformed/` files violate exactly one rule each.** Negative tests parametrize over them; one-rule-per-file keeps failures diagnosable.
 
-## Provenance
+## Source information
 
 ### `adcirc_examples/`
 
@@ -39,7 +39,7 @@ _(none yet — populated by T027)_
 
 ### `malformed/`
 
-Ten hand-crafted negative-test fixtures, each violating exactly one fort.14 grammar rule. Hand-authored in this repo by T025; no external provenance required.
+Ten hand-crafted negative-test fixtures, each violating exactly one fort.14 grammar rule. Hand-authored in this repo by T025; no external source information required.
 
 - `element_node_out_of_range.14` — element references vertex id beyond NN
 - `invalid_nodes_per_element.14` — element line declares 4 nodes (not 3)
