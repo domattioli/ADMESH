@@ -1,4 +1,4 @@
-# ADR-001 — ADMESH ↔ CHILmesh boundary
+# ADR-001: ADMESH ↔ CHILmesh boundary
 
 | Field | Value |
 |---|---|
@@ -13,13 +13,13 @@
 
 ADMESH is a Python mesh **generator**, ported from `01_ADMESH_Library` of `domattioli/QuADMesh-MATLAB`. CHILmesh is a same-author Python **mesh data structure + smoother** library, published to PyPI as `chilmesh`.
 
-The two are conceptually adjacent — both touch unstructured 2D meshes, share concepts (nodes, elements, boundary segments, smoothing, quality), and the ADMESH ↔ CHILmesh round-trip is exercised by two tests in this repo (`tests/test_fort14_chilmesh_compat.py`, `tests/test_fort14_chilmesh_smoke.py`).
+The two are conceptually adjacent; both touch unstructured 2D meshes, share concepts (nodes, elements, boundary segments, smoothing, quality), and the ADMESH ↔ CHILmesh round-trip is exercised by two tests in this repo (`tests/test_fort14_chilmesh_compat.py`, `tests/test_fort14_chilmesh_smoke.py`).
 
 Until this ADR, the boundary between the two was informal: the project instructions file named CHILmesh as "downstream of ADMESH" but did not enumerate which ADMESH modules might rightfully belong on the CHILmesh side. Three open issues prompted the formalization:
 
-- **#84** (max-valence for vertices) — touches `admesh/valence.py`, which is consumer-side by nature.
-- **#41** (dimensional mapping for smoothing) — touches `admesh/quad_prep.py`, also consumer-side.
-- **#9** (`admesh-segmenter` sibling proposal) — the precedent that some consumer-side functionality earns its own package.
+- **#84** (max-valence for vertices): touches `admesh/valence.py`, which is consumer-side by nature.
+- **#41** (dimensional mapping for smoothing): touches `admesh/quad_prep.py`, also consumer-side.
+- **#9** (`admesh-segmenter` sibling proposal): the precedent that some consumer-side functionality earns its own package.
 
 Without a written boundary, every such issue would relitigate the question. This ADR settles it.
 
@@ -42,8 +42,8 @@ The spec 015 audit inventory (internal planning notes) classified every public A
 | `admesh.fort14` | bdry | **stay in ADMESH, contract locked** | Spec 009 R4 + chilmesh-compat tests pin the contract. CHILmesh conforms to it. |
 | `admesh.quad_prep.smooth_for_quadrangulation` | cons | **keep in ADMESH** | Runs *between* fresh-generation and downstream tri-to-quad fusion (QuADMESH). Ships as ADMESH's gift to downstream consumers, including users who never touch CHILmesh. |
 | `admesh.quality.{mesh_quality, right_iso_quality}` | cons | **keep in ADMESH** | Coupled to release-readiness gate (spec 009 R4) and distmesh stopping criterion. Moving creates a circular dependency. |
-| `admesh.valence.*` | cons | **keep in ADMESH; coordinate with #84** | Valence balancing is consumer-side, but #84 wants max-valence as a *generator-side* constraint. ADR records that `admesh.valence` stays for now; #84's design must thread the seam explicitly. |
-| `admesh.viz.plot_mesh` | cons | **keep in ADMESH** | `[viz]` extra already gates matplotlib. Moving forces CHILmesh install for plotting — net negative. |
+| `admesh.valence.*` | cons | **keep in ADMESH; coordinate with #84** | Valence balancing is consumer-side, but #84 wants max-valence as a *generator-side* constraint. ADR records that `admesh.valence` stays; #84's design must thread the seam explicitly. |
+| `admesh.viz.plot_mesh` | cons | **keep in ADMESH** | `[viz]` extra already gates matplotlib. Moving forces CHILmesh install for plotting, net negative. |
 | All `admesh._stages.*` modules | gen | **stay in ADMESH** | Faithful ports of MATLAB; Constitution Principle I binds them here. |
 | `admesh.loaders`, `admesh.registry`, `admesh.size_field` | gen-helper | **stay in ADMESH** | Pure generator-side. |
 
@@ -76,7 +76,7 @@ The spec 015 audit inventory (internal planning notes) classified every public A
 
 ## Follow-up
 
-No follow-up issues are required for code work — the audit found nothing to move. The following actions remain:
+No follow-up issues are required for code work; the audit found nothing to move. The following actions remain:
 
 - [ ] Issue #81 receives a closing comment linking this ADR. Maintainer reviews and either closes #81 or files a dispute issue.
 - [ ] When issue #84 (max-valence) reaches design phase, its spec must cite this ADR and document how it handles the valence seam.
@@ -93,11 +93,11 @@ Update this ADR's snapshot date and re-run the inventory if any of the following
 
 ## Verification log
 
-### 2026-06-12 — boundary re-verified under unification (ADMESH#143 item 3)
+### 2026-06-12 - boundary re-verified under unification (ADMESH#143 item 3)
 
 Checked as part of the MADMESHing#48 / spec-048 unification effort:
 
 - **Invariants hold.** `import chilmesh` appears nowhere in `src/admesh/` except `viz.py` (lazy, behind the `[viz]` extra). `admesh.fort14` parses independently (stdlib + numpy only). `admesh.Mesh` remains canonical; no shared base class.
-- **Gates green** against sibling CHILmesh **1.2.0** HEAD: `test_unification_api_contract.py` (6), `test_fort14_chilmesh_compat.py` (8), `test_fort14_chilmesh_smoke.py` (1), `test_fort14_roundtrip.py` (6) — 21/21.
-- **Drift noted, not a violation:** `viz.py` now *delegates* plotting to chilmesh (`[viz]` extra = `chilmesh>=1.1`), inverting this ADR's original "moving forces CHILmesh install for plotting — net negative" rationale for the viz row. Disposition ("keep in ADMESH") unchanged; dependency is optional + lazy, so the no-hard-dep boundary stands.
+- **Gates green** against sibling CHILmesh **1.2.0** HEAD: `test_unification_api_contract.py` (6), `test_fort14_chilmesh_compat.py` (8), `test_fort14_chilmesh_smoke.py` (1), `test_fort14_roundtrip.py` (6), 21/21.
+- **Drift noted, not a violation:** `viz.py` *delegates* plotting to chilmesh (`[viz]` extra = `chilmesh>=1.1`), inverting this ADR's original "moving forces CHILmesh install for plotting, net negative" rationale for the viz row. Disposition ("keep in ADMESH") unchanged; dependency is optional + lazy, so the no-hard-dep boundary stands.
 - **Reverification triggers have fired** (CHILmesh 1.0.0 major shipped 2026-05-22, the day after the snapshot; surface since grew `element_quality`, `submesh`, `paths_on_outer_vertices`, mutations, `quad_from_tri_pair`). Full inventory re-run is deliberately deferred: spec-048 **D5** (operator) decides whether this ADR is superseded (P6: single mesh type + single fort.14 parser in CHILmesh, tasks T20/T21) or kept. Re-running the inventory before D5 would be churn; if D5 = keep, re-run it then.

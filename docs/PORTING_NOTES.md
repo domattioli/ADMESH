@@ -5,7 +5,7 @@ Running log of MATLAB → Python substitutions and behavior differences encounte
 Template:
 
 ```
-## YYYY-MM-DD — <stage> — <title>
+## YYYY-MM-DD - <stage> - <title>
 
 **MATLAB**: `function(args)` in `<path>.m`
 **Python**: `admesh.<module>.function(args)`
@@ -20,23 +20,23 @@ Template:
 
 `scripts/bench_pipeline.py` is the per-stage wall-clock harness. Monkeypatches stage entry-point callables (defensive: skips on missing) to accumulate elapsed time by stage label across measured runs. Outputs per-stage seconds + percentage of total end-to-end, with "other/unaccounted" row and JSON record for CI integration.
 
-**MVP triangulate path (default)**: distmesh-dominated. The size-field stack (curvature/medial-axis/bathymetry/tide/mesh_size) only invokes when a `build_h` size field is composed into the call — in the default MVP path (no `size_field=` arg) it is NOT invoked. Per-stage timing honestly shows only stages that fired; unexercised stages list 0.0 sec or are omitted. Issue #99 parallelization phases (CPU vectorize/prange, batch MP, distmesh accel, GPU) each require a before/after number from this harness for ROI justification.
+**MVP triangulate path (default)**: distmesh-dominated. The size-field stack (curvature/medial-axis/bathymetry/tide/mesh_size) only invokes when a `build_h` size field is composed into the call; in the default MVP path (no `size_field=` arg) it is NOT invoked. Per-stage timing shows only stages that fired; unexercised stages list 0.0 sec or are omitted. Issue #99 parallelization phases (CPU vectorize/prange, batch MP, distmesh accel, GPU) each require a before/after number from this harness for ROI justification.
 
 **Fixtures**: tier-0 in-package (UNIT_SQUARE, L_SHAPE) always present + optional WNAT (coarse h_max=0.0135) if `tests/fixtures/fort14/adcirc_examples/wnat_test.14` exists. Tier-1 (JSON/TOML domains) skipped gracefully if absent. Warmup run (excluded, triggers Numba JIT) is non-fatal; measured runs use `time.perf_counter()` median across `--runs` iterations.
 
 ---
 
-## 2026-06-05 — octree_grid.py — Adaptive refinement bug fix (spec 021 / issue #115)
+## 2026-06-05 - octree_grid.py - Adaptive refinement bug fix (spec 021 / issue #115)
 
-**MATLAB**: N/A — `octree_grid.py` is new Python-only code, not a MATLAB port.
+**MATLAB**: N/A, `octree_grid.py` is new Python-only code, not a MATLAB port.
 **Python**: `admesh._stages.octree_grid._build_tree_recursive`
 **Bug fixed**: `_build_tree_recursive` condition `d > 2.0 * node.size` only skipped far-EXTERIOR cells. Interior cells (d < 0, negative SDF) always passed the check → entire interior subdivided to h_min → O(N²)–like leaf growth at high feature-size ratios.
 **Fix**: Replace exterior-only check with local-feature-size (LFS) adaptive stopping. `lfs = max(abs(d), h_min)`, `target_h = min(lfs, h_max)`. Stop subdividing when `node.size <= target_h`. This halts interior cells at the depth appropriate for their distance to the boundary.
-**Impact**: ratio=1000 build time 26.8s → 6.68s, leaf count 698,644 → 77,800. All 16 octree tests pass. `_build_tree_recursive` now accepts `h_max` parameter; `build_octree` passes it through.
+**Impact**: ratio=1000 build time 26.8s → 6.68s, leaf count 698,644 → 77,800. All 16 octree tests pass. `_build_tree_recursive` accepts `h_max` parameter; `build_octree` passes it through.
 
 ---
 
-## 2026-05-25 — stage 02 — CreateBackgroundGrid
+## 2026-05-25 - stage 02 - CreateBackgroundGrid
 
 **MATLAB**: `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)` in `02_Create_Background_Grid/CreateBackgroundGrid.m`
 **Python**: `admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1) -> BackgroundGrid`
@@ -46,33 +46,33 @@ Template:
 
 ---
 
-## Issue #11 — Ring sorting by signed area (2026-04-26)
+## Issue #11 - Ring sorting by signed area (2026-04-26)
 
-**Fix**: `_derive_boundary_segments()` now sorts rings by **signed area** (shoelace formula) instead of **node count**.
+**Fix**: `_derive_boundary_segments()` sorts rings by **signed area** (shoelace formula) instead of **node count**.
 
 **Rationale**: Multiply-connected domains (e.g., WNAT with interior Gulf of Mexico coastline) have interior coastlines with **more nodes** than outer ocean boundary due to refinement. Sorting by node count incorrectly identified interior ring as outer boundary, causing domain bbox shrinkage and `triangulate()` failure.
 
 **Behavior change**:
-- **Before**: `rings.sort(key=len, reverse=True)` — longest ring (by node count) becomes outer
-- **After**: `rings.sort(key=lambda ring: _ring_area(ring, nodes), reverse=True)` — largest ring (by signed area) becomes outer
+- **Before**: `rings.sort(key=len, reverse=True)`, longest ring (by node count) becomes outer
+- **After**: `rings.sort(key=lambda ring: _ring_area(ring, nodes), reverse=True)`, largest ring (by signed area) becomes outer
 
 **Impact**:
-- `Domain.from_mesh(src)` now correctly recovers multiply-connected domains
-- WNAT test fixture bbox now matches source to within `1e-9` tolerance
-- Ring ordering now **canonical** and independent of mesh node sampling
+- `Domain.from_mesh(src)` recovers multiply-connected domains
+- WNAT test fixture bbox matches source to within `1e-9` tolerance
+- Ring ordering is **canonical** and independent of mesh node sampling
 - No change to faithful-port modules; only `admesh/api.py`
 
 **Alignment with MATLAB**: MATLAB original uses area-based sorting; this fix aligns Python port with reference implementation.
 
 ---
 
-## v0.2 — Domain API consolidation (2026-04-26)
+## v0.2 - Domain API consolidation (2026-04-26)
 
 **Removed from public API:**
-- `admesh.domain_from_polygon(rings, *, pfix, bc_segments)` — Shapely-based polygon→SDF builder
-- `admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)` — SDF callable + bbox wrapper
+- `admesh.domain_from_polygon(rings, *, pfix, bc_segments)`: Shapely-based polygon→SDF builder
+- `admesh.domain_from_sdf(sdf, bbox, *, pfix, pts, bc_segments)`: SDF callable + bbox wrapper
 
-**Rationale:** File-based domain loading (TOML/JSON/fort.14) and the registry are now canonical entry points. Storing domain definitions as files enables version control, reproducibility, and registry integration.
+**Rationale:** File-based domain loading (TOML/JSON/fort.14) and the registry are the canonical entry points. Storing domain definitions as files enables version control, reproducibility, and registry integration.
 
 **Migration:**
 - Polygon domains → serialize to JSON/TOML once; reload via `load_domain_from_json()` or `load_domain_from_toml()`
@@ -85,9 +85,9 @@ Template:
 
 ## v1 Pythonic layer (2026-04-25)
 
-Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`, `admesh/boundary_types.py`, `admesh/size_field.py`, `admesh/viz.py`. **Strictly additive** over 13 faithful-port stage modules — Constitution Principle I unbroken. See spec `specs/001-pythonize-and-fort14-integration/` for full surface contract.
+Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`, `admesh/boundary_types.py`, `admesh/size_field.py`, `admesh/viz.py`. **Strictly additive** over 13 faithful-port stage modules, Constitution Principle I unbroken. See spec `specs/001-pythonize-and-fort14-integration/` for full surface contract.
 
-### `domain_from_polygon` — Shapely-based SDF
+### `domain_from_polygon`: Shapely-based SDF
 
 **Python**: `admesh.api.domain_from_polygon(rings, *, pfix=None, bc_segments=())` builds `Domain` whose `sdf` is constructed from Shapely `Polygon`. Distance to `polygon.boundary` LineString gives `|d|`; `prepared.contains(point)` flips sign for interior points.
 
@@ -97,7 +97,7 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 
 **Impact**: callers can omit explicit fixed-point lists for simple polygon domains; bbox auto-derived from outer ring extent.
 
-### `Mesh.plot()` — lazy matplotlib import
+### `Mesh.plot()`: lazy matplotlib import
 
 **Python**: `admesh.viz.plot_mesh` imported only when `Mesh.plot()` called, not at module-import time. `pyproject.toml` `[viz]` extra (`matplotlib>=3.7`) is opt-in.
 
@@ -105,7 +105,7 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 
 **Behavior diff**: none vs. raw `matplotlib.pyplot.triplot`; helper adds boundary-segment coloring (per `BoundaryType`) and sets `aspect='equal'` by default.
 
-### fort.14 I/O — convention isolation at the boundary
+### fort.14 I/O: convention isolation at the boundary
 
 **Python**: `admesh.fort14.{read_fort14, write_fort14}` are the **only** code path that knows about ADCIRC's 1-based node IDs and positive-down depth convention. Every internal `Mesh` is 0-based and stores bathymetry as elevation (positive-up). Conversions:
 - `node_id_disk = node_id_internal + 1`
@@ -115,64 +115,64 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 
 ### Two-phase size-field composition
 
-**Python**: `admesh.size_field.compose_size_field(builtins, user_contribs, combine, hmin, hmax)` composes `(N, 2) -> (N,)` callable. Phase 1 (built-ins) **always** uses `np.minimum.reduce` regardless of `combine` — Constitution Principle I. Phase 2 (user contributions) combined via caller's chosen reduction.
+**Python**: `admesh.size_field.compose_size_field(builtins, user_contribs, combine, hmin, hmax)` composes `(N, 2) -> (N,)` callable. Phase 1 (built-ins) **always** uses `np.minimum.reduce` regardless of `combine`, Constitution Principle I. Phase 2 (user contributions) combined via caller's chosen reduction.
 
 **Behavior diff**: invalid user-contribution outputs (NaN, ≤ 0, out of `[hmin, hmax]`) are clamped with `UserWarning`. More lenient than faithful-port path.
 
 ---
 
-## 2026-04-25 — quad_prep — leg-not-hypotenuse `h` scaling (spec-004)
+## 2026-04-25 - quad_prep - leg-not-hypotenuse `h` scaling (spec-004)
 
-**MATLAB**: n/a — new module (spec-004), not a port.
+**MATLAB**: n/a, new module (spec-004), not a port.
 **Python**: `admesh.quad_prep.smooth_for_quadrangulation`, specifically per-element scale `sigma_k = h(centroid) / sqrt(2)`.
 **Substitution**: For right-isoceles target with legs `L` and hypotenuse `L * sqrt(2)`, user-supplied size field `h` is interpreted as desired **leg** length. So `sigma_k = h / sqrt(2)`. Rationale: after downstream tri-to-quad fusion, each pair of right-isoceles triangles fuses along shared hypotenuse, and resulting quad inherits **leg** as its edge length.
-**Behavior diff**: None — no MATLAB analog. Convention documented per Constitution Principle II so choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between leg lengths and `h(centroid)`).
+**Behavior diff**: None, no MATLAB analog. Convention documented per Constitution Principle II so choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between leg lengths and `h(centroid)`).
 **Impact**: Callers passing OceanMesh2D-style mesh-size function get expected behavior: triangle legs (and downstream quad edges) track `h` directly, no `sqrt(2)` rescaling needed.
 
-## 2026-04-25 — quality — `right_iso_quality` companion metric
+## 2026-04-25 - quality - `right_iso_quality` companion metric
 
-**MATLAB**: n/a — additive (not a port). Original `MeshQuality.m` measures equilateral-ness only.
+**MATLAB**: n/a, additive (not a port). Original `MeshQuality.m` measures equilateral-ness only.
 **Python**: `admesh.quality.right_iso_quality`. Right-isoceles deviation score in `[0, 1]` per spec-004 FR-006. Per-element score = product of three terms: leg-equality, right-angle-fit, hypotenuse-fit. Mesh score = unweighted mean. Constitutionally additive: existing `mesh_quality` (equilateral target) **not** modified (Principle I).
 **Behavior diff**: None to MATLAB (no analog). Metric documented in public-api.md contract. ADMESH distmesh output typically scores ~1.0 on `mesh_quality` and ~0.5 on `right_iso_quality`; spec-004 smoother trades former for latter (validated on Block_O.14: 0.977 → 0.923 for `mesh_quality`, 0.498 → 0.686 for `right_iso_quality`).
 **Impact**: Downstream consumers running tri-to-quad fusion have quality metric meaningfully scoring mesh suitability.
 
-## 2026-06-08 — background_grid — stage-02 grid construction (#78, spec 012)
+## 2026-06-08 - background_grid - stage-02 grid construction (#78, spec 012)
 
-**MATLAB**: `02_Create_Background_Grid/CreateBackgroundGrid.m` @ 19b2eb9 — `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)`. Bbox padded by `hmax` each side; `delta = (1/res)*hmin`; grid `meshgrid(xmin:delta:xmax, ymin:delta:ymax)`.
+**MATLAB**: `02_Create_Background_Grid/CreateBackgroundGrid.m` @ 19b2eb9, `[X,Y,delta] = CreateBackgroundGrid(PTS,hmax,hmin,res)`. Bbox padded by `hmax` each side; `delta = (1/res)*hmin`; grid `meshgrid(xmin:delta:xmax, ymin:delta:ymax)`.
 **Python**: `admesh._stages.background_grid.create_background_grid(domain, h0, padding=None, res=1)` returns frozen `BackgroundGrid(X, Y, delta, bbox)`.
 
 **Substitutions / behavior diffs**:
 - `hmin` role → `h0` (grid spacing); `delta = h0/res` matches `(1/res)*hmin`.
 - `hmax` pad → `padding` kwarg, default `h0`. The MATLAB signature carries a separate coarse `hmax`; this port has no second size in scope, so one cell (`h0`) of pad is the faithful minimum. A caller wanting MATLAB parity passes `padding=hmax`.
-- MATLAB colon `xmin:delta:xmax` (inclusive, stops at the largest `xmin+k*delta <= xmax`) → NumPy `np.arange(xmin, xmax + 0.5*delta, delta)`. The `0.5*delta` upper-bound guard absorbs float rounding so the terminal `~xmax` node is retained. Edge case: when `(xmax-xmin)/delta` lands near an integer, the half-open arange can keep one node the colon would also keep — counts match for the unit-square fixture (13×13 at h0=0.1).
+- MATLAB colon `xmin:delta:xmax` (inclusive, stops at the largest `xmin+k*delta <= xmax`) → NumPy `np.arange(xmin, xmax + 0.5*delta, delta)`. The `0.5*delta` upper-bound guard absorbs float rounding so the terminal `~xmax` node is retained. Edge case: when `(xmax-xmin)/delta` lands near an integer, the half-open arange can keep one node the colon would also keep, counts match for the unit-square fixture (13×13 at h0=0.1).
 - `meshgrid(..., indexing="xy")` keeps MATLAB column-major X-along-columns layout; `(X, Y)` align with `eval_sdf_grid` for the same bbox+delta.
 
-**Parity status (RESOLVED 2026-06-09, #78)**: all 6 `tests/test_background_grid.py` tests pass, including bit-exact MATLAB parity (`test_matlab_parity_unit_square`, `atol=1e-10`). Fixture `tests/fixtures/matlab/background_grid_unit_square.npz` generated by running the stage-02 target of `scripts/export_matlab_fixtures.m` under **GNU Octave 8.4** — the archived MATLAB source `src/matlab/admesh_library/02_Create_Background_Grid/CreateBackgroundGrid.m` runs unmodified in Octave. Port vs Octave reference agree to `max|ΔX| = 4.4e-16` (float epsilon — NumPy `arange` and the Octave/MATLAB colon emit identical doubles for the unit-square grid). `xfail(strict)` removed.
+**Parity status (RESOLVED 2026-06-09, #78)**: all 6 `tests/test_background_grid.py` tests pass, including bit-exact MATLAB parity (`test_matlab_parity_unit_square`, `atol=1e-10`). Fixture `tests/fixtures/matlab/background_grid_unit_square.npz` generated by running the stage-02 target of `scripts/export_matlab_fixtures.m` under **GNU Octave 8.4**; the archived MATLAB source `src/matlab/admesh_library/02_Create_Background_Grid/CreateBackgroundGrid.m` runs unmodified in Octave. Port vs Octave reference agree to `max|ΔX| = 4.4e-16` (float epsilon, NumPy `arange` and the Octave/MATLAB colon emit identical doubles for the unit-square grid). `xfail(strict)` removed.
 - **Exporter bug fixed in the same change**: the stage-02 `PTS_sq` used the `[0,1]²` square, but the Python `UNIT_SQUARE` domain it mirrors is the centered `[-0.5,0.5]²` (bbox `(-0.5,-0.5,0.5,0.5)`). Corrected `PTS_sq` to the centered corners so the regenerated fixture matches `create_background_grid(UNIT_SQUARE, 0.1)`.
 - **Regen**: `octave --no-gui scripts/export_matlab_fixtures.m` (stage-02 block) → `.mat`; `scipy.io.loadmat` → `np.savez` to the `.npz` the test loads. MATLAB and Octave both regenerate it identically.
 
-## 2026-06-13 — octree adaptive background grid (spec 029, additive)
+## 2026-06-13 - octree adaptive background grid (spec 029, additive)
 
-**MATLAB**: n/a — no MATLAB origin. Additive accelerator, faithful to the *quadtree concept* (Samet 1990), not to any ported source. Constitution Principle I untouched: locked `background_grid.py` (uniform stage-02) stays the default.
-**Python**: `admesh.octree` — struct-of-arrays vectorized quadtree. `build_octree(domain, *, h_min, h_max, oracle, …) -> Octree`; `leaf_graph`, `locate`, `interpolate` (nearest-leaf), `interpolate_smooth` (IDW), `octree_size_field(domain, oracle, *, h_min, h_max, g=0.2, gradient_limit=True)`. Wired via `triangulate(background="octree")`.
+**MATLAB**: n/a, no MATLAB origin. Additive accelerator, faithful to the *quadtree concept* (Samet 1990), not to any ported source. Constitution Principle I untouched: locked `background_grid.py` (uniform stage-02) stays the default.
+**Python**: `admesh.octree`, struct-of-arrays vectorized quadtree. `build_octree(domain, *, h_min, h_max, oracle, …) -> Octree`; `leaf_graph`, `locate`, `interpolate` (nearest-leaf), `interpolate_smooth` (IDW), `octree_size_field(domain, oracle, *, h_min, h_max, g=0.2, gradient_limit=True)`. Wired via `triangulate(background="octree")`.
 
 **Design decisions (spec-029 §2b/§2c, evidence-driven)**:
 - **Storage**: parallel arrays (`cx,cy,size,depth,ix,iy`), integer cell coords + `(depth,ix,iy)` dict for Samet neighbor finding. No per-cell objects. Chosen over the object-tree (slow) and the flat-list branch (O(N²) `leaf_graph` defect).
-- **Build**: level-synchronous — oracle called once per depth level on all active centers (batched), not per cell. On the ENPAC domain (2 ms/pt SDF) this cut oracle evals from ~29k (per-cell) to ~1k (batched).
-- **Language**: pure NumPy. Measured: octree machinery is sub-second to 393k leaves; build cost is dominated by the size oracle (SDF), itself NumPy/scipy — a native rewrite would optimize the already-free layer. Numba/native stay dormant escape hatches (spec-023).
+- **Build**: level-synchronous, oracle called once per depth level on all active centers (batched), not per cell. On the ENPAC domain (2 ms/pt SDF) this cut oracle evals from ~29k (per-cell) to ~1k (batched).
+- **Language**: pure NumPy. Measured: octree machinery is sub-second to 393k leaves; build cost is dominated by the size oracle (SDF), itself NumPy/scipy; a native rewrite would optimize the already-free layer. Numba/native stay dormant escape hatches (spec-023).
 - **Gradation**: leaf-graph relaxation enforces `|h_i − h_j| ≤ g·dist` (ADMESH grading), mirroring the mesh_size.py gradient-limit concept on the irregular leaf graph.
 - **Interpolation**: nearest-leaf stairstep gave SC-005 fidelity 0.076·h_max (> 0.05 gate); IDW blend over leaf + edge neighbors → 0.0296·h_max (PASS).
 
 **Behavior diff**: `background="uniform"` (default) is byte-identical to prior behavior. `background="octree"` reproduces uniform meshes on flat size fields and matches/exceeds quality on graded fields (benchmarks/results/octree_benchmark.md).
 
-## 2026-06-13 — inpaint_nans 1-D Laplacian column alignment (stage 13, #155)
+## 2026-06-13 - inpaint_nans 1-D Laplacian column alignment (stage 13, #155)
 
-**MATLAB**: `01_ADMESH_Library/.../inpaint_nans.m` method 0, 1-D branch (lines 109–125) — builds the `[1 -2 1]` second-difference operator with row/column/value triples in matching per-row order.
+**MATLAB**: `01_ADMESH_Library/.../inpaint_nans.m` method 0, 1-D branch (lines 109–125), builds the `[1 -2 1]` second-difference operator with row/column/value triples in matching per-row order.
 **Python**: `admesh._stages.inpaint._inpaint_nans_method_0`, `if m == 1 or n == 1` branch.
 
-**Behavior diff (port artifact, now fixed)**: the COO `cols` array was assembled column-grouped (`np.concatenate([work-1, work, work+1])`) while `rows`/`data` were interleaved per-row (`np.repeat(arange(nw),3)` / `np.tile([1,-2,1],nw)`). COO maps triple `k → (rows[k], cols[k], data[k])`, so the stencil only landed on the right columns when `work` was perfectly consecutive; any gap between NaN clusters scattered the `[1,-2,1]` coefficients into wrong columns → silently-wrong inpaint on non-contiguous interior NaNs. The sibling 2-D branch already built `cols` interleaved (`np.column_stack([...]).ravel()`) — the fix mirrors it. Moves the port *toward* MATLAB fidelity (the MATLAB original is correct). A linear ramp cannot expose the defect (it lies in the operator's null space); `tests/test_inpaint.py::test_inpaint_1d_noncontiguous_nans_regression` compares against an independent clean-room del² oracle on quadratic/cubic/sine fields (buggy diverged O(100), fixed matches to ~1e-10).
+**Behavior diff (port artifact, fixed)**: the COO `cols` array was assembled column-grouped (`np.concatenate([work-1, work, work+1])`) while `rows`/`data` were interleaved per-row (`np.repeat(arange(nw),3)` / `np.tile([1,-2,1],nw)`). COO maps triple `k → (rows[k], cols[k], data[k])`, so the stencil only landed on the right columns when `work` was perfectly consecutive; any gap between NaN clusters scattered the `[1,-2,1]` coefficients into wrong columns → silently-wrong inpaint on non-contiguous interior NaNs. The sibling 2-D branch already built `cols` interleaved (`np.column_stack([...]).ravel()`); the fix mirrors it. Moves the port *toward* MATLAB fidelity (the MATLAB original is correct). A linear ramp cannot expose the defect (it lies in the operator's null space); `tests/test_inpaint.py::test_inpaint_1d_noncontiguous_nans_regression` compares against an independent clean-room del² oracle on quadratic/cubic/sine fields (buggy diverged O(100), fixed matches to ~1e-10).
 
-## 2026-10-01 — #206 housekeeping (Principle I justification)
+## 2026-10-01 - #206 housekeeping (Principle I justification)
 
 Lint cleanup in three locked stages. Each edit removes a dead Python local or import, or silences a lint rule. No numerical path changes. The stage tests (`tests/test_distmesh.py`, `tests/test_distmesh_admesh.py`, `tests/test_inpaint.py`, `tests/test_curvature.py`) and the full suite pass unchanged.
 

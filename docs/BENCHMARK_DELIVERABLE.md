@@ -1,6 +1,6 @@
 # ADMESH v0.5.0 → v1.0.0alpha Benchmark + Bayesian Hyperparameter Optimization
 
-> **Standard-change banner (#154):** the **large-domain benchmark standard is now
+> **Standard-change banner (#154):** the **large-domain benchmark standard is
 > ENPAC 2003** (`benchmarks/bench_enpac.py`), replacing WNAT. The WNAT-centric
 > content below is the v0.5.0→v1.0.0alpha-era record and is retained as history;
 > WNAT-Onur survives as a lighter ~7k-node smoke. See `benchmarks/README.md`
@@ -48,10 +48,10 @@ Delivered end-to-end pipeline for:
 **Branch:** `cpp-distmesh` (active development)
 
 **Files:**
-- `admesh/_cpp/distmesh_cpp.cpp` — Eigen-based iterative point placement (force balance + Euler step)
-- `admesh/_cpp/distmesh_module.cpp` — pybind11 bindings (`distmesh2d_step()`)
-- `admesh/_cpp/__init__.py` — Wrapper with NumPy fallback (graceful degradation)
-- `setup.py` — Build configuration (pybind11 + optional C++ extension)
+- `admesh/_cpp/distmesh_cpp.cpp`: Eigen-based iterative point placement (force balance + Euler step)
+- `admesh/_cpp/distmesh_module.cpp`: pybind11 bindings (`distmesh2d_step()`)
+- `admesh/_cpp/__init__.py`: Wrapper with NumPy fallback (graceful degradation)
+- `setup.py`: Build configuration (pybind11 + optional C++ extension)
 
 **Build:**
 ```bash
@@ -73,9 +73,9 @@ Falls back to Numba if C++ unavailable.
 **Location:** `/home/user/<registry-checkout>/experiments/`
 
 **Files:**
-- `bayesian_wnat_harness.py` — Main orchestrator (6 modes)
-- `run_wnat_bayesian_experiment.sh` — End-to-end bash wrapper
-- `README.md` — Complete guide + expected outputs
+- `bayesian_wnat_harness.py`: Main orchestrator (6 modes)
+- `run_wnat_bayesian_experiment.sh`: End-to-end bash wrapper
+- `README.md`: Complete guide + expected outputs
 
 **Experiment design:**
 - **Domain:** WNAT Hagen (western north atlantic, 144-ring coastline)
@@ -121,13 +121,13 @@ Expected mesh properties:
 ```
 
 **Outputs generated:**
-- `results_v0.5.0.csv` — per-run metrics (100 rows)
-- `results_v1.0.0alpha.csv` — per-run metrics (100 rows)
-- `ci_table.txt` — 95% credible intervals
-- `pareto_frontier.txt` — optimal hyperparams
-- `q_median_cdf.png` — quality CDF (v0.5.0 vs v1.0.0 overlay)
-- `boundary_error_posterior.png` — posterior predictive
-- `pareto_frontier.png` — quality × boundary_fidelity tradeoff
+- `results_v0.5.0.csv`: per-run metrics (100 rows)
+- `results_v1.0.0alpha.csv`: per-run metrics (100 rows)
+- `ci_table.txt`: 95% credible intervals
+- `pareto_frontier.txt`: optimal hyperparams
+- `q_median_cdf.png`: quality CDF (v0.5.0 vs v1.0.0 overlay)
+- `boundary_error_posterior.png`: posterior predictive
+- `pareto_frontier.png`: quality × boundary_fidelity tradeoff
 
 ---
 

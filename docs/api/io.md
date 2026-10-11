@@ -1,4 +1,4 @@
-# I/O — ADCIRC `fort.14` and Gmsh
+# I/O: ADCIRC `fort.14` and Gmsh
 
 Round-trip read and write for the ADCIRC v55 `fort.14` mesh format and the
 Gmsh 2.2 ASCII `.msh` format.

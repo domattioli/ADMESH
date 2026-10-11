@@ -16,13 +16,13 @@
 **Last release**: June 24, 2018 (~7 years inactive)  
 **Current usage**: ~935 downloads/month (declining)  
 
-**Scheduled date**: [TBD — to be sent]  
+**Scheduled date**: [TBD, to be sent]  
 **Response deadline**: [TBD + 21 days]  
 
 #### Email Draft
 
 ```
-Subject: Request to rename PyPI package "admesh" (STL tools) — namespace reuse for newer project
+Subject: Request to rename PyPI package "admesh" (STL tools): namespace reuse for newer project
 
 Hello Miro,
 
@@ -52,7 +52,7 @@ minimizes disruption for both projects.
 **Timeline**: We're targeting v0.1.0 release on [DATE TBD]. If we don't hear from you by 
 [DATE + 21 days], we'll proceed with a PEP 541 request to PyPI for namespace reclamation.
 
-No hard feelings either way — just wanted to reach out first! Feel free to reply here or 
+No hard feelings either way, just wanted to reach out first! Feel free to reply here or 
 open an issue on our repo if you'd like to discuss.
 
 Cheers,
@@ -93,7 +93,7 @@ Cheers,
 *(Prepared for use if Cases 3 or 4 occur)*
 
 ```
-Title: Namespace reclamation request — "admesh" PyPI package
+Title: Namespace reclamation request: "admesh" PyPI package
 
 Package: admesh (https://pypi.org/project/admesh/)
 Current maintainer: hroncok

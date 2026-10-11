@@ -78,7 +78,7 @@ coords = [[-85.0, 20.0], [-60.0, 40.0]]
 version = "1"
 contributed_by = "NOAA"
 license = "CC-BY-4.0"
-source_url = "meshes and domains come through Valence"
+source_url = "https://example.org/your-domain-source"
 ```
 
 **Loading:**
@@ -248,7 +248,7 @@ except admesh.registry.RegistryUnavailableError:
 
 ## Migration from admesh.domains
 
-Old hardcoded test domains still available:
+The hardcoded test domains remain available:
 
 ```python
 import admesh.domains
@@ -265,5 +265,5 @@ For new code, prefer file-based or registry-based loaders.
 ## See Also
 
 - Meshes and domains come through Valence.
-- `admesh.api.Domain` — Domain dataclass documentation
-- `admesh.triangulate()` — Main triangulation function
+- `admesh.api.Domain`: Domain dataclass documentation
+- `admesh.triangulate()`: Main triangulation function
