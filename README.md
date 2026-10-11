@@ -92,7 +92,7 @@ export VALENCE_TOKEN=<your token>
 
 ```python
 import admesh
-domain = admesh.load_domain_from_registry("Block_O.14")
+domain = admesh.load_domain_from_registry("rectangular_mesh_triangle1.14")
 mesh = admesh.triangulate(domain)
 ```
 
