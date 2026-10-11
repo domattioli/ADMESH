@@ -166,3 +166,22 @@ def test_bad_name_rejected_before_request(env, monkeypatch, name):
     with pytest.raises(ValueError):
         rc.fetch_mesh(name)
     assert calls == []
+
+
+def test_triangulate_source_bare_14_name_goes_to_registry(monkeypatch, tmp_path):
+    """A bare ``Name.14`` that is not a local file is fetched from the registry."""
+    import admesh.api as api
+    import admesh.registry as reg
+
+    monkeypatch.chdir(tmp_path)
+    seen = []
+    monkeypatch.setattr(reg, "load_domain_from_registry",
+                        lambda n: seen.append(n) or "DOM")
+    assert api._load_domain_from_source("Block_O.14") == "DOM"
+    assert seen == ["Block_O.14"]
+
+
+def test_registry_filename_requested_verbatim(env, monkeypatch):
+    calls = _fake(monkeypatch, lambda r: _Resp(b'{"sha256": "' + b"0" * 64 + b'"}'))
+    rc.fetch_hash("annulus_200pts.fort.14")
+    assert calls[0][0].full_url.endswith("/meshes/annulus_200pts.fort.14/hash")

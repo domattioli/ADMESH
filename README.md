@@ -64,7 +64,7 @@
 `triangulate()` takes a domain and two edge-length bounds and returns a validated mesh. Boundary treatment and relaxation follow from the geometry. The caller composes the size field. Without one, the size is uniform at `h_max`.
 
 - **Physics-based sizing is opt-in.** Stage modules compute edge length from four inputs: boundary curvature, channel width (medial axis), bathymetric gradient, and dominant tidal wavelength. A `min` stack composes them. `compose_size_field` adds custom callables. `triangulate` leaves the stack off by default (see [Limitations](#8-limitations)). Graded sizing needs a `size_field`, `user_contribs`, or `background="octree"`.
-- **Four domain sources.** `triangulate()` accepts a `Domain`, a TOML or JSON polygon file, an existing `fort.14`, or a registry slug. To re-mesh a legacy grid, use `Domain.from_mesh(read_fort14(...))`.
+- **Four domain sources.** `triangulate()` accepts a `Domain`, a TOML or JSON polygon file, an existing `fort.14`, or a registry mesh filename such as `Block_O.14`. To re-mesh a legacy grid, use `Domain.from_mesh(read_fort14(...))`.
 - **Native ADCIRC and Gmsh I/O.** The package reads and writes `fort.14` with node ids, IBTYPE codes, and 6-decimal coordinates (`precision=` is configurable). It also reads and writes `.msh` (Gmsh 2.2 ASCII) for non-ADCIRC solvers.
 - **Adaptive background grid for multiscale domains.** `background="octree"` evaluates the size field on a 2:1-balanced quadtree instead of a uniform grid. The quadtree is vectorized and refines where medial-axis and channel widths demand it. On a flat size field, the result equals the uniform-grid result. On a graded field, refinement concentrates where the field changes.
 - **Python and MATLAB agree.** The 13 numerical stages exist in both languages. The pytest suite pins the Python stages to MATLAB reference fixtures where the exported `.npz` is present. `Domain`, `Mesh`, and `BoundarySegment` are frozen, typed dataclasses. A Numba-JIT solver replaces the original C MEX, so installation needs no compile step.
@@ -105,7 +105,7 @@ mesh = admesh.triangulate(admesh.Domain.from_mesh(old), h_min=50.0, h_max=2000.0
 
 # 3. Mesh a registry domain with the adaptive background grid.
 mesh = admesh.triangulate(
-    admesh.load_domain_from_registry("BaranjaHill"),
+    admesh.load_domain_from_registry("Block_O.14"),
     h_max=0.1, h_min=0.01, background="octree",
 )
 print(mesh.n_nodes, mesh.n_elements, mesh.quality.mean())
@@ -130,11 +130,11 @@ meshes = admesh.triangulate_batch(
 | Size control | `h_min`, `h_max`, `size_field=`, `user_contribs=`, `combine=`, `medial_method=` | The default is uniform at `h_max`. `compose_size_field` composes stage-module contributions (curvature, medial axis, bathymetry, tide) and custom callables that map `(N, 2)` points to edge length. `medial_method` is `None` by default. It adds a channel-width contribution from one of three medial-axis methods: `"grid"`, `"octree"` or `"vdt"`. |
 | Multiscale domains | `background="octree"` | Evaluates the size field on a quadtree with leaf-graph gradient limiting. The default is `"uniform"`. |
 | Reproducibility | `seed=`, `initial_points=`, `max_iter=`, `ttol=`, `dptol=` | Warm-start from a previous point set. Iteration stops at `max_iter`, `dptol`, or an empty edge set. |
-| Many meshes | `triangulate_batch(domains, n_jobs=None, **kwargs)` | Runs `triangulate` on a process pool and returns meshes in input order, identical to a serial loop. Parallel runs need picklable domains: paths, registry slugs, or a `Domain` with a module-level SDF. `n_jobs=1` runs in-process. |
+| Many meshes | `triangulate_batch(domains, n_jobs=None, **kwargs)` | Runs `triangulate` on a process pool and returns meshes in input order, identical to a serial loop. Parallel runs need picklable domains: paths, registry filenames, or a `Domain` with a module-level SDF. `n_jobs=1` runs in-process. |
 | Quality gate | `quality_gate=(min_q, mean_q)` | The default is `(0.30, 0.60)`. A mesh below it raises `ValueError`. Pass `(0.0, 0.0)` to disable. |
 | ADCIRC I/O | `read_fort14`, `write_fort14`, `Mesh.to_fort14` | Round-trips nodes, elements, and boundary segments. `Fort14ParseError` reports line, expected, actual. |
 | Gmsh I/O | `read_msh`, `write_msh`, `Mesh.to_msh` | Gmsh 2.2 ASCII. Boundary labels map to `BoundaryType`. `GmshParseError` reports malformed input. |
-| Domain sources | `load_domain_from_{toml,json,fort14,registry}`, `list_available_domains` | A path or slug may also be passed to `triangulate()` directly. Formats in [`docs/DOMAIN_IO.md`](docs/DOMAIN_IO.md). |
+| Domain sources | `load_domain_from_{toml,json,fort14,registry}`, `list_available_domains` | A path or registry filename may also be passed to `triangulate()` directly. Formats in [`docs/DOMAIN_IO.md`](docs/DOMAIN_IO.md). |
 | Quality metrics | `mesh_quality`, `right_iso_quality` | Equilateral and right-isosceles targets. |
 | Valence balancing | `balance_valence_triangles`, `compute_valence`, `get_valence_report` | Edge flipping toward degree-6 interior nodes, quality-guarded. |
 | Quad preparation | `smooth_for_quadrangulation` | Right-isosceles smoother for downstream tri-to-quad fusion (CHILmesh, OceanMesh2D, ADCIRC v55+). |

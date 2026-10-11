@@ -593,13 +593,25 @@ def _load_domain_from_source(source: str | "os.PathLike[str]") -> Domain:
         or any(source_str.endswith(ext) for ext in [".toml", ".json", ".14", ".grd"])
     )
 
+    # A bare "Name.14" that is not a local file is a registry filename.
+    if (
+        is_path
+        and not isinstance(source, os.PathLike)
+        and "/" not in source_str
+        and "\\" not in source_str
+        and source_str.endswith(".14")
+        and not Path(source_str).exists()
+    ):
+        is_path = False
+
     if not is_path:
-        # A bare name is a registry slug. Registry errors surface with the slug.
+        # A bare name is a registry mesh name (filename such as "Block_O.14").
+        # Registry errors surface with the name.
         from admesh.registry import RegistryError, load_domain_from_registry
         try:
             return load_domain_from_registry(source_str)
         except RegistryError as e:
-            raise type(e)(f"Registry slug '{source_str}': {e}") from None
+            raise type(e)(f"Registry mesh '{source_str}': {e}") from None
 
     # Load as file
     from admesh.loaders import (
@@ -813,7 +825,7 @@ def triangulate(
         If domain source cannot be resolved, quality gates fail, or
         ``medial_method`` is not one of the values listed above.
     RegistryError
-        If a registry slug is given and registry access fails (no token,
+        If a registry mesh filename is given and registry access fails (no token,
         invalid token, unknown name, API unavailable).
 
     Adapts the v1 :class:`Domain` onto the faithful-port driver
