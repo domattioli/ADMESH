@@ -110,7 +110,7 @@ Domain, then background grid (uniform or octree), then size field (curvature, me
 
 ## 7. Performance
 
-Numba kernels cut end-to-end generation on the Western North Atlantic benchmark from 1257.5 s (v0.2.1) to 47.2 s (v0.5.0), a 26.6x speedup. `triangulate_batch` runs 5.09x faster on 8 workers than a serial loop. Tables, method and reproduction commands: [`docs/BENCHMARK_DELIVERABLE.md`](docs/BENCHMARK_DELIVERABLE.md#numba-kernel-and-batch-meshing-benchmarks).
+Numba kernels cut end-to-end generation on the Western North Atlantic benchmark from 1257.5 s (v0.2.1) to 47.2 s (v0.5.0), a 26.6x speedup. `triangulate_batch` runs 5.09x faster on 8 workers than a serial loop. Tables, method and reproduction commands: [`docs/BENCHMARK_DELIVERABLE.md`](docs/BENCHMARK_DELIVERABLE.md#12-numba-kernel-and-batch-meshing-benchmarks).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
