@@ -22,12 +22,12 @@ Open the [share-mesh form](https://github.com/domattioli/valence-intake/issues/n
 
 ## Before you share
 
-Check that the mesh is yours to share. Remove anything confidential from the title line. Large files may need a link to a download location instead of an upload.
+Check that the mesh is yours to share. Remove anything confidential from the title line. For a large file, paste a download link instead of uploading it.
 
 ## Questions
 
 Open an issue in this repository. We will reply as soon as we can.
 
-## Silence the log hint
+## Turn off the share hint
 
-ADMESH writes one log line after the first fort.14 it saves. Set the environment variable `ADMESH_NO_SHARE_HINT` to any non-empty value to turn the line off.
+ADMESH prints one line to stderr after it writes the first fort.14 in a process. To turn it off, set the environment variable `ADMESH_NO_SHARE_HINT` to any non-empty value.
