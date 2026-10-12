@@ -45,7 +45,8 @@ jobs:
         run: cibuildwheel --output-dir dist
         env:
           CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
-          CIBW_SKIP: "*-musllinux*"
+          # llvmlite has no cp314 macOS x86_64 wheel, so numba cannot install there
+          CIBW_SKIP: "*-musllinux* cp314-macosx_x86_64"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
