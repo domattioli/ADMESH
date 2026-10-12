@@ -6,6 +6,10 @@
 /quickstart/ /docs/quickstart/ 301
 /demo /docs/demo/ 301
 /demo/ /docs/demo/ 301
+/api /docs/api/ 301
+/api/ /docs/api/ 301
+/registry-api-contract /docs/registry-api-contract/ 301
+/registry-api-contract/ /docs/registry-api-contract/ 301
 /api/triangulate /docs/api/triangulate/ 301
 /api/triangulate/ /docs/api/triangulate/ 301
 /api/types /docs/api/types/ 301
