@@ -11,8 +11,7 @@ cd ADMESH
 pip install -e ".[dev]"
 ```
 
-Requirements: Python ≥ 3.10. Core deps (NumPy, SciPy, Numba, Shapely,
-`admesh-domains`) install automatically. Optional viz extras via `pip install -e ".[dev,viz]"`.
+Requirements: Python ≥ 3.10. Core deps (NumPy, SciPy, Numba, Shapely) install automatically. Optional viz extras via `pip install -e ".[dev,viz]"`.
 
 ## Running tests
 
@@ -109,3 +108,8 @@ every change:
 - Include a "Test plan" section in the body. If the PR is documentation-only,
   say so explicitly.
 - Link the issue with `Closes #NN` in the description.
+
+## Share your mesh
+
+
+Meshes are a useful contribution. If you have a fort.14 mesh you can share, please submit it by opening an issue in this repository (https://github.com/domattioli/ADMESH/issues/new). Choose a license, name the generator, and describe the region and resolution. See [docs/share-your-mesh.md](docs/share-your-mesh.md) for details.

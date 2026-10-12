@@ -50,7 +50,7 @@ def triangulate_batch(
     Parameters
     ----------
     domains : sequence
-        Sequence of Domain objects, file paths, or registry slugs — anything
+        Sequence of Domain objects, file paths, or registry filenames — anything
         :func:`triangulate` accepts.
     n_jobs : int or None, optional
         Maximum number of worker processes. If None, defaults to
@@ -86,7 +86,7 @@ def triangulate_batch(
 
     For parallel execution (n_jobs > 1), each domain is pickled before
     the pool is created. Domains with lambda or local-scope SDF
-    functions will raise TypeError. Use registry slugs, file paths,
+    functions will raise TypeError. Use registry filenames, file paths,
     or module-level SDF callables instead, or set n_jobs=1.
     """
     domains_list = list(domains)
@@ -114,7 +114,7 @@ def triangulate_batch(
                 f"Domain at index {i} is not picklable and cannot be sent to "
                 f"worker processes. Suggestions:\n"
                 f"  - Use a module-level SDF callable instead of a lambda\n"
-                f"  - Use a file path (.toml, .json, .14) or registry slug\n"
+                f"  - Use a file path (.toml, .json, .14) or registry mesh filename\n"
                 f"  - Set n_jobs=1 to run sequentially in-process"
             ) from e
 

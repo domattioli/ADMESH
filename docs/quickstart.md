@@ -2,7 +2,7 @@
 
 This page walks through the most common ADMESH workflows: triangulating a
 polygon, round-tripping an ADCIRC `fort.14`, composing a custom size
-field, and loading a domain from the `admesh-domains` registry.
+field, and loading a domain from the registry.
 
 ## Setup
 
@@ -35,7 +35,7 @@ print("min quality:", mesh.quality.min())
 ```
 
 For polygon-based domains, the canonical builder is
-[`admesh.load_domain_from_json`](api/loaders.md) — see that page for the
+[`admesh.load_domain_from_json`](api/loaders.md), see that page for the
 expected JSON schema. The `admesh.Domain` constructor accepts a signed-
 distance callable directly when you want full control.
 
@@ -93,14 +93,14 @@ mesh = admesh.triangulate(
 )
 ```
 
-The default `combine` is `np.minimum.reduce` — at every point, the tightest
+The default `combine` is `np.minimum.reduce`, at every point, the tightest
 of the contributions wins. Pass `np.add` or `np.maximum.reduce` to change
 the policy.
 
-## Load from the `admesh-domains` registry
+## Load from the registry
 
 > ⚠️ **Status as of 2026-05-15**: registry loaders are documented but the
-> adapter is broken against `admesh-domains` 0.3.x (see
+> adapter is broken against the former registry package 0.3.x (see
 > [issue #64](https://github.com/domattioli/ADMESH/issues/64)). Use file
 > loaders below until the fix lands.
 
@@ -115,7 +115,7 @@ for mesh_id, desc in sorted(admesh.list_available_domains().items()):
 domain = admesh.load_domain_from_registry("BaranjaHill")
 mesh = admesh.triangulate(domain)
 
-# Or load with provenance metadata.
+# Or load with source metadata.
 domain, meta = admesh.load_domain_with_metadata("BaranjaHill")
 print(f"License: {meta.get('license')}, contributor: {meta.get('contributed_by')}")
 ```
@@ -184,8 +184,8 @@ plt.show()
 
 ## Where to go next
 
-- **[API Reference](api/triangulate.md)** — every public symbol documented.
-- **[Porting notes](PORTING_NOTES.md)** — how the MATLAB stages map to
+- **[API Reference](api/triangulate.md)**: every public symbol documented.
+- **[Porting notes](PORTING_NOTES.md)**: how the MATLAB stages map to
   Python, with recorded behavior differences.
-- **[Contributing](https://github.com/domattioli/ADMESH/blob/development/CONTRIBUTING.md)** — dev setup, branch contract,
+- **[Contributing](https://github.com/domattioli/ADMESH/blob/development/CONTRIBUTING.md)**: dev setup, branch contract,
   filing issues.

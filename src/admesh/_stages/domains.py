@@ -13,7 +13,7 @@ The 5 domains mirror the MVP acceptance set:
 - ``annulus``           — doubly-connected topology
 - ``notched_rectangle`` — tight pinch / keyhole stress test
 
-Does NOT belong in the ``valence-domains`` registry (see #165). Two reasons:
+Does NOT belong in the Valence registry (see #165). Two reasons:
 
 1. The :class:`Domain` SDF dataclass below is core engine infrastructure —
    the locked faithful-port stages ``routine.py`` (01) and ``boundary.py``
@@ -26,7 +26,7 @@ Does NOT belong in the ``valence-domains`` registry (see #165). Two reasons:
    grouping of real meshes, a different concept entirely.
 
 Real-mesh registry redundancy with Valence was already resolved by the
-spec-005 registry adapter (``registry.py`` → ``valence-domains``, PR #159).
+spec-005 registry adapter (``registry.py``, now backed by the Valence HTTP API).
 """
 
 from __future__ import annotations
