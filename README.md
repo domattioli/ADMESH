@@ -41,7 +41,9 @@
 
 **Current release: 1.0.6 (2026-10-12); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
 
-- **Roadmap:** 1D–2D constraint extraction (#186); single-mesh parallelization (#216); 3D ADMESH (#220); integration with [QuADMESH](https://github.com/domattioli/QuADMESH) (quads) and [CHILmesh](https://github.com/domattioli/CHILmesh) (mesh data structure and smoothing).
+- **Now:** 1D–2D constraint extraction ([#186](https://github.com/domattioli/ADMESH/issues/186)).
+- **Next:** single-mesh parallel speed-up ([#216](https://github.com/domattioli/ADMESH/issues/216), [#218](https://github.com/domattioli/ADMESH/issues/218)).
+- **Later:** 3D ADMESH ([#220](https://github.com/domattioli/ADMESH/issues/220)); integration with [QuADMESH](https://github.com/domattioli/QuADMESH) (quads) and [CHILmesh](https://github.com/domattioli/CHILmesh) (mesh data structure and smoothing).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
