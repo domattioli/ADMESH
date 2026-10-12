@@ -2,7 +2,7 @@
   "title": "ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python)",
   "upload_type": "software",
   "license": "Apache-2.0",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "creators": [
     {
       "name": "Mattioli, Dominik",

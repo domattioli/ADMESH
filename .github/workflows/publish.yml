@@ -39,13 +39,14 @@ jobs:
           cache: pip
 
       - name: Install cibuildwheel
-        run: pip install cibuildwheel==2.21.*
+        run: pip install cibuildwheel==3.2.*
 
       - name: Build wheels
         run: cibuildwheel --output-dir dist
         env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
-          CIBW_SKIP: "*-musllinux*"
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
+          # llvmlite has no cp314 macOS x86_64 wheel, so numba cannot install there
+          CIBW_SKIP: "*-musllinux* cp314-macosx_x86_64"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -81,6 +82,12 @@ jobs:
 
       - name: Build sdist
         run: python -m build --sdist
+
+      - name: Check sdist contains the C++ sources
+        run: |
+          tar -tzf dist/*.tar.gz > sdist-files.txt
+          grep -q 'src/admesh/_cpp/distmesh_cpp.cpp$' sdist-files.txt
+          grep -q 'src/admesh/_cpp/distmesh_module.cpp$' sdist-files.txt
 
       - uses: actions/upload-artifact@v4
         with:

@@ -39,7 +39,7 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 1.0.0 (2026-10-02). Next: 1.0.5 (unreleased); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
+**Current release: 1.0.6 (2026-10-12); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
 
 - **Roadmap:** 1D–2D constraint extraction (#186); single-mesh parallelization (#216); 3D ADMESH (#220); integration with [QuADMESH](https://github.com/domattioli/QuADMESH) (quads) and [CHILmesh](https://github.com/domattioli/CHILmesh) (mesh data structure and smoothing).
 
@@ -82,7 +82,7 @@ mesh = admesh.triangulate(admesh.Domain.from_mesh(old), h_min=50.0, h_max=2000.0
 
 ## 5. Meshes from the Valence registry
 
-The HTTP registry client ships in admesh2D 1.0.5 (unreleased). Meshes come through Valence, a token-gated mesh service.
+The HTTP registry client ships in admesh2D 1.0.5 and later. Meshes come through Valence, a token-gated mesh service.
 
 Sign in with GitHub at https://valence-api.iqh766c2.workers.dev . A GitHub account at least 30 days old gets a token at once, shown once. Each token allows 500 downloads per token per day (reset at midnight UTC) and expires after one year.
 
