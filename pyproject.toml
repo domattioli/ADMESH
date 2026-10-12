@@ -41,7 +41,7 @@ dev = [
     "mkdocstrings[python]>=0.24",
 ]
 viz = [
-    "chilmesh>=1.2.1,<2",
+    "chilmesh>=1.5.5,<2",
 ]
 
 [project.urls]
