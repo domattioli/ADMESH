@@ -6,6 +6,9 @@ include pyproject.toml
 
 recursive-include src/admesh *.py
 
+# C++ extension sources: setup.py compiles these when pybind11 and Eigen3 are present.
+recursive-include src/admesh/_cpp *.cpp *.h *.hpp
+
 # setuptools adds tests/test*.py by default; keep tests out of the sdist.
 prune tests
 
