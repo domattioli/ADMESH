@@ -58,7 +58,9 @@ docs/persistence_journal.md export-ignore
 docs/upstream/DOMI_SYNC_FROM_GH_DEPENDENCY.md export-ignore
 docs/governance/ export-ignore
 zenodo/patches/ export-ignore
+.zenodo.json export-ignore
 # <<< release-ignore:end
+
 
 # Registry contract fixture is SHA-256 hashed byte-for-byte; never convert line endings.
 tests/data/registry-contract.v1.json -text

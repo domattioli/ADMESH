@@ -13,6 +13,9 @@ exclude = [
     "docs/governance/",
     # Zenodo record metadata patches: maintainer tooling input, not part of the software (060 T017).
     "zenodo/patches/",
+    # Zenodo integration metadata (operator 2026-10-12): read from the repo at the tag,
+    # not needed inside the archive, sdist or wheel.
+    ".zenodo.json",
 ]
 
 [verify]
