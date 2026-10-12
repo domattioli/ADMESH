@@ -1,7 +1,7 @@
 # Registry API contract
 
 This document records the public contract between ADMESH and the Valence mesh API.
-From 1.0.5 (unreleased), ADMESH does not install or import any registry package.
+From 1.0.5, ADMESH does not install or import any registry package.
 The client is `admesh/_registry_client.py` and uses only the standard library.
 
 ## Configuration

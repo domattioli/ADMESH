@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.6] - 2026-10-12
+
+### Fixed
+- The sdist now contains the C++ sources in `src/admesh/_cpp/`. The 1.0.5 sdist had none, so `pip install` failed with `no such file or directory: 'src/admesh/_cpp/distmesh_cpp.cpp'` on any platform without a matching wheel, for example Python 3.14 or Windows.
+- Wheels are built for Python 3.14 (cp314) on Linux and macOS. Windows wheels are still deferred; Windows installs build from the sdist.
+
+### Added
+- The publish workflow fails if the sdist does not contain `src/admesh/_cpp/distmesh_cpp.cpp`.
+
 ## [1.0.5] - 2026-10-11
 
 ### Changed
