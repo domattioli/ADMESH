@@ -6,25 +6,40 @@
   "creators": [
     {
       "name": "Mattioli, Dominik O.",
-      "affiliation": "Unaffiliated"
+      "affiliation": "Unaffiliated",
+      "orcid": "0000-0002-7327-6337"
     },
     {
       "name": "Conroy, Colton J.",
-      "affiliation": "Columbia University"
+      "affiliation": "Columbia University",
+      "orcid": "0000-0003-3018-5539"
     },
     {
       "name": "Kubatko, Ethan J.",
-      "affiliation": "Computational Hydrodynamics and Informatics Lab, The Ohio State University"
+      "affiliation": "Computational Hydrodynamics and Informatics Lab, The Ohio State University",
+      "orcid": "0000-0002-5686-9990"
     },
     {
       "name": "West, Dustin W."
     }
   ],
-  "description": "<p>ADMESH is a Python implementation of the ADMESH unstructured triangular mesh generator for two-dimensional shallow-water models (Conroy, Kubatko and West, 2012). It ports the 13 stages of that algorithm, which build a mesh-size field from boundary curvature, channel width, bathymetric gradient and tidal wavelength, then place nodes by distmesh relaxation. <code>triangulate()</code> accepts a domain object, a TOML or JSON polygon, an ADCIRC <code>fort.14</code> file or a registry domain name; the package reads and writes <code>fort.14</code> and Gmsh 2.2 files and meshes several domains in parallel with <code>triangulate_batch</code>. A Numba solver replaces the original C MEX file. Install with <code>pip install admesh2D</code>; the import name is <code>admesh</code>.</p>\n<h3>This release (1.0.6)</h3>\n<h4>Fixed</h4>\n<ul>\n<li>The sdist now contains the C++ sources in <code>src/admesh/_cpp/</code>. The 1.0.5 sdist had none, so <code>pip install</code> failed on any platform without a matching wheel, for example Python 3.14 or Windows.</li>\n<li>Wheels are built for Python 3.14 on Linux x86_64 and macOS arm64. macOS x86_64 has no 3.14 wheel because llvmlite publishes none; Windows installs build from the sdist.</li>\n</ul>\n<h4>Added</h4>\n<ul>\n<li>The publish workflow fails if the sdist lacks <code>src/admesh/_cpp/distmesh_cpp.cpp</code>.</li>\n</ul>\n<h3>Roadmap at 1.0.6</h3><ul><li><strong>Now:</strong> 1D–2D constraint extraction (<a href=\"https://github.com/domattioli/ADMESH/issues/186\">#186</a>).</li><li><strong>Next:</strong> single-mesh parallel speed-up (<a href=\"https://github.com/domattioli/ADMESH/issues/216\">#216</a>, <a href=\"https://github.com/domattioli/ADMESH/issues/218\">#218</a>).</li><li><strong>Later:</strong> 3D ADMESH (<a href=\"https://github.com/domattioli/ADMESH/issues/220\">#220</a>); integration with QuADMESH (quads) and CHILmesh (mesh data structure and smoothing).</li></ul>\n<blockquote><p>Cite as: D. O. Mattioli, C. J. Conroy, E. J. Kubatko and D. W. West (2026). ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python). Zenodo. https://doi.org/10.5281/zenodo.20264085</p></blockquote>",
+  "description": "<p>This is a Python and C++ implementation of the ADMESH unstructured triangular mesh generator for two-dimensional shallow-water models (Conroy, Kubatko and West, 2012). It ports the 13 stages of that algorithm, which build a mesh-size field from boundary curvature, channel width, bathymetric gradient and tidal wavelength, then place nodes by distmesh relaxation. <code>triangulate()</code> accepts a domain object, a TOML or JSON polygon, an ADCIRC <code>fort.14</code> file or a registry domain name; the package reads and writes <code>fort.14</code> and Gmsh 2.2 files and meshes several domains in parallel with <code>triangulate_batch</code>. A Numba solver replaces the original C MEX file. Install with <code>pip install admesh2D</code>; the import name is <code>admesh</code>. The original research group's MATLAB line continues separately as <a href=\"https://doi.org/10.5281/zenodo.10009711\">ADMESH+ v3</a> (Kang and Kubatko, 2024). This package ports the 2012 library; its optional <code>medial_method=\"vdt\"</code> follows the medial-axis method of Kang and Kubatko (2024).</p>\n<h3>This release (1.0.6)</h3>\n<h4>Fixed</h4>\n<ul>\n<li>The sdist now contains the C++ sources in <code>src/admesh/_cpp/</code>. The 1.0.5 sdist had none, so <code>pip install</code> failed on any platform without a matching wheel, for example Python 3.14 or Windows.</li>\n<li>Wheels are built for Python 3.14 on Linux x86_64 and macOS arm64. macOS x86_64 has no 3.14 wheel because llvmlite publishes none; Windows installs build from the sdist.</li>\n</ul>\n<h4>Added</h4>\n<ul>\n<li>The publish workflow fails if the sdist lacks <code>src/admesh/_cpp/distmesh_cpp.cpp</code>.</li>\n</ul>\n<h3>Roadmap at 1.0.6</h3>\n<ul>\n<li><strong>Now:</strong> 1D–2D constraint extraction (<a href=\"https://github.com/domattioli/ADMESH/issues/186\">#186</a>).</li>\n<li><strong>Next:</strong> single-mesh parallel speed-up (<a href=\"https://github.com/domattioli/ADMESH/issues/216\">#216</a>, <a href=\"https://github.com/domattioli/ADMESH/issues/218\">#218</a>).</li>\n<li><strong>Later:</strong> 3D ADMESH (<a href=\"https://github.com/domattioli/ADMESH/issues/220\">#220</a>); integration with QuADMESH (quads) and CHILmesh (mesh data structure and smoothing).</li>\n</ul>\n<blockquote>\n<p>Cite software as: DO Mattioli, CJ Conroy, EJ Kubatko and DW West (2026). ADMESH: automatic unstructured triangular mesh generator for 2D shallow-water models (Python). Zenodo. https://doi.org/10.5281/zenodo.20264085</p>\n<p>Cite the original pub as: CJ Conroy, EJ Kubatko &amp; DW West (2012). ADMESH: An advanced, automatic unstructured mesh generator for shallow water models. <em>Ocean Dynamics, 62</em>, 1503-1517.</p>\n</blockquote>",
   "related_identifiers": [
     {
       "identifier": "10.1007/s10236-012-0574-0",
-      "relation": "isSupplementTo",
+      "relation": "continues",
+      "resource_type": "publication-article",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5281/zenodo.10009711",
+      "relation": "isVariantFormOf",
+      "resource_type": "software",
+      "scheme": "doi"
+    },
+    {
+      "identifier": "10.5194/gmd-17-1603-2024",
+      "relation": "isVariantFormOf",
       "resource_type": "publication-article",
       "scheme": "doi"
     }
