@@ -22,7 +22,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License"></a>
 </p>
 
-> **Background:** Two branches of ADMESH descend from the 2012 original by [Conroy et al.](https://github.com/coltonjconroy/ADMESH). The original group's MATLAB line is ADMESH+ v3 ([OSU-CHIL/ADMESH](https://github.com/OSU-CHIL/ADMESH); [10.5281/zenodo.10242565](https://doi.org/10.5281/zenodo.10242565)), maintained by Younghun Kang and Ethan Kubatko ([Kang & Kubatko, 2024](https://doi.org/10.5194/gmd-17-1603-2024)). This repository is the parallel branch: the 2012 library in Python, with the MATLAB source alongside at [`src/matlab/`](src/matlab/).
+> **Background:** Two branches of ADMESH descend from the 2012 original by [Conroy et al.](https://github.com/coltonjconroy/ADMESH). The original group's MATLAB line is ADMESH+ v3 ([OSU-CHIL/ADMESH](https://github.com/OSU-CHIL/ADMESH); [10.5281/zenodo.10009711](https://doi.org/10.5281/zenodo.10009711)), maintained by Younghun Kang and Ethan Kubatko ([Kang & Kubatko, 2024](https://doi.org/10.5194/gmd-17-1603-2024)). This repository is the parallel branch: the 2012 library in Python, with the MATLAB source alongside at [`src/matlab/`](src/matlab/).
 
 ## Table of Contents
 
