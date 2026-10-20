@@ -36,7 +36,7 @@ Every "adopt" verdict lands in the additive Pythonic layer (`api.py`, `size_fiel
 
 Two branches of ADMESH descend from Conroy, Kubatko & West (2012), "ADMESH: An advanced, automatic unstructured mesh generator for shallow water models" (*Ocean Dynamics* 62, 1503–1517). This repository ports that 2012 library.
 
-The original group's current MATLAB line is **ADMESH+ v3.0.1** (Kang, Kubatko, Conroy & West; GPL-3.0; [OSU-CHIL/ADMESH](https://github.com/OSU-CHIL/ADMESH); [zenodo 10.5281/zenodo.10242565](https://doi.org/10.5281/zenodo.10242565)). Its methods are published in:
+The original group's current MATLAB line is **ADMESH+ v3**, latest release v3.1 (2026-03-03) (software archived by Younghun Kang; GPL-3.0; [OSU-CHIL/ADMESH](https://github.com/OSU-CHIL/ADMESH); Zenodo concept DOI [10.5281/zenodo.10009711](https://doi.org/10.5281/zenodo.10009711)). Its methods are published in:
 
 - **ADMESH+ v3**: Kang, Y. & Kubatko, E.J. (2024). "An automatic mesh generator for coupled 1D–2D hydrodynamic models." *Geoscientific Model Development* 17, 1603–1625. [doi:10.5194/gmd-17-1603-2024](https://doi.org/10.5194/gmd-17-1603-2024). The article is open-access. A preprint is at [egusphere-2023-1434](https://egusphere.copernicus.org/preprints/2023/egusphere-2023-1434/).
 

@@ -51,19 +51,14 @@ references:
     doi: 10.5194/gmd-17-1603-2024
     notes: "Describes ADMESH+ v3, the original group's current MATLAB line; this repository is a parallel Python port of the 2012 library."
   - type: software
-    title: "Younghun-Kang/ADMESH: v3.0.1"
+    title: "OSU-CHIL/ADMESH (ADMESH+ v3)"
     authors:
       - family-names: Kang
         given-names: Younghun
-      - family-names: Kubatko
-        given-names: Ethan J.
-      - family-names: Conroy
-        given-names: Colton J.
-      - family-names: West
-        given-names: Dustin W.
-    year: 2023
-    doi: 10.5281/zenodo.10242565
+    year: 2026
+    doi: 10.5281/zenodo.10009711
     repository-code: "https://github.com/OSU-CHIL/ADMESH"
+    notes: "Zenodo concept DOI; resolves to the latest ADMESH+ v3 release (v3.1 at 2026-03-03)."
 preferred-citation:
   type: article
   title: "ADMESH: an advanced, automatic unstructured mesh generator for shallow water models"
