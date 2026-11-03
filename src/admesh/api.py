@@ -799,6 +799,11 @@ def _fixed_boundary_postpass(
 
     from admesh._stages.distmesh import fixmesh
 
+    # The solver can lose pinned ring nodes (cleanup of near-duplicate or sliver
+    # nodes); restore any that are missing so every ring node is kept.
+    miss = cKDTree(nodes).query(ring_nodes)[0] > 1e-9
+    if miss.any():
+        nodes = np.vstack([nodes, ring_nodes[miss]])
     d_ring, _ = cKDTree(ring_nodes).query(nodes)
     is_ring = d_ring <= 1e-9  # pinned nodes may carry solver round-off
     h_loc = (

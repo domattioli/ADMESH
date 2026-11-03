@@ -117,3 +117,31 @@ def test_ringless_domain_fixed_warns():
     )
     with pytest.warns(UserWarning, match="falls back to free|falling back to free"):
         admesh.triangulate(dom, h_max=0.2, boundary="fixed", quality_gate=(0, 0))
+
+
+def test_fort14_without_land_segment_derives_rings_from_mesh(tmp_path):
+    """wnat_test.14 flags no closed land segment: rings come from mesh edges."""
+    import pathlib
+    src = pathlib.Path(__file__).parent / "fixtures/fort14/adcirc_examples/wnat_test.14"
+    dom = load_domain_from_fort14(src)
+    assert dom.pts is not None and len(dom.pts) >= 3
+    h = max(dom.bbox[2] - dom.bbox[0], dom.bbox[3] - dom.bbox[1]) / 12
+    m = admesh.triangulate(dom, h_max=h, quality_gate=(0.0, 0.0), boundary="fixed")
+    verts = np.vstack([dom.pts] + [np.asarray(r) for r in dom.holes])
+    bnd = _check_fixed(m, verts)
+    assert (cKDTree(verts).query(bnd)[0] < 1e-9).all()
+
+
+@pytest.mark.slow
+def test_enpac_fixed_mode_valid():
+    """ENPAC 2003 coast (10k-vertex ring): fixed mode keeps every vertex."""
+    import pathlib
+    src = pathlib.Path(__file__).parent.parent / "benchmarks/data/enpac_boundary.json"
+    if not src.exists():
+        pytest.skip("ENPAC boundary data not present")
+    dom = load_domain_from_json(src)
+    m = admesh.triangulate(dom, h_max=0.5, h_min=0.125, quality_gate=(0.0, 0.0),
+                           boundary="fixed")
+    verts = np.vstack([dom.pts] + [np.asarray(r) for r in dom.holes])
+    bnd = _check_fixed(m, verts)
+    assert (np.abs(dom.sdf(bnd)) < 1e-6).all()  # boundary nodes lie on the rings

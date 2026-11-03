@@ -242,6 +242,15 @@ def load_domain_from_fort14(path: str | Path) -> Domain:
                 rings.append(mesh.nodes[ids])
 
     if not rings:
+        # No closed land segment flagged: take the mesh's own boundary loops
+        # (edges used by one triangle). Largest-area loop is the outer ring
+        # (ocean portion included); the rest are holes.
+        from admesh.api import _derive_boundary_segments
+
+        segs = _derive_boundary_segments(mesh.elements, mesh.nodes)
+        rings = [mesh.nodes[np.asarray(sg.node_ids)] for sg in segs]
+
+    if not rings:
         raise ValueError(f"No land boundary found in {path}")
 
 

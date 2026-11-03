@@ -8,7 +8,10 @@ seconds.
 
 Needs matplotlib and ffmpeg (/opt/homebrew/bin/ffmpeg or on PATH).
 
-    python scripts/render_boundary_relax.py [out.mp4]
+    python scripts/render_boundary_relax.py [out.mp4] [--toy]
+
+Default size field is ADMESH's build_h (curvature + medial axis); --toy uses
+the radial demo field ``fh``.
 """
 
 from __future__ import annotations
@@ -28,6 +31,7 @@ import numpy as np
 import admesh
 from admesh.boundary_relax import relax_ring, ring_arclength
 from admesh.loaders import _domain_from_polygon
+from admesh.size_field import limit_gradient
 
 OUT = Path.home() / "Desktop" / "admesh_boundary_1d_distmesh.mp4"
 FPS = 12
@@ -51,7 +55,23 @@ def fh(p: np.ndarray) -> np.ndarray:
     return H0 + 0.22 * np.clip(d / 2.6, 0.0, 1.0)
 
 
-def bar_ratio(xy: np.ndarray):
+def real_size_field():
+    """ADMESH size field (curvature + medial axis) via build_h, gradient-limited
+    over the full domain (|grad h| <= 0.2) with limit_gradient."""
+    from admesh._stages.domains import Domain as PortDomain
+    from admesh._stages.mesh_size import build_h
+
+    d = _domain_from_polygon([RING])
+    pd = PortDomain(name="demo", fd=d.sdf, bbox=d.bbox, fixed_points=np.empty((0, 2)))
+    h = build_h(pd, base=0.25, curvature_scale=0.5, medial_scale=0.3,
+                hmin=H_REAL_MIN, hmax=0.25)
+    return limit_gradient(h, d.bbox, g=0.2, delta=0.01)
+
+
+H_REAL_MIN = 0.03
+
+
+def bar_ratio(xy: np.ndarray, fh=fh):
     s = np.sort(ring_arclength(RING, xy))
     L = float(np.linalg.norm(np.diff(np.vstack([RING, RING[:1]]), axis=0), axis=1).sum())
     ext = np.append(s, s[0] + L)
@@ -62,11 +82,12 @@ def bar_ratio(xy: np.ndarray):
     return 0.5 * (ext[:-1] + ext[1:]), l / fh(mid)
 
 
-def main(out: Path) -> None:
+def main(out: Path, size: str = "real") -> None:
+    size_fn, h0 = (real_size_field(), H_REAL_MIN) if size == "real" else (fh, H0)
     ff = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
     matplotlib.rcParams["animation.ffmpeg_path"] = ff
 
-    xy, hist = relax_ring(RING, fh, H0, record_history=True,
+    xy, hist = relax_ring(RING, size_fn, h0, record_history=True,
                           init="random", rng_seed=7, max_iter=600)
     print(f"relax: {len(hist)} snapshots, {len(hist[0])} -> {len(xy)} nodes")
     stride = max(1, len(hist) // 150)
@@ -79,7 +100,7 @@ def main(out: Path) -> None:
     dom = dataclasses.replace(_domain_from_polygon([RING]), pts=xy)
     trace: list[tuple[int, np.ndarray, np.ndarray]] = []
     mesh = admesh.triangulate(
-        dom, h_max=H0, size_field=fh, seed=0, boundary="fixed",
+        dom, h_max=h0, size_field=size_fn, seed=0, boundary="fixed",
         quality_gate=(0.0, 0.0),
         on_iter=lambda k, p, t: trace.append((k, np.array(p), np.array(t))),
     )
@@ -116,7 +137,7 @@ def main(out: Path) -> None:
             ax.plot(RING[:, 0], RING[:, 1], "s", ms=6, mfc="none", color="k")
             ax.set_title(f"1D boundary DistMesh from random start: "
                          f"iteration {i}, {len(p)} nodes")
-            s, r = bar_ratio(p)
+            s, r = bar_ratio(p, size_fn)
             axi.axhspan(0.6, 1.6, color="0.9")
             axi.axhline(1.0, color="0.4", lw=0.8)
             axi.plot(s, r, "o-", ms=3, color="C0", lw=1)
@@ -152,4 +173,6 @@ def main(out: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]).expanduser() if len(sys.argv) > 1 else OUT)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    main(Path(args[0]).expanduser() if args else OUT,
+         size="toy" if "--toy" in sys.argv else "real")
