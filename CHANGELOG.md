@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 - Domains from the TOML, JSON and fort.14 loaders carry their outer ring (`Domain.pts`) and inner rings (`Domain.holes`). In fort.14 files, closed land segments of type 1, 11 or 21 after the first become holes.
 - Fixed mode warns and falls back to free behaviour when a domain has no boundary ring.
 - Registry domains carry the same outer and hole rings as fort.14 domains, so `boundary="fixed"` works on them.
-- fort.14 files with no flagged land segment (for example WNAT) derive their rings from the mesh boundary: the largest loop is the outer ring, the rest are holes.
+- fort.14 rings come from the mesh boundary loops (largest loop outer, rest holes), not from land-segment flags. A land segment is open where the ocean boundary is, and closing it with a chord pinned nodes inside the water (Baranja Hill fixed-mode min quality 0.000, now 0.369).
 - Fixed mode re-adds any pinned ring node the solver drops, so output boundary nodes always equal the ring nodes.
 
 ### Added

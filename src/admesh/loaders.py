@@ -200,39 +200,25 @@ def load_domain_from_toml(path: str | Path) -> Domain:
 
 
 def _fort14_rings(mesh) -> list[np.ndarray]:
-    """Outer ring then hole rings of a fort.14 mesh (closed rings, unflagged fallback)."""
-    # Extract outer boundary from first land boundary segment
-    rings = []
-    if mesh.boundaries:
-        # Use first land boundary as outer ring
-        for seg in mesh.boundaries:
-            if not seg.is_open:
-                ring_indices = seg.node_ids
-                ring_coords = mesh.nodes[ring_indices]
-                rings.append(ring_coords)
-                break
-        # Island segments (closed land rings, ADCIRC types 1/21/...) become holes
-        first_seen = False
-        for seg in mesh.boundaries:
-            if seg.is_open:
-                continue
-            if not first_seen:
-                first_seen = True
-                continue
-            ids = np.asarray(seg.node_ids)
-            if len(ids) >= 3 and int(seg.bc_type) in (1, 11, 21):
-                rings.append(mesh.nodes[ids])
+    """Outer ring then hole rings of a fort.14 mesh.
 
-    if not rings:
-        # No closed land segment flagged: take the mesh's own boundary loops
-        # (edges used by one triangle). Largest-area loop is the outer ring
-        # (ocean portion included); the rest are holes.
-        from admesh.api import _derive_boundary_segments
+    Uses the mesh's own boundary loops (edges used by one triangle), so the
+    rings match the mesh outline exactly. The largest-area loop is the outer
+    ring (land and ocean parts together); every other loop is a hole. Land
+    segment flags are not used: a land segment alone is not closed where
+    the ocean boundary opens, and closing it with a chord puts pinned nodes
+    inside the water.
+    """
+    from admesh.api import _derive_boundary_segments
 
-        segs = _derive_boundary_segments(mesh.elements, mesh.nodes)
-        rings = [mesh.nodes[np.asarray(sg.node_ids)] for sg in segs]
+    segs = _derive_boundary_segments(mesh.elements, mesh.nodes)
+    rings = [mesh.nodes[np.asarray(sg.node_ids)] for sg in segs]
 
-    return rings
+    def _area(r: np.ndarray) -> float:
+        x, y = r[:, 0], r[:, 1]
+        return abs(float(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))) / 2
+
+    return sorted(rings, key=_area, reverse=True)
 
 
 def load_domain_from_fort14(path: str | Path) -> Domain:
