@@ -160,6 +160,34 @@ def _seed_ring(c, fh):
     return resample_boundary(c, cid, fh)[0]
 
 
+def _medial_seeds(grid, fh, last):
+    """Transition band seeds: one row of nodes on the medial ridge.
+
+    The ridge is where tau has a kink (fronts from two sides meet): grid
+    nodes beyond the last full level whose gradient magnitude collapses.
+    Nodes are picked greedily along the ridge at local spacing h.
+    """
+    xs, ys, tau = grid
+    dx = xs[1] - xs[0]
+    gx, gy = np.gradient(tau, dx)
+    g = np.hypot(gx, gy)
+    X, Y = np.meshgrid(xs, ys, indexing="ij")
+    beyond = tau > last + 0.3
+    if not beyond.any():
+        return np.empty((0, 2))
+    Pb = np.c_[X[beyond], Y[beyond]]
+    gn = g[beyond] * fh(Pb)  # 1 on a clean front, small on the ridge
+    ridge = gn < 0.6
+    cand = Pb[ridge] if ridge.sum() >= 2 else Pb
+    tv = tau[beyond][ridge] if ridge.sum() >= 2 else tau[beyond]
+    hc = fh(cand)
+    sel = []
+    for i in np.argsort(-tv):
+        if all(np.hypot(*(cand[i] - cand[j])) > 0.95 * hc[i] for j in sel):
+            sel.append(i)
+    return cand[sel]
+
+
 # ----------------------------------------------------------------- truss
 def _frame(interp, P, eps):
     gx = (interp(P + [eps, 0]) - interp(P - [eps, 0])) / (2 * eps)
@@ -209,14 +237,9 @@ def quad_layer_mesh(loop, corners, fh, niter=60, freeze=10, dt=0.2, step=None, v
     last = k - 1
     xs, ys, tau = grid
     X, Y = np.meshgrid(xs, ys, indexing="ij")
-    core = np.c_[X[tau > last + 0.5], Y[tau > last + 0.5]]
+    core = _medial_seeds(grid, fh, last)
     if len(core):
-        # thin core grid to ~h spacing
-        sel = []; hc = fh(core)
-        for i in np.argsort(-tau[tau > last + 0.5]):
-            if all(np.hypot(*(core[i] - core[j])) > 0.9 * hc[i] for j in sel):
-                sel.append(i)
-        P.append(core[sel]); ring.append(np.full(len(sel), -1))
+        P.append(core); ring.append(np.full(len(core), -1))
     P = np.vstack(P); ring = np.concatenate(ring)
     fixed = ring == 0
     pinned_corner = np.zeros(len(P), bool)
