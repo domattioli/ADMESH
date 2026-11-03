@@ -736,6 +736,87 @@ def _medial_contribution(
     return _medial_leaf_lookup(tree, h_leaf), floor
 
 
+def _split_collinear(p: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """Re-insert points qhull omitted as collinear/coplanar on a triangle edge.
+
+    Delaunay drops points lying exactly on a hull edge (collinear boundary
+    nodes). Each such point splits the triangle(s) sharing that edge.
+    """
+    used = np.zeros(len(p), dtype=bool)
+    used[t.ravel()] = True
+    for k in np.flatnonzero(~used):
+        x = p[k]
+        for ti in range(len(t)):
+            tri = t[ti]
+            hit = None
+            for s in range(3):
+                a, b = tri[s], tri[(s + 1) % 3]
+                ab = p[b] - p[a]
+                L2 = float(ab @ ab)
+                if L2 == 0.0:
+                    continue
+                u = float((x - p[a]) @ ab) / L2
+                if 0.0 < u < 1.0 and abs(ab[0] * (x[1] - p[a][1]) - ab[1] * (x[0] - p[a][0])) <= 1e-9 * np.sqrt(L2):
+                    hit = (a, b, tri[(s + 2) % 3])
+                    break
+            if hit is None:
+                continue
+            a, b, c = hit
+            # split every triangle sharing edge (a, b)
+            new, drop_idx = [], []
+            for tj in range(len(t)):
+                tt = list(t[tj])
+                if a in tt and b in tt:
+                    o = [v for v in tt if v != a and v != b][0]
+                    new += [[a, k, o], [k, b, o]]
+                    drop_idx.append(tj)
+            t = np.vstack([np.delete(t, drop_idx, axis=0), np.array(new, dtype=np.int64)])
+            break
+    return t
+
+
+def _fixed_boundary_postpass(
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    ring_nodes: np.ndarray,
+    sdf: Callable[[np.ndarray], np.ndarray],
+    fh: "Callable[[np.ndarray], np.ndarray] | None",
+    h0: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """API-layer cleanup for ``boundary="fixed"`` (not a MATLAB port).
+
+    Removes free nodes with ``|fd| < 0.1 h0`` that lie within ``0.5 h`` of a
+    fixed ring node, re-triangulates (Delaunay, centroid inside the domain)
+    and reuses the solver cleanup (``_boundary_cleanup`` + ``fixmesh``).
+    Ring nodes are never moved or removed here.
+    """
+    from scipy.spatial import Delaunay, cKDTree
+
+    from admesh._stages.distmesh import fixmesh
+
+    d_ring, _ = cKDTree(ring_nodes).query(nodes)
+    is_ring = d_ring <= 1e-9  # pinned nodes may carry solver round-off
+    h_loc = (
+        np.maximum(np.asarray(fh(nodes), dtype=np.float64).reshape(-1), 0.1 * h0)
+        if fh is not None else np.full(len(nodes), h0)
+    )
+    # Only ring nodes may lie on the boundary: drop every free node close to it.
+    near_bnd = np.abs(np.asarray(sdf(nodes), dtype=np.float64)) < 0.5 * h_loc
+    drop = ~is_ring & near_bnd
+    p = nodes[~drop]
+    t_all = Delaunay(p).simplices.astype(np.int64)
+    q = p[t_all]
+    ar = 0.5 * np.abs((q[:, 1, 0] - q[:, 0, 0]) * (q[:, 2, 1] - q[:, 0, 1])
+                      - (q[:, 2, 0] - q[:, 0, 0]) * (q[:, 1, 1] - q[:, 0, 1]))
+    t_all = t_all[ar > 1e-12 * h0 * h0]  # zero-area slivers on collinear ring runs
+    t_all = _split_collinear(p, t_all)
+    cen = p[t_all].mean(axis=1)
+    t = np.sort(t_all[np.asarray(sdf(cen)) < 0.0], axis=1).astype(np.int64)
+    # No sliver cleanup here: it would orphan (delete) pinned ring nodes.
+    p_out, t_out = fixmesh(p, t)[:2]
+    return p_out, t_out
+
+
 def triangulate(
     domain: Domain | str | "os.PathLike[str]",
     *,
@@ -757,6 +838,7 @@ def triangulate(
     dptol: float | None = None,
     medial_method: str | None = None,
     on_iter: Callable[[int, np.ndarray, np.ndarray], None] | None = None,
+    boundary: str = "fixed",
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -813,6 +895,16 @@ def triangulate(
         iteration index (int), the current node positions (N, 2), and the
         current triangles (M, 3). Default None. For progress display only
         and does not change the mesh.
+    boundary : {'fixed', 'free', 'slide'}
+        Boundary node treatment (API layer, not a MATLAB port). ``'fixed'``
+        (default) relaxes boundary nodes along each polygon ring with a 1D
+        DistMesh (:mod:`admesh.boundary_relax`), pins the original vertices
+        and relaxed nodes, and after the solve removes every free node within
+        ``0.5 h`` of the boundary, so the boundary nodes are exactly the ring
+        nodes. It needs a polygon (``Domain.pts`` or ``boundary_polygon``);
+        without one it behaves like ``'free'``. ``'free'`` is the previous
+        behaviour (per-edge seeds plus free boundary projection). ``'slide'``
+        is not implemented yet.
 
     Returns
     -------
@@ -833,6 +925,15 @@ def triangulate(
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
+    if boundary == "slide":
+        raise ValueError(
+            "triangulate: boundary='slide' is not implemented yet "
+            "(deferred pending benchmark); use 'fixed' or 'free'"
+        )
+    if boundary not in ("fixed", "free"):
+        raise ValueError(
+            f"triangulate: boundary must be 'fixed' or 'free', got {boundary!r}"
+        )
     if medial_method is not None and medial_method not in _MEDIAL_METHODS:
         raise ValueError(
             f"triangulate: medial_method must be None or one of "
@@ -1018,7 +1119,38 @@ def triangulate(
     # Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.
     _pts = getattr(domain, "pts", None)
     domain_pts = _pts if _pts is not None else getattr(domain, "boundary_polygon", None)
-    if domain_pts is not None:
+    _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
+    ring_nodes = None  # set in boundary="fixed" mode
+    if domain_pts is not None and boundary == "fixed":
+        from admesh.boundary_relax import relax_rings
+
+        _rings = [np.asarray(domain_pts, dtype=np.float64)]
+        _rings += [
+            np.asarray(r, dtype=np.float64)
+            for r in (getattr(domain, "holes", None) or ())
+        ]
+        _verts = np.vstack(_rings)
+        # fixed mode keeps every input vertex: pin them all in the 1D relax
+        # so it only fills the gaps between them.
+        _pins = np.vstack([pfix, _verts]) if pfix.size else _verts
+        _relaxed = relax_rings(_rings, fh, h0, pinned_points=_pins)
+        _rn = np.vstack(_relaxed)
+        # Drop relaxed nodes crowding an original vertex (vertices are kept).
+        _h_rn = (
+            np.asarray(fh(_rn), dtype=np.float64).reshape(-1)
+            if fh is not None else np.full(len(_rn), h0)
+        )
+        _h_rn = np.maximum(_h_rn, 0.1 * h0)
+        from scipy.spatial import cKDTree
+
+        _dv, _ = cKDTree(_verts).query(_rn)
+        _rn = _rn[_dv > 0.5 * _h_rn]
+        ring_nodes = np.vstack([_verts, _rn])
+        pfix = np.vstack([pfix, ring_nodes]) if pfix.size else ring_nodes
+        port_domain = _PortDomain(
+            name="api_v1", fd=_sdf, bbox=domain.bbox, fixed_points=pfix,
+        )
+    elif domain_pts is not None:
         boundary_seeds = _seed_boundary_1d(
             np.asarray(domain_pts, dtype=np.float64), fh, h0
         )
@@ -1026,8 +1158,6 @@ def triangulate(
             pfix = (
                 np.vstack([pfix, boundary_seeds]) if pfix.size else boundary_seeds
             )
-            # _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.
-            _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
             port_domain = _PortDomain(
                 name="api_v1",
                 fd=_sdf,
@@ -1038,6 +1168,11 @@ def triangulate(
     p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
     nodes = np.asarray(p, dtype=np.float64)
     elements = np.asarray(t, dtype=np.int64)
+
+    if ring_nodes is not None:
+        nodes, elements = _fixed_boundary_postpass(
+            nodes, elements, ring_nodes, _sdf, fh, h0
+        )
 
     min_q, mean_q, q_per = mesh_quality(nodes, elements)
     gate_min, gate_mean = quality_gate
