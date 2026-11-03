@@ -160,6 +160,47 @@ def _seed_ring(c, fh):
     return resample_boundary(c, cid, fh)[0]
 
 
+def _trace_ring(prev, curve, interp, fh, lev, eps, nsub=5):
+    """Seed ring ``lev`` by tracing ring ``lev-1`` nodes inward along grad tau.
+
+    Traced images keep inward edges aligned with the front normal.  The count
+    is then brought to the ds/h target (even) by merging the closest pair
+    (drop) or splitting the widest gap (growth), so forced runs land where
+    the front compresses and are spread along the ring, not clustered.
+    Returns None when the trace folds (caller falls back to resampling).
+    """
+    Q = prev.copy()
+    for _ in range(nsub):
+        n, g = _frame(interp, Q, eps)
+        Q = Q + (1.0 / nsub) * n / np.maximum(g, 1e-9)[:, None]
+    Q = _project_to_level(interp, Q, lev, fh, eps)
+    c = curve[:-1] if np.allclose(curve[0], curve[-1]) else curve
+    closed = len(c) != len(curve)
+    if not closed:
+        return None
+    L = np.hypot(*np.diff(np.vstack([c, c[:1]]), axis=0).T)
+    mid = 0.5 * (c + np.roll(c, -1, 0))
+    target = max(4, 2 * int(round((L / fh(mid)).sum() / 2)))
+    # keep cyclic order of the parent ring; merge collapsed images first
+    for _ in range(4 * len(Q)):
+        gap = np.hypot(*(np.roll(Q, -1, 0) - Q).T) / fh(0.5 * (Q + np.roll(Q, -1, 0)))
+        if len(Q) > target or gap.min() < 0.35:
+            i = int(np.argmin(gap)); j = (i + 1) % len(Q)
+            m = 0.5 * (Q[i] + Q[j])
+            Q = np.delete(Q, j, 0); Q[i if j > i else i - 1] = m
+        elif len(Q) < target:
+            i = int(np.argmax(gap)); j = (i + 1) % len(Q)
+            Q = np.insert(Q, j, 0.5 * (Q[i] + Q[j]), 0)
+        else:
+            break
+    if len(Q) != target:
+        return None
+    # snap the nearest images onto the level-curve corners (offset corners)
+    for ci in _corner_ids(c, True):
+        Q[int(np.argmin(np.hypot(*(Q - c[ci]).T)))] = c[ci]
+    return _project_to_level(interp, Q, lev, fh, eps)
+
+
 def _medial_seeds(grid, fh, last):
     """Transition band seeds: one row of nodes on the medial ridge.
 
@@ -215,7 +256,7 @@ def _triangulate(P, loop):
     return np.sort(t, axis=1)
 
 
-def quad_layer_mesh(loop, corners, fh, niter=60, freeze=10, dt=0.2, step=None, verbose=False):
+def quad_layer_mesh(loop, corners, fh, niter=60, freeze=10, dt=0.2, step=None, verbose=False, seed="trace"):
     """Build a layered, quad-ready triangle mesh.
 
     Returns dict(points, elements, ring) with ring tag per node (-1 = core).
@@ -229,8 +270,16 @@ def quad_layer_mesh(loop, corners, fh, niter=60, freeze=10, dt=0.2, step=None, v
     tau_max = grid[2].max()
     k = 1
     while k <= tau_max - 0.5:
-        for c in _level_curves(grid, float(k)):
-            q = _seed_ring(c, fh)
+        curves = _level_curves(grid, float(k))
+        if seed == "trace" and len(curves) == 1 and len(P[-1]) > 4:
+            q = _trace_ring(P[-1], curves[0], interp, fh, float(k), eps)
+        else:
+            q = None
+        if q is None:
+            for c in curves:
+                q = _seed_ring(c, fh)
+                P.append(q); ring.append(np.full(len(q), k))
+        else:
             P.append(q); ring.append(np.full(len(q), k))
         k += 1
     # core: medial ridge points beyond the last full level, isotropic
