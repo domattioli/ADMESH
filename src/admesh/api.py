@@ -277,6 +277,10 @@ class Domain:
     bathymetry
         Optional callable for bathymetric elevation sampling;
         used by the default size-field stack.
+    holes
+        Optional tuple of ``(M, 2)`` inner (island) boundary rings. Used by
+        ``triangulate(boundary="fixed")`` to relax and pin each hole ring
+        like the outer ring ``pts``.
     """
 
     sdf: Callable[[np.ndarray], np.ndarray]
@@ -285,6 +289,7 @@ class Domain:
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
     bathymetry: Callable[[np.ndarray], np.ndarray] | None = field(default=None, compare=False)
+    holes: tuple[np.ndarray, ...] = field(default=(), compare=False)
 
     @classmethod
     def from_mesh(cls, mesh: "Mesh") -> "Domain":
@@ -1121,6 +1126,14 @@ def triangulate(
     domain_pts = _pts if _pts is not None else getattr(domain, "boundary_polygon", None)
     _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
     ring_nodes = None  # set in boundary="fixed" mode
+    if boundary == "fixed" and domain_pts is None:
+        warnings.warn(
+            "triangulate(boundary='fixed'): domain has no boundary ring "
+            "(no 'pts' or 'boundary_polygon'); falling back to free boundary "
+            "behaviour.",
+            UserWarning,
+            stacklevel=2,
+        )
     if domain_pts is not None and boundary == "fixed":
         from admesh.boundary_relax import relax_rings
 

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+- `triangulate()` defaults to `boundary="fixed"`. Meshes of polygon domains now differ from 1.0.6 output: every input boundary vertex is kept exactly, the nodes between them are spaced by a 1D relaxation along the boundary that follows the size field, and the boundary nodes of the output are exactly those nodes. Pass `boundary="free"` to reproduce the 1.0.6 behaviour for domains built directly with `pts`. Domains from the TOML, JSON and fort.14 loaders now carry their boundary rings, so in `"free"` mode they also get per-edge boundary seeds, which 1.0.6 did not add.
+- Domains from the TOML, JSON and fort.14 loaders carry their outer ring (`Domain.pts`) and inner rings (`Domain.holes`). In fort.14 files, closed land segments of type 1, 11 or 21 after the first become holes.
+- Fixed mode warns and falls back to free behaviour when a domain has no boundary ring.
+
+### Added
+- `admesh.boundary_relax`: 1D DistMesh relaxation of closed boundary rings (`relax_ring`, `relax_rings`, `ring_arclength`). Corners and input vertices are pinned. `init="random"` starts from a random node layout.
+- `Domain.holes`: optional tuple of inner rings, default empty. Fixed mode relaxes and pins each hole ring.
+- `triangulate(boundary=...)` accepts `"fixed"` and `"free"`. `"slide"` raises `ValueError` until a benchmark shows it is needed.
+- `scripts/render_boundary_relax.py` renders the 1D relaxation and the 2D solve as an MP4.
+
 ## [1.0.6] - 2026-10-12
 
 ### Fixed

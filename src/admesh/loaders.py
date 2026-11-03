@@ -46,6 +46,14 @@ def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
     return sdf
 
 
+def _open_ring(ring: np.ndarray) -> np.ndarray:
+    """Return ``ring`` without a repeated closing vertex."""
+    ring = np.asarray(ring, dtype=np.float64)
+    if len(ring) > 1 and np.array_equal(ring[0], ring[-1]):
+        return ring[:-1].copy()
+    return ring.copy()
+
+
 def _domain_from_polygon(
     rings: list[np.ndarray],
     *,
@@ -106,7 +114,13 @@ def _domain_from_polygon(
 
     from admesh._fast_sdf import fast_sdf
 
-    return Domain(sdf=fast_sdf(rings), bbox=final_bbox, pfix=pfix)
+    return Domain(
+        sdf=fast_sdf(rings),
+        bbox=final_bbox,
+        pfix=pfix,
+        pts=_open_ring(outer),
+        holes=tuple(_open_ring(np.asarray(r, dtype=np.float64)) for r in rings[1:]),
+    )
 
 
 # Use tomllib (Python 3.11+) or fall back to toml package
@@ -215,6 +229,17 @@ def load_domain_from_fort14(path: str | Path) -> Domain:
                 ring_coords = mesh.nodes[ring_indices]
                 rings.append(ring_coords)
                 break
+        # Island segments (closed land rings, ADCIRC types 1/21/...) become holes
+        first_seen = False
+        for seg in mesh.boundaries:
+            if seg.is_open:
+                continue
+            if not first_seen:
+                first_seen = True
+                continue
+            ids = np.asarray(seg.node_ids)
+            if len(ids) >= 3 and int(seg.bc_type) in (1, 11, 21):
+                rings.append(mesh.nodes[ids])
 
     if not rings:
         raise ValueError(f"No land boundary found in {path}")
