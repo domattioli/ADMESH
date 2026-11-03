@@ -849,6 +849,7 @@ def triangulate(
     medial_method: str | None = None,
     on_iter: Callable[[int, np.ndarray, np.ndarray], None] | None = None,
     boundary: str = "fixed",
+    simplify: float | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -905,6 +906,16 @@ def triangulate(
         iteration index (int), the current node positions (N, 2), and the
         current triangles (M, 3). Default None. For progress display only
         and does not change the mesh.
+    simplify : float or None
+        Only used with ``boundary='fixed'`` (ignored with a warning
+        otherwise).  Tolerance, in coordinate units (> 0), for thinning dense
+        input boundary vertices before they are pinned: each ring gets
+        Douglas-Peucker simplification at this tolerance, then vertices closer
+        than the tolerance to the previous kept vertex are dropped.  Kept
+        vertices are a subset of the input.  Holes that collapse below 3
+        vertices are dropped with a warning; a collapsed outer ring raises
+        ``ValueError``.  Default None keeps every vertex and warns when the
+        shortest ring edge is under ``0.25 h``.
     boundary : {'fixed', 'free', 'slide'}
         Boundary node treatment (API layer, not a MATLAB port). ``'fixed'``
         (default) relaxes boundary nodes along each polygon ring with a 1D
@@ -924,7 +935,8 @@ def triangulate(
     Raises
     ------
     ValueError
-        If domain source cannot be resolved, quality gates fail, or
+        If ``simplify`` is not positive, the outer ring collapses below 3
+        vertices under ``simplify``, domain source cannot be resolved, quality gates fail, or
         ``medial_method`` is not one of the values listed above.
     RegistryError
         If a registry mesh filename is given and registry access fails (no token,
@@ -935,6 +947,15 @@ def triangulate(
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
+    if simplify is not None:
+        if not simplify > 0:
+            raise ValueError(f"triangulate: simplify must be > 0, got {simplify!r}")
+        if boundary != "fixed":
+            warnings.warn(
+                "triangulate: simplify is only used with boundary='fixed'; ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
     if boundary == "slide":
         raise ValueError(
             "triangulate: boundary='slide' is not implemented yet "
@@ -1140,13 +1161,53 @@ def triangulate(
             stacklevel=2,
         )
     if domain_pts is not None and boundary == "fixed":
-        from admesh.boundary_relax import relax_rings
+        from admesh.boundary_relax import _simplify_ring, relax_rings
 
         _rings = [np.asarray(domain_pts, dtype=np.float64)]
         _rings += [
             np.asarray(r, dtype=np.float64)
             for r in (getattr(domain, "holes", None) or ())
         ]
+        if simplify is not None:
+            _new = []
+            _dropped = 0
+            for _i, _r in enumerate(_rings):
+                _s = _simplify_ring(_r, float(simplify))
+                if len(_s) < 3:
+                    if _i == 0:
+                        raise ValueError(
+                            "triangulate: simplify="
+                            f"{simplify:g} collapses the outer boundary ring "
+                            "below 3 vertices; use a smaller tolerance"
+                        )
+                    _dropped += 1
+                    continue
+                _new.append(_s)
+            if _dropped:
+                warnings.warn(
+                    f"triangulate: simplify={simplify:g} collapsed {_dropped} "
+                    "hole ring(s) below 3 vertices; dropped them.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            _rings = _new
+        else:
+            _min_e = np.inf
+            for _r in _rings:
+                _rr = np.asarray(_r, dtype=np.float64).reshape(-1, 2)
+                _e = np.linalg.norm(np.roll(_rr, -1, axis=0) - _rr, axis=1)
+                _e = _e[_e > 1e-14]
+                if _e.size:
+                    _min_e = min(_min_e, float(_e.min()))
+            if _min_e < 0.25 * h0:
+                warnings.warn(
+                    f"triangulate(boundary='fixed'): input boundary has edges "
+                    f"down to {_min_e:.3g}, much shorter than h={h0:.3g}; "
+                    "pinned close vertices make slivers. Pass "
+                    "simplify=<tolerance> to thin them.",
+                    UserWarning,
+                    stacklevel=2,
+                )
         _verts = np.vstack(_rings)
         # fixed mode keeps every input vertex: pin them all in the 1D relax
         # so it only fills the gaps between them.

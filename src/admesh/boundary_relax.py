@@ -313,3 +313,34 @@ def relax_rings(
         else:
             out.append(res)
     return (out, hist) if record_history else out
+
+
+def _simplify_ring(ring: np.ndarray, tol: float) -> np.ndarray:
+    """Thin a closed ring: Douglas-Peucker, then a minimum-spacing walk.
+
+    Result vertices are a subset of the input vertices (order kept).  May
+    return fewer than 3 vertices when the ring collapses; the caller decides.
+    """
+    from shapely.geometry import LinearRing
+
+    r = _clean_ring(ring)
+    simp = np.asarray(LinearRing(r).simplify(tol, preserve_topology=True).coords)[:-1]
+    # Map back to original vertices (shapely keeps a subset, exact coordinates).
+    idx = []
+    for q in simp:
+        d = np.einsum("ij,ij->i", r - q, r - q)
+        idx.append(int(np.argmin(d)))
+    pts = r[sorted(set(idx))]
+    if len(pts) < 3:
+        return pts
+    keep = [0]
+    for i in range(1, len(pts)):
+        if np.linalg.norm(pts[i] - pts[keep[-1]]) >= tol:
+            keep.append(i)
+    # Closing edge: drop trailing vertices crowding the first (keep first).
+    while len(keep) > 3 and np.linalg.norm(pts[keep[-1]] - pts[keep[0]]) < tol:
+        keep.pop()
+    if len(keep) < 3:
+        # never drop to fewer than 3: fall back to the DP result
+        return pts
+    return pts[keep]
