@@ -199,26 +199,8 @@ def load_domain_from_toml(path: str | Path) -> Domain:
     return _domain_from_polygon(rings, pfix=fixed_points, bbox=bbox)
 
 
-def load_domain_from_fort14(path: str | Path) -> Domain:
-    """Load a domain boundary from a fort.14 mesh file.
-
-    Extracts the outer boundary polygon from a fort.14 mesh. Uses mesh
-    node coordinates to compute bbox and boundary vertices as fixed points.
-
-    Parameters
-    ----------
-    path : str or Path
-        Path to fort.14 mesh file.
-
-    Returns
-    -------
-    Domain
-        Domain with polygon rings extracted from fort.14 boundaries.
-    """
-    from admesh.fort14 import read_fort14
-
-    mesh = read_fort14(path)
-
+def _fort14_rings(mesh) -> list[np.ndarray]:
+    """Outer ring then hole rings of a fort.14 mesh (closed rings, unflagged fallback)."""
     # Extract outer boundary from first land boundary segment
     rings = []
     if mesh.boundaries:
@@ -249,6 +231,30 @@ def load_domain_from_fort14(path: str | Path) -> Domain:
 
         segs = _derive_boundary_segments(mesh.elements, mesh.nodes)
         rings = [mesh.nodes[np.asarray(sg.node_ids)] for sg in segs]
+
+    return rings
+
+
+def load_domain_from_fort14(path: str | Path) -> Domain:
+    """Load a domain boundary from a fort.14 mesh file.
+
+    Extracts the outer boundary polygon from a fort.14 mesh. Uses mesh
+    node coordinates to compute bbox and boundary vertices as fixed points.
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to fort.14 mesh file.
+
+    Returns
+    -------
+    Domain
+        Domain with polygon rings extracted from fort.14 boundaries.
+    """
+    from admesh.fort14 import read_fort14
+
+    mesh = read_fort14(path)
+    rings = _fort14_rings(mesh)
 
     if not rings:
         raise ValueError(f"No land boundary found in {path}")
