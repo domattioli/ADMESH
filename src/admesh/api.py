@@ -570,6 +570,10 @@ def _derive_boundary_segments(
 # ---------------------------------------------------------------------------
 
 
+def _sdf_of(domain):
+    return getattr(domain, "sdf", None) or getattr(domain, "fd")
+
+
 def _bbox_diag(bbox: tuple[float, float, float, float]) -> float:
     xmin, ymin, xmax, ymax = bbox
     return float(np.hypot(xmax - xmin, ymax - ymin))
@@ -849,6 +853,7 @@ def triangulate(
     medial_method: str | None = None,
     on_iter: Callable[[int, np.ndarray, np.ndarray], None] | None = None,
     boundary: str = "fixed",
+    channel_refine: bool | None = None,
     simplify: float | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
@@ -916,6 +921,17 @@ def triangulate(
         vertices are dropped with a warning; a collapsed outer ring raises
         ``ValueError``.  Default None keeps every vertex and warns when the
         shortest ring edge is under ``0.25 h``.
+    channel_refine : bool or None
+        Build a channel-aware size field (``build_h`` with medial-axis and
+        curvature terms, then ``limit_gradient`` with g=0.2) so narrow
+        channels get interior nodes. ``h_max`` (or its default) is the upper
+        size; the lower size is ``h_max / 8`` and also becomes the initial
+        lattice spacing. ``None`` (default) means on when ``boundary='fixed'``
+        and no ``size_field``, ``user_contribs`` or ``medial_method`` is
+        given, else off. ``True`` with a user ``size_field`` is ignored with a
+        ``UserWarning``. If the estimated grid or lattice is too large
+        (more than 4e6 field cells or 2e6 lattice nodes) it falls back to
+        uniform sizing with a ``UserWarning``; pass a ``size_field`` instead.
     boundary : {'fixed', 'free', 'slide'}
         Boundary node treatment (API layer, not a MATLAB port). ``'fixed'``
         (default) relaxes boundary nodes along each polygon ring with a 1D
@@ -1130,6 +1146,57 @@ def triangulate(
         )
     else:
         fh = size_field  # may still be None — uniform sizing
+
+    if channel_refine is True and size_field is not None:
+        warnings.warn(
+            "triangulate: channel_refine ignored because a size_field was given.",
+            UserWarning,
+            stacklevel=2,
+        )
+    _cr = channel_refine
+    if _cr is None:
+        _cr = (
+            boundary == "fixed" and size_field is None
+            and (getattr(domain, "pts", None) is not None
+                 or getattr(domain, "boundary_polygon", None) is not None)
+            and not user_contribs and medial_method is None
+            and (h_min is None or h_max is None or h_min < h_max)
+        )
+    if _cr and (size_field is not None or user_contribs or medial_method is not None):
+        _cr = False
+    if _cr:
+        _hmax_c = float(h0)
+        # A user h_min sets the floor; h_min >= h_max means uniform was asked for.
+        _hmin_c = float(h_min) if h_min is not None else _hmax_c / 8.0
+        _bb = port_domain.bbox
+        _w = float(_bb[2] - _bb[0])
+        _hh = float(_bb[3] - _bb[1])
+        _cells = (_w / (_hmin_c / 2.0)) * (_hh / (_hmin_c / 2.0))
+        _nodes_est = _w * _hh / _hmin_c ** 2
+        if _cells > 4e6 or _nodes_est > 2e6:
+            warnings.warn(
+                "triangulate: domain is too large for automatic channel "
+                f"refinement (~{_cells:.2g} field cells, ~{_nodes_est:.2g} "
+                "lattice nodes); using uniform sizing. Pass a size_field to "
+                "refine channels.",
+                UserWarning,
+                stacklevel=2,
+            )
+            _cr = False
+    if _cr:
+        from admesh._stages.mesh_size import build_h
+        from admesh.size_field import limit_gradient
+
+        _pd = _PortDomain(
+            name="channel", fd=_sdf_of(domain), bbox=port_domain.bbox,
+            fixed_points=np.empty((0, 2)),
+        )
+        _h = build_h(
+            _pd, base=_hmax_c, medial_scale=0.3, curvature_scale=0.5,
+            hmin=_hmin_c, hmax=_hmax_c,
+        )
+        fh = limit_gradient(_h, tuple(port_domain.bbox), g=0.2)
+        h0 = _hmin_c
 
     if background == "octree":
         from admesh.octree import octree_size_field

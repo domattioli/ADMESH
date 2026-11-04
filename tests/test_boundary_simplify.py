@@ -62,7 +62,7 @@ def test_fixed_simplify_dense_square():
 def test_warning_dense_vs_coarse():
     with pytest.warns(UserWarning, match="Pass simplify="):
         admesh.triangulate(_dom(_dense_square()), h_max=0.1, seed=0,
-                           boundary="fixed", quality_gate=(0, 0))
+                           boundary="fixed", quality_gate=(0, 0), channel_refine=False)
     coarse = np.array([[0, 0], [1, 0], [1, 1], [0, 1.0]])
     with warnings.catch_warnings():
         warnings.simplefilter("error")

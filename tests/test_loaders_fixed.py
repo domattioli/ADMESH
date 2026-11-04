@@ -126,7 +126,7 @@ def test_fort14_without_land_segment_derives_rings_from_mesh(tmp_path):
     dom = load_domain_from_fort14(src)
     assert dom.pts is not None and len(dom.pts) >= 3
     h = max(dom.bbox[2] - dom.bbox[0], dom.bbox[3] - dom.bbox[1]) / 12
-    m = admesh.triangulate(dom, h_max=h, quality_gate=(0.0, 0.0), boundary="fixed")
+    m = admesh.triangulate(dom, h_max=h, quality_gate=(0.0, 0.0), boundary="fixed", channel_refine=False)
     verts = np.vstack([dom.pts] + [np.asarray(r) for r in dom.holes])
     bnd = _check_fixed(m, verts)
     assert (cKDTree(verts).query(bnd)[0] < 1e-9).all()
