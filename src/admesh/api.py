@@ -328,48 +328,28 @@ class Domain:
         #  2. in_polygon winding test for correct sign — enabled by the junction-aware ring
         #     walk in _derive_boundary_segments which now produces closed rings even for
         #     real-world ADCIRC meshes with pinch-point boundary nodes.
-        from scipy.spatial import cKDTree
-        from admesh._stages.in_polygon import in_polygon as _in_polygon
 
         outer_ring_nodes = bc_segments[0].node_ids
         outer_ring_pts = mesh.nodes[outer_ring_nodes]
         hole_rings_pts = [mesh.nodes[seg.node_ids] for seg in bc_segments[1:]]
 
-        diag = float(np.hypot(bbox[2] - bbox[0], bbox[3] - bbox[1]))
-        h_samp = max(diag / 500, 1e-8)
+        # Exact signed distance with vectorized shapely 2 (contains_xy +
+        # distance to the ring boundary). Replaced a per-point in_polygon
+        # test plus a KD-tree over a diag/500 resample of the rings, which
+        # was ~9x slower and off by up to ~diag/1000 near the coast.
+        import shapely
+        from shapely.geometry import Polygon as _Polygon
 
-        def _dense_sample_ring(ring_pts: np.ndarray, h: float) -> np.ndarray:
-            segs = []
-            n = len(ring_pts)
-            for i in range(n):
-                a = ring_pts[i]
-                b = ring_pts[(i + 1) % n]
-                seg_len = float(np.linalg.norm(b - a))
-                n_samp = max(2, int(np.ceil(seg_len / h)))
-                ts = np.linspace(0.0, 1.0, n_samp)[:-1]
-                segs.append(a + ts[:, None] * (b - a))
-            return np.vstack(segs) if segs else ring_pts
-
-        dense_parts = [_dense_sample_ring(outer_ring_pts, h_samp)]
-        for hr in hole_rings_pts:
-            dense_parts.append(_dense_sample_ring(hr, h_samp))
-        tree = cKDTree(np.vstack(dense_parts))
+        _poly = _Polygon(outer_ring_pts, [np.asarray(h) for h in hole_rings_pts])
+        shapely.prepare(_poly)
+        _bnd = _poly.boundary
+        shapely.prepare(_bnd)
 
         def sdf(points: np.ndarray) -> np.ndarray:
-            distances, _ = tree.query(points)
-            in_outer, _ = _in_polygon(
-                points[:, 0], points[:, 1],
-                outer_ring_pts[:, 0], outer_ring_pts[:, 1],
-            )
-            in_hole = np.zeros(len(points), dtype=bool)
-            for hr in hole_rings_pts:
-                ih, _ = _in_polygon(
-                    points[:, 0], points[:, 1],
-                    hr[:, 0], hr[:, 1],
-                )
-                in_hole |= ih
-            inside = in_outer & ~in_hole
-            return np.where(inside, -distances, distances)
+            pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+            dist = shapely.distance(shapely.points(pts), _bnd)
+            inside = shapely.contains_xy(_poly, pts[:, 0], pts[:, 1])
+            return np.where(inside, -dist, dist)
 
         if getattr(mesh, "bathymetry", None) is not None:
             from scipy.interpolate import NearestNDInterpolator

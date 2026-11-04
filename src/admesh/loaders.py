@@ -23,7 +23,7 @@ __all__ = [
 
 def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
     from shapely.geometry import Polygon
-    from shapely.prepared import prep
+    import shapely
     from shapely import distance as shp_distance, points as shp_points
 
     if not rings:
@@ -32,7 +32,8 @@ def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
     holes = [np.asarray(r, dtype=np.float64) for r in rings[1:]]
     polygon = Polygon(outer, holes=holes if holes else None)
     boundary = polygon.boundary
-    prepared = prep(polygon)
+    shapely.prepare(polygon)
+    shapely.prepare(boundary)
 
     def sdf(p: np.ndarray) -> np.ndarray:
         pts = np.asarray(p, dtype=np.float64)
@@ -40,7 +41,7 @@ def _shapely_sdf(rings: list[np.ndarray]) -> Callable[[np.ndarray], np.ndarray]:
             pts = pts[None, :]
         sp = shp_points(pts[:, 0], pts[:, 1])
         d = shp_distance(sp, boundary)
-        inside = np.array([prepared.contains(g) for g in sp])
+        inside = shapely.contains_xy(polygon, pts[:, 0], pts[:, 1])
         return np.where(inside, -d, d).astype(np.float64)
 
     return sdf
