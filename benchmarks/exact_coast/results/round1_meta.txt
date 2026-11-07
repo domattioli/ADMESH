@@ -1,0 +1,18 @@
+date: 2026-11-04 15:25:29
+python: 3.12.13
+platform: macOS-26.6.2-arm64-arm-64bit
+processor: arm
+cpu_brand: n/a
+machine: arm64
+cpu_count: 10
+oceanmesh: git e7053b7 (installed dist-info 0+untagged.43.ge7053b7.dirty)
+admesh: 1.0.6
+gmsh: 4.15.2
+triangle: 20250106
+shapely: 2.2.0
+numpy: 2.5.4
+scipy: 1.18.1
+seeds: admesh seed=0; gmsh default (deterministic, Mesh.RandomFactor default); triangle deterministic
+threads: gmsh General.NumThreads=1, Mesh.MaxNumThreads1D/2D=1
+match_rule: node count within 5% of ADMESH at s=1, <= 12 iterations
+total_runtime_s: 349.9
