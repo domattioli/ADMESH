@@ -9,7 +9,7 @@ description = "ADMESH: an advanced, automatic unstructured mesh generator for 2D
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0 AND MIT"
-license-files = ["LICENSE", "NOTICE", "LICENSES/*"]
+license-files = ["LICENSE", "LICENSE-DistMesh.txt", "NOTICE", "LICENSES/*"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
