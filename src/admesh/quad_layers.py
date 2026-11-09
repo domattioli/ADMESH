@@ -26,9 +26,15 @@ from scipy.sparse import coo_matrix
 from scipy.sparse.csgraph import dijkstra
 from scipy.interpolate import RegularGridInterpolator
 from scipy.spatial import Delaunay
-from matplotlib.path import Path
+import shapely
+from shapely.geometry import Polygon
 
 __all__ = ["resample_boundary", "travel_field", "quad_layer_mesh"]
+
+
+def _cross2(a, b):
+    """z-component of the 2-D cross product (np.cross rejects 2-D vectors in NumPy 2.5)."""
+    return a[..., 0] * b[..., 1] - a[..., 1] * b[..., 0]
 
 
 # ---------------------------------------------------------------- pre-pass
@@ -84,7 +90,8 @@ def travel_field(loop, fh, step):
     ys = np.arange(lo[1], hi[1] + step, step)
     X, Y = np.meshgrid(xs, ys, indexing="ij")
     G = np.c_[X.ravel(), Y.ravel()]
-    inside = Path(loop).contains_points(G, radius=1e-9)
+    # Points on the boundary count as inside (1e-9 tolerance).
+    inside = shapely.intersects_xy(Polygon(loop).buffer(1e-9), G[:, 0], G[:, 1])
     nx, ny = X.shape
     idx = np.arange(nx * ny).reshape(nx, ny)
     offs = [(1, 0), (0, 1), (1, 1), (1, -1), (2, 1), (1, 2), (2, -1), (1, -2)]
@@ -135,7 +142,7 @@ def _level_curves(grid, level):
 
 def _corner_ids(c, closed, ang_tol=35.0):
     v1 = c - np.roll(c, 1, 0); v2 = np.roll(c, -1, 0) - c
-    a = np.degrees(np.arctan2(np.cross(v1, v2), (v1 * v2).sum(1)))
+    a = np.degrees(np.arctan2(_cross2(v1, v2), (v1 * v2).sum(1)))
     # turning over a small window catches corners smeared across grid cells
     win = np.convolve(np.r_[a[-2:], a, a[:2]], np.ones(5), "valid") if closed else a
     ids = []
@@ -249,9 +256,9 @@ def _project_to_level(interp, P, lev, fh, eps, iters=3):
 def _triangulate(P, loop):
     t = Delaunay(P).simplices
     c = P[t].mean(1)
-    keep = Path(loop).contains_points(c)
+    keep = shapely.contains_xy(Polygon(loop), c[:, 0], c[:, 1])
     a = P[t[:, 1]] - P[t[:, 0]]; b = P[t[:, 2]] - P[t[:, 0]]
-    area = 0.5 * np.cross(a, b)
+    area = 0.5 * _cross2(a, b)
     t = t[keep & (np.abs(area) > 1e-12)]
     return np.sort(t, axis=1)
 
@@ -349,11 +356,11 @@ def _flip(t, a, b):
 
 def _valid(P, t):
     a = P[t[:, 1]] - P[t[:, 0]]; b = P[t[:, 2]] - P[t[:, 0]]
-    return np.all(np.abs(np.cross(a, b)) > 1e-9)
+    return np.all(np.abs(_cross2(a, b)) > 1e-9)
 
 
 def _orient_ok(P, t, t0):
-    s0 = np.sign(np.cross(P[t0[:, 1]] - P[t0[:, 0]], P[t0[:, 2]] - P[t0[:, 0]]))
+    s0 = np.sign(_cross2(P[t0[:, 1]] - P[t0[:, 0]], P[t0[:, 2]] - P[t0[:, 0]]))
     return _valid(P, t)
 
 
@@ -387,7 +394,7 @@ def enforce_corner_templates(P, t, ring, b, corners_xy):
 
 def _convex_flip_ok(P, t):
     a = P[t[:, 1]] - P[t[:, 0]]; b = P[t[:, 2]] - P[t[:, 0]]
-    ar = np.cross(a, b)
+    ar = _cross2(a, b)
     # sorted rows have mixed orientation; only reject degenerate ones, and
     # overlap is caught by total area staying constant
     return np.all(np.abs(ar) > 1e-9)

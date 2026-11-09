@@ -33,7 +33,8 @@ def test_layered_mesh_rings_even_and_corner_quads():
     loop, corners = _loop()
     r = quad_layer_mesh(loop, corners, _fh, niter=30, freeze=5)
     P, T = r["points"], r["elements"]
-    a = np.cross(P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]])
+    u, w = P[T[:, 1]] - P[T[:, 0]], P[T[:, 2]] - P[T[:, 0]]
+    a = u[:, 0] * w[:, 1] - u[:, 1] * w[:, 0]
     assert np.all(np.abs(a) > 1e-9)
     assert all(n % 2 == 0 for n in _peel_rings(T))
     for c in loop[corners]:
