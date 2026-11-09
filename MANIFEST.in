@@ -1,6 +1,9 @@
 # Source distribution contents: explicit includes only.
 include README.md
 include LICENSE
+include NOTICE
+include LICENSE-DistMesh.txt
+recursive-include LICENSES *
 include CHANGELOG.md
 include pyproject.toml
 

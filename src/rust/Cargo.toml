@@ -9,7 +9,7 @@ members = [
 version = "0.1.0"
 edition = "2021"
 authors = ["ADMESH contributors"]
-license = "MIT"
+license = "Apache-2.0 AND MIT"
 repository = "https://github.com/domattioli/admesh"
 
 [workspace.dependencies]
