@@ -146,6 +146,6 @@ Numba kernels cut end-to-end generation on the Western North Atlantic benchmark 
 **Acknowledgement.** Code added after the original MATLAB port was written using AI coding tools built on Anthropic and OpenAI models. The 13 ported stages are checked against the MATLAB reference tests.
 <!-- /ack -->
 
-**License.** Apache 2.0, see [`LICENSE`](LICENSE).
+**License.** Apache-2.0; a port of the MIT-licensed ADMESH (see [`NOTICE`](NOTICE)). A non-binding request about AI training is in [`AI-TRAINING.md`](AI-TRAINING.md).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>

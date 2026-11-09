@@ -1,0 +1,12 @@
+ADMESH (Python port)
+Copyright (c) 2026 Dominik O. Mattioli
+
+This software is a port of ADMESH by Colton Conroy, Ethan Kubatko, and Dustin West (https://github.com/coltonjconroy/ADMESH), Copyright (c) 2016 Colton Conroy, Ethan Kubatko, and Dustin West — the Ohio State University, released under the MIT License (LICENSES/MIT.txt). The MIT terms continue to apply to the ported portions: src/matlab/ and the ported stages in src/admesh/_stages/.
+
+The DistMesh stages (src/matlab/admesh_library/10_Distmesh_2d/, src/admesh/_stages/distmesh.py and src/rust/crates/admesh-core/src/distmesh.rs) adapt DistMesh by Per-Olof Persson (https://github.com/popersson/DistMesh), Copyright (c) 2004-2026 Per-Olof Persson, released under the MIT License (same terms as LICENSES/MIT.txt, with this copyright line). Older DistMesh releases (v1.1) were distributed under the GNU GPL; this repository relies on the current MIT license.
+
+The Rust crates in src/rust/ port the same stages and carry the same MIT terms for the ported logic.
+
+The remainder is licensed under the Apache License 2.0 (LICENSE, LICENSES/Apache-2.0.txt).
+
+A non-binding request about AI training is in AI-TRAINING.md. It is not a license term.
