@@ -771,6 +771,7 @@ def _fixed_boundary_postpass(
     sdf: Callable[[np.ndarray], np.ndarray],
     fh: "Callable[[np.ndarray], np.ndarray] | None",
     h0: float,
+    h_area: float | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """API-layer cleanup for ``boundary="fixed"`` (not a MATLAB port).
 
@@ -802,7 +803,8 @@ def _fixed_boundary_postpass(
     q = p[t_all]
     ar = 0.5 * np.abs((q[:, 1, 0] - q[:, 0, 0]) * (q[:, 2, 1] - q[:, 0, 1])
                       - (q[:, 2, 0] - q[:, 0, 0]) * (q[:, 1, 1] - q[:, 0, 1]))
-    t_all = t_all[ar > 1e-12 * h0 * h0]  # zero-area slivers on collinear ring runs
+    _ha = float(h0 if h_area is None else h_area)  # caller scale, not refined h0
+    t_all = t_all[ar > 1e-12 * _ha * _ha]  # zero-area slivers on collinear ring runs
     t_all = _split_collinear(p, t_all)
     cen = p[t_all].mean(axis=1)
     t = np.sort(t_all[np.asarray(sdf(cen)) < 0.0], axis=1).astype(np.int64)
@@ -906,9 +908,10 @@ def triangulate(
         curvature terms, then ``limit_gradient`` with g=0.2) so narrow
         channels get interior nodes. ``h_max`` (or its default) is the upper
         size; the lower size is ``h_max / 8`` and also becomes the initial
-        lattice spacing. ``None`` (default) means on when ``boundary='fixed'``
-        and no ``size_field``, ``user_contribs`` or ``medial_method`` is
-        given, else off. ``True`` with a user ``size_field`` is ignored with a
+        lattice spacing. Off by default (``None`` or ``False``): fixed mode
+        meshes at uniform ``h_max``. Pass ``True`` to turn it on; it applies
+        only when no ``size_field``, ``user_contribs`` or ``medial_method``
+        is given. ``True`` with a user ``size_field`` is ignored with a
         ``UserWarning``. If the estimated grid or lattice is too large
         (more than 4e6 field cells or 2e6 lattice nodes) it falls back to
         uniform sizing with a ``UserWarning``; pass a ``size_field`` instead.
@@ -1133,17 +1136,10 @@ def triangulate(
             UserWarning,
             stacklevel=2,
         )
-    _cr = channel_refine
-    if _cr is None:
-        _cr = (
-            boundary == "fixed" and size_field is None
-            and (getattr(domain, "pts", None) is not None
-                 or getattr(domain, "boundary_polygon", None) is not None)
-            and not user_contribs and medial_method is None
-            and (h_min is None or h_max is None or h_min < h_max)
-        )
+    _cr = bool(channel_refine)  # opt-in: None and False mean off
     if _cr and (size_field is not None or user_contribs or medial_method is not None):
         _cr = False
+    _h_area = float(h_max) if h_max is not None else float(h0)
     if _cr:
         _hmax_c = float(h0)
         # A user h_min sets the floor; h_min >= h_max means uniform was asked for.
@@ -1297,7 +1293,7 @@ def triangulate(
 
     if ring_nodes is not None:
         nodes, elements = _fixed_boundary_postpass(
-            nodes, elements, ring_nodes, _sdf, fh, h0
+            nodes, elements, ring_nodes, _sdf, fh, h0, _h_area
         )
 
     min_q, mean_q, q_per = mesh_quality(nodes, elements)
