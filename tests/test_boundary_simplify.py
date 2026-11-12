@@ -74,3 +74,37 @@ def test_warning_dense_vs_coarse():
 def test_nonpositive_raises(bad):
     with pytest.raises(ValueError):
         admesh.triangulate(_dom(_dense_square(10)), h_max=0.2, simplify=bad)
+
+
+def test_fixed_dense_square_noise_robust():
+    """Sub-ulp noise on a dense collinear ring must not create slivers.
+
+    Node count may vary slightly if noise flips a simplify tie; the bound
+    below allows a small spread, quality and area are checked per run.
+    """
+    base = _dense_square()
+    counts = []
+    for k in range(20):
+        ring = base + np.random.default_rng(k).uniform(-1e-15, 1e-15, base.shape)
+        m = admesh.triangulate(_dom(ring), h_max=0.1, seed=0, boundary="fixed",
+                               simplify=0.05, quality_gate=(0, 0))
+        q = m.nodes[m.elements]
+        area = 0.5 * np.abs((q[:, 1, 0] - q[:, 0, 0]) * (q[:, 2, 1] - q[:, 0, 1])
+                            - (q[:, 2, 0] - q[:, 0, 0]) * (q[:, 1, 1] - q[:, 0, 1]))
+        assert area.min() > 1e-10
+        b = m.nodes[_boundary_nodes(m)]
+        on = (np.isclose(b[:, 0], 0) | np.isclose(b[:, 0], 1)
+              | np.isclose(b[:, 1], 0) | np.isclose(b[:, 1], 1))
+        assert on.all()
+        assert m.quality.min() > 0.3
+        counts.append(len(m.nodes))
+    assert max(counts) - min(counts) <= 0.05 * min(counts)
+
+
+def test_default_square_equals_channel_refine_false():
+    sq = np.array([[-1, -1], [1, -1], [1, 1], [-1, 1.0]])
+    a = admesh.triangulate(_dom(sq), h_max=0.2, seed=0, boundary="fixed",
+                           quality_gate=(0, 0))
+    b = admesh.triangulate(_dom(sq), h_max=0.2, seed=0, boundary="fixed",
+                           quality_gate=(0, 0), channel_refine=False)
+    assert len(a.nodes) == len(b.nodes)

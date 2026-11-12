@@ -26,10 +26,10 @@ def _interior_in_channel(m, dom):
     return inch & (np.asarray(dom.sdf(m.nodes)) < -1e-9)
 
 
-def test_default_refines_channel():
+def test_opt_in_refines_channel():
     dom = _dom()
     m_on = admesh.triangulate(dom, h_max=0.25, seed=0, boundary="fixed",
-                              quality_gate=(0, 0))
+                              quality_gate=(0, 0), channel_refine=True)
     m_off = admesh.triangulate(dom, h_max=0.25, seed=0, boundary="fixed",
                                quality_gate=(0, 0), channel_refine=False)
     assert _interior_in_channel(m_on, dom).any()
@@ -69,6 +69,23 @@ def test_cost_guard_falls_back(monkeypatch):
     with pytest.warns(UserWarning, match="too large for automatic channel"):
         try:
             admesh.triangulate(big, h_max=0.25, boundary="fixed",
-                               quality_gate=(0, 0))
+                               quality_gate=(0, 0), channel_refine=True)
         except Exception as e:  # downstream steps may reject the stub mesh
             assert not isinstance(e, AssertionError)
+
+
+def test_default_is_uniform():
+    dom = _dom()
+    a = admesh.triangulate(dom, h_max=0.25, seed=0, boundary="fixed", quality_gate=(0, 0))
+    b = admesh.triangulate(dom, h_max=0.25, seed=0, boundary="fixed",
+                           quality_gate=(0, 0), channel_refine=False)
+    assert len(a.nodes) == len(b.nodes)
+
+
+def test_opt_in_runs_positive_area():
+    m = admesh.triangulate(_dom(), h_max=0.25, seed=0, boundary="fixed",
+                           quality_gate=(0, 0), channel_refine=True)
+    q = m.nodes[m.elements]
+    area = 0.5 * ((q[:, 1, 0] - q[:, 0, 0]) * (q[:, 2, 1] - q[:, 0, 1])
+                  - (q[:, 2, 0] - q[:, 0, 0]) * (q[:, 1, 1] - q[:, 0, 1]))
+    assert (np.abs(area) > 1e-12).all()

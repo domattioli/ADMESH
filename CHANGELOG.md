@@ -21,10 +21,13 @@ All notable changes to this project will be documented in this file.
 - fort.14 rings come from the mesh boundary loops (largest loop outer, rest holes), not from land-segment flags. A land segment is open where the ocean boundary is, and closing it with a chord pinned nodes inside the water (Baranja Hill fixed-mode min quality 0.000, now 0.369).
 - Fixed mode re-adds any pinned ring node the solver drops, so output boundary nodes always equal the ring nodes.
 
+### Fixed
+- Fixed mode no longer produces zero-area triangles on dense straight boundaries. The zero-area filter now scales with `h_max` instead of the refined spacing, and channel refinement is opt-in (`channel_refine=True`), so default fixed-mode meshes use a uniform size field.
+
 ### Added
 - `admesh.boundary_relax`: 1D DistMesh relaxation of closed boundary rings (`relax_ring`, `relax_rings`, `ring_arclength`). Corners and input vertices are pinned. `init="random"` starts from a random node layout.
 - `Domain.holes`: optional tuple of inner rings, default empty. Fixed mode relaxes and pins each hole ring.
-- `triangulate(channel_refine=...)`: in fixed mode with no `size_field`, builds a channel-aware field by default (`build_h` medial + curvature terms, sizes `h_min` (default `h_max/8`) to `h_max`, then `limit_gradient`). Narrow channels get interior nodes instead of bank-to-bank slivers (Chesapeake crop: q<0.3 triangles 114 -> 6). Off when `h_min >= h_max`, with a user size field, or when a cost guard finds the grid too large (warns).
+- `triangulate(channel_refine=...)`: in fixed mode with no `size_field`, builds a channel-aware field when `channel_refine=True` (off by default; `build_h` medial + curvature terms, sizes `h_min` (default `h_max/8`) to `h_max`, then `limit_gradient`). Narrow channels get interior nodes instead of bank-to-bank slivers (Chesapeake crop: q<0.3 triangles 114 -> 6). Ignored when `h_min >= h_max`, with a user size field, or when a cost guard finds the grid too large (warns).
 - `triangulate(simplify=tol)`: in fixed mode, thins input boundary vertices before pinning (Douglas-Peucker, then a minimum spacing of `tol`). Kept vertices are a subset of the input. Off by default; fixed mode warns when input edges are shorter than 0.25 h. Block_O min quality 0.03 -> 0.71.
 - `triangulate(boundary=...)` accepts `"fixed"` and `"free"`. `"slide"` raises `ValueError` until a benchmark shows it is needed.
 - `admesh.size_field.limit_gradient(fh, bbox, g=0.2)`: applies the gradient limit over the whole bounding box. The `build_h` limiter only acts within `4*hmin` of the boundary, so jumps from the medial term escape it. On the demo polygon, min quality rises from 0.19 to 0.68.
