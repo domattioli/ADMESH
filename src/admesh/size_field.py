@@ -18,8 +18,11 @@ import warnings
 from typing import Callable, Iterable
 
 import numpy as np
+from scipy.interpolate import RegularGridInterpolator
 
-__all__ = ["SizeFieldFn", "compose_size_field"]
+from admesh._stages.mesh_size import solve_iter
+
+__all__ = ["SizeFieldFn", "compose_size_field", "limit_gradient"]
 
 SizeFieldFn = Callable[[np.ndarray], np.ndarray]
 
@@ -154,3 +157,66 @@ def compose_size_field(
         )
 
     return _composed
+
+
+def limit_gradient(
+    fh: SizeFieldFn,
+    bbox: tuple[float, float, float, float],
+    *,
+    g: float = 0.2,
+    delta: float | None = None,
+) -> SizeFieldFn:
+    """Return ``fh`` with ``|grad h| <= g`` over the whole ``bbox``.
+
+    API-layer helper, not a MATLAB port. The MATLAB-faithful kernel
+    ``MeshSizeIterativeSolver.c`` (ported as
+    :func:`admesh._stages.mesh_size.solve_iter`) only updates cells with
+    ``D <= 4 * hmin``, a band around the boundary. Size jumps away from
+    the boundary (for example the medial term) therefore escape the
+    gradient limit. This function re-runs the same solver on a full
+    regular grid with ``D = 0`` so every cell is processed.
+
+    Parameters
+    ----------
+    fh
+        Size field, ``(N, 2) -> (N,)``.
+    bbox
+        ``(xmin, ymin, xmax, ymax)`` of the region to limit.
+    g
+        Target maximum gradient magnitude.
+    delta
+        Grid spacing. Default is half the minimum of ``fh`` over a coarse
+        64 x 64 pre-sample, but never below ``(bbox diagonal) / 2000``.
+
+    Returns
+    -------
+    Callable[[np.ndarray], np.ndarray]
+        Bilinear interpolant of the limited grid, ``(N, 2) -> (N,)``.
+        Points outside the padded grid are extrapolated. Bilinear lookup
+        can exceed ``fh`` by up to about ``g * delta`` next to a jump.
+    """
+    x0, y0, x1, y1 = (float(v) for v in bbox)
+    diag = float(np.hypot(x1 - x0, y1 - y0))
+    if delta is None:
+        gx, gy = np.meshgrid(
+            np.linspace(x0, x1, 64), np.linspace(y0, y1, 64)
+        )
+        coarse = fh(np.c_[gx.ravel(), gy.ravel()])
+        delta = max(float(np.min(coarse)) / 2.0, diag / 2000.0)
+    delta = float(delta)
+
+    xs = np.arange(x0 - 2 * delta, x1 + 2 * delta, delta)
+    ys = np.arange(y0 - 2 * delta, y1 + 2 * delta, delta)
+    X, Y = np.meshgrid(xs, ys)
+    H = np.asarray(fh(np.c_[X.ravel(), Y.ravel()]), dtype=np.float64).reshape(X.shape)
+    Hs = solve_iter(H, np.zeros_like(H), H.max(), H.min(), g, delta)
+    interp = RegularGridInterpolator(
+        (ys, xs), Hs, bounds_error=False, fill_value=None
+    )
+
+    def _limited(pts: np.ndarray) -> np.ndarray:
+        pts_arr = np.asarray(pts, dtype=np.float64)
+        # Grid axes are (y, x); input points are (x, y).
+        return np.asarray(interp(pts_arr[:, ::-1]), dtype=np.float64)
+
+    return _limited

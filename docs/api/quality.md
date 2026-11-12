@@ -1,6 +1,6 @@
-# Quality metrics + smoothing
+# Quality metrics
 
-Per-element quality computations and the pre-quadrangulation smoother.
+Per-element quality computations.
 
 ## mesh_quality
 
@@ -9,7 +9,3 @@ Per-element quality computations and the pre-quadrangulation smoother.
 ## right_iso_quality
 
 ::: admesh.right_iso_quality
-
-## smooth_for_quadrangulation
-
-::: admesh.smooth_for_quadrangulation

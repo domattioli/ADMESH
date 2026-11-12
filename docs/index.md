@@ -37,7 +37,7 @@ pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
 ```
 
 The PyPI distribution is `admesh2D`. The import name is `admesh`.
-Requires Python 3.10 or newer. From a clone: `pip install -e ".[dev]"`.
+Requires Python 3.11 or newer. From a clone: `pip install -e ".[dev]"`.
 
 ## Three-line quickstart
 
@@ -63,7 +63,6 @@ Public surface, listed by area:
 | [`read_fort14` / `write_fort14`](api/io.md) | `Mesh` / file | ADCIRC `fort.14` round-trip |
 | [`compose_size_field`](api/size_field.md) | `SizeFieldFn` | Combine multiple size-field contributions |
 | [`mesh_quality`, `right_iso_quality`](api/quality.md) | float, float, array | Per-element quality metrics |
-| [`smooth_for_quadrangulation`](api/quality.md) | `(p, t)` | Right-isoceles preprocessor for tri→quad fusion |
 | [`load_domain_from_fort14`, `..._json`, `..._toml`, `..._registry`](api/loaders.md) | `Domain` | Build a `Domain` from a file or the registry |
 | [`balance_valence_triangles`](api/valence.md) | `BalanceResult` | Edge-flip pass to balance node valence |
 
@@ -74,7 +73,7 @@ of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
-- **Maturity**: Current release 1.0.6 (2026-10-12); see the [changelog](https://github.com/domattioli/ADMESH/blob/main/CHANGELOG.md). The public API is fixed for 1.x.
+- **Maturity**: Current release 1.1.0 (2026-11-11); see the [changelog](https://github.com/domattioli/ADMESH/blob/main/CHANGELOG.md). The public API is fixed for 1.x.
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
 - **Registry**: meshes are available through Valence.

@@ -56,7 +56,6 @@ tests/
 │   │   └── README.md                    # fixture source information
 │   ├── matlab/                          # MATLAB golden fixtures (gitignored;
 │   │                                    # generate via scripts/export_matlab_fixtures.m)
-│   └── quad_prep/                       # synthetic right-iso targets
 └── test_*.py
 ```
 
@@ -119,10 +118,10 @@ their respective optional dependencies are absent).
 ## CI parity
 
 - Standard CI lane: `.github/workflows/tests.yml`. Triggers on every push
-  and PR. Matrix: Python 3.10 / 3.11 / 3.12 on `ubuntu-latest`. Runs
+  and PR. Matrix: Python 3.11 only on `ubuntu-latest`. Runs
   `pytest -m "not slow" -q --tb=short`.
 - Slow CI lane: `.github/workflows/tests-slow.yml`. Triggers on Monday
-  04:00 UTC, on `v*` tag pushes, and on manual dispatch. Same matrix.
+  04:00 UTC, on `v*` tag pushes, and on manual dispatch. Matrix: Python 3.11 and 3.12.
   Runs the full suite (no `-m` filter).
 
 If you see CI behavior diverge from your local run, the most common cause

@@ -99,7 +99,7 @@ def right_iso_quality(
 
     Companion to :func:`mesh_quality` (which scores deviation from
     equilateral). Reported side-by-side as a delta after running
-    :func:`admesh.quad_prep.smooth_for_quadrangulation` (spec-004 SC-007).
+    :func:`quadmesh.quad_prep.smooth_for_quadrangulation` (spec-004 SC-007).
 
     Per-element score is the product of three terms in ``[0, 1]``:
 

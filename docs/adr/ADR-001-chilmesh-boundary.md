@@ -18,7 +18,7 @@ The two are conceptually adjacent; both touch unstructured 2D meshes, share conc
 Until this ADR, the boundary between the two was informal: the project instructions file named CHILmesh as "downstream of ADMESH" but did not enumerate which ADMESH modules might rightfully belong on the CHILmesh side. Three open issues prompted the formalization:
 
 - **#84** (max-valence for vertices): touches `admesh/valence.py`, which is consumer-side by nature.
-- **#41** (dimensional mapping for smoothing): touches `admesh/quad_prep.py`, also consumer-side.
+- **#41** (dimensional mapping for smoothing): touches `admesh/quad_prep.py`, also consumer-side. *Superseded by ADR-002: `quad_prep` moved to QuADMESH.*
 - **#9** (`admesh-segmenter` sibling proposal): the precedent that some consumer-side functionality earns its own package.
 
 Without a written boundary, every such issue would relitigate the question. This ADR settles it.
@@ -40,7 +40,7 @@ The spec 015 audit inventory (internal planning notes) classified every public A
 | `admesh.api` (`Mesh`, `Domain`, `BoundarySegment`, `triangulate`) | bdry | **stay in ADMESH** | Generator produces the structure; CHILmesh consumes it via `import admesh` or fort.14 round-trip. No shared base class. |
 | `admesh.boundary_types.BoundaryType` | bdry | **stay in ADMESH** | Wire format authority. Locked by spec 001 FR-022. |
 | `admesh.fort14` | bdry | **stay in ADMESH, contract locked** | Spec 009 R4 + chilmesh-compat tests pin the contract. CHILmesh conforms to it. |
-| `admesh.quad_prep.smooth_for_quadrangulation` | cons | **keep in ADMESH** | Runs *between* fresh-generation and downstream tri-to-quad fusion (QuADMESH). Ships as ADMESH's gift to downstream consumers, including users who never touch CHILmesh. |
+| `admesh.quad_prep.smooth_for_quadrangulation` | cons | **Superseded by ADR-002 (moved to QuADMESH).** Was: keep in ADMESH | Runs *between* fresh-generation and downstream tri-to-quad fusion (QuADMESH). Ships as ADMESH's gift to downstream consumers, including users who never touch CHILmesh. |
 | `admesh.quality.{mesh_quality, right_iso_quality}` | cons | **keep in ADMESH** | Coupled to release-readiness gate (spec 009 R4) and distmesh stopping criterion. Moving creates a circular dependency. |
 | `admesh.valence.*` | cons | **keep in ADMESH; coordinate with #84** | Valence balancing is consumer-side, but #84 wants max-valence as a *generator-side* constraint. ADR records that `admesh.valence` stays; #84's design must thread the seam explicitly. |
 | `admesh.viz.plot_mesh` | cons | **keep in ADMESH** | `[viz]` extra already gates matplotlib. Moving forces CHILmesh install for plotting, net negative. |
@@ -62,7 +62,7 @@ The spec 015 audit inventory (internal planning notes) classified every public A
 
 **Enables:**
 - Issue #84 (max-valence) has a clear seam to design against: generator-side constraint that uses `admesh.valence` as the consumer-side check.
-- Issue #41 (dimensional mapping for smoothing) stays in ADMESH (`quad_prep` is on the ADMESH side).
+- Issue #41 (dimensional mapping for smoothing) stays in ADMESH (`quad_prep` is on the ADMESH side). *Superseded by ADR-002.*
 - Issue #9 (segmenter sibling) precedent is reaffirmed: heavy consumer-side functionality earns its own package, but existing consumer-side modules with tight generator coupling stay home.
 
 **Costs:**

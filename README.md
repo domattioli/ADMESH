@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/admesh2D/#history"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases&label=release" alt="Latest release, including pre-releases"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+"></a>
   <a href="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml"><img src="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/domattioli/ADMESH/issues"><img src="https://img.shields.io/github/issues/domattioli/ADMESH.svg" alt="Open issues"></a>
   <a href="https://doi.org/10.5281/zenodo.20264085"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20264085.svg" alt="DOI"></a>
@@ -39,9 +39,11 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 1.0.6 (2026-10-12); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
+**Current release: 1.1.0 (2026-11-11); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
 
-- **Roadmap:** 1D–2D constraint extraction (#186); single-mesh parallelization (#216); 3D ADMESH (#220); integration with [QuADMESH](https://github.com/domattioli/QuADMESH) (quads) and [CHILmesh](https://github.com/domattioli/CHILmesh) (mesh data structure and smoothing).
+- **Now:** 1D–2D constraint extraction ([#186](https://github.com/domattioli/ADMESH/issues/186)).
+- **Next:** single-mesh parallel speed-up ([#216](https://github.com/domattioli/ADMESH/issues/216), [#218](https://github.com/domattioli/ADMESH/issues/218)).
+- **Later:** 3D ADMESH ([#220](https://github.com/domattioli/ADMESH/issues/220)); integration with [QuADMESH](https://github.com/domattioli/QuADMESH) (quads) and [CHILmesh](https://github.com/domattioli/CHILmesh) (mesh data structure and smoothing).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
@@ -58,7 +60,7 @@ pip install admesh2D                 # core: NumPy, SciPy, Numba, Shapely
 pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
 ```
 
-The PyPI distribution is `admesh2D`; the import name is `admesh`. (`pip install admesh` installs an unrelated STL library.) Requires Python 3.10 or newer. From source: `git clone https://github.com/domattioli/ADMESH.git && cd ADMESH && pip install -e ".[dev]"`.
+The PyPI distribution is `admesh2D`; the import name is `admesh`. (`pip install admesh` installs an unrelated STL library.) Requires Python 3.11 or newer. From source: `git clone https://github.com/domattioli/ADMESH.git && cd ADMESH && pip install -e ".[dev]"`.
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 
@@ -144,6 +146,6 @@ Numba kernels cut end-to-end generation on the Western North Atlantic benchmark 
 **Acknowledgement.** Code added after the original MATLAB port was written using AI coding tools built on Anthropic and OpenAI models. The 13 ported stages are checked against the MATLAB reference tests.
 <!-- /ack -->
 
-**License.** Apache 2.0, see [`LICENSE`](LICENSE).
+**License.** Apache-2.0; a port of the MIT-licensed ADMESH (see [`NOTICE`](NOTICE)). A non-binding request about AI training is in [`AI-TRAINING.md`](AI-TRAINING.md).
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>

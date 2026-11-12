@@ -10,6 +10,8 @@ from __future__ import annotations
 import io
 import warnings
 
+import numpy as np
+
 from admesh import _registry_client as _client
 from admesh.api import Domain
 from admesh._registry_client import (  # noqa: F401
@@ -41,7 +43,20 @@ def _load(name: str, mesh_id: str) -> tuple[Domain, dict]:
     payload, hashes = _client.fetch_mesh(name)
     src = read_fort14(io.StringIO(payload.decode("utf-8")))
     meta = {"name": name, "sha256": hashes["sha256"]}
-    return Domain.from_mesh(src), meta
+    import dataclasses
+
+    from admesh.loaders import _fort14_rings, _open_ring
+
+    dom = Domain.from_mesh(src)
+    rings = _fort14_rings(src)
+    if rings:
+        # Carry the boundary rings so boundary="fixed" has posts to pin.
+        dom = dataclasses.replace(
+            dom,
+            pts=_open_ring(np.asarray(rings[0], dtype=np.float64)),
+            holes=tuple(_open_ring(np.asarray(r, dtype=np.float64)) for r in rings[1:]),
+        )
+    return dom, meta
 
 
 def load_domain_from_registry(name: str, mesh_id: str = _DEFAULT_MESH_ID) -> Domain:

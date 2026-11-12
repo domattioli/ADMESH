@@ -277,6 +277,10 @@ class Domain:
     bathymetry
         Optional callable for bathymetric elevation sampling;
         used by the default size-field stack.
+    holes
+        Optional tuple of ``(M, 2)`` inner (island) boundary rings. Used by
+        ``triangulate(boundary="fixed")`` to relax and pin each hole ring
+        like the outer ring ``pts``.
     """
 
     sdf: Callable[[np.ndarray], np.ndarray]
@@ -285,6 +289,7 @@ class Domain:
     pts: np.ndarray | None = None
     bc_segments: tuple[BoundarySegment, ...] = ()
     bathymetry: Callable[[np.ndarray], np.ndarray] | None = field(default=None, compare=False)
+    holes: tuple[np.ndarray, ...] = field(default=(), compare=False)
 
     @classmethod
     def from_mesh(cls, mesh: "Mesh") -> "Domain":
@@ -323,48 +328,28 @@ class Domain:
         #  2. in_polygon winding test for correct sign — enabled by the junction-aware ring
         #     walk in _derive_boundary_segments which now produces closed rings even for
         #     real-world ADCIRC meshes with pinch-point boundary nodes.
-        from scipy.spatial import cKDTree
-        from admesh._stages.in_polygon import in_polygon as _in_polygon
 
         outer_ring_nodes = bc_segments[0].node_ids
         outer_ring_pts = mesh.nodes[outer_ring_nodes]
         hole_rings_pts = [mesh.nodes[seg.node_ids] for seg in bc_segments[1:]]
 
-        diag = float(np.hypot(bbox[2] - bbox[0], bbox[3] - bbox[1]))
-        h_samp = max(diag / 500, 1e-8)
+        # Exact signed distance with vectorized shapely 2 (contains_xy +
+        # distance to the ring boundary). Replaced a per-point in_polygon
+        # test plus a KD-tree over a diag/500 resample of the rings, which
+        # was ~9x slower and off by up to ~diag/1000 near the coast.
+        import shapely
+        from shapely.geometry import Polygon as _Polygon
 
-        def _dense_sample_ring(ring_pts: np.ndarray, h: float) -> np.ndarray:
-            segs = []
-            n = len(ring_pts)
-            for i in range(n):
-                a = ring_pts[i]
-                b = ring_pts[(i + 1) % n]
-                seg_len = float(np.linalg.norm(b - a))
-                n_samp = max(2, int(np.ceil(seg_len / h)))
-                ts = np.linspace(0.0, 1.0, n_samp)[:-1]
-                segs.append(a + ts[:, None] * (b - a))
-            return np.vstack(segs) if segs else ring_pts
-
-        dense_parts = [_dense_sample_ring(outer_ring_pts, h_samp)]
-        for hr in hole_rings_pts:
-            dense_parts.append(_dense_sample_ring(hr, h_samp))
-        tree = cKDTree(np.vstack(dense_parts))
+        _poly = _Polygon(outer_ring_pts, [np.asarray(h) for h in hole_rings_pts])
+        shapely.prepare(_poly)
+        _bnd = _poly.boundary
+        shapely.prepare(_bnd)
 
         def sdf(points: np.ndarray) -> np.ndarray:
-            distances, _ = tree.query(points)
-            in_outer, _ = _in_polygon(
-                points[:, 0], points[:, 1],
-                outer_ring_pts[:, 0], outer_ring_pts[:, 1],
-            )
-            in_hole = np.zeros(len(points), dtype=bool)
-            for hr in hole_rings_pts:
-                ih, _ = _in_polygon(
-                    points[:, 0], points[:, 1],
-                    hr[:, 0], hr[:, 1],
-                )
-                in_hole |= ih
-            inside = in_outer & ~in_hole
-            return np.where(inside, -distances, distances)
+            pts = np.asarray(points, dtype=np.float64).reshape(-1, 2)
+            dist = shapely.distance(shapely.points(pts), _bnd)
+            inside = shapely.contains_xy(_poly, pts[:, 0], pts[:, 1])
+            return np.where(inside, -dist, dist)
 
         if getattr(mesh, "bathymetry", None) is not None:
             from scipy.interpolate import NearestNDInterpolator
@@ -565,6 +550,10 @@ def _derive_boundary_segments(
 # ---------------------------------------------------------------------------
 
 
+def _sdf_of(domain):
+    return getattr(domain, "sdf", None) or getattr(domain, "fd")
+
+
 def _bbox_diag(bbox: tuple[float, float, float, float]) -> float:
     xmin, ymin, xmax, ymax = bbox
     return float(np.hypot(xmax - xmin, ymax - ymin))
@@ -736,6 +725,92 @@ def _medial_contribution(
     return _medial_leaf_lookup(tree, h_leaf), floor
 
 
+def _split_collinear(p: np.ndarray, t: np.ndarray) -> np.ndarray:
+    """Re-insert points qhull omitted as collinear/coplanar on a triangle edge.
+
+    Delaunay drops points lying exactly on a hull edge (collinear boundary
+    nodes). Each such point splits the triangle(s) sharing that edge.
+    """
+    used = np.zeros(len(p), dtype=bool)
+    used[t.ravel()] = True
+    for k in np.flatnonzero(~used):
+        x = p[k]
+        for ti in range(len(t)):
+            tri = t[ti]
+            hit = None
+            for s in range(3):
+                a, b = tri[s], tri[(s + 1) % 3]
+                ab = p[b] - p[a]
+                L2 = float(ab @ ab)
+                if L2 == 0.0:
+                    continue
+                u = float((x - p[a]) @ ab) / L2
+                if 0.0 < u < 1.0 and abs(ab[0] * (x[1] - p[a][1]) - ab[1] * (x[0] - p[a][0])) <= 1e-9 * np.sqrt(L2):
+                    hit = (a, b, tri[(s + 2) % 3])
+                    break
+            if hit is None:
+                continue
+            a, b, c = hit
+            # split every triangle sharing edge (a, b)
+            new, drop_idx = [], []
+            for tj in range(len(t)):
+                tt = list(t[tj])
+                if a in tt and b in tt:
+                    o = [v for v in tt if v != a and v != b][0]
+                    new += [[a, k, o], [k, b, o]]
+                    drop_idx.append(tj)
+            t = np.vstack([np.delete(t, drop_idx, axis=0), np.array(new, dtype=np.int64)])
+            break
+    return t
+
+
+def _fixed_boundary_postpass(
+    nodes: np.ndarray,
+    elements: np.ndarray,
+    ring_nodes: np.ndarray,
+    sdf: Callable[[np.ndarray], np.ndarray],
+    fh: "Callable[[np.ndarray], np.ndarray] | None",
+    h0: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """API-layer cleanup for ``boundary="fixed"`` (not a MATLAB port).
+
+    Removes free nodes with ``|fd| < 0.1 h0`` that lie within ``0.5 h`` of a
+    fixed ring node, re-triangulates (Delaunay, centroid inside the domain)
+    and reuses the solver cleanup (``_boundary_cleanup`` + ``fixmesh``).
+    Ring nodes are never moved or removed here.
+    """
+    from scipy.spatial import Delaunay, cKDTree
+
+    from admesh._stages.distmesh import fixmesh
+
+    # The solver can lose pinned ring nodes (cleanup of near-duplicate or sliver
+    # nodes); restore any that are missing so every ring node is kept.
+    miss = cKDTree(nodes).query(ring_nodes)[0] > 1e-9
+    if miss.any():
+        nodes = np.vstack([nodes, ring_nodes[miss]])
+    d_ring, _ = cKDTree(ring_nodes).query(nodes)
+    is_ring = d_ring <= 1e-9  # pinned nodes may carry solver round-off
+    h_loc = (
+        np.maximum(np.asarray(fh(nodes), dtype=np.float64).reshape(-1), 0.1 * h0)
+        if fh is not None else np.full(len(nodes), h0)
+    )
+    # Only ring nodes may lie on the boundary: drop every free node close to it.
+    near_bnd = np.abs(np.asarray(sdf(nodes), dtype=np.float64)) < 0.5 * h_loc
+    drop = ~is_ring & near_bnd
+    p = nodes[~drop]
+    t_all = Delaunay(p).simplices.astype(np.int64)
+    q = p[t_all]
+    ar = 0.5 * np.abs((q[:, 1, 0] - q[:, 0, 0]) * (q[:, 2, 1] - q[:, 0, 1])
+                      - (q[:, 2, 0] - q[:, 0, 0]) * (q[:, 1, 1] - q[:, 0, 1]))
+    t_all = t_all[ar > 1e-12 * h0 * h0]  # zero-area slivers on collinear ring runs
+    t_all = _split_collinear(p, t_all)
+    cen = p[t_all].mean(axis=1)
+    t = np.sort(t_all[np.asarray(sdf(cen)) < 0.0], axis=1).astype(np.int64)
+    # No sliver cleanup here: it would orphan (delete) pinned ring nodes.
+    p_out, t_out = fixmesh(p, t)[:2]
+    return p_out, t_out
+
+
 def triangulate(
     domain: Domain | str | "os.PathLike[str]",
     *,
@@ -757,6 +832,9 @@ def triangulate(
     dptol: float | None = None,
     medial_method: str | None = None,
     on_iter: Callable[[int, np.ndarray, np.ndarray], None] | None = None,
+    boundary: str = "fixed",
+    channel_refine: bool | None = None,
+    simplify: float | None = None,
 ) -> Mesh:
     """Generate a triangular mesh on ``domain``.
 
@@ -813,6 +891,37 @@ def triangulate(
         iteration index (int), the current node positions (N, 2), and the
         current triangles (M, 3). Default None. For progress display only
         and does not change the mesh.
+    simplify : float or None
+        Only used with ``boundary='fixed'`` (ignored with a warning
+        otherwise).  Tolerance, in coordinate units (> 0), for thinning dense
+        input boundary vertices before they are pinned: each ring gets
+        Douglas-Peucker simplification at this tolerance, then vertices closer
+        than the tolerance to the previous kept vertex are dropped.  Kept
+        vertices are a subset of the input.  Holes that collapse below 3
+        vertices are dropped with a warning; a collapsed outer ring raises
+        ``ValueError``.  Default None keeps every vertex and warns when the
+        shortest ring edge is under ``0.25 h``.
+    channel_refine : bool or None
+        Build a channel-aware size field (``build_h`` with medial-axis and
+        curvature terms, then ``limit_gradient`` with g=0.2) so narrow
+        channels get interior nodes. ``h_max`` (or its default) is the upper
+        size; the lower size is ``h_max / 8`` and also becomes the initial
+        lattice spacing. ``None`` (default) means on when ``boundary='fixed'``
+        and no ``size_field``, ``user_contribs`` or ``medial_method`` is
+        given, else off. ``True`` with a user ``size_field`` is ignored with a
+        ``UserWarning``. If the estimated grid or lattice is too large
+        (more than 4e6 field cells or 2e6 lattice nodes) it falls back to
+        uniform sizing with a ``UserWarning``; pass a ``size_field`` instead.
+    boundary : {'fixed', 'free', 'slide'}
+        Boundary node treatment (API layer, not a MATLAB port). ``'fixed'``
+        (default) relaxes boundary nodes along each polygon ring with a 1D
+        DistMesh (:mod:`admesh.boundary_relax`), pins the original vertices
+        and relaxed nodes, and after the solve removes every free node within
+        ``0.5 h`` of the boundary, so the boundary nodes are exactly the ring
+        nodes. It needs a polygon (``Domain.pts`` or ``boundary_polygon``);
+        without one it behaves like ``'free'``. ``'free'`` is the previous
+        behaviour (per-edge seeds plus free boundary projection). ``'slide'``
+        is not implemented yet.
 
     Returns
     -------
@@ -822,7 +931,8 @@ def triangulate(
     Raises
     ------
     ValueError
-        If domain source cannot be resolved, quality gates fail, or
+        If ``simplify`` is not positive, the outer ring collapses below 3
+        vertices under ``simplify``, domain source cannot be resolved, quality gates fail, or
         ``medial_method`` is not one of the values listed above.
     RegistryError
         If a registry mesh filename is given and registry access fails (no token,
@@ -833,6 +943,24 @@ def triangulate(
     Principle I). Returns a :class:`Mesh` with per-element quality
     populated and boundaries derived from the triangulation.
     """
+    if simplify is not None:
+        if not simplify > 0:
+            raise ValueError(f"triangulate: simplify must be > 0, got {simplify!r}")
+        if boundary != "fixed":
+            warnings.warn(
+                "triangulate: simplify is only used with boundary='fixed'; ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
+    if boundary == "slide":
+        raise ValueError(
+            "triangulate: boundary='slide' is not implemented yet "
+            "(deferred pending benchmark); use 'fixed' or 'free'"
+        )
+    if boundary not in ("fixed", "free"):
+        raise ValueError(
+            f"triangulate: boundary must be 'fixed' or 'free', got {boundary!r}"
+        )
     if medial_method is not None and medial_method not in _MEDIAL_METHODS:
         raise ValueError(
             f"triangulate: medial_method must be None or one of "
@@ -999,6 +1127,57 @@ def triangulate(
     else:
         fh = size_field  # may still be None — uniform sizing
 
+    if channel_refine is True and size_field is not None:
+        warnings.warn(
+            "triangulate: channel_refine ignored because a size_field was given.",
+            UserWarning,
+            stacklevel=2,
+        )
+    _cr = channel_refine
+    if _cr is None:
+        _cr = (
+            boundary == "fixed" and size_field is None
+            and (getattr(domain, "pts", None) is not None
+                 or getattr(domain, "boundary_polygon", None) is not None)
+            and not user_contribs and medial_method is None
+            and (h_min is None or h_max is None or h_min < h_max)
+        )
+    if _cr and (size_field is not None or user_contribs or medial_method is not None):
+        _cr = False
+    if _cr:
+        _hmax_c = float(h0)
+        # A user h_min sets the floor; h_min >= h_max means uniform was asked for.
+        _hmin_c = float(h_min) if h_min is not None else _hmax_c / 8.0
+        _bb = port_domain.bbox
+        _w = float(_bb[2] - _bb[0])
+        _hh = float(_bb[3] - _bb[1])
+        _cells = (_w / (_hmin_c / 2.0)) * (_hh / (_hmin_c / 2.0))
+        _nodes_est = _w * _hh / _hmin_c ** 2
+        if _cells > 4e6 or _nodes_est > 2e6:
+            warnings.warn(
+                "triangulate: domain is too large for automatic channel "
+                f"refinement (~{_cells:.2g} field cells, ~{_nodes_est:.2g} "
+                "lattice nodes); using uniform sizing. Pass a size_field to "
+                "refine channels.",
+                UserWarning,
+                stacklevel=2,
+            )
+            _cr = False
+    if _cr:
+        from admesh._stages.mesh_size import build_h
+        from admesh.size_field import limit_gradient
+
+        _pd = _PortDomain(
+            name="channel", fd=_sdf_of(domain), bbox=port_domain.bbox,
+            fixed_points=np.empty((0, 2)),
+        )
+        _h = build_h(
+            _pd, base=_hmax_c, medial_scale=0.3, curvature_scale=0.5,
+            hmin=_hmin_c, hmax=_hmax_c,
+        )
+        fh = limit_gradient(_h, tuple(port_domain.bbox), g=0.2)
+        h0 = _hmin_c
+
     if background == "octree":
         from admesh.octree import octree_size_field
         _bbox = port_domain.bbox
@@ -1018,7 +1197,86 @@ def triangulate(
     # Use getattr because admesh.domains.Domain (MVP class) lacks `pts`.
     _pts = getattr(domain, "pts", None)
     domain_pts = _pts if _pts is not None else getattr(domain, "boundary_polygon", None)
-    if domain_pts is not None:
+    _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
+    ring_nodes = None  # set in boundary="fixed" mode
+    if boundary == "fixed" and domain_pts is None:
+        warnings.warn(
+            "triangulate(boundary='fixed'): domain has no boundary ring "
+            "(no 'pts' or 'boundary_polygon'); falling back to free boundary "
+            "behaviour.",
+            UserWarning,
+            stacklevel=2,
+        )
+    if domain_pts is not None and boundary == "fixed":
+        from admesh.boundary_relax import _simplify_ring, relax_rings
+
+        _rings = [np.asarray(domain_pts, dtype=np.float64)]
+        _rings += [
+            np.asarray(r, dtype=np.float64)
+            for r in (getattr(domain, "holes", None) or ())
+        ]
+        if simplify is not None:
+            _new = []
+            _dropped = 0
+            for _i, _r in enumerate(_rings):
+                _s = _simplify_ring(_r, float(simplify))
+                if len(_s) < 3:
+                    if _i == 0:
+                        raise ValueError(
+                            "triangulate: simplify="
+                            f"{simplify:g} collapses the outer boundary ring "
+                            "below 3 vertices; use a smaller tolerance"
+                        )
+                    _dropped += 1
+                    continue
+                _new.append(_s)
+            if _dropped:
+                warnings.warn(
+                    f"triangulate: simplify={simplify:g} collapsed {_dropped} "
+                    "hole ring(s) below 3 vertices; dropped them.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+            _rings = _new
+        else:
+            _min_e = np.inf
+            for _r in _rings:
+                _rr = np.asarray(_r, dtype=np.float64).reshape(-1, 2)
+                _e = np.linalg.norm(np.roll(_rr, -1, axis=0) - _rr, axis=1)
+                _e = _e[_e > 1e-14]
+                if _e.size:
+                    _min_e = min(_min_e, float(_e.min()))
+            if _min_e < 0.25 * h0:
+                warnings.warn(
+                    f"triangulate(boundary='fixed'): input boundary has edges "
+                    f"down to {_min_e:.3g}, much shorter than h={h0:.3g}; "
+                    "pinned close vertices make slivers. Pass "
+                    "simplify=<tolerance> to thin them.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+        _verts = np.vstack(_rings)
+        # fixed mode keeps every input vertex: pin them all in the 1D relax
+        # so it only fills the gaps between them.
+        _pins = np.vstack([pfix, _verts]) if pfix.size else _verts
+        _relaxed = relax_rings(_rings, fh, h0, pinned_points=_pins)
+        _rn = np.vstack(_relaxed)
+        # Drop relaxed nodes crowding an original vertex (vertices are kept).
+        _h_rn = (
+            np.asarray(fh(_rn), dtype=np.float64).reshape(-1)
+            if fh is not None else np.full(len(_rn), h0)
+        )
+        _h_rn = np.maximum(_h_rn, 0.1 * h0)
+        from scipy.spatial import cKDTree
+
+        _dv, _ = cKDTree(_verts).query(_rn)
+        _rn = _rn[_dv > 0.5 * _h_rn]
+        ring_nodes = np.vstack([_verts, _rn])
+        pfix = np.vstack([pfix, ring_nodes]) if pfix.size else ring_nodes
+        port_domain = _PortDomain(
+            name="api_v1", fd=_sdf, bbox=domain.bbox, fixed_points=pfix,
+        )
+    elif domain_pts is not None:
         boundary_seeds = _seed_boundary_1d(
             np.asarray(domain_pts, dtype=np.float64), fh, h0
         )
@@ -1026,8 +1284,6 @@ def triangulate(
             pfix = (
                 np.vstack([pfix, boundary_seeds]) if pfix.size else boundary_seeds
             )
-            # _PortDomain uses `fd`; api.Domain uses `sdf` — handle both.
-            _sdf = getattr(domain, "sdf", None) or getattr(domain, "fd", None)
             port_domain = _PortDomain(
                 name="api_v1",
                 fd=_sdf,
@@ -1038,6 +1294,11 @@ def triangulate(
     p, t = _routine_triangulate(port_domain, h0=h0, fh=fh, **opts)
     nodes = np.asarray(p, dtype=np.float64)
     elements = np.asarray(t, dtype=np.int64)
+
+    if ring_nodes is not None:
+        nodes, elements = _fixed_boundary_postpass(
+            nodes, elements, ring_nodes, _sdf, fh, h0
+        )
 
     min_q, mean_q, q_per = mesh_quality(nodes, elements)
     gate_min, gate_mean = quality_gate

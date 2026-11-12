@@ -124,7 +124,7 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 ## 2026-04-25 - quad_prep - leg-not-hypotenuse `h` scaling (spec-004)
 
 **MATLAB**: n/a, new module (spec-004), not a port.
-**Python**: `admesh.quad_prep.smooth_for_quadrangulation`, specifically per-element scale `sigma_k = h(centroid) / sqrt(2)`.
+**Python**: `quadmesh.quad_prep.smooth_for_quadrangulation` (moved from ADMESH to QuADMESH, ADR-002), specifically per-element scale `sigma_k = h(centroid) / sqrt(2)`.
 **Substitution**: For right-isoceles target with legs `L` and hypotenuse `L * sqrt(2)`, user-supplied size field `h` is interpreted as desired **leg** length. So `sigma_k = h / sqrt(2)`. Rationale: after downstream tri-to-quad fusion, each pair of right-isoceles triangles fuses along shared hypotenuse, and resulting quad inherits **leg** as its edge length.
 **Behavior diff**: None, no MATLAB analog. Convention documented per Constitution Principle II so choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between leg lengths and `h(centroid)`).
 **Impact**: Callers passing OceanMesh2D-style mesh-size function get expected behavior: triangle legs (and downstream quad edges) track `h` directly, no `sqrt(2)` rescaling needed.
@@ -180,3 +180,15 @@ Lint cleanup in three locked stages. Each edit removes a dead Python local or im
 - **`_stages/distmesh.py`: duplicate `from dataclasses import dataclass` removed** above `MeshOutput`. The same import is already at the top of the module. This is a Python-only edit with no MATLAB counterpart.
 - **`_stages/inpaint.py`: dead `nan_count = len(nan_list)` removed** from `_identify_neighbors`. MATLAB `13_In_Paint_NaNs/inpaint_nans.m` (subfunction `identify_neighbors`) reads `nan_count=size(nan_list,1);`. MATLAB uses it to preallocate `nn=zeros(nan_count*talk_count,2);` and to step the fill loop. The Python port builds the same candidate set by broadcasting, so the count was unused.
 - **`_stages/curvature.py`: `# noqa: E741` on `I = np.abs(D) <= 2.0 * hmin`.** MATLAB `04_Curvature_Function/CurvatureFunction.m` line 53 reads `I = abs(D) <= 2*hmin;`. The name `I` is kept for line-by-line fidelity, and a one-line comment records why.
+
+## 2026-11-03 - Boundary relaxation (`triangulate(boundary=...)`), API layer, not a MATLAB port
+
+`src/admesh/boundary_relax.py` and the `boundary` argument of `admesh.triangulate` are additive API-layer code. They have no MATLAB counterpart, and no `_stages/` module changed. The 13 locked stages are untouched.
+
+- **What it does.** With `boundary="fixed"` (default), each polygon ring (`Domain.pts`, or `boundary_polygon` on a faithful-port domain) is discretized by a 1D Persson-Strang relaxation along arc length. Spacing follows the size field. All original vertices are pinned in the 1D relaxation, so it only fills the gaps between them. Original vertices and the relaxed nodes enter `pfix`, so the 2D solver never moves them. A post-pass then removes every free node with `|fd| < 0.5 h`, re-triangulates with SciPy Delaunay (keeping triangles whose centroid has `fd < 0`, dropping zero-area triangles on collinear ring runs, re-inserting ring nodes qhull omits on hull edges), and runs `fixmesh`. The boundary nodes of the output are exactly the ring nodes. Ring nodes are matched with a `1e-9` tolerance: the solver leaves about `1e-16` round-off on pinned nodes, and an earlier exact `==` compare dropped them.
+- **Why.** In the free path the solver snaps free nodes onto the boundary beside pinned seeds. Its crowding guard only drops nodes within `1e-3 h0` of fixed points, which leaves slivers there.
+- **Behavior diff.** `boundary="free"` reproduces the previous output (per-edge `_seed_boundary_1d` seeds). `boundary="slide"` raises `ValueError` (deferred pending benchmark). Domains without a polygon ring behave like `"free"`.
+- **Known limits.** Polygon vertices closer together than `h` all stay as nodes. Hole rings come from `Domain.holes`, which the TOML, JSON and fort.14 loaders fill.
+- **Lessons.**
+  - Never compare solver output to pinned input with `==`. The solver leaves about `1e-16` round-off on pinned nodes. The first fixed-mode post-pass used `d_ring == 0.0` and dropped 3 to 4 ring nodes per mesh. Match pinned nodes with a tolerance (`1e-9` here).
+  - Do not add a function-local `import warnings` inside `triangulate`. It shadows the module import for the whole function body and raises `UnboundLocalError` on an earlier `warnings.warn` call.

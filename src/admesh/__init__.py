@@ -19,7 +19,6 @@ from admesh.loaders import (
     load_domain_from_json,
     load_domain_from_toml,
 )
-from admesh.quad_prep import smooth_for_quadrangulation
 from admesh._stages.quality import mesh_quality, right_iso_quality
 from admesh.registry import (
     list_available_domains,
@@ -36,7 +35,7 @@ from admesh.valence import (
     get_valence_report,
 )
 
-__version__ = "1.0.6"
+__version__ = "1.1.0"
 
 # Public, semver-guarded API surface for ADMESH 1.x.
 #
@@ -66,8 +65,6 @@ __all__ = [
     # --- Quality metrics ---
     "mesh_quality",
     "right_iso_quality",
-    # --- Quad-prep smoother (spec 004) ---
-    "smooth_for_quadrangulation",
     # --- Domain loaders (file + registry) ---
     "load_domain_from_fort14",
     "load_domain_from_json",

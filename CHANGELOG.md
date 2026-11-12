@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+## [1.1.0] - 2026-11-11
+
+`quadmesh.quad_prep` is not yet on PyPI. Until QuADMESH publishes it, install QuADMESH from its repository (https://github.com/domattioli/QuADMESH) to use `smooth_for_quadrangulation`.
+
+### Removed
+- **BREAKING:** `admesh.quad_prep` (`smooth_for_quadrangulation`, public since 0.5.1) and the unreleased `admesh.quad_layers` prototype moved to QuADMESH. There is no deprecation shim. `admesh.smooth_for_quadrangulation` no longer exists. New import: `from quadmesh.quad_prep import smooth_for_quadrangulation` (install QuADMESH from its repository until it publishes `quad_prep` on PyPI). `admesh.quality.right_iso_quality` stays in ADMESH. The removal ships in 1.1.0. See ADR-002.
+
+### Changed
+- Minimum Python is now 3.11. Python 3.10 reached end of life in October 2026. The `tomli` fallback dependency is removed.
+- `Domain.from_mesh` (fort.14 and registry domains) and the TOML/JSON loaders compute the signed distance exactly with vectorized shapely 2. The old fort.14 distance used a resampled ring and was off by up to about diag/1000 near the coast; the inside test ran per point. Full Chesapeake Bay fixed-mode run: 228 s -> 50 s. Free-mode meshes of these domains change slightly.
+- `triangulate()` defaults to `boundary="fixed"`. Meshes of polygon domains now differ from 1.0.6 output: every input boundary vertex is kept exactly, the nodes between them are spaced by a 1D relaxation along the boundary that follows the size field, and the boundary nodes of the output are exactly those nodes. Pass `boundary="free"` to reproduce the 1.0.6 behaviour for domains built directly with `pts`. Domains from the TOML, JSON and fort.14 loaders now carry their boundary rings, so in `"free"` mode they also get per-edge boundary seeds, which 1.0.6 did not add.
+- Domains from the TOML, JSON and fort.14 loaders carry their outer ring (`Domain.pts`) and inner rings (`Domain.holes`). In fort.14 files, closed land segments of type 1, 11 or 21 after the first become holes.
+- Fixed mode warns and falls back to free behaviour when a domain has no boundary ring.
+- Registry domains carry the same outer and hole rings as fort.14 domains, so `boundary="fixed"` works on them.
+- fort.14 rings come from the mesh boundary loops (largest loop outer, rest holes), not from land-segment flags. A land segment is open where the ocean boundary is, and closing it with a chord pinned nodes inside the water (Baranja Hill fixed-mode min quality 0.000, now 0.369).
+- Fixed mode re-adds any pinned ring node the solver drops, so output boundary nodes always equal the ring nodes.
+
+### Added
+- `admesh.boundary_relax`: 1D DistMesh relaxation of closed boundary rings (`relax_ring`, `relax_rings`, `ring_arclength`). Corners and input vertices are pinned. `init="random"` starts from a random node layout.
+- `Domain.holes`: optional tuple of inner rings, default empty. Fixed mode relaxes and pins each hole ring.
+- `triangulate(channel_refine=...)`: in fixed mode with no `size_field`, builds a channel-aware field by default (`build_h` medial + curvature terms, sizes `h_min` (default `h_max/8`) to `h_max`, then `limit_gradient`). Narrow channels get interior nodes instead of bank-to-bank slivers (Chesapeake crop: q<0.3 triangles 114 -> 6). Off when `h_min >= h_max`, with a user size field, or when a cost guard finds the grid too large (warns).
+- `triangulate(simplify=tol)`: in fixed mode, thins input boundary vertices before pinning (Douglas-Peucker, then a minimum spacing of `tol`). Kept vertices are a subset of the input. Off by default; fixed mode warns when input edges are shorter than 0.25 h. Block_O min quality 0.03 -> 0.71.
+- `triangulate(boundary=...)` accepts `"fixed"` and `"free"`. `"slide"` raises `ValueError` until a benchmark shows it is needed.
+- `admesh.size_field.limit_gradient(fh, bbox, g=0.2)`: applies the gradient limit over the whole bounding box. The `build_h` limiter only acts within `4*hmin` of the boundary, so jumps from the medial term escape it. On the demo polygon, min quality rises from 0.19 to 0.68.
+- `scripts/render_boundary_relax.py` renders the 1D relaxation and the 2D solve as an MP4.
+
 ## [1.0.6] - 2026-10-12
 
 ### Fixed

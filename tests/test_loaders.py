@@ -183,11 +183,11 @@ def test_load_domain_from_fort14():
 
 
 def test_load_domain_from_fort14_no_land_boundary():
-    """Test fort.14 loader error when no land boundary exists."""
+    """No flagged land segment: rings are derived from the mesh boundary edges."""
     fixture_path = "tests/fixtures/fort14/adcirc_examples/wnat_test.14"
 
-    with pytest.raises(ValueError, match="No land boundary"):
-        load_domain_from_fort14(fixture_path)
+    domain = load_domain_from_fort14(fixture_path)
+    assert domain.pts is not None and len(domain.pts) >= 3
 
 
 def test_json_missing_rings(tmp_path):
