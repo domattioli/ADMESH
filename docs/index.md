@@ -73,7 +73,7 @@ of the MATLAB reference and may evolve as the port is refined.
 
 ## Project state
 
-- **Maturity**: Current release 1.0.6 (2026-10-12); see the [changelog](https://github.com/domattioli/ADMESH/blob/main/CHANGELOG.md). The public API is fixed for 1.x.
+- **Maturity**: Current release 1.1.0 (2026-11-11); see the [changelog](https://github.com/domattioli/ADMESH/blob/main/CHANGELOG.md). The public API is fixed for 1.x.
 - **License**: Apache-2.0.
 - **Repository**: [github.com/domattioli/ADMESH](https://github.com/domattioli/ADMESH).
 - **Registry**: meshes are available through Valence.

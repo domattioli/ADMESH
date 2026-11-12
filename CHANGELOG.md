@@ -4,8 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-11
+
+`quadmesh.quad_prep` is not yet on PyPI. Until QuADMESH publishes it, install QuADMESH from its repository (https://github.com/domattioli/QuADMESH) to use `smooth_for_quadrangulation`.
+
 ### Removed
-- **BREAKING:** `admesh.quad_prep` (`smooth_for_quadrangulation`, public since 0.5.1) and the unreleased `admesh.quad_layers` prototype moved to QuADMESH. There is no deprecation shim. `admesh.smooth_for_quadrangulation` no longer exists. New import: `from quadmesh.quad_prep import smooth_for_quadrangulation` (`pip install quadmesh`). `admesh.quality.right_iso_quality` stays in ADMESH. The removal ships in the next minor release after 1.0.6. See ADR-002.
+- **BREAKING:** `admesh.quad_prep` (`smooth_for_quadrangulation`, public since 0.5.1) and the unreleased `admesh.quad_layers` prototype moved to QuADMESH. There is no deprecation shim. `admesh.smooth_for_quadrangulation` no longer exists. New import: `from quadmesh.quad_prep import smooth_for_quadrangulation` (install QuADMESH from its repository until it publishes `quad_prep` on PyPI). `admesh.quality.right_iso_quality` stays in ADMESH. The removal ships in 1.1.0. See ADR-002.
 
 ### Changed
 - Minimum Python is now 3.11. Python 3.10 reached end of life in October 2026. The `tomli` fallback dependency is removed.

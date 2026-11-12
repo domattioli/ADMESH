@@ -137,9 +137,10 @@ See [Domain loaders](api/loaders.md) for the JSON / TOML schemas.
 
 ## Pre-quad smoother
 
-The pre-quadrangulation smoother moved to QuADMESH in the release after 1.0.6
-([ADR-002](adr/ADR-002-quad-prep-moves-to-quadmesh.md)). Install it with
-`pip install quadmesh` and import
+The pre-quadrangulation smoother moved to QuADMESH in 1.1.0
+([ADR-002](adr/ADR-002-quad-prep-moves-to-quadmesh.md)). `quad_prep` is not yet
+on PyPI, so install QuADMESH from its repository
+(https://github.com/domattioli/QuADMESH) and import
 `from quadmesh.quad_prep import smooth_for_quadrangulation`.
 `admesh.right_iso_quality` stays in ADMESH.
 

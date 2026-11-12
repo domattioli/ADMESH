@@ -39,7 +39,7 @@
 
 ## 1. Status & Roadmap
 
-**Current release: 1.0.6 (2026-10-12); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
+**Current release: 1.1.0 (2026-11-11); see [CHANGELOG](CHANGELOG.md).** The public API (`admesh.__all__`, listed in [`docs/api/index.md`](docs/api/index.md)) is fixed for 1.x. The `admesh.<stage>` compatibility modules stay through 1.x and are removed no earlier than 2.0.
 
 - **Now:** 1D–2D constraint extraction ([#186](https://github.com/domattioli/ADMESH/issues/186)).
 - **Next:** single-mesh parallel speed-up ([#216](https://github.com/domattioli/ADMESH/issues/216), [#218](https://github.com/domattioli/ADMESH/issues/218)).

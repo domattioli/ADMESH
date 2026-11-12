@@ -16,6 +16,6 @@
 | Valence balancing | `balance_valence_triangles`, `compute_valence`, `get_valence_report` | Edge flipping toward degree-6 interior nodes, quality-guarded. |
 | Plotting (`[viz]`) | `Mesh.plot`, `Mesh.plot_quality`, `Mesh.plot_layers` | Delegates to CHILmesh. Returns a Matplotlib axis. |
 
-Quad preparation (`smooth_for_quadrangulation`) moved to QuADMESH in the release after 1.0.6. Use `from quadmesh.quad_prep import smooth_for_quadrangulation` (`pip install quadmesh`). See [ADR-002](../adr/ADR-002-quad-prep-moves-to-quadmesh.md).
+Quad preparation (`smooth_for_quadrangulation`) moved to QuADMESH in 1.1.0. Use `from quadmesh.quad_prep import smooth_for_quadrangulation`; `quad_prep` is not yet on PyPI, so install QuADMESH from its repository. See [ADR-002](../adr/ADR-002-quad-prep-moves-to-quadmesh.md).
 
 Detailed pages: [triangulate](triangulate.md), [types](types.md), [I/O](io.md), [loaders](loaders.md), [quality](quality.md), [size field](size_field.md).
