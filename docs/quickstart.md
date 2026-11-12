@@ -135,24 +135,13 @@ domain = admesh.load_domain_from_toml("examples/inlet.toml")
 
 See [Domain loaders](api/loaders.md) for the JSON / TOML schemas.
 
-## Pre-quad smoother (spec 004)
+## Pre-quad smoother
 
-If you plan to convert the triangulation to quads downstream, run the
-right-isoceles smoother first:
-
-```python
-domain = admesh.load_domain_from_fort14("coast.14")
-mesh = admesh.triangulate(domain)
-
-# Nudge triangles toward right-isoceles shape so pair-fusion is clean.
-p_new, _ = admesh.smooth_for_quadrangulation(
-    mesh.nodes, mesh.elements, domain.sdf,
-)
-
-# Quality check.
-q = admesh.right_iso_quality(p_new, mesh.elements)
-print("right-isoceles quality (mean):", q.mean())
-```
+The pre-quadrangulation smoother moved to QuADMESH in 2.0.0
+([ADR-002](adr/ADR-002-quad-prep-moves-to-quadmesh.md)). Install it with
+`pip install quadmesh` and import
+`from quadmesh.quad_prep import smooth_for_quadrangulation`.
+`admesh.right_iso_quality` stays in ADMESH.
 
 ## Valence balancing (issue #27)
 

@@ -124,7 +124,7 @@ Pythonic API + ADCIRC fort.14 I/O surface in `admesh/api.py`, `admesh/fort14.py`
 ## 2026-04-25 - quad_prep - leg-not-hypotenuse `h` scaling (spec-004)
 
 **MATLAB**: n/a, new module (spec-004), not a port.
-**Python**: `admesh.quad_prep.smooth_for_quadrangulation`, specifically per-element scale `sigma_k = h(centroid) / sqrt(2)`.
+**Python**: `quadmesh.quad_prep.smooth_for_quadrangulation` (moved from ADMESH to QuADMESH, ADR-002), specifically per-element scale `sigma_k = h(centroid) / sqrt(2)`.
 **Substitution**: For right-isoceles target with legs `L` and hypotenuse `L * sqrt(2)`, user-supplied size field `h` is interpreted as desired **leg** length. So `sigma_k = h / sqrt(2)`. Rationale: after downstream tri-to-quad fusion, each pair of right-isoceles triangles fuses along shared hypotenuse, and resulting quad inherits **leg** as its edge length.
 **Behavior diff**: None, no MATLAB analog. Convention documented per Constitution Principle II so choice is auditable. Validated via SC-003 (Pearson r ≥ 0.8 between leg lengths and `h(centroid)`).
 **Impact**: Callers passing OceanMesh2D-style mesh-size function get expected behavior: triangle legs (and downstream quad edges) track `h` directly, no `sqrt(2)` rescaling needed.

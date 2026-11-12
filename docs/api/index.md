@@ -14,11 +14,8 @@
 | Domain sources | `load_domain_from_{toml,json,fort14,registry}`, `list_available_domains` | A path or registry filename may also be passed to `triangulate()` directly. Formats in [DOMAIN_IO.md](../DOMAIN_IO.md). |
 | Quality metrics | `mesh_quality`, `right_iso_quality` | Equilateral and right-isosceles targets. |
 | Valence balancing | `balance_valence_triangles`, `compute_valence`, `get_valence_report` | Edge flipping toward degree-6 interior nodes, quality-guarded. |
-| Quad preparation | `smooth_for_quadrangulation` | Right-isosceles smoother for downstream tri-to-quad fusion (CHILmesh, OceanMesh2D, ADCIRC v55+). |
 | Plotting (`[viz]`) | `Mesh.plot`, `Mesh.plot_quality`, `Mesh.plot_layers` | Delegates to CHILmesh. Returns a Matplotlib axis. |
 
-![Block-O before and after smooth_for_quadrangulation](https://raw.githubusercontent.com/domattioli/ADMESH/main/docs/gallery/block_o_before_after.png)
-
-`smooth_for_quadrangulation` on the Block-O fixture (2,811 nodes): right-isosceles quality rises from 0.498 to 0.672 with connectivity unchanged.
+Quad preparation (`smooth_for_quadrangulation`) moved to QuADMESH in 2.0.0. Use `from quadmesh.quad_prep import smooth_for_quadrangulation` (`pip install quadmesh`). See [ADR-002](../adr/ADR-002-quad-prep-moves-to-quadmesh.md).
 
 Detailed pages: [triangulate](triangulate.md), [types](types.md), [I/O](io.md), [loaders](loaders.md), [quality](quality.md), [size field](size_field.md).

@@ -63,7 +63,6 @@ Public surface, listed by area:
 | [`read_fort14` / `write_fort14`](api/io.md) | `Mesh` / file | ADCIRC `fort.14` round-trip |
 | [`compose_size_field`](api/size_field.md) | `SizeFieldFn` | Combine multiple size-field contributions |
 | [`mesh_quality`, `right_iso_quality`](api/quality.md) | float, float, array | Per-element quality metrics |
-| [`smooth_for_quadrangulation`](api/quality.md) | `(p, t)` | Right-isoceles preprocessor for tri→quad fusion |
 | [`load_domain_from_fort14`, `..._json`, `..._toml`, `..._registry`](api/loaders.md) | `Domain` | Build a `Domain` from a file or the registry |
 | [`balance_valence_triangles`](api/valence.md) | `BalanceResult` | Edge-flip pass to balance node valence |
 

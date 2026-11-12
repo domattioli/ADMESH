@@ -56,7 +56,6 @@ tests/
 │   │   └── README.md                    # fixture source information
 │   ├── matlab/                          # MATLAB golden fixtures (gitignored;
 │   │                                    # generate via scripts/export_matlab_fixtures.m)
-│   └── quad_prep/                       # synthetic right-iso targets
 └── test_*.py
 ```
 
