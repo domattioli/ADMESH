@@ -37,7 +37,7 @@ pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
 ```
 
 The PyPI distribution is `admesh2D`. The import name is `admesh`.
-Requires Python 3.10 or newer. From a clone: `pip install -e ".[dev]"`.
+Requires Python 3.11 or newer. From a clone: `pip install -e ".[dev]"`.
 
 ## Three-line quickstart
 

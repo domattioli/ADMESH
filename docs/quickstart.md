@@ -137,7 +137,7 @@ See [Domain loaders](api/loaders.md) for the JSON / TOML schemas.
 
 ## Pre-quad smoother
 
-The pre-quadrangulation smoother moved to QuADMESH in 2.0.0
+The pre-quadrangulation smoother moved to QuADMESH in the release after 1.0.6
 ([ADR-002](adr/ADR-002-quad-prep-moves-to-quadmesh.md)). Install it with
 `pip install quadmesh` and import
 `from quadmesh.quad_prep import smooth_for_quadrangulation`.

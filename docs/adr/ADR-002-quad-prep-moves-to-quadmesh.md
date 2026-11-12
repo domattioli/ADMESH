@@ -20,7 +20,7 @@ QuADMESH owns quad preparation: `quadmesh.quad_prep` and `quadmesh.quad_layers`.
 ## Consequences
 
 - Breaking removal of `admesh.quad_prep` and `admesh.quad_layers`. No deprecation shim.
-- The next ADMESH release is 2.0.0.
+- The removal ships in a minor release by operator decision, and 2.0 is reserved for a later release.
 - Migration: `from quadmesh.quad_prep import smooth_for_quadrangulation`.
 - QuADMESH does not depend on ADMESH.
 - ADMESH issue #236 and PR #237 are superseded.

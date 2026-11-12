@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Removed
-- **BREAKING:** `admesh.quad_prep` (`smooth_for_quadrangulation`, public since 0.5.1) and the unreleased `admesh.quad_layers` prototype moved to QuADMESH. There is no deprecation shim. `admesh.smooth_for_quadrangulation` no longer exists. New import: `from quadmesh.quad_prep import smooth_for_quadrangulation` (`pip install quadmesh`). `admesh.quality.right_iso_quality` stays in ADMESH. This makes the next release 2.0.0. See ADR-002.
+- **BREAKING:** `admesh.quad_prep` (`smooth_for_quadrangulation`, public since 0.5.1) and the unreleased `admesh.quad_layers` prototype moved to QuADMESH. There is no deprecation shim. `admesh.smooth_for_quadrangulation` no longer exists. New import: `from quadmesh.quad_prep import smooth_for_quadrangulation` (`pip install quadmesh`). `admesh.quality.right_iso_quality` stays in ADMESH. The removal ships in the next minor release after 1.0.6. See ADR-002.
 
 ### Changed
+- Minimum Python is now 3.11. Python 3.10 reached end of life in October 2026. The `tomli` fallback dependency is removed.
 - `Domain.from_mesh` (fort.14 and registry domains) and the TOML/JSON loaders compute the signed distance exactly with vectorized shapely 2. The old fort.14 distance used a resampled ring and was off by up to about diag/1000 near the coast; the inside test ran per point. Full Chesapeake Bay fixed-mode run: 228 s -> 50 s. Free-mode meshes of these domains change slightly.
 - `triangulate()` defaults to `boundary="fixed"`. Meshes of polygon domains now differ from 1.0.6 output: every input boundary vertex is kept exactly, the nodes between them are spaced by a 1D relaxation along the boundary that follows the size field, and the boundary nodes of the output are exactly those nodes. Pass `boundary="free"` to reproduce the 1.0.6 behaviour for domains built directly with `pts`. Domains from the TOML, JSON and fort.14 loaders now carry their boundary rings, so in `"free"` mode they also get per-edge boundary seeds, which 1.0.6 did not add.
 - Domains from the TOML, JSON and fort.14 loaders carry their outer ring (`Domain.pts`) and inner rings (`Domain.holes`). In fort.14 files, closed land segments of type 1, 11 or 21 after the first become holes.

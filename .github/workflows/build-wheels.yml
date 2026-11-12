@@ -24,7 +24,7 @@ jobs:
         # PRs (paths-gated): macOS/Windows x newest Python only — ubuntu lanes
         # already covered by tests.yml. Push to main/cpp-distmesh: full matrix.
         os: ${{ fromJson(github.event_name == 'pull_request' && '["macos-latest","windows-latest"]' || '["ubuntu-latest","macos-latest","windows-latest"]') }}
-        python-version: ${{ fromJson(github.event_name == 'pull_request' && '["3.13"]' || '["3.10","3.11","3.12","3.13"]') }}
+        python-version: ${{ fromJson(github.event_name == 'pull_request' && '["3.13"]' || '["3.11","3.12","3.13"]') }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6

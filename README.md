@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/admesh2D/#history"><img src="https://img.shields.io/github/v/release/domattioli/ADMESH?include_prereleases&label=release" alt="Latest release, including pre-releases"></a>
-  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 3.10+"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+"></a>
   <a href="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml"><img src="https://github.com/domattioli/ADMESH/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
   <a href="https://github.com/domattioli/ADMESH/issues"><img src="https://img.shields.io/github/issues/domattioli/ADMESH.svg" alt="Open issues"></a>
   <a href="https://doi.org/10.5281/zenodo.20264085"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.20264085.svg" alt="DOI"></a>
@@ -60,7 +60,7 @@ pip install admesh2D                 # core: NumPy, SciPy, Numba, Shapely
 pip install "admesh2D[viz]"          # + chilmesh for mesh.plot()
 ```
 
-The PyPI distribution is `admesh2D`; the import name is `admesh`. (`pip install admesh` installs an unrelated STL library.) Requires Python 3.10 or newer. From source: `git clone https://github.com/domattioli/ADMESH.git && cd ADMESH && pip install -e ".[dev]"`.
+The PyPI distribution is `admesh2D`; the import name is `admesh`. (`pip install admesh` installs an unrelated STL library.) Requires Python 3.11 or newer. From source: `git clone https://github.com/domattioli/ADMESH.git && cd ADMESH && pip install -e ".[dev]"`.
 
 <div align="right"><a href="#table-of-contents"><sub>^ Back to top</sub></a></div>
 

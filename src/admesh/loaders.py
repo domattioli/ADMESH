@@ -7,7 +7,6 @@ compatible with ADMESH-Domains registry format.
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Callable
 
@@ -124,14 +123,8 @@ def _domain_from_polygon(
     )
 
 
-# Use tomllib (Python 3.11+) or fall back to toml package
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    try:
-        import tomli as tomllib  # type: ignore[import-not-found]
-    except ImportError:
-        import toml as tomllib  # type: ignore[import-not-found]
+# tomllib is in the standard library from Python 3.11, the minimum supported version.
+import tomllib
 
 
 def load_domain_from_toml(path: str | Path) -> Domain:
